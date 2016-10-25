@@ -14,7 +14,7 @@ ThemeCustomizer.prototype.getDescription = function () {
 };
 
 ThemeCustomizer.prototype.getVersion = function () {
-    return "0.1.0";
+    return "0.1.1";
 };
 
 ThemeCustomizer.prototype.getAuthor = function () {
@@ -97,9 +97,16 @@ ThemeCustomizer.prototype.start = function () {
   // Load local settings
   vars = JSON.parse(localStorage.getItem("ThemeCustomizer"));
   if (vars === null) {
+
+    // Empty variables
     vars = [];
     save = false;
+
+    // Console output
     console.log("%c[Theme Customizer]" + "%c Failed to load settings", "color: #0ff;", "");
+
+    // Try to find variables
+    findVars();
   }
   else {
     save = true;
@@ -222,6 +229,9 @@ function saveClear() {
 };
 
 ThemeCustomizer.prototype.stop = function () {
+
+  // Empty variables
+  vars= [];
 
   // Clear property values
   for (var i = 0; i <= (vars.length-1); i++) {
