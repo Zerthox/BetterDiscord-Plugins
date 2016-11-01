@@ -6,7 +6,7 @@ var vars = [];
 var save = false;
 
 ThemeCustomizer.prototype.getName = function () {
-    return "Theme Customizer BETA";
+    return "Theme Customizer";
 };
 
 ThemeCustomizer.prototype.getDescription = function () {
