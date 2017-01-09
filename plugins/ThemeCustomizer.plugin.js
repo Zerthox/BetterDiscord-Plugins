@@ -14,7 +14,7 @@ ThemeCustomizer.prototype.getDescription = function () {
 };
 
 ThemeCustomizer.prototype.getVersion = function () {
-    return "0.1.1";
+    return "0.1.2";
 };
 
 ThemeCustomizer.prototype.getAuthor = function () {
@@ -95,7 +95,7 @@ ThemeCustomizer.prototype.start = function () {
   console.log("%c[Theme Customizer]" + "%c Initialized", "color: #0ff;", "");
 
   // Load local settings
-  vars = JSON.parse(localStorage.getItem("ThemeCustomizer"));
+  vars = JSON.parse(bdPluginStorage.get("ThemeCustomizer", "vars"));
   if (vars === null) {
 
     // Empty variables
@@ -214,7 +214,7 @@ function settingsDefault() {
 function saveSettings() {
 
   // Save settings
-  localStorage.setItem("ThemeCustomizer", JSON.stringify(vars));
+  bdPluginStorage.set("ThemeCustomizer", "vars", JSON.stringify(vars));
 
   // Console output
   console.log("%c[Theme Customizer]" + "%c Settings saved", "color: #0ff;", "");
@@ -222,7 +222,7 @@ function saveSettings() {
 
 // CLEAR SAVED SETTINGS
 function saveClear() {
-  localStorage.removeItem("ThemeCustomizer");
+  bdPluginStorage.set("ThemeCustomizer", "vars", "");
 
   // Console output
   console.log("%c[Theme Customizer]" + "%c Cleared saved settings", "color: #0ff;", "");
