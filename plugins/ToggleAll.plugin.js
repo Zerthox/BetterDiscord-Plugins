@@ -12,7 +12,7 @@ ToggleAll.prototype.getDescription = function () {
 };
 
 ToggleAll.prototype.getVersion = function () {
-    return "0.1.0";
+    return "0.1.1";
 };
 
 ToggleAll.prototype.getAuthor = function () {
@@ -32,7 +32,7 @@ ToggleAll.prototype.start = function () {
   BdApi.injectCSS('ToggleAll', '#toggle-all .checkbox::before {content: "All Enabled"; color: #87909C; margin-right: 5px; font-weight: 600;}');
 
   // Select target
-  target = document.querySelector("#app-mount > div > span");
+  target = document.querySelector("#app-mount > div > div:nth-child(6)");
 
   // Try to add buttons
   if (target.contains(document.querySelector(".settings"))) {
