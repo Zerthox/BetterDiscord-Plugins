@@ -14,7 +14,7 @@ ThemeCustomizer.prototype.getDescription = function () {
 };
 
 ThemeCustomizer.prototype.getVersion = function () {
-    return "0.1.2";
+    return "0.1.3";
 };
 
 ThemeCustomizer.prototype.getAuthor = function () {
@@ -123,7 +123,10 @@ ThemeCustomizer.prototype.start = function () {
 function refVars() {
   for (var i = 0; i <= (vars.length-1); i++)
     if (vars[i][2] != null)
+      try {
       $("#" + vars[i][1]).spectrum({color: "#" + vars[i][2], showInput: true, showInitial: true, showAlpha: true});
+    }
+    catch(err){}
 };
 
 // FIND VARIABLES
