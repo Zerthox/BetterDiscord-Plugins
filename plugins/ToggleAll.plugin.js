@@ -1,7 +1,7 @@
 //META{"name":"ToggleAll"}*//
 
 var ToggleAll = function () {};
-var ToggleAll.ButtonsLoaded = false;
+ToggleAll.ButtonsLoaded = false;
 
 ToggleAll.prototype.getName = function () {
     return "Toggle All";
@@ -12,7 +12,7 @@ ToggleAll.prototype.getDescription = function () {
 };
 
 ToggleAll.prototype.getVersion = function () {
-    return "0.1.1";
+    return "0.1.2";
 };
 
 ToggleAll.prototype.getAuthor = function () {
