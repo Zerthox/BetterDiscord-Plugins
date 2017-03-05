@@ -2,8 +2,8 @@
 
 var ThemeCustomizer = function () {};
 
-var vars = [];
-var save = false;
+var ThemeCustomizer.vars = [];
+var ThemeCustomizer.save = false;
 
 ThemeCustomizer.prototype.getName = function () {
     return "Theme Customizer";
@@ -14,7 +14,7 @@ ThemeCustomizer.prototype.getDescription = function () {
 };
 
 ThemeCustomizer.prototype.getVersion = function () {
-    return "0.1.3";
+    return "0.1.4";
 };
 
 ThemeCustomizer.prototype.getAuthor = function () {
@@ -24,15 +24,15 @@ ThemeCustomizer.prototype.getAuthor = function () {
 ThemeCustomizer.prototype.getSettingsPanel = function () {
   var settingspanel = "<div id='tc-settingspanel'><h1>Theme Customizer Settings</h1>";
 
-  if (vars.length > 0) {
+  if (ThemeCustomizer.vars.length > 0) {
     settingspanel += "<div class='tc-controls'>";
-    for (var i = 0; i <= (vars.length-1); i++) {
-      settingspanel += "<label for='" + vars[i][1] + "'>" + vars[i][1] + ": </label>";
-      if (vars[i][2].startsWith("#") || vars[i][2].startsWith("rgb") || vars[i][2].startsWith("hsl")) {
-        settingspanel +="<input type='text' id='" + vars[i][1] + "'><script id='" + vars[i][1] + "'>$('#" + vars[i][1] + "').spectrum({color: '#" + vars[i][2] + "', showInput: true, showInitial: true, showAlpha: true});</script><br>";
+    for (var i = 0; i < ThemeCustomizer.vars.length; i++) {
+      settingspanel += "<label for='" + ThemeCustomizer.vars[i][1] + "'>" + ThemeCustomizer.vars[i][1] + ": </label>";
+      if (ThemeCustomizer.vars[i][2].startsWith("#") || ThemeCustomizer.vars[i][2].startsWith("rgb") || ThemeCustomizer.vars[i][2].startsWith("hsl")) {
+        settingspanel +="<input type='text' id='" + ThemeCustomizer.vars[i][1] + "'><script id='" + ThemeCustomizer.vars[i][1] + "'>$('#" + ThemeCustomizer.vars[i][1] + "').spectrum({color: '#" + ThemeCustomizer.vars[i][2] + "', showInput: true, showInitial: true, showAlpha: true});</script><br>";
       }
       else {
-        settingspanel +="<input type='text' id='" + vars[i][1] + "' value='" + vars[i][2] + "'><br>";
+        settingspanel +="<input type='text' id='" + ThemeCustomizer.vars[i][1] + "' value='" + ThemeCustomizer.vars[i][2] + "'><br>";
       }
     }
     settingspanel += "<br><div class='tc-buttons'>";
@@ -95,12 +95,12 @@ ThemeCustomizer.prototype.start = function () {
   console.log("%c[Theme Customizer]" + "%c Initialized", "color: #0ff;", "");
 
   // Load local settings
-  vars = JSON.parse(bdPluginStorage.get("ThemeCustomizer", "vars"));
-  if (vars === null) {
+  ThemeCustomizer.vars = JSON.parse(bdPluginStorage.get("ThemeCustomizer", "vars"));
+  if (ThemeCustomizer.vars === null) {
 
     // Empty variables
-    vars = [];
-    save = false;
+    ThemeCustomizer.vars = [];
+    ThemeCustomizer.save = false;
 
     // Console output
     console.log("%c[Theme Customizer]" + "%c Failed to load settings", "color: #0ff;", "");
@@ -109,7 +109,7 @@ ThemeCustomizer.prototype.start = function () {
     findVars();
   }
   else {
-    save = true;
+    ThemeCustomizer.save = true;
 
     // Apply settings
     applyVars();
@@ -121,10 +121,10 @@ ThemeCustomizer.prototype.start = function () {
 
 // REFRESH INPUT VALUES
 function refVars() {
-  for (var i = 0; i <= (vars.length-1); i++)
-    if (vars[i][2] != null)
+  for (var i = 0; i < ThemeCustomizer.vars.length; i++)
+    if (ThemeCustomizer.vars[i][2] != null)
       try {
-      $("#" + vars[i][1]).spectrum({color: "#" + vars[i][2], showInput: true, showInitial: true, showAlpha: true});
+      $("#" + ThemeCustomizer.vars[i][1]).spectrum({color: "#" + ThemeCustomizer.vars[i][2], showInput: true, showInitial: true, showAlpha: true});
     }
     catch(err){}
 };
@@ -133,7 +133,7 @@ function refVars() {
 function findVars() {
 
   // Clear variable list
-  vars = [];
+  ThemeCustomizer.vars = [];
 
   // Console output
   console.log("%c[Theme Customizer]" + "%c Scanning for CSS variables", "color: #0ff;", "");
@@ -152,41 +152,41 @@ function findVars() {
           continue;
         }
         let value = window.getComputedStyle(document.querySelector(rule.selectorText)).getPropertyValue(style);
-        vars.push([rule.selectorText, style.replace("--", ""), value]);
+        ThemeCustomizer.vars.push([rule.selectorText, style.replace("--", ""), value]);
       }
     }
   }
 
   // Remove hex color clutter
-  for (var i = 0; i <= (vars.length-1); i++) {
-    vars[i][2] = vars[i][2].replace(/( )/g, "");
-    if (vars[i][2].startsWith("#"))
-      vars[i][2] = vars[i][2].replace(/(\\3)/g, "");
+  for (var i = 0; i < ThemeCustomizer.vars.length; i++) {
+    ThemeCustomizer.vars[i][2] = ThemeCustomizer.vars[i][2].replace(/( )/g, "");
+    if (ThemeCustomizer.vars[i][2].startsWith("#"))
+      ThemeCustomizer.vars[i][2] = ThemeCustomizer.vars[i][2].replace(/(\\3)/g, "");
   }
 };
 
 // APPLY VARIABLES
 function applyVars() {
-  for (var i = 0; i <= (vars.length-1); i++) {
+  for (var i = 0; i < ThemeCustomizer.vars.length; i++) {
 
     // Set as property values
-    document.querySelector(vars[i][0]).style.setProperty("--" + vars[i][1], vars[i][2]);
+    document.querySelector(ThemeCustomizer.vars[i][0]).style.setProperty("--" + ThemeCustomizer.vars[i][1], ThemeCustomizer.vars[i][2]);
 
     // Console output
-    console.log("%c[Theme Customizer]" + "%c Set " + vars[i][1] + " to " + vars[i][2], "color: #0ff;", "");
+    console.log("%c[Theme Customizer]" + "%c Set " + ThemeCustomizer.vars[i][1] + " to " + ThemeCustomizer.vars[i][2], "color: #0ff;", "");
     }
 };
 
 // SET VARIABLES
 function setVars() {
-  for (var i = 0; i <= (vars.length-1); i++) {
+  for (var i = 0; i < ThemeCustomizer.vars.length; i++) {
 
     // Find variable values
-    if (document.querySelector("#" + vars[i][1]).value.startsWith("hsv")) {
-      vars[i][2] = document.querySelector("#" + vars[i][1] + " + .sp-replacer .sp-preview-inner").style.backgroundColor;
+    if (document.querySelector("#" + ThemeCustomizer.vars[i][1]).value.startsWith("hsv")) {
+      ThemeCustomizer.vars[i][2] = document.querySelector("#" + ThemeCustomizer.vars[i][1] + " + .sp-replacer .sp-preview-inner").style.backgroundColor;
     }
     else {
-      vars[i][2] = document.querySelector("#" + vars[i][1]).value;
+      ThemeCustomizer.vars[i][2] = document.querySelector("#" + ThemeCustomizer.vars[i][1]).value;
     }
 
   applyVars();
@@ -197,13 +197,13 @@ function setVars() {
 function settingsDefault() {
 
   // Clear property values
-  for (var i = 0; i <= (vars.length-1); i++) {
-    $(vars[i][0]).removeAttr('style');
+  for (var i = 0; i < ThemeCustomizer.vars.length; i++) {
+    $(ThemeCustomizer.vars[i][0]).removeAttr('style');
   }
 
   // Empty variables
-  vars = [];
-  save = false;
+  ThemeCustomizer.vars = [];
+  ThemeCustomizer.save = false;
 
   // Reload settings
   findVars();
@@ -217,7 +217,7 @@ function settingsDefault() {
 function saveSettings() {
 
   // Save settings
-  bdPluginStorage.set("ThemeCustomizer", "vars", JSON.stringify(vars));
+  bdPluginStorage.set("ThemeCustomizer", "vars", JSON.stringify(ThemeCustomizer.vars));
 
   // Console output
   console.log("%c[Theme Customizer]" + "%c Settings saved", "color: #0ff;", "");
@@ -234,11 +234,11 @@ function saveClear() {
 ThemeCustomizer.prototype.stop = function () {
 
   // Empty variables
-  vars= [];
+  ThemeCustomizer.vars= [];
 
   // Clear property values
-  for (var i = 0; i <= (vars.length-1); i++) {
-    $(vars[i][0]).removeAttr('style');
+  for (var i = 0; i < ThemeCustomizer.vars.length; i++) {
+    $(ThemeCustomizer.vars[i][0]).removeAttr('style');
 
   // Stop observer
   observeStyles.disconnect();
