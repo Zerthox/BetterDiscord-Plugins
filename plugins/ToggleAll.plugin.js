@@ -1,7 +1,7 @@
 //META{"name":"ToggleAll"}*//
 
 var ToggleAll = function () {};
-var taButtonsLoaded = false;
+var ToggleAll.ButtonsLoaded = false;
 
 ToggleAll.prototype.getName = function () {
     return "Toggle All";
@@ -26,30 +26,30 @@ ToggleAll.prototype.getSettingsPanel = function () {
 ToggleAll.prototype.start = function () {
 
   // Default vars
-  taButtonsLoaded = false;
+  ToggleAll.ButtonsLoaded = false;
 
   // Inject CSS
   BdApi.injectCSS('ToggleAll', '#toggle-all .checkbox::before {content: "All Enabled"; color: #87909C; margin-right: 5px; font-weight: 600;}');
 
   // Select target
-  target = document.querySelector("#app-mount > div > div:nth-child(6)");
+  target = document.querySelector(".modal-container");
 
   // Try to add buttons
   if (target.contains(document.querySelector(".settings"))) {
-    if (!taButtonsLoaded) {
+    if (!ToggleAll.ButtonsLoaded) {
       addButtons();
     }
   }
   else {
      
     // Create observer
-    observeSettings = new MutationObserver(function(mutations) {
+    ToggleAll.observer = new MutationObserver(function(mutations) {
       mutations.forEach(function(mutation) {
         if (target.contains(document.querySelector(".settings"))) {
           document.querySelector(".tab-bar #bd-settings-new").addEventListener("click", function() {
-            if (!taButtonsLoaded) {
+            if (!ToggleAll.ButtonsLoaded) {
               addButtons();
-              observeSettings.disconnect();
+              ToggleAll.observer.disconnect();
             }
           });
         }
@@ -62,7 +62,7 @@ ToggleAll.prototype.start = function () {
     };
 
     // Start observer
-    observeSettings.observe(target, config);
+    ToggleAll.observer.observe(target, config);
   }
 
   // Console output
@@ -71,7 +71,7 @@ ToggleAll.prototype.start = function () {
 
 // ADD BUTTONS
 function addButtons() {
-  taButtonsLoaded = true;
+  ToggleAll.ButtonsLoaded = true;
   $('#bd-plugins-pane .bda-slist-top').append('<div id="toggle-all"><div class="checkbox" onclick="togglePlugins();" style="float: right;"><div class="checkbox-inner"><input id="toggle-plugins" type="checkbox" checked=""><span></span></div><span></span></div></div>');
   $('#bd-themes-pane .bda-slist-top').append('<div id="toggle-all"><div class="checkbox" onclick="toggleThemes();" style="float: right;"><div class="checkbox-inner"><input id="toggle-themes" type="checkbox" checked=""><span></span></div><span></span></div></div>');
   console.log("%c[Toggle All]" + "%c Added buttons", "color: #ff1e00;", "");
@@ -84,7 +84,7 @@ function togglePlugins() {
   let checkbox = $("#bd-plugins-pane ul input");
   if (input.checked) {
     input.checked = false;
-    for (i = 0; i <= (count-1); i++) {
+    for (i = 0; i < count; i++) {
       if (checkbox[i].id != "Toggle__All") {
         checkbox[i].checked = false;
         checkbox[i].click();
@@ -94,7 +94,7 @@ function togglePlugins() {
   }
   else {
     input.checked = true;
-    for (i = 0; i <= (count-1); i++) {
+    for (i = 0; i < count; i++) {
       if (checkbox[i].id != "Toggle__All") {
         checkbox[i].checked = true;
         checkbox[i].click();
@@ -111,7 +111,7 @@ function toggleThemes() {
   let checkbox = $("#bd-themes-pane ul input");
   if (input.checked) {
     input.checked = false;
-    for (i = 0; i <= (count-1); i++) {
+    for (i = 0; i < count; i++) {
       checkbox[i].checked = false;
       checkbox[i].click();
     }
@@ -119,7 +119,7 @@ function toggleThemes() {
   }
   else {
     input.checked = true;
-    for (i = 0; i <= (count-1); i++) {
+    for (i = 0; i < count; i++) {
       checkbox[i].checked = true;
       checkbox[i].click();
     }
@@ -133,11 +133,14 @@ ToggleAll.prototype.stop = function () {
   BdApi.clearCSS('ToggleAll');
 
   // Stop observer
-  observeSettings.disconnect();
+  ToggleAll.observer.disconnect();
 
   // Remove buttons
-  if (taButtonsLoaded) {
+  if (ToggleAll.ButtonsLoaded) {
+    try {
     document.getElementById("toggle-all").remove();
+    }
+    catch(err){}
   }
 
   // Console output
