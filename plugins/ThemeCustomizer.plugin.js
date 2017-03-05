@@ -14,7 +14,7 @@ ThemeCustomizer.prototype.getDescription = function () {
 };
 
 ThemeCustomizer.prototype.getVersion = function () {
-    return "0.1.6";
+    return "0.1.7";
 };
 
 ThemeCustomizer.prototype.getAuthor = function () {
@@ -78,7 +78,7 @@ ThemeCustomizer.prototype.start = function () {
   observeStyles.observe(target, config);
 
   // Inject Spectrum
-  if !($().spectrum) {
+  if (!$().spectrum) {
     $("body").append('<script id="spectrumjs" type="text/javascript" src="https://cdnjs.cloudflare.com/ajax/libs/spectrum/1.8.0/spectrum.min.js">');
     $("body").append('<link id ="spectrumcss" rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/spectrum/1.8.0/spectrum.min.css">');
   }
