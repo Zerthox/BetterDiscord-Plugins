@@ -14,7 +14,7 @@ ThemeCustomizer.prototype.getDescription = function () {
 };
 
 ThemeCustomizer.prototype.getVersion = function () {
-    return "0.1.4";
+    return "0.1.5";
 };
 
 ThemeCustomizer.prototype.getAuthor = function () {
@@ -23,7 +23,6 @@ ThemeCustomizer.prototype.getAuthor = function () {
 
 ThemeCustomizer.prototype.getSettingsPanel = function () {
   var settingspanel = "<div id='tc-settingspanel'><h1>Theme Customizer Settings</h1>";
-
   if (ThemeCustomizer.vars.length > 0) {
     settingspanel += "<div class='tc-controls'>";
     for (var i = 0; i < ThemeCustomizer.vars.length; i++) {
@@ -44,14 +43,12 @@ ThemeCustomizer.prototype.getSettingsPanel = function () {
     settingspanel += "</div>";
     settingspanel += "</div>";
   }
-
   else {
     settingspanel += "<i>No Variables found!<br><span style='font-size: smaller;'>Make sure the Plugin and a Theme with CSS Variables are both enabled!</span></i>"
     settingspanel += "<br><br>";
     settingspanel += "<button id='retry' onclick='findVars()'>Retry</button>";
 
   }
-
   settingspanel += "</div>";
 
   return settingspanel;
@@ -80,16 +77,11 @@ ThemeCustomizer.prototype.start = function () {
   // Start observer
   observeStyles.observe(target, config);
 
-  // Inject Spectrum JS
-  var spectrumjs = document.createElement('script');
-  spectrumjs.setAttribute('src','https://cdnjs.cloudflare.com/ajax/libs/spectrum/1.8.0/spectrum.min.js');
-  document.querySelector("body").appendChild(spectrumjs);
-
-  // Inject Spectrum CSS
-  var spectrumcss = document.createElement('link');
-  spectrumcss.setAttribute('rel','stylesheet');
-  spectrumcss.setAttribute('href','https://cdnjs.cloudflare.com/ajax/libs/spectrum/1.8.0/spectrum.min.css');
-  document.querySelector("body").appendChild(spectrumcss);
+  // Inject Spectrum
+  if !($().spectrum) {
+    $("body").append('<script id="spectrumjs" type="text/javascript" src="https://cdnjs.cloudflare.com/ajax/libs/spectrum/1.8.0/spectrum.min.js">');
+    $("body").append('<link id ="spectrumcss" rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/spectrum/1.8.0/spectrum.min.css">');
+  }
 
   // Console output
   console.log("%c[Theme Customizer]" + "%c Initialized", "color: #0ff;", "");
@@ -234,7 +226,7 @@ function saveClear() {
 ThemeCustomizer.prototype.stop = function () {
 
   // Empty variables
-  ThemeCustomizer.vars= [];
+  ThemeCustomizer.vars = [];
 
   // Clear property values
   for (var i = 0; i < ThemeCustomizer.vars.length; i++) {
