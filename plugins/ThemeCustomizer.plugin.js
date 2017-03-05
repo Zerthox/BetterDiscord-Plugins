@@ -2,8 +2,8 @@
 
 var ThemeCustomizer = function () {};
 
-var ThemeCustomizer.vars = [];
-var ThemeCustomizer.save = false;
+ThemeCustomizer.vars = [];
+ThemeCustomizer.save = false;
 
 ThemeCustomizer.prototype.getName = function () {
     return "Theme Customizer";
@@ -14,7 +14,7 @@ ThemeCustomizer.prototype.getDescription = function () {
 };
 
 ThemeCustomizer.prototype.getVersion = function () {
-    return "0.1.5";
+    return "0.1.6";
 };
 
 ThemeCustomizer.prototype.getAuthor = function () {
