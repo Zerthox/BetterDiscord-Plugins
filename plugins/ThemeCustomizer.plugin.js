@@ -3,7 +3,6 @@
 var ThemeCustomizer = function () {};
 
 ThemeCustomizer.vars = [];
-ThemeCustomizer.save = false;
 
 ThemeCustomizer.prototype.getName = function () {
     return "Theme Customizer";
@@ -14,7 +13,7 @@ ThemeCustomizer.prototype.getDescription = function () {
 };
 
 ThemeCustomizer.prototype.getVersion = function () {
-    return "0.1.7";
+    return "0.1.8";
 };
 
 ThemeCustomizer.prototype.getAuthor = function () {
@@ -60,7 +59,7 @@ ThemeCustomizer.prototype.start = function () {
   target = document.querySelector('head');
    
   // Create observer
-  observeStyles = new MutationObserver(function(mutations) {
+  ThemeCustomizer.observer = new MutationObserver(function(mutations) {
     mutations.forEach(function(mutation) {
       findVars();
       refVars();
@@ -75,7 +74,7 @@ ThemeCustomizer.prototype.start = function () {
   };
 
   // Start observer
-  observeStyles.observe(target, config);
+  ThemeCustomizer.observer.observe(target, config);
 
   // Inject Spectrum
   if (!$().spectrum) {
@@ -92,7 +91,6 @@ ThemeCustomizer.prototype.start = function () {
 
     // Empty variables
     ThemeCustomizer.vars = [];
-    ThemeCustomizer.save = false;
 
     // Console output
     console.log("%c[Theme Customizer]" + "%c Failed to load settings", "color: #0ff;", "");
@@ -101,7 +99,6 @@ ThemeCustomizer.prototype.start = function () {
     findVars();
   }
   else {
-    ThemeCustomizer.save = true;
 
     // Apply settings
     applyVars();
@@ -195,7 +192,6 @@ function settingsDefault() {
 
   // Empty variables
   ThemeCustomizer.vars = [];
-  ThemeCustomizer.save = false;
 
   // Reload settings
   findVars();
@@ -233,7 +229,7 @@ ThemeCustomizer.prototype.stop = function () {
     $(ThemeCustomizer.vars[i][0]).removeAttr('style');
 
   // Stop observer
-  observeStyles.disconnect();
+  ThemeCustomizer.observer.disconnect();
 
   // Console output
   console.log("%c[Theme Customizer]" + "%c Stopped", "color: #0ff;", "");
