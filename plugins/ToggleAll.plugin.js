@@ -1,6 +1,7 @@
 //META{"name":"ToggleAll"}*//
 
 var ToggleAll = function () {};
+
 ToggleAll.ButtonsLoaded = false;
 
 ToggleAll.prototype.getName = function () {
@@ -12,7 +13,7 @@ ToggleAll.prototype.getDescription = function () {
 };
 
 ToggleAll.prototype.getVersion = function () {
-    return "0.1.2";
+    return "0.1.3";
 };
 
 ToggleAll.prototype.getAuthor = function () {
@@ -35,10 +36,8 @@ ToggleAll.prototype.start = function () {
   target = document.querySelector(".modal-container");
 
   // Try to add buttons
-  if (target.contains(document.querySelector(".settings"))) {
-    if (!ToggleAll.ButtonsLoaded) {
-      addButtons();
-    }
+  if (target.contains(document.querySelector(".settings")) && !ToggleAll.ButtonsLoaded) {
+    addButtons();
   }
   else {
      
