@@ -7,7 +7,7 @@ BetterReplyer.prototype.getName = function() {
 };
 
 BetterReplyer.prototype.getDescription = function() {
-    return "Reply to people with a button; Original by Hammock & Natsulus";
+    return "Reply to people using their ID with a button<span style='position: absolute; bottom: 0; right: 14px;'>By <b><a href='https://github.com/Zerthox' target='_blank'>@Zerthox</a></b></span>";
 };
 
 BetterReplyer.prototype.getVersion = function() {
