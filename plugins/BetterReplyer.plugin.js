@@ -7,7 +7,7 @@ BetterReplyer.prototype.getName = function() {
 };
 
 BetterReplyer.prototype.getDescription = function() {
-    return "Reply to people using their ID with a button<span style='position: absolute; bottom: 0; right: 14px;'>By <b><a href='https://github.com/Zerthox' target='_blank'>@Zerthox</a></b></span>";
+    return "Reply to people using their ID with a button<br>Original by <a href='https://github.com/cosmicsalad' target='_blank'>Hammock</a> & <a href='https://github.com/Delivator' target='_blank'>Natsulus</a><span style='position: absolute; bottom: 0; right: 14px;'>By <b><a href='https://github.com/Zerthox' target='_blank'>@Zerthox</a></b></span>";
 };
 
 BetterReplyer.prototype.getVersion = function() {
