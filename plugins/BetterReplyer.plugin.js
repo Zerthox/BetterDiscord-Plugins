@@ -11,11 +11,11 @@ BetterReplyer.prototype.getDescription = function() {
 };
 
 BetterReplyer.prototype.getVersion = function() {
-    return "1.0";
+    return "1.1";
 };
 
 BetterReplyer.prototype.getAuthor = function() {
-    return "Zerthox";
+    return "<a href='https://github.com/Zerthox' target='_blank'>Zerthox</a>";
 };
 
 BetterReplyer.prototype.start = function() {
