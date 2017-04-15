@@ -7,15 +7,15 @@ BetterReplyer.prototype.getName = function() {
 };
 
 BetterReplyer.prototype.getDescription = function() {
-    return "Reply to people using their ID with a button<br>Original by <a href='https://github.com/cosmicsalad' target='_blank'>Hammock</a> & <a href='https://github.com/Delivator' target='_blank'>Natsulus</a><span style='position: absolute; bottom: 0; right: 14px;'>By <b><a href='https://github.com/Zerthox' target='_blank'>@Zerthox</a></b></span>";
+    return "Reply to people using their ID (if possible) with a button<br>Original by <a href='https://github.com/cosmicsalad' target='_blank'>Hammock</a> & <a href='https://github.com/Delivator' target='_blank'>Natsulus</a><span style='position: absolute; bottom: 0; right: 14px;'>By <b><a href='https://github.com/Zerthox' target='_blank'>@Zerthox</a></b></span>";
 };
 
 BetterReplyer.prototype.getVersion = function() {
-    return "1.1";
+    return "1.2";
 };
 
 BetterReplyer.prototype.getAuthor = function() {
-    return "<a href='https://github.com/Zerthox' target='_blank'>Zerthox</a>";
+    return "Zerthox";
 };
 
 BetterReplyer.prototype.start = function() {
@@ -30,7 +30,16 @@ BetterReplyer.prototype.start = function() {
 				if (nameDateBlock.find('.replyer').length == 0) {
 					$(this).find(nameDateBlock).append(replyBtn);
 					$(this).find('.replyer').click(function() {
-						$('.content .channel-textarea textarea').val('<@'+$(this).parents(".message-group").find(".avatar-large").attr("style").split("/")[4]+'> '+$('.content .channel-textarea textarea').val()).focus();
+						id = $(this).parents(".message-group").find(".avatar-large").attr("style").split("/")[4];
+						if (id == undefined) {
+							$(this).parent().find('.user-name').click();
+							var popout = $(".user-popout");
+							var user = popout.find('.username').text() + popout.find('.discriminator').text();
+							$('.content .channel-textarea textarea').val('@' + user +' '+$('.content .channel-textarea textarea').val()).focus();
+							popout.remove();
+						}
+						else
+							$('.content .channel-textarea textarea').val('<@' + id + '> ' + $('.content .channel-textarea textarea').val()).focus();
 					});
 				}
 			});
