@@ -8,5 +8,5 @@ Allows you to send custom embed messages, but requires your token. **USE AT OWN 
 ## Theme Customizer
 Customize CSS Variables of themes easily
 
-## Toggle All
+## Toggle All *(Outdated)*
 Enable/disable all plugins or themes with a button
