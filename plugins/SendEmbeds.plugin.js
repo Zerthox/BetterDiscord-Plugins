@@ -30,14 +30,113 @@ SendEmbeds.prototype.start = function () {
   if (SendEmbeds.presets === null) {
     SendEmbeds.presets = [];
   }
-  BdApi.injectCSS("SendEmbeds", SendEmbeds.css);
-  SendEmbeds.event = function (event) {
-    if (event.animationName == 'textareaInserted' && $(".chat .channel-textarea-inner .send-embeds").length === 0)
-      $(".chat .channel-textarea-inner textarea").before('<div class="send-embeds"></div>');
-      $(".channel-textarea-inner .send-embeds").off().click(function() {
+  BdApi.injectCSS("SendEmbeds", `
+div[class*="channelTextArea"] {
+  -webkit-animation: textareaInserted .1ms;
+  animation: textareaInserted .1ms;
+}
+@-webkit-keyframes textareaInserted {
+  from {
+    outline-color: initial;
+  }
+  to {
+    outline-color: initial;
+  }
+}
+@keyframes textareaInserted {
+  from {
+    outline-color: initial;
+  }
+  to {
+    outline-color: initial;
+  }
+}
+div[class*="channelTextArea"] .send-embeds {
+  position: relative;
+  width: 45px;
+  margin: -12px 3px -12px -10px;
+  opacity: .2;
+  cursor: pointer;
+}
+div[class*="channelTextArea"] .send-embeds:hover {
+  opacity: 1;
+}
+div[class*="channelTextArea"] .send-embeds::before {
+  content: "";
+  position: absolute;
+  top: 0;
+  left: 0;
+  bottom: 0;
+  right: 0;
+  background: url(https://storage.googleapis.com/material-icons/external-assets/v4/icons/svg/ic_send_white_24px.svg) 50% no-repeat;
+  -webkit-transform: rotate(-90deg);
+  transform: rotate(-90deg);
+  pointer-events: none;
+}
+#sendembeds {
+  position: absolute;
+  bottom: 76px;
+  margin-left: 20px;
+  z-index: 1;
+}
+#sendembeds .sendembed,
+#sendembeds .presets {
+  background-color: #2e3136;
+  padding: 10px 10px 20px;
+}
+#sendembeds .sendembed {
+  display: table;
+  border-spacing: 0 5px;
+}
+#sendembeds .sendembed .option {
+  display: table-row;
+}
+#sendembeds .sendembed .option > * {
+  display: table-cell;
+}
+#sendembeds .sendembed .option input {
+  width: 250px;
+  margin-left: 5px;
+}
+#sendembeds .button-group {
+  position: absolute;
+  width: calc(100% - 20px);
+  top: calc(100% - 24px);
+}
+#sendembeds .button-group button + button,
+#sendembeds .buttons button + button {
+  margin-left: 3px;
+}
+#sendembeds .button-group .cancel {
+  position: absolute;
+  right: 0;
+}
+#sendembeds .presets {
+  position: absolute;
+  display: flex;
+  flex-direction: row;
+  justify-content: space-around;
+  align-items: center;
+  top: 0;
+  right: 0;
+  bottom: 0;
+  left: 0;
+}
+#sendembeds .presets h1 {
+  text-align: center;
+}
+#sendembeds .presets select {
+  width: 100%;
+}
+#sendembeds .presets .buttons {
+  margin-top: 3px;
+}`);
+    if ($('div[class*="channelTextArea"] .send-embeds').length === 0)
+      $('div[class*="channelTextArea"] textarea').before('<div class="send-embeds"></div>');
+      $('div[class*="channelTextArea"] .send-embeds').off().click(function() {
         SendEmbeds.prototype.showModal(true);
       });
-  }
+
   document.addEventListener('webkitAnimationStart', SendEmbeds.event, false);
   document.addEventListener('animationstart', SendEmbeds.event, false);
   console.log("[SendEmbeds] Started")
@@ -45,7 +144,7 @@ SendEmbeds.prototype.start = function () {
 
 SendEmbeds.prototype.stop = function () {
   BdApi.clearCSS("SendEmbeds");
-  $(".channel-textarea-inner .send-embeds").remove();
+  $('div[class*="channelTextArea"] .send-embeds').remove();
   document.removeEventListener('webkitAnimationStart', SendEmbeds.event, false);
   document.removeEventListener('animationstart', SendEmbeds.event, false);
 };
@@ -209,114 +308,23 @@ SendEmbeds.prototype.showPresetModal = function () {
   }
 };
 
-SendEmbeds.css = `
-.chat .channel-textarea {
-  -webkit-animation: textareaInserted .1ms;
-  animation: textareaInserted .1ms;
-}
-@-webkit-keyframes textareaInserted {
-  from {
-    outline-color: initial;
-  }
-  to {
-    outline-color: initial;
-  }
-}
-@keyframes textareaInserted {
-  from {
-    outline-color: initial;
-  }
-  to {
-    outline-color: initial;
-  }
-}
-.channel-textarea .send-embeds {
-  position: relative;
-  width: 45px;
-  margin: -12px 3px -12px -10px;
-  opacity: .2;
-  cursor: pointer;
-}
-.channel-textarea .send-embeds:hover {
-  opacity: 1;
-}
-.channel-textarea .send-embeds::before {
-  content: "";
-  position: absolute;
-  top: 0;
-  left: 0;
-  bottom: 0;
-  right: 0;
-  background: url(https://storage.googleapis.com/material-icons/external-assets/v4/icons/svg/ic_send_white_24px.svg) 50% no-repeat;
-  -webkit-transform: rotate(-90deg);
-  transform: rotate(-90deg);
-  pointer-events: none;
-}
-#sendembeds {
-  position: absolute;
-  bottom: 76px;
-  margin-left: 20px;
-  z-index: 1;
-}
-#sendembeds .sendembed,
-#sendembeds .presets {
-  background-color: #2e3136;
-  padding: 10px 10px 20px;
-}
-#sendembeds .sendembed {
-  display: table;
-  border-spacing: 0 5px;
-}
-#sendembeds .sendembed .option {
-  display: table-row;
-}
-#sendembeds .sendembed .option > * {
-  display: table-cell;
-}
-#sendembeds .sendembed .option input {
-  width: 250px;
-  margin-left: 5px;
-}
-#sendembeds .button-group {
-  position: absolute;
-  width: calc(100% - 20px);
-  top: calc(100% - 24px);
-}
-#sendembeds .button-group button + button,
-#sendembeds .buttons button + button {
-  margin-left: 3px;
-}
-#sendembeds .button-group .cancel {
-  position: absolute;
-  right: 0;
-}
-#sendembeds .presets {
-  position: absolute;
-  display: flex;
-  flex-direction: row;
-  justify-content: space-around;
-  align-items: center;
-  top: 0;
-  right: 0;
-  bottom: 0;
-  left: 0;
-}
-#sendembeds .presets h1 {
-  text-align: center;
-}
-#sendembeds .presets select {
-  width: 100%;
-}
-#sendembeds .presets .buttons {
-  margin-top: 3px;
-}`
-
 SendEmbeds.prototype.load = function () {};
 
 SendEmbeds.prototype.unload = function () {};
 
-SendEmbeds.prototype.observer = function (e) {};
+SendEmbeds.prototype.observer = function (e) {
+	if (!e.addedNodes.length) return;
 
-SendEmbeds.prototype.onMessage = function () {};
+    var $elem = $(e.addedNodes[0]);
+
+	if ($elem.find(".channelTextArea-1HTP3C").length || $elem.closest(".channelTextArea-1HTP3C").length) {
+	  if ($('div[class*="channelTextArea"] .send-embeds').length === 0)
+      $('div[class*="channelTextArea"] textarea').before('<div class="send-embeds"></div>');
+      $('div[class*="channelTextArea"] .send-embeds').off().click(function() {
+        SendEmbeds.prototype.showModal(true);
+      });
+    }
+
+};
 
 SendEmbeds.prototype.onSwitch = function () {};
