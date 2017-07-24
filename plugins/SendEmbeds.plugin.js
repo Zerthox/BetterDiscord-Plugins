@@ -73,6 +73,9 @@ div[class*="channelTextArea"] .send-embeds::before {
   transform: rotate(-90deg);
   pointer-events: none;
 }
+div[class*="innerEnabledNoAttach"], div[class*="innerDisabled"] {
+    padding-left: 20px;   
+}
 #sendembeds {
   position: absolute;
   bottom: 76px;
