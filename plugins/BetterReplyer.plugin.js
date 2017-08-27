@@ -11,7 +11,7 @@ BetterReplyer.prototype.getDescription = function() {
 };
 
 BetterReplyer.prototype.getVersion = function() {
-    return "1.2";
+    return "1.3";
 };
 
 BetterReplyer.prototype.getAuthor = function() {
@@ -35,11 +35,11 @@ BetterReplyer.prototype.start = function() {
 							$(this).parent().find('.user-name').click();
 							var popout = $(".user-popout");
 							var user = popout.find('.username').text() + popout.find('.discriminator').text();
-							$('.content .channel-textarea textarea').val('@' + user +' '+$('.content .channel-textarea textarea').val()).focus();
+							$('.content [class*="channelTextArea-"] textarea').val('@' + user +' '+$('.content [class*="channelTextArea-"] textarea').val()).focus();
 							popout.remove();
 						}
 						else
-							$('.content .channel-textarea textarea').val('<@' + id + '> ' + $('.content .channel-textarea textarea').val()).focus();
+							$('.content [class*="channelTextArea-"] textarea').val('<@' + id + '> ' + $('.content [class*="channelTextArea-"] textarea').val()).focus();
 					});
 				}
 			});
