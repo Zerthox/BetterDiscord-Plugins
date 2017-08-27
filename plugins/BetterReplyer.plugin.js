@@ -11,7 +11,7 @@ BetterReplyer.prototype.getDescription = function() {
 };
 
 BetterReplyer.prototype.getVersion = function() {
-    return "1.3";
+    return "1.4";
 };
 
 BetterReplyer.prototype.getAuthor = function() {
@@ -23,48 +23,48 @@ BetterReplyer.prototype.start = function() {
 		var target = $(e.target);
 		if (target.parents(".message").length > 0) {
 			var isCompact = false;
-			var allmessages = $('.messages .message-group');
-			var nameDateBlock = $('.messages .message-group .comment .message .body h2');
-			var replyBtn = '<span class="replyer" style="cursor:pointer;color:#fff!important;position:relative;top:-1px;margin-left:5px;text-transform:uppercase;font-size:10px;padding:3px 5px;box-sizing:border-box;background:rgba(0,0,0,0.4)">Reply</span>';
-			allmessages.on('mouseover',function() {
-				if (nameDateBlock.find('.replyer').length == 0) {
+			var allmessages = $(".messages .message-group");
+			var nameDateBlock = $(".messages .message-group .comment .message .body h2");
+			var replyBtn = "<span class='replyer' style='cursor:pointer;color:#fff!important;position:relative;top:-1px;margin-left:5px;text-transform:uppercase;font-size:10px;padding:3px 5px;box-sizing:border-box;background:rgba(0,0,0,0.4)'>Reply</span>";
+			allmessages.on("mouseover", function() {
+				if (nameDateBlock.find(".replyer").length == 0) {
 					$(this).find(nameDateBlock).append(replyBtn);
-					$(this).find('.replyer').click(function() {
+					$(this).find(".replyer").click(function() {
 						id = $(this).parents(".message-group").find(".avatar-large").attr("style").split("/")[4];
 						if (id == undefined) {
-							$(this).parent().find('.user-name').click();
-							var popout = $(".user-popout");
-							var user = popout.find('.username').text() + popout.find('.discriminator').text();
-							$('.content [class*="channelTextArea-"] textarea').val('@' + user +' '+$('.content [class*="channelTextArea-"] textarea').val()).focus();
+							$(this).parent().find(".user-name").click();
+							var popout = $("[class*='userPopout-']");
+							var user = popout.find("[class*='headerUsernameNoNickname-']").text() + popout.find("[class*='headerDiscriminator-']").text();
+							$(".content [class*='channelTextArea-'] textarea").val('@' + user +' '+$(".content [class*='channelTextArea-'] textarea").val()).focus();
 							popout.remove();
 						}
 						else
-							$('.content [class*="channelTextArea-"] textarea').val('<@' + id + '> ' + $('.content [class*="channelTextArea-"] textarea').val()).focus();
+							$(".content [class*='channelTextArea-'] textarea").val('<@' + id + '> ' + $(".content [class*='channelTextArea-'] textarea").val()).focus();
 					});
 				}
 			});
-			allmessages.on('mouseleave',function() {
-				if (nameDateBlock.find('.replyer').length == 1) {
-					$(this).find('.replyer').empty().remove();
+			allmessages.on("mouseleave", function() {
+				if (nameDateBlock.find(".replyer").length == 1) {
+					$(this).find(".replyer").empty().remove();
 				}
 			});
 		}
 	});
-	console.log('[BetterReplyer] Started');
+	console.log("[BetterReplyer] Started");
 };
 
 BetterReplyer.prototype.load = function() {};
 
 BetterReplyer.prototype.unload = function() {
 	$(document).off("mouseover.brpr");
-	$('.messages .message-group').off('mouseover');
-	$('.messages .message-group').off('mouseleave');
+	$(".messages .message-group").off("mouseover");
+	$(".messages .message-group").off("mouseleave");
 };
 
 BetterReplyer.prototype.stop = function() {
 	$(document).off("mouseover.brpr");
-	$('.messages .message-group').off('mouseover');
-	$('.messages .message-group').off('mouseleave');
+	$(".messages .message-group").off("mouseover");
+	$(".messages .message-group").off("mouseleave");
 };
 
 BetterReplyer.prototype.getSettingsPanel = function() {
