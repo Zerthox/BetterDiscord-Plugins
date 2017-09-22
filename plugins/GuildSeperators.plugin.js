@@ -8,7 +8,7 @@ class GuildSeperators {
 		return "Add Guild Seperators with a button in the context menu.";
 	}
 	getVersion() {
-		return "1.2";
+		return "1.3";
 	}
 	getAuthor() {
 		return "Zerthox";
@@ -19,6 +19,7 @@ class GuildSeperators {
 	start() {
 		BdApi.injectCSS("GuildSeperators", this.css());
 		this.loadGuilds();
+		console.log("[GuildSeperators] Started");
 	}
 	stop() {
 		BdApi.clearCSS("GuildSeperators");
@@ -26,7 +27,7 @@ class GuildSeperators {
 	}
 	observer(e) {
 		var gs = this;
-		if ($(e.target).is("[data-reactroot]") && $(e.addedNodes[0]).hasClass("context-menu") && $(".context-menu .item .add-seperator").length === 0) {
+		if ($(e.addedNodes[0]).hasClass("context-menu") && $(".context-menu .item .add-seperator").length === 0) {
 			var html = '<div class="item-group"><div class="item item-toggle"><span class="add-seperator">Add Seperator</span>';
 				html += '<div class="checkbox"><div class="checkbox-inner"><input type="checkbox" value="on"><span></span></div><span></span></div>';
 				html += '</div></div>';
@@ -69,6 +70,9 @@ class GuildSeperators {
 					}
 				});
 			}
+		}
+		else if ($(e.addedNodes[0]).hasClass("guild")) {
+			loadGuilds();
 		}
 	}
 	saveGuilds() {
