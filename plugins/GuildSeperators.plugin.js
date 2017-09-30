@@ -8,7 +8,7 @@ class GuildSeperators {
 		return "Add Guild Seperators with a button in the context menu.";
 	}
 	getVersion() {
-		return "1.3";
+		return "1.4";
 	}
 	getAuthor() {
 		return "Zerthox";
@@ -18,6 +18,10 @@ class GuildSeperators {
 	}
 	start() {
 		BdApi.injectCSS("GuildSeperators", this.css());
+		this.guilds = bdPluginStorage.get(this.getName(), "guilds");
+		if (this.guilds === null) {
+			this.guilds = [];
+		}
 		this.loadGuilds();
 		console.log("[GuildSeperators] Started");
 	}
@@ -26,7 +30,6 @@ class GuildSeperators {
 		this.saveGuilds();
 	}
 	observer(e) {
-		var gs = this;
 		if ($(e.addedNodes[0]).hasClass("context-menu") && $(".context-menu .item .add-seperator").length === 0) {
 			var html = '<div class="item-group"><div class="item item-toggle"><span class="add-seperator">Add Seperator</span>';
 				html += '<div class="checkbox"><div class="checkbox-inner"><input type="checkbox" value="on"><span></span></div><span></span></div>';
@@ -47,6 +50,7 @@ class GuildSeperators {
 			}
 			var g = $(document.elementFromPoint(x, y)).parents(".guild");
 			if (g.length > 0) {
+				var gs = this;
 				c.append(html).promise().done(function() {
 					var i = $(".add-seperator").parents(".item");
 					i.click(function() {
@@ -71,8 +75,8 @@ class GuildSeperators {
 				});
 			}
 		}
-		else if ($(e.addedNodes[0]).hasClass("guild")) {
-			loadGuilds();
+		else if ($(".guild[seperator]").length != this.guilds.length) {
+			this.loadGuilds();
 		}
 	}
 	saveGuilds() {
@@ -80,12 +84,12 @@ class GuildSeperators {
 		$(".guild[seperator]").each(function() {
 			a.push($(this).find("a").attr("href"));
 		});
-		bdPluginStorage.set(this.getName(), "guilds", a);
+		this.guilds = a;
+		bdPluginStorage.set(this.getName(), "guilds", this.guilds);
 	}
 	loadGuilds() {
-		var a = bdPluginStorage.get(this.getName(), "guilds");
-		for (var i = 0; i < a.length; i++) {
-			$(".guilds a[href='" + a[i] + "']").parents(".guild").attr("seperator", "");
+		for (var i = 0; i < this.guilds.length; i++) {
+			$(".guilds a[href='" + this.guilds[i] + "']").parents(".guild").attr("seperator", "");
 		}
 	}
 	css() {
