@@ -8,7 +8,7 @@ class BetterReplyer {
 		return "Reply to people using their ID (if possible) with a button. Original by @Hammock & @Natsulus.";
 	}
 	getVersion() {
-		return "1.5";
+		return "1.6";
 	}
 	getAuthor() {
 		return "Zerthox";
@@ -31,14 +31,19 @@ class BetterReplyer {
 							var id = $(this).parents(".message-group").find(".avatar-large").attr("style").split("/")[4];
 							if (id == undefined) {
 								$(this).parent().find(".user-name").click();
-								var popout = $("[class*='userPopout-']");
-								var user = popout.find("[class*='headerUsernameNoNickname-']").text() + popout.find("[class*='headerDiscriminator-']").text();
-								$(".content [class*='channelTextArea-'] textarea").val('@' + user +' '+$(".content [class*='channelTextArea-'] textarea").val()).focus();
+								var popout = $("[class*='userPopout-']"),
+									user = popout.find("[class*='headerUsernameNoNickname-']").text() + popout.find("[class*='headerDiscriminator-']").text();
 								popout.remove();
+								var mention = "@" + user;
 							}
 							else {
-								$(".content [class*='channelTextArea-'] textarea").val('<@' + id + '> ' + $(".content [class*='channelTextArea-'] textarea").val()).focus();
+								var mention = "<@" + id + ">";
 							}
+							$(".content [class*='channelTextArea-'] textarea").each(function() {
+								var input = mention + " " + $(this).val();
+								$(this).val("").focus();
+								document.execCommand("insertText", false, input);
+							});
 						});
 					}
 				});
