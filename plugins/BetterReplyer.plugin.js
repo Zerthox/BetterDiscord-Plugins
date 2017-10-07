@@ -29,16 +29,24 @@ class BetterReplyer {
 						$(this).find(nameDateBlock).append(replyBtn);
 						$(this).find(".replyer").click(function() {
 							var id = $(this).parents(".message-group").find(".avatar-large").attr("style").split("/")[4];
+							var textarea = $('.content .channelTextArea-1HTP3C textarea')[0]
+							var text = "";
 							if (id == undefined) {
 								$(this).parent().find(".user-name").click();
 								var popout = $("[class*='userPopout-']");
 								var user = popout.find("[class*='headerUsernameNoNickname-']").text() + popout.find("[class*='headerDiscriminator-']").text();
-								$(".content [class*='channelTextArea-'] textarea").val('@' + user +' '+$(".content [class*='channelTextArea-'] textarea").val()).focus();
+								tetx = '@' + user +' '+$(".content [class*='channelTextArea-'] textarea").val()
 								popout.remove();
 							}
 							else {
-								$(".content [class*='channelTextArea-'] textarea").val('<@' + id + '> ' + $(".content [class*='channelTextArea-'] textarea").val()).focus();
+								text = '<@' + id + '> ' + $(".content [class*='channelTextArea-'] textarea").val();
 							}
+							textarea.focus()
+							textarea.selectionStart = 0;
+							textarea.selectionEnd = textarea.value.length;
+							document.execCommand("insertText", false, text);
+							textarea.selectionStart = textarea.value.length;
+							textarea.selectionEnd = textarea.value.length;
 						});
 					}
 				});
