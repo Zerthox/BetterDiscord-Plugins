@@ -37,7 +37,8 @@ class BetterReplyer {
 								popout.remove();
 							}
 							else {
-								$(".content [class*='channelTextArea-'] textarea").val('<@' + id + '> ' + $(".content [class*='channelTextArea-'] textarea").val()).focus();
+								$(".content [class*='channelTextArea-'] textarea").focus();
+								$(".content [class*='channelTextArea-'] textarea").val('<@' + id + '> ' + $(".content [class*='channelTextArea-'] textarea").val());
 							}
 						});
 					}
