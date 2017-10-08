@@ -8,7 +8,7 @@ class GuildSeperators {
 		return "Add Guild Seperators with a button in the context menu.";
 	}
 	getVersion() {
-		return "1.4";
+		return "1.5";
 	}
 	getAuthor() {
 		return "Zerthox";
@@ -82,14 +82,14 @@ class GuildSeperators {
 	saveGuilds() {
 		var a = [];
 		$(".guild[seperator]").each(function() {
-			a.push($(this).find("a").attr("href"));
+			a.push($(this).find("a").attr("href").split("/")[2]);
 		});
 		this.guilds = a;
 		bdPluginStorage.set(this.getName(), "guilds", this.guilds);
 	}
 	loadGuilds() {
 		for (var i = 0; i < this.guilds.length; i++) {
-			$(".guilds a[href='" + this.guilds[i] + "']").parents(".guild").attr("seperator", "");
+			$(".guilds a[href*='" + this.guilds[i] + "']").parents(".guild").attr("seperator", "");
 		}
 	}
 	css() {
