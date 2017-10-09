@@ -5,10 +5,10 @@ class BetterReplyer {
 		return "BetterReplyer";
 	}
 	getDescription() {
-		return "Reply to people using their ID (if possible) with a button. Original by @Hammock & @Natsulus.";
+		return "Reply to people using their ID with a button. Inspired by Replyer by @Hammock#3110, @Natsulus#0001 & @Zerebos#7790. Using getInternalInstance by noodlebox#0155";
 	}
 	getVersion() {
-		return "1.6.1";
+		return "2.0";
 	}
 	getAuthor() {
 		return "Zerthox";
@@ -17,53 +17,66 @@ class BetterReplyer {
 		return null;
 	}
 	start() {
-		$(document).on("mouseover.brpr", function(e) {
-			var target = $(e.target);
-			if (target.parents(".message").length > 0) {
-				var allmessages = $(".messages .message-group");
-				var nameDateBlock = $(".messages .message-group .comment .message .body h2");
-				var replyBtn = "<span class='replyer' style='cursor:pointer;color:#fff!important;position:relative;top:-1px;margin-left:5px;text-transform:uppercase;font-size:10px;padding:3px 5px;box-sizing:border-box;background:rgba(0,0,0,0.4)'>Reply</span>";
-				allmessages.on("mouseover", function() {
-					if (nameDateBlock.find(".replyer").length == 0) {
-						$(this).find(nameDateBlock).append(replyBtn);
-						$(this).find(".replyer").click(function() {
-							var id = $(this).parents(".message-group").find(".avatar-large").attr("style").split("/")[4];
-							if (id == undefined) {
-								$(this).parent().find(".user-name").click();
-								var popout = $("[class*='userPopout-']"),
-									user = popout.find("[class*='headerUsernameNoNickname-']").text() + popout.find("[class*='headerDiscriminator-']").text();
-								popout.remove();
-								var mention = "@" + user;
-							}
-							else {
-								var mention = "<@" + id + ">";
-							}
-							$(".content [class*='channelTextArea-'] textarea").each(function() {
-								var input = mention + " " + $(this).val();
-								$(this).val("").focus();
-								document.execCommand("insertText", false, input);
-							});
-						});
-					}
-				});
-				allmessages.on("mouseleave", function() {
-					if (nameDateBlock.find(".replyer").length == 1) {
-						$(this).find(".replyer").empty().remove();
-					}
-				});
-			}
-		});
+		BdApi.injectCSS(this.getName(), this.css);
+		this.insert();
 		console.log("[BetterReplyer] Started");
 	}
 	stop() {
-		$(document).off("mouseover.brpr");
-		$(".messages .message-group").off("mouseover");
-		$(".messages .message-group").off("mouseleave");
+		$(".message-group .replyer").remove();
+		BdApi.clearCSS(this.getName());
+		console.log("[BetterReplyer] Stopped");
+	}
+	observer(e){
+		if ($(e.addedNodes).is(".message") || $(e.addedNodes).find(".message").length > 0) {
+			this.insert();
+		}
+	}
+	insert() {
+		var self = this;
+		$(".chat .message-group").each(function() {
+			if ($(this).find(".replyer").length === 0) {
+				$(this).find(".timestamp").parent().append("<span class='replyer'>Reply</span>");
+				$(this).find(".replyer").click(function() {
+					var id = self.messageAuthor($(this).parents(".message-group")[0]).id;
+					$(".content [class*='channelTextArea-'] textarea").each(function() {
+						var input = "<@" + id + "> " + $(this).val();
+						this.focus();
+						this.select();
+						document.execCommand("delete", false);
+						document.execCommand("insertText", false, input);
+					});
+				});
+			}
+		});
+	}
+	reactInternalInstance(e) {
+		// getInternalInstance by noodlebox#0155
+		return e[Object.keys(e).find(k => k.startsWith("__reactInternalInstance"))];
+	}
+	messageAuthor(message) {
+		return this.reactInternalInstance(message).memoizedProps.children.find(e => e.type instanceof Function).props.children.props.user;
+	}
+	get css() {
+		var r = `.replyer {
+			position: relative;
+			top: -1px;
+			margin-left: 5px;
+			padding: 3px 5px;
+			box-sizing: border-box;
+			background: rgba(0, 0, 0, 0.4);
+			color: #fff !important;
+			font-size: 10px;
+			text-transform: uppercase;
+			cursor: pointer;
+		}
+		.message-group:not(:hover) .replyer {
+			display: none;
+		}`;
+		return r;
 	}
 	unload() {
 		this.stop();
 	}
-	observer(e) {}
 	onMessage() {}
 	onSwitch() {}
 	load() { }
