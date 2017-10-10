@@ -8,7 +8,7 @@ class BetterReplyer {
 		return "Reply to people using their ID with a button. Inspired by Replyer by @Hammock#3110, @Natsulus#0001 & @Zerebos#7790. Using getInternalInstance by @noodlebox#0155.";
 	}
 	getVersion() {
-		return "2.1";
+		return "2.1.1";
 	}
 	getAuthor() {
 		return "Zerthox";
@@ -35,7 +35,7 @@ class BetterReplyer {
 		var self = this;
 		$(".chat .message-group").each(function() {
 			if ($(this).find(".replyer").length === 0) {
-				$(this).find(".timestamp").parent().append("<span class='replyer'>Reply</span>");
+				$(this).find(".timestamp").after("<span class='replyer'>Reply</span>");
 				$(this).find(".replyer").click(function() {
 					var id = self.messageAuthor($(this).parents(".message-group")[0]).id;
 					$(".content [class*='channelTextArea-'] textarea").each(function() {
