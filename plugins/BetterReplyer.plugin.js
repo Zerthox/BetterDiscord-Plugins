@@ -8,7 +8,7 @@ class BetterReplyer {
 		return "Reply to people using their ID with a button. Inspired by Replyer by @Hammock#3110, @Natsulus#0001 & @Zerebos#7790. Using getInternalInstance by @noodlebox#0155.";
 	}
 	getVersion() {
-		return "2.1.1";
+		return "2.2";
 	}
 	getAuthor() {
 		return "Zerthox";
@@ -27,7 +27,9 @@ class BetterReplyer {
 		console.log("[BetterReplyer] Stopped");
 	}
 	observer(e){
-		if ($(e.addedNodes).is(".message") || $(e.addedNodes).find(".message").length > 0) {
+		var a = $(e.addedNodes),
+			r = $(e.removedNodes)
+		if (a.is(".message") || a.find(".message").length > 0 || r.is(".replyer") || r.find(".replyer").length > 0) {
 			this.insert();
 		}
 	}
