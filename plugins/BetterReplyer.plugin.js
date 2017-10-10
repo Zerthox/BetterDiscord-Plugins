@@ -8,7 +8,7 @@ class BetterReplyer {
 		return "Reply to people using their ID with a button. Inspired by Replyer by @Hammock#3110, @Natsulus#0001 & @Zerebos#7790. Using getInternalInstance by @noodlebox#0155";
 	}
 	getVersion() {
-		return "2.0";
+		return "2.1";
 	}
 	getAuthor() {
 		return "Zerthox";
@@ -39,11 +39,14 @@ class BetterReplyer {
 				$(this).find(".replyer").click(function() {
 					var id = self.messageAuthor($(this).parents(".message-group")[0]).id;
 					$(".content [class*='channelTextArea-'] textarea").each(function() {
-						var input = "<@" + id + "> " + $(this).val();
+						var mention = "<@" + id + "> ";
 						this.focus();
-						this.select();
-						document.execCommand("delete", false);
-						document.execCommand("insertText", false, input);
+						var start = this.selectionStart + mention.length,
+							end = this.selectionEnd + mention.length;
+						this.selectionStart = this.selectionEnd = 0;
+						document.execCommand("insertText", false, mention);
+						this.selectionStart = start;
+						this.selectionEnd = end;
 					});
 				});
 			}
@@ -54,7 +57,7 @@ class BetterReplyer {
 		return e[Object.keys(e).find(k => k.startsWith("__reactInternalInstance"))];
 	}
 	messageAuthor(message) {
-		return this.reactInternalInstance(message).memoizedProps.children.find(e => e.type instanceof Function).props.children.props.user;
+		return this.reactInternalInstance(message).child.child.memoizedProps.user;
 	}
 	get css() {
 		var r = `.replyer {
@@ -62,8 +65,8 @@ class BetterReplyer {
 			top: -1px;
 			margin-left: 5px;
 			padding: 3px 5px;
-			box-sizing: border-box;
 			background: rgba(0, 0, 0, 0.4);
+			border-radius: 3px;
 			color: #fff !important;
 			font-size: 10px;
 			text-transform: uppercase;
