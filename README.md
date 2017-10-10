@@ -1,6 +1,8 @@
 # BetterDiscord Plugins
 ## BetterReplyer
-Reply to people using their ID (if possible) with a button ([Original](https://github.com/cosmicsalad/Discord-Themes-and-Plugins/blob/master/plugins/replyer.plugin.js) by [Hammock](https://github.com/cosmicsala) & [Natsulus](https://github.com/Delivator))
+Reply to people using their ID with a button.  
+Inspired by [Replyer](https://github.com/cosmicsalad/Discord-Themes-and-Plugins/blob/master/plugins/replyer.plugin.js) by [@Hammock#3110](https://github.com/cosmicsalad), [@Natsulus#0001](https://github.com/Delivator) & [@Zerebos#7790](https://github.com/rauenzi)).  
+Using getInternalInstance by [@noodlebox#0155](https://github.com/noodlebox).
 
 ## Guild Seperators
 Add Guild Seperators with a button in the context menu.
