@@ -8,7 +8,7 @@ class GuildSeperators {
 		return "Add Guild Seperators with a button in the context menu.";
 	}
 	getVersion() {
-		return "1.5";
+		return "1.6";
 	}
 	getAuthor() {
 		return "Zerthox";
@@ -23,61 +23,72 @@ class GuildSeperators {
 			this.guilds = [];
 		}
 		this.loadGuilds();
+		if ($(".context-menu").length > 0) {
+			this.insert();
+		}
 		console.log("[GuildSeperators] Started");
 	}
 	stop() {
 		BdApi.clearCSS("GuildSeperators");
 		this.saveGuilds();
+		$(".guild[seperator]").removeAttr("seperator");
+		console.log("[GuildSeperators] Stopped");
 	}
 	observer(e) {
-		if ($(e.addedNodes[0]).hasClass("context-menu") && $(".context-menu .item .add-seperator").length === 0) {
-			var html = '<div class="item-group"><div class="item item-toggle"><span class="add-seperator">Add Seperator</span>';
-				html += '<div class="checkbox"><div class="checkbox-inner"><input type="checkbox" value="on"><span></span></div><span></span></div>';
-				html += '</div></div>';
-			var c = $(".context-menu"),
-				r = c[0].getBoundingClientRect();
-			if (c.hasClass("invertX")) {
-				var x = r.right;
-			}
-			else {
-				var x = r.left;
-			}
-			if (c.hasClass("invertY")) {
-				var y = r.bottom;
-			}
-			else {
-				var y = r.top;
-			}
-			var g = $(document.elementFromPoint(x, y)).parents(".guild");
-			if (g.length > 0) {
-				var gs = this;
-				c.append(html).promise().done(function() {
-					var i = $(".add-seperator").parents(".item");
-					i.click(function() {
-						if (g[0].hasAttribute("seperator")) {
-							g.removeAttr("seperator");
-							$(this).find("input").prop("checked", false);
-						}
-						else {
-							g.attr("seperator", "");
-							$(this).find("input").prop("checked", true);
-						}
-						gs.saveGuilds();
-					});
-					if (g[0].hasAttribute("seperator")) {
-						i.find("input").prop("checked", true);
-					}
-					var p = c[0].getBoundingClientRect();
-					if (p.bottom > window.innerHeight) {
-						c.css({top: p.top - c.height()});
-						c.addClass("invertY");
-					}
-				});
-			}
+		if ($(e.addedNodes).is(".context-menu") || $(e.addedNodes).find(".context-menu").length > 0) {
+			this.insert();
 		}
-		else if ($(".guild[seperator]").length != this.guilds.length) {
+		if ($(e.removedNodes).is(".guild") || $(e.removedNodes).find(".guild").length > 0) {
 			this.loadGuilds();
 		}
+	}
+	insert() {
+		var c = $(".context-menu"),
+			g = this.menuParent(c[0]).parents(".guild");
+		if (g.length > 0 && c.find(".item .add-seperator").length === 0) {
+			var self = this,
+				html = '<div class="item-group"><div class="item item-toggle"><span class="add-seperator">Add Seperator</span>';
+				html += '<div class="checkbox"><div class="checkbox-inner"><input type="checkbox" value="on"><span></span></div><span></span></div>';
+				html += '</div></div>';
+			c.append(html).promise().done(function() {
+				var i = $(".add-seperator").parents(".item");
+				i.click(function() {
+					if (g[0].hasAttribute("seperator")) {
+						g.removeAttr("seperator");
+						$(this).find("input").prop("checked", false);
+					}
+					else {
+						g.attr("seperator", "");
+						$(this).find("input").prop("checked", true);
+					}
+					self.saveGuilds();
+				});
+				if (g[0].hasAttribute("seperator")) {
+					i.find("input").prop("checked", true);
+				}
+				var p = c[0].getBoundingClientRect();
+				if (p.bottom > window.innerHeight) {
+					c.css({top: p.top - c.height()});
+					c.addClass("invertY");
+				}
+			});
+		}
+	}
+	menuParent(e) {
+		var r = e.getBoundingClientRect();
+		if ($(e).hasClass("invertX")) {
+			var x = r.right;
+		}
+		else {
+			var x = r.left;
+		}
+		if ($(e).hasClass("invertY")) {
+			var y = r.bottom;
+		}
+		else {
+			var y = r.top;
+		}
+		return $(document.elementFromPoint(x, y));
 	}
 	saveGuilds() {
 		var a = [];
@@ -110,6 +121,6 @@ class GuildSeperators {
 	}
 	onMessage() {}
 	onSwitch() {}
-	load() { }
+	load() {}
 	unload() {}
 }
