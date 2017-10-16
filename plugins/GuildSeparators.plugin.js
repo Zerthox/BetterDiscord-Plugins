@@ -1,11 +1,11 @@
-//META{"name":"GuildSeperators"}*//
+//META{"name":"GuildSeparators"}*//
 
-class GuildSeperators {
+class GuildSeparators {
 	getName() {
-		return "Guild Seperators";
+		return "Guild Separators";
 	}
 	getDescription() {
-		return "Add Guild Seperators with a button in the context menu.";
+		return "Add Guild Separators with a button in the context menu.";
 	}
 	getVersion() {
 		return "1.6";
@@ -17,7 +17,7 @@ class GuildSeperators {
 		return null;
 	}
 	start() {
-		BdApi.injectCSS("GuildSeperators", this.css());
+		BdApi.injectCSS("GuildSeparators", this.css());
 		this.guilds = bdPluginStorage.get(this.getName(), "guilds");
 		if (this.guilds === null) {
 			this.guilds = [];
@@ -26,13 +26,13 @@ class GuildSeperators {
 		if ($(".context-menu").length > 0) {
 			this.insert();
 		}
-		console.log("[GuildSeperators] Started");
+		console.log("[GuildSeparators] Started");
 	}
 	stop() {
-		BdApi.clearCSS("GuildSeperators");
+		BdApi.clearCSS("GuildSeparators");
 		this.saveGuilds();
-		$(".guild[seperator]").removeAttr("seperator");
-		console.log("[GuildSeperators] Stopped");
+		$(".guild[separator]").removeAttr("separator");
+		console.log("[GuildSeparators] Stopped");
 	}
 	observer(e) {
 		if ($(e.addedNodes).is(".context-menu") || $(e.addedNodes).find(".context-menu").length > 0) {
@@ -45,25 +45,25 @@ class GuildSeperators {
 	insert() {
 		var c = $(".context-menu"),
 			g = this.menuParent(c[0]).parents(".guild");
-		if (g.length > 0 && c.find(".item .add-seperator").length === 0) {
+		if (g.length > 0 && c.find(".item .add-separator").length === 0) {
 			var self = this,
-				html = '<div class="item-group"><div class="item item-toggle"><span class="add-seperator">Add Seperator</span>';
+				html = '<div class="item-group"><div class="item item-toggle"><span class="add-separator">Add Separator</span>';
 				html += '<div class="checkbox"><div class="checkbox-inner"><input type="checkbox" value="on"><span></span></div><span></span></div>';
 				html += '</div></div>';
 			c.append(html).promise().done(function() {
-				var i = $(".add-seperator").parents(".item");
+				var i = $(".add-separator").parents(".item");
 				i.click(function() {
-					if (g[0].hasAttribute("seperator")) {
-						g.removeAttr("seperator");
+					if (g[0].hasAttribute("separator")) {
+						g.removeAttr("separator");
 						$(this).find("input").prop("checked", false);
 					}
 					else {
-						g.attr("seperator", "");
+						g.attr("separator", "");
 						$(this).find("input").prop("checked", true);
 					}
 					self.saveGuilds();
 				});
-				if (g[0].hasAttribute("seperator")) {
+				if (g[0].hasAttribute("separator")) {
 					i.find("input").prop("checked", true);
 				}
 				var p = c[0].getBoundingClientRect();
@@ -92,7 +92,7 @@ class GuildSeperators {
 	}
 	saveGuilds() {
 		var a = [];
-		$(".guild[seperator]").each(function() {
+		$(".guild[separator]").each(function() {
 			a.push($(this).find("a").attr("href").split("/")[2]);
 		});
 		this.guilds = a;
@@ -100,15 +100,15 @@ class GuildSeperators {
 	}
 	loadGuilds() {
 		for (var i = 0; i < this.guilds.length; i++) {
-			$(".guilds a[href*='" + this.guilds[i] + "']").parents(".guild").attr("seperator", "");
+			$(".guilds a[href*='" + this.guilds[i] + "']").parents(".guild").attr("separator", "");
 		}
 	}
 	css() {
-		var r = `/* Guild Seperators CSS */
-		.guild[seperator] {
+		var r = `/* Guild Separators CSS */
+		.guild[separator] {
 			margin-bottom: 32px
 		}
-		.guild[seperator]::after {
+		.guild[separator]::after {
 			content: "";
 			position: absolute;
 			bottom: -16px;
