@@ -8,7 +8,7 @@ class BetterReplyer {
 		return "Reply to people using their ID with a button. Inspired by Replyer by @Hammock#3110, @Natsulus#0001 & @Zerebos#7790. Using getInternalInstance by @noodlebox#0155.";
 	}
 	getVersion() {
-		return "2.2";
+		return "2.2.1";
 	}
 	getAuthor() {
 		return "Zerthox";
@@ -28,7 +28,7 @@ class BetterReplyer {
 	}
 	observer(e){
 		var a = $(e.addedNodes),
-			r = $(e.removedNodes)
+			r = $(e.removedNodes);
 		if (a.is(".message") || a.find(".message").length > 0 || r.is(".replyer") || r.find(".replyer").length > 0) {
 			this.insert();
 		}
@@ -41,7 +41,7 @@ class BetterReplyer {
 				$(this).find(".replyer").click(function() {
 					var id = self.messageAuthor($(this).parents(".message-group")[0]).id;
 					$(".content [class*='channelTextArea-'] textarea").each(function() {
-						var mention = "<@" + id + "> ";
+						var mention = "<@!" + id + "> ";
 						this.focus();
 						var start = this.selectionStart + mention.length,
 							end = this.selectionEnd + mention.length;
@@ -84,5 +84,5 @@ class BetterReplyer {
 	}
 	onMessage() {}
 	onSwitch() {}
-	load() { }
+	load() {}
 }
