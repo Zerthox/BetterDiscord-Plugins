@@ -1,322 +1,456 @@
 //META{"name":"SendEmbeds"}*//
 
-var SendEmbeds = function () {};
-
-// PUT YOUR TOKEN HERE
-SendEmbeds.token = "";
-
-SendEmbeds.prototype.getName = function () {
-  return "SendEmbeds";
-};
-
-SendEmbeds.prototype.getDescription = function () {
-  return "Allows you to send custom embed messages<br>Requires your token<span style='position: absolute; bottom: 0; right: 14px;'>By <b><a href='https://github.com/Zerthox' target='_blank'>@Zerthox</a></b></span>";
-};
-
-SendEmbeds.prototype.getVersion = function () {
-  return "1.0.5";
-};
-
-SendEmbeds.prototype.getAuthor = function () {
-  return "<a href='https://github.com/Zerthox' target='_blank'>Zerthox</a>";
-};
-
-SendEmbeds.prototype.getSettingsPanel = function () {
-  return null;
-};
-
-SendEmbeds.prototype.start = function () {
-  SendEmbeds.presets = bdPluginStorage.get("SendEmbeds", "presetnames");
-  if (SendEmbeds.presets === null) {
-    SendEmbeds.presets = [];
-  }
-  BdApi.injectCSS("SendEmbeds", SendEmbeds.css);
-  SendEmbeds.event = function (event) {
-    if (event.animationName == 'textareaInserted' && $(".chat .channel-textarea-inner .send-embeds").length === 0)
-      $(".chat .channel-textarea-inner textarea").before('<div class="send-embeds"></div>');
-      $(".channel-textarea-inner .send-embeds").off().click(function() {
-        SendEmbeds.prototype.showModal(true);
-      });
-  }
-  document.addEventListener('webkitAnimationStart', SendEmbeds.event, false);
-  document.addEventListener('animationstart', SendEmbeds.event, false);
-  console.log("[SendEmbeds] Started")
-};
-
-SendEmbeds.prototype.stop = function () {
-  BdApi.clearCSS("SendEmbeds");
-  $(".channel-textarea-inner .send-embeds").remove();
-  document.removeEventListener('webkitAnimationStart', SendEmbeds.event, false);
-  document.removeEventListener('animationstart', SendEmbeds.event, false);
-};
-
-SendEmbeds.prototype.sendEmbed = function (data) {
-  $.ajax({
-    type: "POST",
-    url: "https://discordapp.com/api/channels/" + window.location.pathname.split('/').pop() + "/messages",
-    headers: {
-      "authorization": SendEmbeds.token
-    },
-    dataType: "json",
-    contentType: "application/json",
-    data: JSON.stringify(data),
-    error: (req, error, exception) => {
-      console.log(req.responseText);
-    }
-  });
-};
-
-SendEmbeds.prototype.getData = function (a) {
-  color = $("#color").val();
-  if (color.length === 0) {
-    color = null;
-  }
-  else if (color.startsWith("rgb(")) {
-    color = color.split(",");
-    color[0] = Number(color[0].split('rgb(')[1]);
-    color[1] = Number(color[1]);
-    color[2] = Number(color[2].split(')')[0]);
-    color = Number('0x' + rgbToHex(color[0], color[1], color[2]).toString());
-  }
-  else if (color.startsWith("#")) {
-    color = parseInt(color.slice(1), 16);
-  }
-  var data = {
-    content: $("#content").val(),
-    embed: {
-      author: {
-        name: $("#name").val(),
-        icon_url: $("#iconurl").val()
-      },
-      description: $("#desc").val(),
-      footer: {
-        text: $("#footertext").val()
-      },
-      image: {
-        url: $("#imageurl").val()
-      },
-      fields: [],
-      color: color,
-      url: $("#link").val()
-    }
-  }
-  if (a) {
-    SendEmbeds.prototype.sendEmbed(data);
-    SendEmbeds.prototype.showModal();
-  }
-  else {
-    SendEmbeds.prototype.saveEmbed($("#presetname").val(), data);
-  }
-};
-
-SendEmbeds.prototype.saveEmbed = function (presetname, data) {
-  bdPluginStorage.set("SendEmbeds", presetname, data);
-  if (SendEmbeds.presets != null) {
-    SendEmbeds.presets[this.length] = presetname;
-  }
-  else {
-    SendEmbeds.presets = [];
-    SendEmbeds.presets[0] = presetname;
-  }
-  bdPluginStorage.set("SendEmbeds", "presetnames", SendEmbeds.presets);
-  SendEmbeds.prototype.showPresetModal();
-};
-
-SendEmbeds.prototype.loadEmbed = function () {
-  var data = bdPluginStorage.get("SendEmbeds", $("#sendembeds .presets select").val());
-  $("#content").val(data.content);
-  $("#name").val(data.embed.author.name);
-  $("#iconurl").val(data.embed.author.icon_url);
-  $("#desc").val(data.embed.description);
-  $("#footertext").val(data.embed.footer.text);
-  $("#imageurl").val(data.embed.image.url);
-  $("#color").val(data.embed.color);
-  $("#link").val(data.embed.url);
-  SendEmbeds.prototype.showPresetModal();
-};
-
-SendEmbeds.prototype.deleteEmbed = function () {
-  v = $("#sendembeds .presets select").val();
-  i = $.inArray(v, SendEmbeds.presets);
-  if (i > -1) {
-    SendEmbeds.presets.splice(i, 1);
-    bdPluginStorage.set("SendEmbeds", "presetnames", SendEmbeds.presets);
-    bdPluginStorage.set("SendEmbeds", v, null);
-    SendEmbeds.prototype.showPresetModal();
-  }
-  else {
-    Core.prototype.alert("SendEmbeds Error", "Error deleting preset, can not find preset");
-  }
-};
-
-SendEmbeds.prototype.showModal = function () {
-  if ($("#sendembeds").length === 0) {
-    var modalhtml = '<div id="sendembeds"><div class="sendembed">';
-        modalhtml += '<div class="option"><label for="content">Content: </label><input type="text" id="content"></div>';
-        modalhtml += '<div class="option"><label for="name">Name: </label><input type="text" id="name"></div>';
-        modalhtml += '<div class="option"><label for="iconurl">Icon URL: </label><input type="text" id="iconurl"></div>';
-        modalhtml += '<div class="option"><label for="desc">Description: </label><input type="text" id="desc"></div>';
-        modalhtml += '<div class="option"><label for="imageurl">Image URL: </label><input type="text" id="imageurl"></div>';
-        modalhtml += '<div class="option"><label for="footertext">Footer Text: </label><input type="text" id="footertext"></div>';
-        modalhtml += '<div class="option"><label for="link">Link URL: </label><input type="text" id="link"></div>';
-        modalhtml += '<div class="option"><label for="color">Color: <i style="font-size:11px;">(HEX/RGB)</i> </label><input type="text" id="color"></div>';
-        modalhtml += '<div class="button-group">';
-        modalhtml += '<button class="send" onclick="SendEmbeds.prototype.getData(true)">Send</button>';
-        modalhtml += '<button class="save" onclick="SendEmbeds.prototype.showPresetModal()">Presets</button>';
-        modalhtml += '<button class="cancel" onclick="SendEmbeds.prototype.showModal()">Cancel</button>';
-        modalhtml += '</div></div></div>';
-    $(".chat form").after(modalhtml);
-  }
-  else {
-    $("#sendembeds").remove();
-  }
-};
-
-SendEmbeds.prototype.showPresetModal = function () {
-  if ($("#sendembeds .presets").length === 0) {
-    var presethtml = '<div class="presets">';
-        if (SendEmbeds.presets != null) {
-          presethtml += '<div class="loadpreset"><h1>Load Preset</h1><select name="presetselect" size="1">';
-          for (var i = 0; i < SendEmbeds.presets.length; i++) {
-            presethtml += '<option>' + SendEmbeds.presets[i]  + '</option>';
-          }
-          presethtml += '</select>';
-          presethtml += '<div class="buttons">';
-          presethtml += '<button class="save" onclick="SendEmbeds.prototype.loadEmbed()">Load</button>';
-          presethtml += '<button class="save" onclick="SendEmbeds.prototype.deleteEmbed()">Delete</button>';
-          presethtml += '</div>';
-          presethtml += '</div>';
-        }
-        else {
-          presethtml += '<div class="loadpreset"><i>No saved Presets</i></div>';
-        }
-        presethtml += '<div class="savepreset"><h1>Save Preset</h1>';
-        presethtml += '<label for="presetname">Preset Name: </label><input type="text" id="presetname">';
-        presethtml += '<div class="buttons">';
-        presethtml += '<button class="save" onclick="SendEmbeds.prototype.getData(false)">Save</button>';
-        presethtml += '</div>';
-        presethtml += '</div>';
-        presethtml += '<div class="button-group">';
-        presethtml += '<button class="cancel" onclick="SendEmbeds.prototype.showPresetModal()">Cancel</button>';
-        presethtml += '</div>';
-        presethtml += '</div>';
-    $("#sendembeds .sendembed").after(presethtml);
-    $("#sendembeds .sendembed").css("opacity", "0");
-  }
-  else {
-    $("#sendembeds .presets").remove();
-    $("#sendembeds .sendembed").css("opacity", "");
-  }
-};
-
-SendEmbeds.css = `
-.chat .channel-textarea {
-  -webkit-animation: textareaInserted .1ms;
-  animation: textareaInserted .1ms;
+class SendEmbeds {
+	getName() {
+		return "SendEmbeds";
+	}
+	getDescription() {
+		return "Allows the user to send custom rich embed messages.";
+	}
+	getVersion() {
+		return "2.0.0";
+	}
+	getAuthor() {
+		return "Zerthox";
+	}
+	getSettingsPanel() {
+		return null;
+	}
+	start() {
+		if (typeof CryptoJS === "undefined") {
+			$("body").append('<script id="cryptojs" type="text/javascript" src="https://cdnjs.cloudflare.com/ajax/libs/crypto-js/3.1.2/rollups/aes.js">');
+		}
+		this.presets = bdPluginStorage.get(this.getName(), "presets");
+		if (this.presets === null) {
+			this.presets = {};
+		}
+		BdApi.injectCSS(this.getName(), this.css());
+		console.log("[SendEmbeds] Started");
+	}
+	stop() {
+		BdApi.clearCSS(this.getName());
+		$(".channel-textarea-inner .sendembeds-button").remove();
+		console.log("[SendEmbeds] Stopped");
+	}
+	observer(e) {
+		var self = this,
+			a = $(".chat form .channel-text-area-default > [class*='inner-']:not([class*='innerDisabled'])");
+		if (a.length > 0 && a.find(".sendembeds-button").length === 0) {
+			a.find("textarea").before('<div class="sendembeds-button"></div>');
+			a.find(".sendembeds-button").off().click(function() {
+				self.modal();
+			});
+		}
+	}
+	getData() {
+		var color = $("#color").val();
+		if (color.length === 0) {
+			color = null;
+		}
+		else if (color.startsWith("rgb(")) {
+			color = color.split(",");
+			color[0] = Number(color[0].split('rgb(')[1]);
+			color[1] = Number(color[1]);
+			color[2] = Number(color[2].split(')')[0]);
+			color = Number('0x' + rgbToHex(color[0], color[1], color[2]).toString());
+		}
+		else if (color.startsWith("#")) {
+			color = parseInt(color.slice(1), 16);
+		}
+		var data = {
+			content: $("#content").val(),
+			embed: {
+				author: {
+					name: $("#authorname").val(),
+					icon_url: $("#authoricon").val()
+				},
+				description: $("#description").val(),
+				footer: {
+					text: $("#footertext").val()
+				},
+				thumbnail: {
+					url: $("#thumbnail").val()
+				},
+				image: {
+					url: $("#image").val()
+				},
+				fields: [],
+				color: color,
+				url: $("#link").val()
+			}
+		}
+		return data;
+	}
+	modal() {
+		var self = this;
+		if ($("#sendembeds").length === 0) {
+			var modalhtml = '<div id="sendembeds">';
+			if (!self.token) {
+				if (bdPluginStorage.get(self.getName(), "token") != null) {
+					modalhtml += '<div class="overlay">';
+					modalhtml += '<h1>Please enter your Password</h1>';
+					modalhtml += '<div>The password is required to decrypt your token.</div>';
+					modalhtml += '<div><label for="password">Password: </label><input type="text" id="password"></div>';
+					modalhtml += '<div class="button-group">';
+				    modalhtml += '<button class="load">Confirm</button>';
+				    modalhtml += '<button class="reset">Reset Password & Token</button>';
+				    modalhtml += '<button class="close right">Close</button>';
+				    modalhtml += '</div></div>';
+				}
+				else {
+					modalhtml += '<div class="overlay">';
+					modalhtml += '<h1>Please enter Token & a Password</h1>';
+					modalhtml += '<div>The password is used to encrypt your token.</div>';
+					modalhtml += '<div><label for="token">Token: </label><input type="text" id="token"></div>';
+					modalhtml += '<div><label for="password">Password: </label><input type="text" id="password"></div>';
+					modalhtml += '<div class="button-group">';
+				    modalhtml += '<button class="save">Confirm</button>';
+				    modalhtml += '<button class="close right">Close</button>';
+				    modalhtml += '</div></div>';
+				}
+			}
+				modalhtml += '<div class="sendembed">';
+			    modalhtml += '<div class="option"><label for="content">Content: </label><input type="text" id="content"></div>';
+			    modalhtml += '<div class="option"><label for="authorname">Name: </label><input type="text" id="authorname"></div>';
+			    modalhtml += '<div class="option"><label for="authoricon">Icon URL: </label><input type="text" id="authoricon"></div>';
+			    modalhtml += '<div class="option"><label for="description">Description: </label><input type="text" id="description"></div>';
+			    modalhtml += '<div class="option"><label for="thumbnail">Thumbnail URL: </label><input type="text" id="thumbnail"></div>';
+			    modalhtml += '<div class="option"><label for="imageurl">Image URL: </label><input type="text" id="image"></div>';
+			    modalhtml += '<div class="option"><label for="footertext">Footer Text: </label><input type="text" id="footertext"></div>';
+			    modalhtml += '<div class="option"><label for="link">Link URL: </label><input type="text" id="link"></div>';
+			    modalhtml += '<div class="option"><label for="color">Color: <i style="font-size:11px;">(HEX/RGB)</i> </label><input type="text" id="color"></div>';
+			    modalhtml += '<div class="button-group">';
+			    modalhtml += '<button class="send">Send</button>';
+			    modalhtml += '<button class="save">Presets</button>';
+			    modalhtml += '<button class="restart">Reenter Password</button>';
+			    modalhtml += '<button class="close right">Close</button>';
+			    modalhtml += '</div></div></div>';
+			$(".chat form").after(modalhtml).promise().done(function() {
+				$("#sendembeds .close").click(function() {
+					$("#sendembeds").remove();
+				});
+				$("#sendembeds .sendembed .send").click(function() {
+					self.sendEmbed(self.getData());
+					$("#sendembeds").remove();
+				});
+				$("#sendembeds .sendembed .save").click(function() {
+					self.modalPreset();
+				});
+				$("#sendembeds .sendembed .restart").click(function() {
+					self.token = false;
+					$("#sendembeds").remove();
+					self.modal();
+				});
+				var o = $("#sendembeds .overlay");
+				if (o.length > 0) {
+					o.find(".save").click(function() {
+						var i = $("#sendembeds .overlay #token").val();
+						if (i.startsWith('"')) {
+							i = i.slice(1);
+						}
+						if (i.endsWith('"')) {
+							i = i.slice(0, -1);
+						}
+						self.setToken(i, $("#sendembeds .overlay #password").val());						
+						$("#sendembeds").remove();
+						self.modal();
+					});
+					o.find(".load").click(function() {
+						self.loadToken($("#sendembeds .overlay #password").val());						
+						$("#sendembeds").remove();
+						self.modal();
+					});
+					o.find(".reset").click(function() {
+						bdPluginStorage.set(self.getName(), "token", null);
+						$("#sendembeds").remove();
+						self.modal();
+					});
+				}
+			});
+		}
+		else {
+			$("#sendembeds").remove();
+		}
+	}
+	constructor() {
+		let storage = new WeakMap(),
+			key = {};
+		Object.defineProperty(this, "setToken", {
+			value: function(token, auth) {
+				storage.set(key, token);
+				var h = CryptoJS.MD5(auth),
+					t = CryptoJS.AES.encrypt(token, h.toString());
+				bdPluginStorage.set(this.getName(), "token", t.toString());
+				this.token = true;
+	        },
+			configurable: false,
+			writable: false
+		});
+		Object.defineProperty(this, "loadToken", {
+			value: function(auth) {
+				var s = bdPluginStorage.get(this.getName(), "token"),
+					h = CryptoJS.MD5(auth),
+					t = CryptoJS.AES.decrypt(s, h.toString()).toString(CryptoJS.enc.Utf8);
+				storage.set(key, t);
+				this.token = true;
+	        },
+			configurable: false,
+			writable: false
+		});
+		Object.defineProperty(this, "sendEmbed", {
+			value: function(data) {
+				var self = this;
+		    	$.ajax({
+					type: "POST",
+					url: "https://discordapp.com/api/channels/" + window.location.pathname.split('/').pop() + "/messages",
+					headers: {
+						"authorization": storage.get(key)
+					},
+					dataType: "json",
+					contentType: "application/json",
+					data: JSON.stringify(data),
+					error: (req, error, exception) => {
+						self.alert("SendEmbeds Error", "Error sending message:<br>" + req.responseText);
+					}
+				});
+		    },
+			configurable: false,
+			writable: false
+		});
+	}
+	modalPreset() {
+		var self = this;
+		if ($("#sendembeds .presets").length === 0) {
+			var presethtml = '<div class="presets">',
+				pk = Object.keys(self.presets);
+			if (pk.length > 0) {
+				presethtml += '<div class="loadpreset"><h1>Load Preset</h1>';
+				presethtml += '<span>Preset Name: </span><select name="presetselect" size="1">';
+				for (var i = 0; i < pk.length; i++) {
+					presethtml += '<option>' + pk[i] + '</option>';
+				}
+				presethtml += '</select>';
+				presethtml += '<div class="buttons">';
+				presethtml += '<button class="load">Load</button>';
+				presethtml += '<button class="delete">Delete</button>';
+				presethtml += '</div>';
+				presethtml += '</div>';
+			}
+			else {
+				presethtml += '<div class="loadpreset"><i>No saved Presets</i></div>';
+			}
+			presethtml += '<div class="savepreset"><h1>Save Preset</h1>';
+			presethtml += '<span>Preset Name: </span><input type="text" id="presetname">';
+			presethtml += '<div class="buttons">';
+			presethtml += '<button class="save">Save</button>';
+			presethtml += '</div>';
+			presethtml += '</div>';
+			presethtml += '<div class="button-group">';
+			presethtml += '<button class="cancel right">Cancel</button>';
+			presethtml += '</div>';
+			presethtml += '</div>';
+			$("#sendembeds .sendembed").after(presethtml).promise().done(function() {
+				$("#sendembeds .presets .load").click(function() {
+					self.loadPreset($("#sendembeds .presets select").val());
+				});
+				$("#sendembeds .presets .delete").click(function() {
+					self.deletePreset($("#sendembeds .presets select").val());
+				});
+				$("#sendembeds .presets .save").click(function() {
+					self.savePreset($("#presetname").val(), self.getData());
+				});
+				$("#sendembeds .presets .cancel").click(function() {
+					self.modalPreset();
+				});
+			});
+			$("#sendembeds .sendembed").css("opacity", "0");
+		}
+		else {
+			$("#sendembeds .presets").remove();
+			$("#sendembeds .sendembed").css("opacity", "");
+		}
+	}
+	savePreset(presetname, data) {
+		if (presetname.length === 0) {
+			var f = this.presets.filter(function(e) {
+				if (e.startsWith("Unnamed ")) {
+					return e;
+				}
+			}).sort();
+			if (f.length > 0) {
+				var i = parseInt(f[f.length - 1].slice(-1)) + 1;
+				presetname = "Unnamed " + i;
+			}
+			else {
+				presetname = "Unnamed 1";
+			}
+		}
+		this.presets[presetname] = data;
+		bdPluginStorage.set(this.getName(), "presets", this.presets);
+		$("#sendembeds .presets").remove();
+		$("#sendembeds .sendembed").css("opacity", "");
+	}
+	loadPreset(presetname) {
+		if (this.presets.hasOwnProperty(presetname)) {
+			var p = this.presets[presetname];
+			var get = function(object, prop) {
+				var o = object,
+					p = prop.split(".");
+				for (var i = 0; i < p.length; i++) {
+					o = o[p[i]];
+					if (o === undefined) {
+						return "";
+					}
+				}
+				return o;
+			}
+			var data = {
+				content: get(p, "content"),
+				authorname: get(p, "embed.author.name"),
+				authoricon: get(p, "embed.author.icon_url"),
+				description: get(p, "embed.description"),
+				footertext: get(p, "embed.footer.text"),
+				thumbnail: get(p, "embed.thumbnail.url"),
+				image: get(p, "embed.image.url"),
+				color: get(p, "embed.color"),
+				link: get(p, "embed.url")
+			}
+			$("#sendembeds .sendembed input").each(function() {
+				$(this).val(data[$(this).attr("id")]);
+			});
+		}
+		$("#sendembeds .presets").remove();
+		$("#sendembeds .sendembed").css("opacity", "");
+	}
+	deletePreset(presetname) {
+		if (this.presets.hasOwnProperty(presetname)) {
+			delete this.presets[presetname];
+			bdPluginStorage.set(this.getName(), "presets", this.presets);
+		}
+		$("#sendembeds .presets").remove();
+		$("#sendembeds .sendembed").css("opacity", "");
+	}
+	alert(title, text, target) {
+		var html = '<div class="theme-dark"><div class="callout-backdrop" style="opacity: 0.85; background-color: rgb(0, 0, 0); transform: translateZ(0px);"></div>';
+			html += '<div class="modal-2LIEKY" style="opacity: 1; transform: scale(1) translateZ(0px);"><div class="inner-1_1f7b"><div class="modal-3HOjGZ modal-KwRiOq size-2pbXxj">';
+			html += '<div class="flex-lFgbSz flex-3B1Tl4 horizontal-2BEEBe horizontal-2VE-Fw flex-3B1Tl4 directionRow-yNbSvJ justifyStart-2yIZo0 alignCenter-3VxkQP noWrap-v6g9vO header-3sp3cE" style="flex: 0 0 auto;">';
+			html += '<h4 class="h4-2IXpeI title-1pmpPr size16-3IvaX_ height20-165WbF weightSemiBold-T8sxWH defaultColor-v22dK1 defaultMarginh4-jAopYe marginReset-3hwONl">' + title + '</h4>';
+			html += '<svg class="close-3RZM3j flexChild-1KGW5q" xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 12 12"><g fill="none" fill-rule="evenodd"><path d="M0 0h12v12H0"></path><path class="fill" fill="currentColor" d="M9.5 3.205L8.795 2.5 6 5.295 3.205 2.5l-.705.705L5.295 6 2.5 8.795l.705.705L6 6.705 8.795 9.5l.705-.705L6.705 6"></path></g></svg></div>';
+			html += '<div class="scrollerWrap-2uBjct content-1Cut5s scrollerThemed-19vinI themeGhostHairline-2H8SiW"><div class="scroller-fzNley inner-tqJwAU content-3KEfmo selectable"><div class="medium-2KnC-N size16-3IvaX_ height20-165WbF primary-2giqSn selectable-prgIYK" style="padding-bottom: 20px;">' + text + '</div></div></div></div></div></div></div>';
+		var t = target || $(".app").parent().siblings(".theme-dark:eq(2)")[0];
+		$(t).html(html).promise().done(function() {
+			$(".callout-backdrop, [class*='modal-'] [class*='close-']").click(function() {
+				$(t).html("");
+			});
+		});
+	}
+	css() {
+		var r = `/* SendEmbeds CSS */
+		.chat .sendembeds-button {
+			display: -webkit-box;
+		    display: -ms-flexbox;
+		    display: flex;
+			cursor: pointer;
+		}
+		.chat form .sendembeds-button::before {
+			content: url(https://storage.googleapis.com/material-icons/external-assets/v4/icons/svg/ic_open_in_browser_white_24px.svg);
+			margin: auto;
+			padding-right: 10px;
+			pointer-events: none;
+			opacity: .2;
+		}
+		.chat form .sendembeds-button:hover::before {
+			opacity: 1;
+		}
+		.chat [class*="innerEnabledNoAttach"] .sendembeds-button::before {
+			padding-right: 0;
+			padding-left: 10px;
+		}
+		#sendembeds {
+			position: absolute;
+			bottom: 76px;
+			margin-left: 20px;
+			z-index: 1;
+		}
+		#sendembeds > * {
+			background-color: #2e3136;
+			padding: 10px 10px 20px;
+		}
+		#sendembeds .sendembed {
+			display: table;
+			border-spacing: 0 5px;
+		}
+		#sendembeds .sendembed .option {
+			display: table-row;
+		}
+		#sendembeds .sendembed .option > * {
+			display: table-cell;
+		}
+		#sendembeds .sendembed .option input {
+			width: 250px;
+			margin-left: 5px;
+		}
+		#sendembeds .button-group {
+			position: absolute;
+			width: calc(100% - 20px);
+			top: calc(100% - 24px);
+		}
+		#sendembeds .button-group button + button,
+		#sendembeds .buttons button + button {
+			margin-left: 3px;
+		}
+		#sendembeds .button-group > .right {
+			position: absolute;
+			right: 0;
+		}
+		#sendembeds h1 {
+			line-height: normal;
+			text-align: center;
+		}
+		#sendembeds .overlay {
+			flex-direction: column;
+			justify-content: center;
+			z-index: 10;
+		}
+		#sendembeds .overlay > :not(.button-group),
+		#sendembeds .overlay input {
+			width: 100%;
+		}
+		#sendembeds .overlay label {
+			display: block;
+		}
+		#sendembeds .overlay > * + :not(.button-group) {
+			margin-top: 5px;
+		}
+		#sendembeds .presets,
+		#sendembeds .overlay {
+			position: absolute;
+			display: flex;
+			align-items: center;
+			top: 0;
+			right: 0;
+			bottom: 0;
+			left: 0;
+		}
+		#sendembeds .presets {
+			justify-content: space-around;
+			flex-direction: row;
+		}
+		#sendembeds .presets select {
+			width: 100%;
+			height: 22px;
+		}
+		#sendembeds .presets input {
+			display: block;
+			height: 17px;
+		}
+		#sendembeds .presets .buttons {
+			margin-top: 3px;
+		}`;
+		return r;
+	}
+	onMessage() {}
+	onSwitch() {}
+	load() {}
+	unload() {}
 }
-@-webkit-keyframes textareaInserted {
-  from {
-    outline-color: initial;
-  }
-  to {
-    outline-color: initial;
-  }
-}
-@keyframes textareaInserted {
-  from {
-    outline-color: initial;
-  }
-  to {
-    outline-color: initial;
-  }
-}
-.channel-textarea .send-embeds {
-  position: relative;
-  width: 45px;
-  margin: -12px 3px -12px -10px;
-  opacity: .2;
-  cursor: pointer;
-}
-.channel-textarea .send-embeds:hover {
-  opacity: 1;
-}
-.channel-textarea .send-embeds::before {
-  content: "";
-  position: absolute;
-  top: 0;
-  left: 0;
-  bottom: 0;
-  right: 0;
-  background: url(https://storage.googleapis.com/material-icons/external-assets/v4/icons/svg/ic_send_white_24px.svg) 50% no-repeat;
-  -webkit-transform: rotate(-90deg);
-  transform: rotate(-90deg);
-  pointer-events: none;
-}
-#sendembeds {
-  position: absolute;
-  bottom: 76px;
-  margin-left: 20px;
-  z-index: 1;
-}
-#sendembeds .sendembed,
-#sendembeds .presets {
-  background-color: #2e3136;
-  padding: 10px 10px 20px;
-}
-#sendembeds .sendembed {
-  display: table;
-  border-spacing: 0 5px;
-}
-#sendembeds .sendembed .option {
-  display: table-row;
-}
-#sendembeds .sendembed .option > * {
-  display: table-cell;
-}
-#sendembeds .sendembed .option input {
-  width: 250px;
-  margin-left: 5px;
-}
-#sendembeds .button-group {
-  position: absolute;
-  width: calc(100% - 20px);
-  top: calc(100% - 24px);
-}
-#sendembeds .button-group button + button,
-#sendembeds .buttons button + button {
-  margin-left: 3px;
-}
-#sendembeds .button-group .cancel {
-  position: absolute;
-  right: 0;
-}
-#sendembeds .presets {
-  position: absolute;
-  display: flex;
-  flex-direction: row;
-  justify-content: space-around;
-  align-items: center;
-  top: 0;
-  right: 0;
-  bottom: 0;
-  left: 0;
-}
-#sendembeds .presets h1 {
-  text-align: center;
-}
-#sendembeds .presets select {
-  width: 100%;
-}
-#sendembeds .presets .buttons {
-  margin-top: 3px;
-}`
-
-SendEmbeds.prototype.load = function () {};
-
-SendEmbeds.prototype.unload = function () {};
-
-SendEmbeds.prototype.observer = function (e) {};
-
-SendEmbeds.prototype.onMessage = function () {};
-
-SendEmbeds.prototype.onSwitch = function () {};
