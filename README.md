@@ -7,7 +7,7 @@ Using getInternalInstance by [@noodlebox#0155](https://github.com/noodlebox).
 ## Guild Separators
 Add Guild Separators with a button in the context menu.
 
-## Send Embeds *(Outdated)*
+## Send Embeds
 Allows you to send custom embed messages, but requires your token. **USE AT OWN RISK!**
 
 ## Theme Customizer *(Outdated)*
