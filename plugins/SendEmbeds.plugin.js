@@ -8,13 +8,43 @@ class SendEmbeds {
 		return "Allows the user to send custom rich embed messages.";
 	}
 	getVersion() {
-		return "2.0.0";
+		return "2.1.0";
 	}
 	getAuthor() {
 		return "Zerthox";
 	}
 	getSettingsPanel() {
 		return null;
+	}
+	selector(s) {
+		var pre = ".chat form",
+			outer = "[class*=channelTextArea-]:not([class*=Disabled])",
+			inner = "[class*=inner-]";
+		var r = "";
+		var p = s.includes("pre"),
+			o = s.includes("outer"),
+			i = s.includes("inner");
+		if (p && (o || i)) {
+			r += pre + " ";
+		}
+		else if (p) {
+			return pre;
+		}
+		if (o && i) {
+			r += outer + " > ";
+		}
+		else if (o) {
+			return r + outer;
+		}
+		if (i) {
+			return r + inner;
+		}
+		else if (r.length > 0) {
+			return r;
+		}
+		else {
+			return undefined;
+		}
 	}
 	start() {
 		if (typeof CryptoJS === "undefined") {
@@ -25,22 +55,31 @@ class SendEmbeds {
 			this.presets = {};
 		}
 		BdApi.injectCSS(this.getName(), this.css());
+		if ($(this.selector("pre outer")).length > 0) {
+			this.insert();
+		}
 		console.log("[SendEmbeds] Started");
 	}
 	stop() {
 		BdApi.clearCSS(this.getName());
-		$(".channel-textarea-inner .sendembeds-button").remove();
+		$(this.selector("pre outer") + " .sendembeds-button").remove();
 		console.log("[SendEmbeds] Stopped");
 	}
 	observer(e) {
-		var self = this,
-			a = $(".chat form .channel-text-area-default > [class*='inner-']:not([class*='innerDisabled'])");
-		if (a.length > 0 && a.find(".sendembeds-button").length === 0) {
-			a.find("textarea").before('<div class="sendembeds-button"></div>');
-			a.find(".sendembeds-button").off().click(function() {
-				self.modal();
-			});
+		var a = $(e.addedNodes);
+		if (a.is(this.selector("pre outer")) || a.find(this.selector("outer")).is(this.selector("pre outer"))) {
+			this.insert();
 		}
+	}
+	insert() {
+		var self = this,
+		a = $(this.selector("pre outer inner"));
+	if (a.length > 0 && a.find(".sendembeds-button").length === 0) {
+		a.find("textarea").before('<div class="sendembeds-button"></div>');
+		a.find(".sendembeds-button").off().click(function() {
+			self.modal();
+		});
+	}
 	}
 	getData() {
 		var color = $("#color").val();
