@@ -8,7 +8,7 @@ class SendEmbeds {
 		return "Allows the user to send custom rich embed messages.";
 	}
 	getVersion() {
-		return "2.1.0";
+		return "2.1.1";
 	}
 	getAuthor() {
 		return "Zerthox";
@@ -388,13 +388,13 @@ class SendEmbeds {
 		.chat .sendembeds-button {
 			display: -webkit-box;
 		    display: -ms-flexbox;
-		    display: flex;
+			display: flex;
+			margin-right: 10px;
 			cursor: pointer;
 		}
 		.chat form .sendembeds-button::before {
 			content: url(https://storage.googleapis.com/material-icons/external-assets/v4/icons/svg/ic_open_in_browser_white_24px.svg);
 			margin: auto;
-			padding-right: 10px;
 			pointer-events: none;
 			opacity: .2;
 		}
