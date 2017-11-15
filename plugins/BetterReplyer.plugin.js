@@ -8,7 +8,7 @@ class BetterReplyer {
 		return "Reply to people using their ID with a button. Inspired by Replyer by @Hammock#3110, @Natsulus#0001 & @Zerebos#7790. Using getInternalInstance by @noodlebox#0155.";
 	}
 	getVersion() {
-		return "2.2.2";
+		return "2.2.3";
 	}
 	getAuthor() {
 		return "Zerthox";
@@ -20,11 +20,25 @@ class BetterReplyer {
 		BdApi.injectCSS(this.getName(), this.css);
 		this.insert();
 		console.log("[BetterReplyer] Started");
+
+		var libraryScript = document.getElementById('zeresLibraryScript');
+		if (libraryScript) libraryScript.parentElement.removeChild(libraryScript);
+		libraryScript = document.createElement("script");
+		libraryScript.setAttribute("type", "text/javascript");
+		libraryScript.setAttribute("src", "https://rauenzi.github.io/BetterDiscordAddons/Plugins/PluginLibrary.js");
+		libraryScript.setAttribute("id", "zeresLibraryScript");
+		document.head.appendChild(libraryScript);
+
+		if (typeof window.ZeresLibrary !== "undefined") this.initialize();
+		else libraryScript.addEventListener("load", () => { this.initialize(); });
 	}
 	stop() {
 		$(".message-group .replyer").remove();
 		BdApi.clearCSS(this.getName());
 		console.log("[BetterReplyer] Stopped");
+	}
+	initialize() {
+		PluginUtilities.checkForUpdate(this.getName(), this.getVersion(), "https://raw.githubusercontent.com/Zerthox/BetterDiscord-Plugins/master/plugins/" + this.getName() + ".plugin.js");
 	}
 	observer(e){
 		var a = $(e.addedNodes),
