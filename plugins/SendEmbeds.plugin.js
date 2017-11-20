@@ -8,7 +8,7 @@ class SendEmbeds {
 		return "Allows the user to send custom rich embed messages.";
 	}
 	getVersion() {
-		return "2.1.1";
+		return "2.1.2";
 	}
 	getAuthor() {
 		return "Zerthox";
@@ -369,17 +369,32 @@ class SendEmbeds {
 		$("#sendembeds .presets").remove();
 		$("#sendembeds .sendembed").css("opacity", "");
 	}
-	alert(title, text, target) {
-		var html = '<div class="theme-dark"><div class="callout-backdrop" style="opacity: 0.85; background-color: rgb(0, 0, 0); transform: translateZ(0px);"></div>';
-			html += '<div class="modal-2LIEKY" style="opacity: 1; transform: scale(1) translateZ(0px);"><div class="inner-1_1f7b"><div class="modal-3HOjGZ modal-KwRiOq size-2pbXxj">';
-			html += '<div class="flex-lFgbSz flex-3B1Tl4 horizontal-2BEEBe horizontal-2VE-Fw flex-3B1Tl4 directionRow-yNbSvJ justifyStart-2yIZo0 alignCenter-3VxkQP noWrap-v6g9vO header-3sp3cE" style="flex: 0 0 auto;">';
-			html += '<h4 class="h4-2IXpeI title-1pmpPr size16-3IvaX_ height20-165WbF weightSemiBold-T8sxWH defaultColor-v22dK1 defaultMarginh4-jAopYe marginReset-3hwONl">' + title + '</h4>';
-			html += '<svg class="close-3RZM3j flexChild-1KGW5q" xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 12 12"><g fill="none" fill-rule="evenodd"><path d="M0 0h12v12H0"></path><path class="fill" fill="currentColor" d="M9.5 3.205L8.795 2.5 6 5.295 3.205 2.5l-.705.705L5.295 6 2.5 8.795l.705.705L6 6.705 8.795 9.5l.705-.705L6.705 6"></path></g></svg></div>';
-			html += '<div class="scrollerWrap-2uBjct content-1Cut5s scrollerThemed-19vinI themeGhostHairline-2H8SiW"><div class="scroller-fzNley inner-tqJwAU content-3KEfmo selectable"><div class="medium-2KnC-N size16-3IvaX_ height20-165WbF primary-2giqSn selectable-prgIYK" style="padding-bottom: 20px;">' + text + '</div></div></div></div></div></div></div>';
-		var t = target || $(".app").parent().siblings(".theme-dark:eq(2)")[0];
-		$(t).html(html).promise().done(function() {
+	alert(title, text, target = $(".app-XZYfmp").children(".theme-dark:eq(1)")[0]) {
+		var html = `
+		<div class="modal-2LIEKY" style="opacity: 1; transform: scale(1) translateZ(0px);">
+			<div class="inner-1_1f7b">
+				<div class="modal-3HOjGZ modal-KwRiOq size-2pbXxj">
+					<div class="flex-lFgbSz flex-3B1Tl4 horizontal-2BEEBe horizontal-2VE-Fw flex-3B1Tl4 directionRow-yNbSvJ justifyStart-2yIZo0 alignCenter-3VxkQP noWrap-v6g9vO header-3sp3cE"
+						style="flex: 0 0 auto;">
+						<div class="flexChild-1KGW5q" style="flex: 1 1 auto;">
+							<h4 class="h4-2IXpeI title-1pmpPr size16-3IvaX_ height20-165WbF weightSemiBold-T8sxWH defaultColor-v22dK1 defaultMarginh4-jAopYe marginReset-3hwONl">${title}/h4>
+						</div>
+						<svg class="close-3ejNTg flexChild-1KGW5q" xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 12 12">
+							<g fill="none" fill-rule="evenodd">
+								<path d="M0 0h12v12H0"></path>
+								<path class="fill" fill="currentColor" d="M9.5 3.205L8.795 2.5 6 5.295 3.205 2.5l-.705.705L5.295 6 2.5 8.795l.705.705L6 6.705 8.795 9.5l.705-.705L6.705 6"></path>
+							</g>
+						</svg>
+					</div>
+					<div class="scrollerWrap-2uBjct content-1Cut5s scrollerThemed-19vinI themeGhostHairline-2H8SiW">
+						<div class="scroller-fzNley inner-tqJwAU container-1kADKt content-3KEfmo">${text}</div>
+					</div>
+				</div>
+			</div>
+		</div>`;
+		$(target).html(html).promise().done(function() {
 			$(".callout-backdrop, [class*='modal-'] [class*='close-']").click(function() {
-				$(t).html("");
+				$(target).html("");
 			});
 		});
 	}
