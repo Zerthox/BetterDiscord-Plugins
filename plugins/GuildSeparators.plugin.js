@@ -8,7 +8,7 @@ class GuildSeparators {
 		return "Add Guild Separators with a button in the context menu.";
 	}
 	getVersion() {
-		return "1.8";
+		return "1.8.1";
 	}
 	getAuthor() {
 		return "Zerthox";
@@ -21,6 +21,7 @@ class GuildSeparators {
 		this.guilds = bdPluginStorage.get(this.getName(), "guilds");
 		if (this.guilds === null) {
 			this.guilds = [];
+			this.saveGuilds();
 		}
 		this.loadGuilds();
 		if ($(".context-menu").length > 0) {
