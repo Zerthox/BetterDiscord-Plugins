@@ -8,7 +8,7 @@ class GuildSeparators {
 		return "Add Guild Separators with a button in the context menu.";
 	}
 	getVersion() {
-		return "1.8.1";
+		return "1.9";
 	}
 	getAuthor() {
 		return "Zerthox";
@@ -36,7 +36,7 @@ class GuildSeparators {
 		console.log("[GuildSeparators] Stopped");
 	}
 	observer(e) {
-		if ($(e.addedNodes).is(".contextMenu-uoJTbz") || $(e.addedNodes).find(".contextMenu-uoJTbz").length > 0) {
+		if ($(e.addedNodes).is(".contextMenu-HLZMGh") || $(e.addedNodes).find(".contextMenu-HLZMGh").length > 0) {
 			this.insert();
 		}
 		if ($(e.removedNodes).is(".guild") || $(e.removedNodes).find(".guild").length > 0) {
@@ -44,15 +44,21 @@ class GuildSeparators {
 		}
 	}
 	insert() {
-		var c = $(".contextMenu-uoJTbz"),
+		var c = $(".contextMenu-HLZMGh"),
 			g = $(this.menuParent(c[0])).parents(".guild");
-		if (g.length > 0 && c.find(".item-1XYaYf .add-separator").length === 0) {
+		if (g.length > 0 && c.find(".item-1Yvehc .add-separator").length === 0) {
 			var self = this,
-				html = '<div class="itemGroup-oViAgA"><div class="item-1XYaYf itemToggle-e7vkml"><div class="label-2CGfN3 add-separator">Add Separator</div>';
-				html += '<div class="checkbox"><div class="checkbox-inner"><input type="checkbox" value="on"><span></span></div><span></span></div>';
-				html += '</div></div>';
+				html = '<div class="itemGroup-1tL0uz"><div class="item-1Yvehc itemToggle-S7XGOQ add-separator"><div class="label-JWQiNe">Add Separator</div><div class="checkbox"><div class="checkbox-inner"><input type="checkbox"><span></span></div><span></span></div></div></div></div>';
 			c.append(html).promise().done(function() {
-				var i = $(".add-separator").parents(".item-1XYaYf");
+				var t = parseInt(c.css("top"));
+				if (c.hasClass("undefined")) {
+					c.css("top", t - 31);
+				}
+				else if (t + c.height() > window.innerHeight) {
+					c.css("top", t - c.height());
+					c.addClass("undefined");
+				}
+				var i = $(".add-separator");
 				i.click(function() {
 					if (g[0].hasAttribute("separator")) {
 						g.removeAttr("separator");
