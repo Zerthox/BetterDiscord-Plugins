@@ -8,7 +8,7 @@ class GuildSeparators {
 		return "Add Guild Separators with a button in the context menu.";
 	}
 	getVersion() {
-		return "1.9";
+		return "1.9.1";
 	}
 	getAuthor() {
 		return "Zerthox";
@@ -46,7 +46,7 @@ class GuildSeparators {
 	insert() {
 		var c = $(".contextMenu-HLZMGh"),
 			g = $(this.menuParent(c[0])).parents(".guild");
-		if (g.length > 0 && c.find(".item-1Yvehc .add-separator").length === 0) {
+		if (g.length > 0 && c.find(".add-separator").length === 0) {
 			var self = this,
 				html = '<div class="itemGroup-1tL0uz"><div class="item-1Yvehc itemToggle-S7XGOQ add-separator"><div class="label-JWQiNe">Add Separator</div><div class="checkbox"><div class="checkbox-inner"><input type="checkbox"><span></span></div><span></span></div></div></div></div>';
 			c.append(html).promise().done(function() {
