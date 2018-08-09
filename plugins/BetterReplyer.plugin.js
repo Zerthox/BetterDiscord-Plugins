@@ -8,7 +8,7 @@ class BetterReplyer {
 		return "Reply to people using their ID with a button. Inspired by Replyer by @Hammock#3110, @Natsulus#0001 & @Zerebos#7790. Using getInternalInstance by @noodlebox#0155.";
 	}
 	getVersion() {
-		return "2.2.3";
+		return "2.3";
 	}
 	getAuthor() {
 		return "Zerthox";
@@ -22,25 +22,25 @@ class BetterReplyer {
 		console.log("[BetterReplyer] Started");
 	}
 	stop() {
-		$(".message-group .replyer").remove();
+		$(".container-1YxwTf .replyer").remove();
 		BdApi.clearCSS(this.getName());
 		console.log("[BetterReplyer] Stopped");
 	}
 	observer(e) {
 		var a = $(e.addedNodes),
 			r = $(e.removedNodes);
-		if (a.is(".message") || a.find(".message").length > 0 || r.is(".replyer") || r.find(".replyer").length > 0) {
+		if (a.is(".container-1YxwTf") || a.find(".container-1YxwTf").length > 0 || r.is(".replyer") || r.find(".replyer").length > 0) {
 			this.insert();
 		}
 	}
 	insert() {
 		var self = this;
-		$(".messages .message-group").each(function() {
+		$(".chat-3bRxxu .container-1YxwTf").each(function() {
 			if ($(this).find(".replyer").length === 0) {
-				$(this).find(".timestamp").after("<span class='replyer'>Reply</span>");
+				$(this).find(".timestampCozy-2hLAPV").after("<span class='replyer'>Reply</span>");
 				$(this).find(".replyer").click(function() {
-					var id = self.messageAuthor($(this).parents(".message-group")[0]).id;
-					$(".content [class*='channelTextArea-'] textarea").each(function() {
+					var id = self.messageAuthor($(this).parents(".container-1YxwTf")[0]).id;
+					$(".textArea-2Spzkt").each(function() {
 						var mention = "<@!" + id + "> ";
 						this.focus();
 						var start = this.selectionStart + mention.length,
@@ -59,7 +59,7 @@ class BetterReplyer {
 		return e[Object.keys(e).find(k => k.startsWith("__reactInternalInstance"))];
 	}
 	messageAuthor(message) {
-		return this.reactInternalInstance(message).child.child.memoizedProps.user;
+		return this.reactInternalInstance(message).child.child.memoizedProps.message.author;
 	}
 	get css() {
 		var r = `.replyer {
@@ -74,7 +74,7 @@ class BetterReplyer {
 			text-transform: uppercase;
 			cursor: pointer;
 		}
-		.message-group:not(:hover) .replyer {
+		.container-1YxwTf:not(:hover) .replyer {
 			visibility: hidden;
 		}`;
 		return r;
