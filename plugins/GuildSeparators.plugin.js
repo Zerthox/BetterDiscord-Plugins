@@ -8,7 +8,7 @@ class GuildSeparators {
 		return "Add Guild Separators with a button in the context menu.";
 	}
 	getVersion() {
-		return "1.9.1";
+		return "1.9.2";
 	}
 	getAuthor() {
 		return "Zerthox";
@@ -39,16 +39,16 @@ class GuildSeparators {
 		if ($(e.addedNodes).is(".contextMenu-HLZMGh") || $(e.addedNodes).find(".contextMenu-HLZMGh").length > 0) {
 			this.insert();
 		}
-		if ($(e.removedNodes).is(".guild") || $(e.removedNodes).find(".guild").length > 0) {
+		if ($(e.removedNodes).is(".guild-1EfMGQ") || $(e.removedNodes).find(".guild-1EfMGQ").length > 0) {
 			this.loadGuilds();
 		}
 	}
 	insert() {
 		var c = $(".contextMenu-HLZMGh"),
-			g = $(this.menuParent(c[0])).parents(".guild");
+			g = $(this.menuParent(c[0])).parents(".guild-1EfMGQ");
 		if (g.length > 0 && c.find(".add-separator").length === 0) {
 			var self = this,
-				html = '<div class="itemGroup-1tL0uz"><div class="item-1Yvehc itemToggle-S7XGOQ add-separator"><div class="label-JWQiNe">Add Separator</div><div class="checkbox"><div class="checkbox-inner"><input type="checkbox"><span></span></div><span></span></div></div></div></div>';
+				html = '<div class="itemGroup-1tL0uz da-itemGroup"><div tabindex="0" class="item-1Yvehc itemToggle-S7XGOQ da-item da-itemToggle add-separator" role="button"><div class="label-JWQiNe da-label">Add Separator</div><div tabindex="0" class="checkbox da-checkbox" role="button"><div class="checkbox-inner da-checkboxInner"><input type="checkbox"><span></span></div><span></span></div></div></div>';
 			c.append(html).promise().done(function() {
 				var t = parseInt(c.css("top"));
 				if (c.hasClass("undefined")) {
@@ -81,7 +81,7 @@ class GuildSeparators {
 	}
 	saveGuilds() {
 		var a = [];
-		$(".guild[separator]").each(function() {
+		$(".guild-1EfMGQ[separator]").each(function() {
 			a.push($(this).find("a").attr("href").split("/")[2]);
 		});
 		this.guilds = a;
@@ -90,15 +90,15 @@ class GuildSeparators {
 	loadGuilds() {
 		this.guilds = bdPluginStorage.get(this.getName(), "guilds");
 		for (var i = 0; i < this.guilds.length; i++) {
-			$(".guilds a[href*='" + this.guilds[i] + "']").parents(".guild").attr("separator", "");
+			$(".guilds-1q_RqH a[href*='" + this.guilds[i] + "']").parents(".guild-1EfMGQ").attr("separator", "");
 		}
 	}
 	css() {
 		var r = `/* Guild Separators CSS */
-		.guild[separator] {
+		.guild-1EfMGQ[separator] {
 			margin-bottom: 32px
 		}
-		.guild[separator]::after {
+		.guild-1EfMGQ[separator]::after {
 			content: "";
 			position: absolute;
 			bottom: -16px;
