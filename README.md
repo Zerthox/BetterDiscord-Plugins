@@ -10,7 +10,7 @@ Add Guild Separators with a button in the context menu.
 ## Link Tooltips
 Show tooltips with link URLs on hover.
 
-## Send Embeds
+## Send Embeds *(Unmaintained)*
 Allows you to send custom embed messages, but requires your token. **USE AT OWN RISK!**
 
 ## Theme Customizer *(Outdated)*
