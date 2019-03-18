@@ -6,15 +6,7 @@ Using getInternalInstance by [@noodlebox#0155](https://github.com/noodlebox).
 
 ## Guild Separators
 Add Guild Separators with a button in the context menu.
+Using getInternalInstance by [@noodlebox#0155](https://github.com/noodlebox).
 
-## Link Tooltips
+## Link Tooltips *(Outdated)*
 Show tooltips with link URLs on hover.
-
-## Send Embeds *(Unmaintained)*
-Allows you to send custom embed messages, but requires your token. **USE AT OWN RISK!**
-
-## Theme Customizer *(Outdated)*
-Customize CSS Variables of themes easily.
-
-## Toggle All *(Outdated)*
-Enable/disable all plugins or themes with a button.
