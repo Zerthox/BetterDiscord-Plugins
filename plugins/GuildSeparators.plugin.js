@@ -1,116 +1,269 @@
 //META{"name":"GuildSeparators"}*//
 
+/**
+ * Guild Separators plugin class
+ * @author Zerthox
+ * @version 2.0.0
+ */
 class GuildSeparators {
+
+	/**
+	 * @return {string} plugin name
+	 */
 	getName() {
-		return "Guild Separators";
+		return "GuildSeparators";
 	}
+
+	/**
+	 * @return {string} plugin description
+	 */
 	getDescription() {
 		return "Add Guild Separators with a button in the context menu.";
 	}
+
+	/**
+	 * @return {string} plugin version
+	 */
 	getVersion() {
-		return "1.9.2";
+		return "2.0.0";
 	}
+
+	/**
+	 * @return {string} plugin author
+	 */
 	getAuthor() {
 		return "Zerthox";
 	}
-	getSettingsPanel() {
-		return null;
+
+	/**
+	 * constructor
+	 */
+	constructor() {
+
+		/**
+		 * object with selectors
+		 */
+		this.selectors = {
+			guild: ".container-2td-dC",
+			contextMenu: ".contextMenu-HLZMGh",
+			contextMenuItem: ".item-1Yvehc",
+			contextMenuLabel: ".label-JWQiNe"
+		};
+
+		/**
+		 * plugin styles
+		 */
+		this.css= `/* Guild Separators CSS */
+			${this.selectors.guild}[separator] {
+				margin-bottom: 32px
+			}
+			${this.selectors.guild}[separator]:after,
+			${this.selectors.guild}[separator]::after {
+				content: "";
+				position: absolute;
+				bottom: -16px;
+				left: 20%;
+				right: 20%;
+				height: 2px;
+				background: #2f3136;
+			}`;
 	}
+
+	/**
+	 * plugin start function
+	 */
 	start() {
-		BdApi.injectCSS("GuildSeparators", this.css());
-		this.guilds = bdPluginStorage.get(this.getName(), "guilds");
-		if (this.guilds === null) {
+
+		// inject styles
+		BdApi.injectCSS(this.getName(), this.css);
+
+		// load guilds array from storage
+		this.guilds = BdApi.loadData(this.getName(), "guilds");
+
+		// check if loaded guilds array is empty
+		if (typeof this.guilds === "undefined") {
+
+			// reset guilds array
 			this.guilds = [];
-			this.saveGuilds();
+
+			// save empty guilds array
+			BdApi.saveData(this.getName(), "guilds", this.guilds);
 		}
-		this.loadGuilds();
-		if ($(".context-menu").length > 0) {
-			this.insert();
+
+		// process guilds
+		this.processGuilds();
+
+		// check if context menu is present
+		var m = document.querySelector(`${this.selectors.contextMenu}`);
+		if (m != null) {
+
+			// insert into context menu
+			this.insertContextMenu(m);
 		}
-		console.log("[GuildSeparators] Started");
+
+		// console output
+		console.log(`[${this.getName()}] Enabled`);
 	}
+
+	/**
+	 * plugin stop function
+	 */
 	stop() {
+
+		// remove styles
 		BdApi.clearCSS("GuildSeparators");
-		this.saveGuilds();
-		$(".guild[separator]").removeAttr("separator");
-		console.log("[GuildSeparators] Stopped");
+
+		// save guilds array
+		BdApi.saveData(this.getName(), "guilds", this.guilds);
+
+		// remove separators
+		for (var e in document.querySelectorAll(`${this.selectors.guild}[separator]`)) {
+			e.removeAttribute("separator");
+		}
+
+		// console output
+		console.log(`[${this.getName()}] Disabled`);
 	}
+
+	/**
+	 * plugin DOM observer
+	 * @param {*} e event
+	 */
 	observer(e) {
-		if ($(e.addedNodes).is(".contextMenu-HLZMGh") || $(e.addedNodes).find(".contextMenu-HLZMGh").length > 0) {
-			this.insert();
-		}
-		if ($(e.removedNodes).is(".guild-1EfMGQ") || $(e.removedNodes).find(".guild-1EfMGQ").length > 0) {
-			this.loadGuilds();
-		}
+
+		// iterate over added nodes
+        for (var n of e.addedNodes) {
+
+            // check if node is html element
+            if (n instanceof HTMLElement) {
+
+                // check if contextMenu or guild were added
+                if (n.matches(this.selectors.contextMenu)) {
+
+                    // insert context menu
+                    this.insertContextMenu(n);
+                }
+                else if (n.matches(this.selectors.guild) || n.find(this.selectors.guild) != null) {
+
+                    // process guilds
+                    this.processGuilds();
+                }
+            }
+        }
 	}
-	insert() {
-		var c = $(".contextMenu-HLZMGh"),
-			g = $(this.menuParent(c[0])).parents(".guild-1EfMGQ");
-		if (g.length > 0 && c.find(".add-separator").length === 0) {
-			var self = this,
-				html = '<div class="itemGroup-1tL0uz da-itemGroup"><div tabindex="0" class="item-1Yvehc itemToggle-S7XGOQ da-item da-itemToggle add-separator" role="button"><div class="label-JWQiNe da-label">Add Separator</div><div tabindex="0" class="checkbox da-checkbox" role="button"><div class="checkbox-inner da-checkboxInner"><input type="checkbox"><span></span></div><span></span></div></div></div>';
-			c.append(html).promise().done(function() {
-				var t = parseInt(c.css("top"));
-				if (c.hasClass("undefined")) {
-					c.css("top", t - 31);
+
+	/**
+	 * insert guild separator option into passed context menu
+	 * @param {HTMLElement} m context menu element
+	 */
+	insertContextMenu(m) {
+
+		// check if target is guild
+		var g = this.getMenuTarget(m).parents(this.selectors.guild);
+		if (g.length > 0) {
+
+			// get guild element
+			g = g[0];
+
+			// get guild id
+			var id = this.getGuildId(g);
+
+			// clone context menu item
+			var i = m.find("input[type=checkbox]").parents(this.selectors.contextMenuItem)[0].cloneNode(true);
+
+			// set context menu item text
+			i.find(this.selectors.contextMenuLabel).innerHTML = "Add Separator";
+
+			// find context menu item checkbox
+			var c = i.find("input[type=checkbox]");
+
+			// set checkbox checked property
+			c.checked = g.hasAttribute("separator");
+
+			// set checkbox onclick
+			i.onclick = () => {
+
+				// check if guild has separator
+				if (g.hasAttribute("separator")) {
+
+					// remove separator attribute
+					g.removeAttribute("separator");
+
+					// uncheck checkbox
+					c.checked = false;
+
+					// remove guild id from guilds array
+					this.guilds.splice(this.guilds.indexOf(id), 1);
 				}
-				else if (t + c.height() > window.innerHeight) {
-					c.css("top", t - c.height());
-					c.addClass("undefined");
+				else {
+
+					// remove separator attribute
+					g.setAttribute("separator", "");
+
+					// check checkbox
+					c.checked = true;
+
+					// add guild id to guilds array
+					this.guilds.push(id);
 				}
-				var i = $(".add-separator");
-				i.click(function() {
-					if (g[0].hasAttribute("separator")) {
-						g.removeAttr("separator");
-						$(this).find("input").prop("checked", false);
-					}
-					else {
-						g.attr("separator", "");
-						$(this).find("input").prop("checked", true);
-					}
-					self.saveGuilds();
-				});
-				if (g[0].hasAttribute("separator")) {
-					i.find("input").prop("checked", true);
-				}
-			});
+
+				// save guilds array
+				BdApi.saveData(this.getName(), "guilds", this.guilds);
+			};
+
+			// append context menu item
+			m.appendChild(i);
+
+			// update context menu position
+			this.getInternalInstance(m).return.memoizedProps.onHeightUpdate();
 		}
 	}
-	menuParent(e) {
-		return e[Object.keys(e).find(k => k.startsWith("__reactInternalInstance"))].return.memoizedProps.target;
-	}
-	saveGuilds() {
-		var a = [];
-		$(".guild-1EfMGQ[separator]").each(function() {
-			a.push($(this).find("a").attr("href").split("/")[2]);
-		});
-		this.guilds = a;
-		bdPluginStorage.set(this.getName(), "guilds", this.guilds);
-	}
-	loadGuilds() {
-		this.guilds = bdPluginStorage.get(this.getName(), "guilds");
-		for (var i = 0; i < this.guilds.length; i++) {
-			$(".guilds-1q_RqH a[href*='" + this.guilds[i] + "']").parents(".guild-1EfMGQ").attr("separator", "");
+
+	/**
+	 * process guilds
+	 */
+	processGuilds() {
+
+		// iterate over guilds
+		for (var g of document.querySelectorAll(this.selectors.guild)) {
+
+			// check if guilds array contains guild
+			if (this.guilds.includes(this.getGuildId(g))) {
+
+				// add separator attribute
+				g.setAttribute("separator", "");
+			}
 		}
 	}
-	css() {
-		var r = `/* Guild Separators CSS */
-		.guild-1EfMGQ[separator] {
-			margin-bottom: 32px
-		}
-		.guild-1EfMGQ[separator]::after {
-			content: "";
-			position: absolute;
-			bottom: -16px;
-			left: 20%;
-			right: 20%;
-			height: 2px;
-			background: #2f3136;
-		}`;
-		return r;
+
+	/**
+	 * get target element of passed context menu element
+	 * @param {HTMLElement} e context menu element
+	 * @return {HTMLElement} target element
+	 */
+	getMenuTarget(e) {
+		var r = this.getInternalInstance(e);
+		return r && r.return.memoizedProps.target;
 	}
-	onMessage() {}
-	onSwitch() {}
-	load() {}
-	unload() {}
+
+	/**
+	 * get guild id of passed guild element
+	 * @param {HTMLElement} e guild element
+	 * @return {string} guild id
+	 */
+	getGuildId(e) {
+		var r = this.getInternalInstance(e);
+		return r && r.return.memoizedProps.guild.id;
+	}
+
+	/**
+     * getInternalInstance by @noodlebox
+	 * @author noodlebox
+	 * @param {HTMLElement} e element
+	 * @return {*} react internal instance of passed element
+     */
+    getInternalInstance(e) {
+        return e[Object.keys(e).find(k => k.startsWith("__reactInternalInstance"))];
+	}
+
 }
