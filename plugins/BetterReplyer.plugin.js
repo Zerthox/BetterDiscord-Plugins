@@ -1,9 +1,9 @@
-//META {"name": "BetterReplyer", "source": "https://github.com/Zerthox/BetterDiscord-Plugins/blob/master/plugins/GuildSeparators.plugin.js"} *//
+//META {"name": "BetterReplyer", "source": "https://github.com/Zerthox/BetterDiscord-Plugins/blob/master/plugins/BetterReplyer.plugin.js"} *//
 
 /**
  * BetterReplyer plugin class
  * @author Zerthox
- * @version 3.0.0
+ * @version 3.0.1
  */
 class BetterReplyer {
 
@@ -25,7 +25,7 @@ class BetterReplyer {
      * @return {string} plugin version
      */
 	getVersion() {
-		return "3.0.0";
+		return "3.0.1";
 	}
     /**
      * @return {string} plugin author
@@ -68,7 +68,19 @@ class BetterReplyer {
 		/**
 		 * object with handlers
 		 */
-		this.handler = {};
+		this.handler = {
+			click: (e) => {
+				this.curr = e.target;
+			},
+			blur: () => {
+				if (this.curr.matches(`${this.selector.messageHeader} .replyer`)) {
+					this.mode = true;
+				}
+				else {
+					this.mode = false;
+				}
+			}
+		};
 
 		/**
 		 * clicked element save
@@ -89,11 +101,6 @@ class BetterReplyer {
 		// inject styles
 		BdApi.injectCSS(this.getName(), this.css);
 
-		// create click handler
-		this.handler.click = (e) => {
-			this.curr = e.target;
-		};
-
 		// add click handler
 		document.addEventListener("mousedown", this.handler.click);
 
@@ -103,16 +110,6 @@ class BetterReplyer {
             // insert reply button
             this.insert(e);
 		}
-
-		// create blur handler
-		this.handler.blur = () => {
-			if (this.curr.matches(`${this.selector.messageHeader} .replyer`)) {
-				this.mode = true;
-			}
-			else {
-				this.mode = false;
-			}
-		};
 
 		// iterate over all textareas
 		for (var e of document.querySelectorAll(this.selector.channelTextarea)) {
