@@ -7,7 +7,7 @@ Using getInternalInstance by [@noodlebox#0155](https://github.com/noodlebox).
 
 ## Guild Separators
 ###### *(Updated: 21/03/19)*
-Add Guild Separators with a button in the context menu.
+Add Guild Separators with a button in the context menu.  
 Using getInternalInstance by [@noodlebox#0155](https://github.com/noodlebox).
 
 ## Link Tooltips
