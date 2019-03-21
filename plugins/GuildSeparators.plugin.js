@@ -3,7 +3,7 @@
 /**
  * Guild Separators plugin class
  * @author Zerthox
- * @version 2.0.1
+ * @version 2.0.2
  */
 class GuildSeparators {
 
@@ -25,7 +25,7 @@ class GuildSeparators {
 	 * @return {string} plugin version
 	 */
 	getVersion() {
-		return "2.0.1";
+		return "2.0.2";
 	}
 
 	/**
@@ -117,7 +117,7 @@ class GuildSeparators {
 		BdApi.saveData(this.getName(), "guilds", this.guilds);
 
 		// remove separators
-		for (var e in document.querySelectorAll(`${this.selectors.guild}[separator]`)) {
+		for (var e of document.querySelectorAll(`${this.selectors.guild}[separator]`)) {
 			e.removeAttribute("separator");
 		}
 
