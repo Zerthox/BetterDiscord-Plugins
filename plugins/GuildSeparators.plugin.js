@@ -1,9 +1,9 @@
-//META{"name":"GuildSeparators"}*//
+//META {"name": "GuildSeparators", "source": "https://github.com/Zerthox/BetterDiscord-Plugins/blob/master/plugins/GuildSeparators.plugin.js"} *//
 
 /**
  * Guild Separators plugin class
  * @author Zerthox
- * @version 2.0.0
+ * @version 2.0.1
  */
 class GuildSeparators {
 
@@ -18,14 +18,14 @@ class GuildSeparators {
 	 * @return {string} plugin description
 	 */
 	getDescription() {
-		return "Add Guild Separators with a button in the context menu.";
+		return "Add Guild Separators with a button in the context menu. Using getInternalInstance by @noodlebox#0155.";
 	}
 
 	/**
 	 * @return {string} plugin version
 	 */
 	getVersion() {
-		return "2.0.0";
+		return "2.0.1";
 	}
 
 	/**
@@ -158,8 +158,16 @@ class GuildSeparators {
 	 */
 	insertContextMenu(m) {
 
+		// get menu target
+		var t = this.getMenuTarget(m);
+
+		// break function execution if target not found
+		if (typeof t === "undefined") {
+			return;
+		}
+
 		// check if target is guild
-		var g = this.getMenuTarget(m).parents(this.selectors.guild);
+		var g = t.parents(this.selectors.guild);
 		if (g.length > 0) {
 
 			// get guild element
