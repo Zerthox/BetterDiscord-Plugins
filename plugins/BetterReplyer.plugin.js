@@ -3,7 +3,7 @@
 /**
  * BetterReplyer plugin class
  * @author Zerthox
- * @version 3.0.1
+ * @version 3.0.2
  */
 class BetterReplyer {
 
@@ -25,7 +25,7 @@ class BetterReplyer {
      * @return {string} plugin version
      */
 	getVersion() {
-		return "3.0.1";
+		return "3.0.2";
 	}
     /**
      * @return {string} plugin author
@@ -66,31 +66,51 @@ class BetterReplyer {
 			}`;
 
 		/**
+		 * object with plugin state relevant stuff
+		 */
+		this.state = {
+			/**
+			 * clicked element save
+			 */
+			clicked: document.body,
+
+			/**
+			 * focused textarea save
+			 */
+			focused: null,
+
+			/**
+			 * reply mode
+			 */
+			mode: false
+		}
+
+				/**
 		 * object with handlers
 		 */
 		this.handler = {
+
+			/**
+			 * document click handler
+			 */
 			click: (e) => {
-				this.curr = e.target;
+
+				// save event target
+				this.state.clicked = e.target;
 			},
-			blur: () => {
-				if (this.curr.matches(`${this.selector.messageHeader} .replyer`)) {
-					this.mode = true;
-				}
-				else {
-					this.mode = false;
-				}
+
+			/**
+			 * textarea blur handler
+			 */
+			blur: (e) => {
+
+				// save event target
+				this.state.focused = e.target;
+
+				// update reply mode
+				this.state.mode = this.state.clicked.matches(`${this.selector.messageHeader} .replyer`) ? true : false;
 			}
 		};
-
-		/**
-		 * clicked element save
-		 */
-		this.clicked = document.body;
-
-		/**
-		 * reply mode
-		 */
-		this.mode = false;
 	}
 
 	 /**
@@ -145,6 +165,13 @@ class BetterReplyer {
 
 			// remove blur handler
 			e.removeEventListener("blur", this.handler.blur);
+		}
+
+		// reset state
+		this.state = {
+			clicked: document.body,
+			focused: null,
+			mode: false
 		}
 		
         // console output
@@ -223,41 +250,40 @@ class BetterReplyer {
 			
 			// add event listener
 			b.addEventListener("click", () => {
+
+				// get last focused textarea or default to first textarea found
+				var t = this.state.focused instanceof HTMLElement ? this.state.focused : document.querySelector(this.selector.channelTextarea);
+					
+				// get mention string
+				var m = `<@!${id}>`;
+
+				// focus textarea
+				t.focus();
+
+				// check which mode to use
+				if (this.state.mode) {
+
+					// insert directly
+					document.execCommand("insertText", false, m);
+				}
+				else {
+
+					// add space to mention string
+					m += " ";
+
+					// save selection
+					var ts = t.selectionStart + m.length,
+						te = t.selectionEnd + m.length;
 				
-				// iterate over all channel textareas
-				for (var t of document.querySelectorAll(this.selector.channelTextarea)) {
-					
-					// get mention string
-					var m = `<@!${id}>`;
-
-					// focus textarea
-					t.focus();
-
-					// check which mode to use
-					if (this.mode) {
-
-						// insert directly
-						document.execCommand("insertText", false, m);
-					}
-					else {
-
-						// add space to mention string
-						m += " ";
-
-						// save selection
-						var ts = t.selectionStart + m.length,
-							te = t.selectionEnd + m.length;
-					
-						// go to start of textarea
-						t.selectionEnd = 0;
-					
-						// insert mention
-						document.execCommand("insertText", false, m);
-					
-						// select saved selection
-						t.setSelectionRange(ts, te);
-					}
-					}
+					// go to start of textarea
+					t.selectionEnd = 0;
+				
+					// insert mention
+					document.execCommand("insertText", false, m);
+				
+					// select saved selection
+					t.setSelectionRange(ts, te);
+				}
 			});
 			
 			// append reply button
