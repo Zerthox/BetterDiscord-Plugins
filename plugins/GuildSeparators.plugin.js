@@ -15,10 +15,14 @@ class GuildSeparators {
 	}
 
 	/**
-	 * @return {string} plugin description
+	 * @return {*[]} plugin description
 	 */
 	getDescription() {
-		return "Add Guild Separators with a button in the context menu. Using getInternalInstance by @noodlebox#0155.";
+		return [
+			"Add Guild Separators with a button in the context menu.\n Using getInternalInstance by ",
+			BDV2.react.createElement("a", {href: "https://github.com/noodlebox", target: "_blank"}, "@noodlebox#0155"),
+			"."
+		];
 	}
 
 	/**
@@ -29,14 +33,14 @@ class GuildSeparators {
 	}
 
 	/**
-	 * @return {string} plugin author
+	 * @return {*} plugin author
 	 */
 	getAuthor() {
-		return "Zerthox";
+		return BDV2.react.createElement("a", {href: "https://github.com/zerthox", target: "_blank"}, "Zerthox");
 	}
 
 	/**
-	 * constructor
+	 * plugin class constructor
 	 */
 	constructor() {
 

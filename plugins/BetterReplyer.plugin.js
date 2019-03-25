@@ -15,10 +15,22 @@ class BetterReplyer {
     }
     
     /**
-     * @return {string} plugin description
+     * @return {*[]} plugin description
      */
 	getDescription() {
-		return "Reply to people using their ID with a button. Inspired by Replyer by @Hammock#3110, @Natsulus#0001 & @Zerebos#7790. Using getInternalInstance by @noodlebox#0155.";
+		return [
+			"Reply to people using their ID with a button.\n Inspired by ",
+			BDV2.react.createElement("a", {href: "https://github.com/cosmicsalad/Discord-Themes-and-Plugins/blob/master/plugins/replyer.plugin.js", target: "_blank"}, "Replyer"),
+			" by ",
+			BDV2.react.createElement("a", {href: "https://github.com/cosmicsalad", target: "_blank"}, "@Hammock#3110"),
+			", ",
+			BDV2.react.createElement("a", {href: "https://github.com/delivator", target: "_blank"}, "@Natsulus#0001"),
+			" & ",
+			BDV2.react.createElement("a", {href: "https://github.com/rauenzi", target: "_blank"}, "@Zerebos#7790"),
+			".\n Using getInternalInstance by ",
+			BDV2.react.createElement("a", {href: "https://github.com/noodlebox", target: "_blank"}, "@noodlebox#0155"),
+			"."
+		];
     }
     
     /**
@@ -28,12 +40,15 @@ class BetterReplyer {
 		return "3.0.2";
 	}
     /**
-     * @return {string} plugin author
+     * @return {*} plugin author
      */
 	getAuthor() {
-		return "Zerthox";
+		return BDV2.react.createElement("a", {href: "https://github.com/zerthox", target: "_blank"}, "Zerthox");
 	}
 
+	/**
+	 * plugin class constructor
+	 */
 	constructor() {
 
 		/**
