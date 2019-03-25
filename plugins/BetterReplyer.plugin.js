@@ -18,7 +18,7 @@ class BetterReplyer {
      * @return {*[]} plugin description
      */
 	getDescription() {
-		return [
+		return BDV2.react.createElement("span", {style: {"white-space": "pre-line"}},
 			"Reply to people using their ID with a button.\n Inspired by ",
 			BDV2.react.createElement("a", {href: "https://github.com/cosmicsalad/Discord-Themes-and-Plugins/blob/master/plugins/replyer.plugin.js", target: "_blank"}, "Replyer"),
 			" by ",
@@ -30,7 +30,7 @@ class BetterReplyer {
 			".\n Using getInternalInstance by ",
 			BDV2.react.createElement("a", {href: "https://github.com/noodlebox", target: "_blank"}, "@noodlebox#0155"),
 			"."
-		];
+		);
     }
     
     /**

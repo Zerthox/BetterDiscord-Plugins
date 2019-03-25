@@ -18,11 +18,11 @@ class GuildSeparators {
 	 * @return {*[]} plugin description
 	 */
 	getDescription() {
-		return [
+		return BDV2.react.createElement("span", {style: {"white-space": "pre-line"}},
 			"Add Guild Separators with a button in the context menu.\n Using getInternalInstance by ",
 			BDV2.react.createElement("a", {href: "https://github.com/noodlebox", target: "_blank"}, "@noodlebox#0155"),
 			"."
-		];
+		);
 	}
 
 	/**
