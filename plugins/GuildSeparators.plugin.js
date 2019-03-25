@@ -36,7 +36,7 @@ class GuildSeparators {
 	 * @return {*} plugin author
 	 */
 	getAuthor() {
-		return BDV2.react.createElement("a", {href: "https://github.com/zerthox", target: "_blank"}, "Zerthox");
+		return BDV2.react.createElement("a", {href: "https://github.com/Zerthox", target: "_blank"}, "Zerthox");
 	}
 
 	/**

@@ -24,7 +24,7 @@ class BetterReplyer {
 			" by ",
 			BDV2.react.createElement("a", {href: "https://github.com/cosmicsalad", target: "_blank"}, "@Hammock#3110"),
 			", ",
-			BDV2.react.createElement("a", {href: "https://github.com/delivator", target: "_blank"}, "@Natsulus#0001"),
+			BDV2.react.createElement("a", {href: "https://github.com/Delivator", target: "_blank"}, "@Natsulus#0001"),
 			" & ",
 			BDV2.react.createElement("a", {href: "https://github.com/rauenzi", target: "_blank"}, "@Zerebos#7790"),
 			".\n Using getInternalInstance by ",
@@ -43,7 +43,7 @@ class BetterReplyer {
      * @return {*} plugin author
      */
 	getAuthor() {
-		return BDV2.react.createElement("a", {href: "https://github.com/zerthox", target: "_blank"}, "Zerthox");
+		return BDV2.react.createElement("a", {href: "https://github.com/Zerthox", target: "_blank"}, "Zerthox");
 	}
 
 	/**
