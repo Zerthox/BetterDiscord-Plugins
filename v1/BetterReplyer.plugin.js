@@ -3,7 +3,7 @@
 /**
  * BetterReplyer plugin class
  * @author Zerthox
- * @version 3.0.3
+ * @version 3.0.4
  */
 class BetterReplyer {
 
@@ -35,7 +35,7 @@ class BetterReplyer {
      * @return {string} plugin version
      */
 	getVersion() {
-		return "3.0.3";
+		return "3.0.4";
 	}
     /**
      * @return {*} plugin author
@@ -55,6 +55,7 @@ class BetterReplyer {
 		this.selector = {
 			messageHeader: ".messages-3amgkR .headerCozyMeta-rdohGq",
 			channelTextarea: ".textArea-2Spzkt",
+			channelTextareaDisabled: ".channelTextAreaDisabled-rZtG8r",
 			accountDetails: ".accountDetails-3k9g4n"
 		};
 
@@ -197,47 +198,51 @@ class BetterReplyer {
 	 */
 	observer(e) {
 
-		// iterate over added nodes
-        for (var n of e.addedNodes) {
-
-            // check if node is html element
-            if (n instanceof HTMLElement) {
-
-				// check if added nodes contain message header or textarea
-                if (n.matches(this.selector.messageHeader)) {
+		// check if channel textarea is disabled
+		if (document.querySelector(this.selector.channelTextareaDisabled) === null) {
+			
+			// iterate over added nodes
+			for (var n of e.addedNodes) {
+				
+				// check if node is html element
+				if (n instanceof HTMLElement) {
 					
-					// insert directly into message header
-                    this.insert(n);
-                }
-				else if (n.matches(this.selector.channelTextarea)) {
-
-					// add blur handler directly to textarea
-					n.addEventListener("blur", this.handler.blur);
-				}
-                else {
-
-					// search for descendant message headers
-					var l = n.findAll(this.selector.messageHeader);
-					if (l.length > 0) {
-
-						// insert into descendant message headers
-						for (var m of l) {
-							this.insert(m);
+					// check if added nodes contain message header or textarea
+					if (n.matches(this.selector.messageHeader)) {
+						
+						// insert directly into message header
+						this.insert(n);
+					}
+					else if (n.matches(this.selector.channelTextarea)) {
+						
+						// add blur handler directly to textarea
+						n.addEventListener("blur", this.handler.blur);
+					}
+					else {
+						
+						// search for descendant message headers
+						var l = n.findAll(this.selector.messageHeader);
+						if (l.length > 0) {
+							
+							// insert into descendant message headers
+							for (var m of l) {
+								this.insert(m);
+							}
+						}
+						
+						// search for descendant textareas
+						l = n.findAll(this.selector.channelTextarea);
+						if (l.length > 0) {
+							
+							// add blur handler to descendant textareas
+							for (var t of l) {
+								t.addEventListener("blur", this.handler.blur);
+							}
 						}
 					}
-
-					// search for descendant textareas
-					l = n.findAll(this.selector.channelTextarea);
-					if (l.length > 0) {
-
-						// add blur handler to descendant textareas
-						for (var t of l) {
-							t.addEventListener("blur", this.handler.blur);
-						}
-					}
 				}
-            }
-        }
+			}
+		}
 	}
 
 	/**
