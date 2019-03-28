@@ -1,4 +1,4 @@
-//META {"name": "GuildSeparators", "source": "https://github.com/Zerthox/BetterDiscord-Plugins/blob/master/plugins/GuildSeparators.plugin.js"} *//
+//META {"name": "GuildSeparators", "source": "https://github.com/Zerthox/BetterDiscord-Plugins/blob/master/v1/GuildSeparators.plugin.js"} *//
 
 /**
  * Guild Separators plugin class

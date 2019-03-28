@@ -1,4 +1,4 @@
-//META {"name": "BetterReplyer", "source": "https://github.com/Zerthox/BetterDiscord-Plugins/blob/master/plugins/BetterReplyer.plugin.js"} *//
+//META {"name": "BetterReplyer", "source": "https://github.com/Zerthox/BetterDiscord-Plugins/blob/master/v1/BetterReplyer.plugin.js"} *//
 
 /**
  * BetterReplyer plugin class
