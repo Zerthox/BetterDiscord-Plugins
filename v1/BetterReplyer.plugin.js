@@ -56,7 +56,7 @@ class BetterReplyer {
 			messageHeader: `.${BdApi.findModuleByProps("messagesWrapper", "messages").messages.split(" ")[0]} .${BdApi.findModuleByProps("headerCozyMeta").headerCozyMeta.split(" ")[0]}`,
 			channelTextarea: `.${BdApi.findModuleByProps("channelTextArea", "textArea").textArea.split(" ")[0]}`,
 			channelTextareaDisabled: `.${BdApi.findModuleByProps("channelTextArea", "textAreaDisabled").textAreaDisabled.split(" ")[0]}`,
-			messageContainer: `.${BdApi.findModuleByProps("containerCozy").containerCozy.split(" ")[0]}`
+			messageContainer: `.${BdApi.findModuleByProps("message", "containerCozy").containerCozy.split(" ")[0]}`
 		};
 
 		/**
