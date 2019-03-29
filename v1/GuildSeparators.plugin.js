@@ -1,9 +1,9 @@
-//META {"name": "GuildSeparators", "source": "https://github.com/Zerthox/BetterDiscord-Plugins/blob/master/v1/GuildSeparators.plugin.js"} *//
+//META {"name": "GuildSeparators", "source": "https://github.com/Zerthox/BetterDiscord-Plugins/blob/master/plugins/GuildSeparators.plugin.js"} *//
 
 /**
  * Guild Separators plugin class
  * @author Zerthox
- * @version 2.0.3
+ * @version 2.1.0
  */
 class GuildSeparators {
 
@@ -27,7 +27,7 @@ class GuildSeparators {
 	 * @return {string} plugin version
 	 */
 	getVersion() {
-		return "2.0.3";
+		return "2.1.0";
 	}
 
 	/**
@@ -43,24 +43,33 @@ class GuildSeparators {
 	constructor() {
 
 		/**
+		 * object with modules
+		 */
+		this.module = {
+			contextMenu: BdApi.findModuleByProps("getContextMenu")
+		}
+
+		// find context menu class module
+		var cm = BdApi.findModuleByProps("contextMenu", "item", "label");
+
+		/**
 		 * object with selectors
 		 */
-		this.selectors = {
-			guild: ".container-2td-dC",
-			contextMenu: ".contextMenu-HLZMGh",
-			contextMenuItem: ".item-1Yvehc",
-			contextMenuLabel: ".label-JWQiNe"
+		this.selector = {
+			guild: `.${BdApi.findModuleByProps("container", "guildIcon").container.split(" ")[0]}`,
+			contextMenu: `.${cm.contextMenu.split(" ")[0]}`,
+			contextMenuItem: `.${cm.item.split(" ")[0]}`,
+			contextMenuLabel: `.${cm.label.split(" ")[0]}`
 		};
 
 		/**
 		 * plugin styles
 		 */
 		this.css= `/* Guild Separators CSS */
-			${this.selectors.guild}[separator] {
+			${this.selector.guild}[separator] {
 				margin-bottom: 32px
 			}
-			${this.selectors.guild}[separator]:after,
-			${this.selectors.guild}[separator]::after {
+			${this.selector.guild}[separator]:after {
 				content: "";
 				position: absolute;
 				bottom: -16px;
@@ -96,7 +105,7 @@ class GuildSeparators {
 		this.processGuilds();
 
 		// check if context menu is present
-		var m = document.querySelector(`${this.selectors.contextMenu}`);
+		var m = document.querySelector(`${this.selector.contextMenu}`);
 		if (m != null) {
 
 			// insert into context menu
@@ -119,7 +128,7 @@ class GuildSeparators {
 		BdApi.saveData(this.getName(), "guilds", this.guilds);
 
 		// remove separators
-		for (var e of document.querySelectorAll(`${this.selectors.guild}[separator]`)) {
+		for (var e of document.querySelectorAll(`${this.selector.guild}[separator]`)) {
 			e.removeAttribute("separator");
 		}
 
@@ -140,12 +149,12 @@ class GuildSeparators {
             if (n instanceof HTMLElement) {
 
                 // check if contextMenu or guild were added
-                if (n.matches(this.selectors.contextMenu)) {
+                if (n.matches(this.selector.contextMenu)) {
 
                     // insert context menu
                     this.insertContextMenu(n);
                 }
-                else if (n.matches(this.selectors.guild) || n.find(this.selectors.guild) != null) {
+                else if (n.matches(this.selector.guild) || n.find(this.selector.guild) != null) {
 
                     // process guilds
                     this.processGuilds();
@@ -161,15 +170,10 @@ class GuildSeparators {
 	insertContextMenu(m) {
 
 		// get menu target
-		var t = this.getMenuTarget(m);
-
-		// break function execution if target not found
-		if (typeof t === "undefined") {
-			return;
-		}
+		var t = this.module.contextMenu.getContextMenu().target;
 
 		// check if target is guild
-		var g = t.parents(this.selectors.guild);
+		var g = t.parents(this.selector.guild);
 		if (g.length > 0) {
 
 			// get guild element
@@ -179,10 +183,10 @@ class GuildSeparators {
 			var id = this.getGuildId(g);
 
 			// clone context menu item
-			var i = m.find("input[type=checkbox]").parents(this.selectors.contextMenuItem)[0].cloneNode(true);
+			var i = m.find("input[type=checkbox]").parents(this.selector.contextMenuItem)[0].cloneNode(true);
 
 			// set context menu item text
-			i.find(this.selectors.contextMenuLabel).innerHTML = "Add Separator";
+			i.find(this.selector.contextMenuLabel).innerHTML = "Add Separator";
 
 			// find context menu item checkbox
 			var c = i.find("input[type=checkbox]");
@@ -235,7 +239,7 @@ class GuildSeparators {
 	processGuilds() {
 
 		// iterate over guilds
-		for (var g of document.querySelectorAll(this.selectors.guild)) {
+		for (var g of document.querySelectorAll(this.selector.guild)) {
 
 			// check if guilds array contains guild
 			if (this.guilds.includes(this.getGuildId(g))) {
@@ -244,16 +248,6 @@ class GuildSeparators {
 				g.setAttribute("separator", "");
 			}
 		}
-	}
-
-	/**
-	 * get target element of passed context menu element
-	 * @param {HTMLElement} e context menu element
-	 * @return {HTMLElement} target element
-	 */
-	getMenuTarget(e) {
-		var r = BdApi.getInternalInstance(e);
-		return r && r.return.memoizedProps.target;
 	}
 
 	/**
