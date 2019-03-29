@@ -1,9 +1,9 @@
-//META {"name": "BetterReplyer", "source": "https://github.com/Zerthox/BetterDiscord-Plugins/blob/master/v1/BetterReplyer.plugin.js"} *//
+//META {"name": "BetterReplyer", "source": "https://github.com/Zerthox/BetterDiscord-Plugins/blob/master/plugins/BetterReplyer.plugin.js"} *//
 
 /**
  * BetterReplyer plugin class
  * @author Zerthox
- * @version 3.0.4
+ * @version 3.1.0
  */
 class BetterReplyer {
 
@@ -35,7 +35,7 @@ class BetterReplyer {
      * @return {string} plugin version
      */
 	getVersion() {
-		return "3.0.4";
+		return "3.1.0";
 	}
     /**
      * @return {*} plugin author
@@ -53,10 +53,10 @@ class BetterReplyer {
 		 * object with selectors
 		 */
 		this.selector = {
-			messageHeader: ".messages-3amgkR .headerCozyMeta-rdohGq",
-			channelTextarea: ".textArea-2Spzkt",
-			channelTextareaDisabled: ".channelTextAreaDisabled-rZtG8r",
-			accountDetails: ".accountDetails-3k9g4n"
+			messageHeader: `.${BdApi.findModuleByProps("messagesWrapper", "messages").messages.split(" ")[0]} .${BdApi.findModuleByProps("headerCozyMeta").headerCozyMeta.split(" ")[0]}`,
+			channelTextarea: `.${BdApi.findModuleByProps("channelTextArea", "textArea").textArea.split(" ")[0]}`,
+			channelTextareaDisabled: `.${BdApi.findModuleByProps("channelTextArea", "textAreaDisabled").textAreaDisabled.split(" ")[0]}`,
+			messageContainer: `.${BdApi.findModuleByProps("containerCozy").containerCozy.split(" ")[0]}`
 		};
 
 		/**
@@ -75,7 +75,7 @@ class BetterReplyer {
 				text-transform: uppercase;
 				cursor: pointer;
 			}
-			.container-1YxwTf:not(:hover) .replyer {
+			${this.selector.messageContainer}:not(:hover) .replyer {
 				visibility: hidden;
 			}`;
 
@@ -99,7 +99,7 @@ class BetterReplyer {
 			mode: false
 		}
 
-				/**
+		/**
 		 * object with handlers
 		 */
 		this.handler = {
@@ -255,7 +255,7 @@ class BetterReplyer {
 		var id = BdApi.getInternalInstance(e).child.memoizedProps.message.author.id;
 
 		// check if message is sent by user
-		if (id != BdApi.getInternalInstance(document.querySelector(this.selector.accountDetails)).return.memoizedProps.user.id) {
+		if (id != BdApi.findModuleByProps("getCurrentUser").getCurrentUser().id) {
 	
 			// create reply button element
 			var b = document.createElement("span");
