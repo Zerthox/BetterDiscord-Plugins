@@ -1,7 +1,7 @@
 /**
  * BetterRepyler plugin module
  * @author Zerthox
- * @version 0.3.0
+ * @version 0.3.1
  */
 module.exports = (Plugin, Api, Vendor) => {
 
@@ -52,8 +52,8 @@ module.exports = (Plugin, Api, Vendor) => {
                 // get old return value
                 let r = Comp.message.old.renderCozy.apply(this);
 
-                // break execution if no header
-                if (!this.props.isHeader) {
+                // return unmodified if disabled or no header
+                if (this.props.isDisabled || !this.props.isHeader) {
                     return r;
                 }
 
