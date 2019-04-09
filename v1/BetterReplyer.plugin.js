@@ -22,7 +22,7 @@ class BetterReplyer {
 			"Reply to people using their ID with a button.\n Inspired by ",
 			BdApi.React.createElement("a", {href: "https://github.com/cosmicsalad/Discord-Themes-and-Plugins/blob/master/plugins/replyer.plugin.js", target: "_blank"}, "Replyer"),
 			" by ",
-			BdApi.React.createElement("a", {href: "https://github.com/cosmicsalad", target: "_blank"}, "@Hammock#6027"),
+			BdApi.React.createElement("a", {href: "https://github.com/cosmicsalad", target: "_blank"}, "Hammmock#3110"),
 			", ",
 			BdApi.React.createElement("a", {href: "https://github.com/Delivator", target: "_blank"}, "@Natsulus#0001"),
 			" & ",
