@@ -186,7 +186,7 @@ const Emulator = (() => {
                 ReactDOM.render(React.createElement(settingsEmulator), root);
             }, 0);
                 
-            // return empty string
+            // return root element
             return root;
         }
             
