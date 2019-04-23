@@ -19,7 +19,7 @@ class GuildSeparators {
 	 */
 	getDescription() {
 		return BdApi.React.createElement("span", {style: {"white-space": "pre-line"}},
-			"Add Guild Separators with a button in the context menu."
+			"Add separators between Guilds with a button in the context menu."
 		);
 	}
 
