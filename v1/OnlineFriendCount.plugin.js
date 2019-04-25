@@ -1,4 +1,4 @@
-//META {"name": "OnlineFriendCount", "source": "https://github.com/Zerthox/BetterDiscord-Plugins/blob/master/v1/FriendCount.plugin.js"} *//
+//META {"name": "OnlineFriendCount", "source": "https://github.com/Zerthox/BetterDiscord-Plugins/blob/master/v1/OnlineFriendCount.plugin.js"} *//
 
 /**
  * @author Zerthox
@@ -18,6 +18,9 @@ const OnlineFriendCount = (() => {
         guilds: BDV2.WebpackModules.findByDisplayName("Guilds")
     };
 
+    /**
+     * selector storage
+     */
     const Selector = {
         guildsWrapper: BdApi.findModuleByProps("wrapper", "unreadMentionsBar"),
         guilds: BdApi.findModuleByProps("listItem", "friendsOnline")
