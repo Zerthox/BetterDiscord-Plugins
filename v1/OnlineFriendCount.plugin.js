@@ -2,7 +2,7 @@
 
 /**
  * @author Zerthox
- * @version 1.0.0
+ * @version 1.0.1
  * @return {class} OnlineFriendCount plugin class
  */
 const OnlineFriendCount = (() => {
@@ -54,7 +54,7 @@ const OnlineFriendCount = (() => {
          * @return {string} plugin version
          */
         getVersion() {
-            return "1.0.0";
+            return "1.0.1";
         }
         
         /**
@@ -69,8 +69,8 @@ const OnlineFriendCount = (() => {
          */
         start() {
             
-            // patch settings render function
-            Patches.settings = BdApi.monkeyPatch(Module.guilds.prototype, "render", {after: (d) => {
+            // patch guilds render function
+            Patches.guilds = BdApi.monkeyPatch(Module.guilds.prototype, "render", {after: (d) => {
 
                 // get return value
                 const r = d.returnValue;
@@ -124,7 +124,8 @@ const OnlineFriendCount = (() => {
 
             // force update guilds wrapper
             for (const e of document.getElementsByClassName(Selector.guildsWrapper.wrapper)) {
-                BdApi.getInternalInstance(e).return.stateNode.forceUpdate();
+                const i = BdApi.getInternalInstance(e);
+                i && i.return.stateNode.forceUpdate();
             }
         }
 
