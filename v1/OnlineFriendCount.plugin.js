@@ -2,7 +2,7 @@
 
 /**
  * @author Zerthox
- * @version 1.0.1
+ * @version 1.0.2
  * @return {class} OnlineFriendCount plugin class
  */
 const OnlineFriendCount = (() => {
@@ -54,7 +54,7 @@ const OnlineFriendCount = (() => {
          * @return {string} plugin version
          */
         getVersion() {
-            return "1.0.1";
+            return "1.0.2";
         }
         
         /**
@@ -78,14 +78,11 @@ const OnlineFriendCount = (() => {
                 // find guild list
                 const l = r.props.children[1].props.children;
 
-                // find index of separator
-                const i = l.indexOf(l.find((e) => e.type.name === "N"));
-
                 // check if online friends count is not inserted yet
-                if (l[i].props.className !== Selector.guilds.friendsOnline) {
+                if (!l.find((e) => e.props.className === Selector.guilds.friendsOnline)) {
 
                     // insert online friends count before separator
-                    l.splice(i, 0, React.createElement("div", {className: Selector.guilds.friendsOnline, style: {"margin-left": 0}}, `${Module.status.getOnlineFriendCount()} Online`));
+                    l.splice(l.indexOf(l.find((e) => e.type.name === "N")), 0, React.createElement("div", {className: Selector.guilds.friendsOnline, style: {"margin-left": 0}}, `${Module.status.getOnlineFriendCount()} Online`));
                 }
 
                 // return modified return value
