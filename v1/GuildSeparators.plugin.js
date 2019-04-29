@@ -74,7 +74,7 @@ class GuildSeparators {
 				position: absolute;
 				width: 32px;
 				height: 2px;
-				bottom: -8px;
+				bottom: -9px;
 				left: calc(50% - 16px);
 				background: #2f3136;
 				border-radius: 1px;
