@@ -4,7 +4,7 @@
 Reply to people using their ID with a button.  
 Inspired by [Replyer](https://github.com/cosmicsalad/Discord-Themes-and-Plugins/blob/master/plugins/replyer.plugin.js) by [Hammmock#3110](https://github.com/cosmicsalad), [@Natsulus#0001](https://github.com/Delivator) & [@Zerebos#7790](https://github.com/rauenzi).
 
-## [GuildSeparators](/v1/GuildSeparators.plugin.js) <sub><sup>*(Updated: 04/04/19)*</sup></sub>
+## [GuildSeparators](/v1/GuildSeparators.plugin.js) <sub><sup>*(Updated: 29/04/19)*</sup></sub>
 Add separators between Guilds with a button in the context menu.
 
 ## [OnlineFriendCount](/v1/OnlineFriendCount.plugin.js) <sub><sup>*(Updated: 25/04/19)*</sup></sub>

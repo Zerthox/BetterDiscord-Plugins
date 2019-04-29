@@ -3,7 +3,7 @@
 /**
  * Guild Separators plugin class
  * @author Zerthox
- * @version 2.1.1
+ * @version 2.1.2
  */
 class GuildSeparators {
 
@@ -27,7 +27,7 @@ class GuildSeparators {
 	 * @return {string} plugin version
 	 */
 	getVersion() {
-		return "2.1.1";
+		return "2.1.2";
 	}
 
 	/**
@@ -56,7 +56,7 @@ class GuildSeparators {
 		 * object with selectors
 		 */
 		this.selector = {
-			guild: `.${BdApi.findModuleByProps("container", "guildIcon").container.split(" ")[0]}`,
+			guild: `.${BdApi.findModuleByProps("listItem", "guildsError").listItem.split(" ")[0]}`,
 			contextMenu: `.${cm.contextMenu.split(" ")[0]}`,
 			contextMenuItem: `.${cm.item.split(" ")[0]}`,
 			contextMenuLabel: `.${cm.label.split(" ")[0]}`
@@ -65,18 +65,19 @@ class GuildSeparators {
 		/**
 		 * plugin styles
 		 */
-		this.css= `/* Guild Separators CSS */
+		this.css = `/* Guild Separators CSS */
 			${this.selector.guild}[separator] {
-				margin-bottom: 32px
+				margin-bottom: 18px
 			}
 			${this.selector.guild}[separator]:after {
 				content: "";
 				position: absolute;
-				bottom: -16px;
-				left: 20%;
-				right: 20%;
+				width: 32px;
 				height: 2px;
+				bottom: -8px;
+				left: calc(50% - 16px);
 				background: #2f3136;
+				border-radius: 1px;
 			}`;
 	}
 
@@ -113,7 +114,7 @@ class GuildSeparators {
 		}
 
 		// console output
-		console.log(`[${this.getName()}] Enabled`);
+		console.log(`%c[${this.getName()}]%c v${this.getVersion()} enabled`, "color: #3a71c1; font-weight: 700;", "");
 	}
 
 	/**
@@ -133,7 +134,7 @@ class GuildSeparators {
 		}
 
 		// console output
-		console.log(`[${this.getName()}] Disabled`);
+		console.log(`%c[${this.getName()}]%c v${this.getVersion()} enabled`, "color: #3a71c1; font-weight: 700;", "");
 	}
 
 	/**
@@ -143,24 +144,24 @@ class GuildSeparators {
 	observer(e) {
 
 		// iterate over added nodes
-		for (var n of e.addedNodes) {
+        for (var n of e.addedNodes) {
 
-			// check if node is html element
-			if (n instanceof HTMLElement) {
+            // check if node is html element
+            if (n instanceof HTMLElement) {
 
-				// check if contextMenu or guild were added
-				if (n.matches(this.selector.contextMenu)) {
+                // check if contextMenu or guild were added
+                if (n.matches(this.selector.contextMenu)) {
 
-					// insert context menu
-					this.insertContextMenu(n);
-				}
-				else if (n.matches(this.selector.guild) || n.querySelector(this.selector.guild) != null) {
+                    // insert context menu
+                    this.insertContextMenu(n);
+                }
+                else if (n.matches(this.selector.guild) || n.querySelector(this.selector.guild) != null) {
 
-					// process guilds
-					this.processGuilds();
-				}
-			}
-		}
+                    // process guilds
+                    this.processGuilds();
+                }
+            }
+        }
 	}
 
 	/**
@@ -256,8 +257,9 @@ class GuildSeparators {
 	 * @return {string} guild id
 	 */
 	getGuildId(e) {
-		var r = BdApi.getInternalInstance(e);
-		return r && r.return.memoizedProps.guild.id;
+		var i = BdApi.getInternalInstance(e);
+		var g = i && i.return.memoizedProps.guild;
+		return g && g.id;
 	}
 
 }
