@@ -2,7 +2,7 @@
 
 /**
  * @author Zerthox
- * @version 1.0.3
+ * @version 1.0.4
  * @return {class} OnlineFriendCount plugin class
  */
 const OnlineFriendCount = (() => {
@@ -54,7 +54,7 @@ const OnlineFriendCount = (() => {
          * @return {string} plugin version
          */
         getVersion() {
-            return "1.0.3";
+            return "1.0.4";
         }
         
         /**
@@ -75,14 +75,18 @@ const OnlineFriendCount = (() => {
                 // get return value
                 const r = d.returnValue;
 
-                // find guild list
-                const l = r.props.children[1].props.children;
+                // find scroller
+                const l = r.props.children.find((e) => e.type && e.type.displayName === "VerticalScroller").props.children;
 
                 // check if online friends count is not inserted yet
-                if (!l.find((e) => e.props && e.props.className === Selector.guilds.friendsOnline)) {
+                if (!l.find((e) => e.props && e.props.children && e.props.children.props && e.props.children.props.className === Selector.guilds.friendsOnline)) {
 
-                    // insert online friends count before separator
-                    l.splice(l.indexOf(l.find((e) => e.type.name === "N")), 0, React.createElement("div", {className: Selector.guilds.friendsOnline, style: {"margin-left": 0}}, `${Module.status.getOnlineFriendCount()} Online`));
+                    // insert online friends count before dms
+                    l.splice(l.indexOf(l.find((e) => e.type && e.type.displayName === "TransitionGroup")), 0,
+                        React.createElement("div", {className: Selector.guilds.listItem},
+                            React.createElement("div", {className: Selector.guilds.friendsOnline, style: {"margin": 0}}, `${Module.status.getOnlineFriendCount()} Online`)
+                        )
+                    );
                 }
 
                 // return modified return value
@@ -102,8 +106,9 @@ const OnlineFriendCount = (() => {
         stop() {
 
             // revert all patches
-            for (const f of Object.values(Patches)) {
-                f();
+            for (const k in Patches) {
+                Patches[k]();
+                delete Patches[k];
             }
 
             // force update
