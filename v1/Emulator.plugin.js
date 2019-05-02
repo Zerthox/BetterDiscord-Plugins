@@ -2,7 +2,7 @@
 
 /**
  * @author Zerthox
- * @version 0.3.0
+ * @version 0.3.1
  * @return {class} Emulator plugin class
  */
 const Emulator = (() => {
@@ -56,7 +56,7 @@ const Emulator = (() => {
          * @return {string} plugin version
          */
         getVersion() {
-            return "0.3.0";
+            return "0.3.1";
         }
         
         /**
@@ -221,7 +221,10 @@ const Emulator = (() => {
                 const t = d.thisObject;
                 
                 // modify overlay section predicate
-                t.props.sections.find((e) => e.label === "Overlay").predicate = () => Module.native.isWindows();
+                const o = t.props.sections.find((e) => e.label === "Overlay");
+                if (o) {
+                    o.predicate = () => Module.native.isWindows();
+                }
                 
                 // return original method with modified props
                 return d.originalMethod.apply(t);
@@ -243,8 +246,9 @@ const Emulator = (() => {
         stop() {
 
             // revert all patches
-            for (const f of Object.values(Patches)) {
-                f();
+            for (const k in Patches) {
+                Patches[k]();
+                delete Patches[k];
             }
 
             // force update
