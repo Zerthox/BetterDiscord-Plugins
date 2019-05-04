@@ -1,312 +1,307 @@
 //META {"name": "BetterReplyer", "source": "https://github.com/Zerthox/BetterDiscord-Plugins/blob/master/v1/BetterReplyer.plugin.js"} *//
 
 /**
- * BetterReplyer plugin class
  * @author Zerthox
- * @version 3.1.1
+ * @version 4.0.0
+ * @return {class} BetterReplyer Plugin class
  */
-class BetterReplyer {
+const BetterReplyer = (() => {
 
-	/**
-	 * @return {string} plugin name
-	 */
-	getName() {
-		return "BetterReplyer";
-	}
+	// Api constants
+	const {React, ReactDOM} = BdApi;
 
-	/**
-	 * @return {*} plugin description
-	 */
-	getDescription() {
-		return BdApi.React.createElement("span", {style: {"white-space": "pre-line"}},
-			"Reply to people using their ID with a button.\n Inspired by ",
-			BdApi.React.createElement("a", {href: "https://github.com/cosmicsalad/Discord-Themes-and-Plugins/blob/master/plugins/replyer.plugin.js", target: "_blank"}, "Replyer"),
-			" by ",
-			BdApi.React.createElement("a", {href: "https://github.com/cosmicsalad", target: "_blank"}, "Hammmock#3110"),
-			", ",
-			BdApi.React.createElement("a", {href: "https://github.com/Delivator", target: "_blank"}, "@Natsulus#0001"),
-			" & ",
-			BdApi.React.createElement("a", {href: "https://github.com/rauenzi", target: "_blank"}, "@Zerebos#7790"),
-			"."
-		);
-	}
+	/** Module storage */
+	const Module = {
+		Constants: BdApi.findModuleByProps("Permissions"),
+		Permissions: BdApi.findModuleByProps("getChannelPermissions"),
+		Drafts: BdApi.findModuleByProps("getDraft"),
+		DraftActions: BdApi.findModuleByProps("saveDraft"),
+		Users: BdApi.findModuleByProps("getUser", "getCurrentUser")
+	};
+	
+	/** Component storage */
+	const Component = {
+		Message: BdApi.findModuleByProps("Message", "MessageAvatar").Message,
+		ChannelTextArea: BDV2.WebpackModules.findByDisplayName("ChannelTextArea")
+	};
 
-	/**
-	 * @return {string} plugin version
-	 */
-	getVersion() {
-		return "3.1.1";
-	}
-	/**
-	 * @return {*} plugin author
-	 */
-	getAuthor() {
-		return BdApi.React.createElement("a", {href: "https://github.com/Zerthox", target: "_blank"}, "Zerthox");
-	}
+	/** Selector storage */
+	const Selector = {
+		Messages: BdApi.findModuleByProps("message", "container", "headerCozy"),
+		TextArea: BdApi.findModuleByProps("channelTextArea")
+	};
 
-	/**
-	 * plugin class constructor
-	 */
-	constructor() {
+	/** Storage for Patches */
+	const Patches = {};
+
+	// return plugin class
+	return class BetterReplyer {
 
 		/**
-		 * object with selectors
+		 * @return {string} Plugin name
 		 */
-		this.selector = {
-			messageHeader: `.${BdApi.findModuleByProps("messagesWrapper", "messages").messages.split(" ")[0]} .${BdApi.findModuleByProps("headerCozyMeta").headerCozyMeta.split(" ")[0]}`,
-			channelTextarea: `.${BdApi.findModuleByProps("channelTextArea", "textArea").textArea.split(" ")[0]}`,
-			channelTextareaDisabled: `.${BdApi.findModuleByProps("channelTextArea", "textAreaDisabled").textAreaDisabled.split(" ")[0]}`,
-			messageContainer: `.${BdApi.findModuleByProps("message", "containerCozy").containerCozy.split(" ")[0]}`
-		};
-
-		/**
-		 * plugin styles
-		 */
-		this.css = `/* BetterReplyer CSS */
-			.replyer {
-				position: relative;
-				top: -1px;
-				margin-left: 5px;
-				padding: 3px 5px;
-				background: rgba(0, 0, 0, 0.4);
-				border-radius: 3px;
-				color: #fff !important;
-				font-size: 10px;
-				text-transform: uppercase;
-				cursor: pointer;
-			}
-			${this.selector.messageContainer}:not(:hover) .replyer {
-				visibility: hidden;
-			}`;
-
-		/**
-		 * object with plugin state relevant stuff
-		 */
-		this.state = {
-			/**
-			 * clicked element save
-			 */
-			clicked: document.body,
-
-			/**
-			 * focused textarea save
-			 */
-			focused: null,
-
-			/**
-			 * reply mode
-			 */
-			mode: false
+		getName() {
+			return "BetterReplyer";
 		}
 
 		/**
-		 * object with handlers
+		 * @return {string} Plugin version
 		 */
-		this.handler = {
-
-			/**
-			 * document click handler
-			 */
-			click: (e) => {
-
-				// save event target
-				this.state.clicked = e.target;
-			},
-
-			/**
-			 * textarea blur handler
-			 */
-			blur: (e) => {
-
-				// save event target
-				this.state.focused = e.target;
-
-				// update reply mode
-				this.state.mode = this.state.clicked.matches(`${this.selector.messageHeader} .replyer`);
-			}
-		};
-	}
-
-	/**
-	 * plugin start function
-	 */
-	start() {
-
-		// inject styles
-		BdApi.injectCSS(this.getName(), this.css);
-
-		// add click handler
-		document.addEventListener("mousedown", this.handler.click);
-
-		// iterate over all message headers
-		for (var e of document.querySelectorAll(this.selector.messageHeader)) {
-
-			// insert reply button
-			this.insert(e);
+		getVersion() {
+			return "4.0.0";
 		}
 
-		// iterate over all textareas
-		for (var e of document.querySelectorAll(this.selector.channelTextarea)) {
-
-			// add blur handler
-			e.addEventListener("blur", this.handler.blur);
+		/**
+		 * @return {ReactElement} Plugin author
+		 */
+		getAuthor() {
+			return this.createAnchor({text: "Zerthox", url: "https://github.com/Zerthox"});
 		}
 
-		// console output
-		console.log(`[${this.getName()}] Enabled`);
-	}
-
-	/**
-	 * plugin stop function
-	 */
-	stop() {
-
-		// remove styles
-		BdApi.clearCSS(this.getName());
-
-		// remove click handler
-		document.removeEventListener("mousedown", this.handler.click);
-
-		// iterate over all message headers
-		for (var e of document.querySelectorAll(`${this.selector.messageHeader} .replyer`)) {
-
-			// remove reply button
-			e.remove();
+		/**
+		 * @return {ReactElement} Plugin description
+		 */
+		getDescription() {
+			return React.createElement("span", {style: {"white-space": "pre-line"}},
+				"Reply to people using their ID with a button.\n Inspired by ",
+				this.createAnchor({text: "Replyer", url: "https://github.com/cosmicsalad/Discord-Themes-and-Plugins/blob/master/plugins/replyer.plugin.js"}),
+				" by ",
+				this.createAnchor({text: "@Hammmock#3110", url: "https://github.com/cosmicsalad"}),
+				", ",
+				this.createAnchor({text: "@Natsulus#0001", url: "https://github.com/Delivator"}),
+				" & ",
+				this.createAnchor({text: "@Zerebos#7790", url: "https://github.com/rauenzi"}),
+				"."
+			);
 		}
 
-		// iterate over all textareas
-		for (var e of document.querySelectorAll(this.selector.channelTextarea)) {
-
-			// remove blur handler
-			e.removeEventListener("blur", this.handler.blur);
+		/**
+		 * Log a message in Console
+		 * @param {string} msg message
+		 */
+		log(msg) {
+			console.log(`%c[${this.getName()}]%c (v${this.getVersion()})%c ${msg}`, "color: #3a71c1; font-weight: 700;", "font-size: .8em; color: hsla(0, 0%, 100%, .3);", "");
 		}
 
-		// reset state
-		this.state = {
-			clicked: document.body,
-			focused: null,
-			mode: false
+		/**
+		 * Create a new Anchor element based on Discord's Anchor Component
+		 * @param {object} props Component props
+		 * @param {string} props.text Anchor text
+		 * @param {string} props.url Anchor url
+		 * @return {ReactElement} New Anchor element
+		 */
+		createAnchor(props) {
+			return BdApi.React.createElement(BDV2.WebpackModules.findByDisplayName("Anchor"), {href: props.url, target: "_blank", title: props.url}, props.text);
+		}
+
+		/**
+		 * Plugin constructor
+		 */
+		constructor() {
+			this.focused = null;
+			this.selection = [0, 0];
+			this.mode = false;
 		}
 		
-		// console output
-		console.log(`[${this.getName()}] Disabled`);
-	}
+		/**
+		 * Plugin start function
+		 */
+		start() {
 
-	/**
-	 * plugin DOM observer
-	 * @param {*} e event
-	 */
-	observer(e) {
-
-		// check if channel textarea is disabled
-		if (!document.querySelector(this.selector.channelTextareaDisabled)) {
-			
-			// iterate over added nodes
-			for (var n of e.addedNodes) {
-				
-				// check if node is html element
-				if (n instanceof HTMLElement) {
-					
-					// check if added nodes contain message header or textarea
-					if (n.matches(this.selector.messageHeader)) {
-						
-						// insert directly into message header
-						this.insert(n);
-					}
-					else if (n.matches(this.selector.channelTextarea)) {
-						
-						// add blur handler directly to textarea
-						n.addEventListener("blur", this.handler.blur);
-					}
-					else {
-						
-						// search for descendant message headers
-						var l = n.querySelectorAll(this.selector.messageHeader);
-						if (l.length > 0) {
-							
-							// insert into descendant message headers
-							for (var m of l) {
-								this.insert(m);
-							}
-						}
-						
-						// search for descendant textareas
-						l = n.querySelectorAll(this.selector.channelTextarea);
-						if (l.length > 0) {
-							
-							// add blur handler to descendant textareas
-							for (var t of l) {
-								t.addEventListener("blur", this.handler.blur);
-							}
-						}
-					}
+			// inject styles
+			BdApi.injectCSS(this.getName(),
+				`/* BetterReplyer CSS */
+				.replyer {
+					position: relative;
+					top: -1px;
+					margin-left: 5px;
+					padding: 3px 5px;
+					background: rgba(0, 0, 0, 0.4);
+					border-radius: 3px;
+					color: #fff !important;
+					font-size: 10px;
+					text-transform: uppercase;
+					cursor: pointer;
 				}
-			}
-		}
-	}
-
-	/**
-	 * insert reply button into passed message header
-	 * @param {HTMLElement} e message header
-	 */
-	insert(e) {
-
-		// get message author id
-		var id = BdApi.getInternalInstance(e).child.memoizedProps.message.author.id;
-
-		// check if message is sent by user
-		if (id != BdApi.findModuleByProps("getCurrentUser").getCurrentUser().id) {
-
-			// create reply button element
-			var b = document.createElement("span");
+				${Selector.Messages.messageContainer}:not(:hover) .replyer {
+					visibility: hidden;
+				}`
+			);
 			
-			// set reply button class
-			b.className = "replyer";
-			
-			// set reply button text
-			b.innerHTML = "Reply";
-			
-			// add event listener
-			b.addEventListener("click", () => {
+			// patch message render function
+			Patches.message = BdApi.monkeyPatch(Component.Message.prototype, "render", {silent: true, after: (d) => {
 
-				// get last focused textarea or default to first textarea found
-				var t = this.state.focused instanceof HTMLElement ? this.state.focused : document.querySelector(this.selector.channelTextarea);
+				// get this & old return value
+				const t = d.thisObject,
+					r = d.returnValue;
+
+				// get message author id
+				const id = t.props.message.author.id;
+
+				// return unmodified if disabled, compact, no header, author is current user or no permission to send messages
+				if (t.props.isDisabled || t.props.isCompact || !t.props.isHeader || id === Module.Users.getCurrentUser().id || !(Module.Constants.Permissions.SEND_MESSAGES & Module.Permissions.getChannelPermissions(t.props.channel.id))) {
+					return r;
+				}
+				
+				// find message header
+				const h = r.props.children.find((e) => e.props && e.props.className === Selector.Messages.headerCozy);
+
+				// find message header meta
+				const m = h && h.props.children.find((e) => e.props && e.props.className === Selector.Messages.headerCozyMeta);
+				
+				// add reply button
+				m && m.props.children.push(React.createElement("span", {
+					className: "replyer",
+					onClick: () => {
+
+						// get saved text area
+						const f = this.focused;
+
+						// check if text area saved
+						if (f) {
+
+							// focus textarea
+							f.focus();
+
+							// check mode
+							if (this.mode) {
+
+								// select saved selection
+								f.setSelectionRange(this.selection[0], this.selection[1]);
+
+								// insert mention
+								document.execCommand("insertText", false, `<@!${id}>`);
+
+								// update saved text area
+								setTimeout(() => {
+									this.focused = f;
+								}, 100);
+							}
+							else {
+
+								// get mention
+								const m = `<@!${id}> `;
+							
+								// go to start of textarea
+								f.setSelectionRange(0, 0);
+							
+								// insert mention
+								document.execCommand("insertText", false, m);
+							
+								// select saved selection
+								f.setSelectionRange(this.selection[0] + m.length, this.selection[1] + m.length); 
+							}
+						}
+						else {
+
+							// default to current channel
+							Module.DraftActions.saveDraft(t.props.channel.id, `<@!${id}> ${Module.Drafts.getDraft(t.props.channel.id)}`);
+						}
+					}
+				}, "Reply"));
+
+				// return modified return value
+				return r;
+			}});
+			this.log("Patched render of Message");
+
+			// patch channel text area render function
+			Patches.textarea = BdApi.monkeyPatch(Component.ChannelTextArea.prototype, "render", {silent: true, instead: (d) => {
+
+				// get this
+				const t = d.thisObject;
+
+				// declare blur handler
+				const f = () => {
+
+					// get dom node
+					const e = ReactDOM.findDOMNode(d.thisObject).querySelector("textarea");
+
+					// save focused textarea
+					this.focused = e;
+
+					// save selection
+					this.selection = [e.selectionStart, e.selectionEnd];
+
+					// set mode
+					this.mode = true;
+
+					// reset mode after 100ms
+					setTimeout(() => {
+						if (this.focused === e) {
+							this.mode = false;
+						}
+					}, 100);
+				};
+
+				// check if text area has a blur handler
+				if (t.props.onBlur) {
 					
-				// get mention string
-				var m = `<@!${id}>`;
-
-				// focus textarea
-				t.focus();
-
-				// check which mode to use
-				if (this.state.mode) {
-
-					// insert directly
-					document.execCommand("insertText", false, m);
+					// patch blur handler
+					BdApi.monkeyPatch(t.props, "onBlur", {silent: true, before: f});
 				}
 				else {
 
-					// add space to mention string
-					m += " ";
-
-					// save selection
-					var ts = t.selectionStart + m.length,
-						te = t.selectionEnd + m.length;
-				
-					// go to start of textarea
-					t.selectionEnd = 0;
-				
-					// insert mention
-					document.execCommand("insertText", false, m);
-				
-					// select saved selection
-					t.setSelectionRange(ts, te);
+					// assign blur handler
+					t.props.onBlur = f;
 				}
-			});
-			
-			// append reply button
-			e.appendChild(b);
-		}
-	}
 
-}
+				// return render with modified this
+				return d.originalMethod.apply(t);
+			}});
+			this.log("Patched onBlur of ChannelTextArea");
+			
+			// force update
+			this.forceUpdateAll();
+			
+			// console output
+			this.log("Enabled");
+		}
+		
+		/**
+		 * Plugin stop function
+		 */
+		stop() {
+
+			// reset saved text area, selection & mode
+			this.focused = null;
+			this.selection = [0, 0];
+			this.mode = false;
+
+			// clear styles
+			BdApi.clearCSS(this.getName());
+
+			// revert all patches
+			for (const k in Patches) {
+				Patches[k]();
+				delete Patches[k];
+			}
+			this.log("Unpatched all");
+
+			// force update
+			this.forceUpdateAll();
+
+			// console output
+			this.log("Disabled");
+		}
+
+		/**
+		 * Force update the "Message" & "ChannelTextArea" Component State Nodes
+		 */
+		forceUpdateAll() {
+
+			// force update messages
+			for (const e of document.getElementsByClassName(Selector.Messages.message)) {
+				const i = BdApi.getInternalInstance(e);
+				i && i.return.stateNode.forceUpdate && i.return.stateNode.forceUpdate();
+			}
+			
+			// force update channel text areas
+			for (const e of document.getElementsByClassName(Selector.TextArea.channelTextArea)) {
+				const i = BdApi.getInternalInstance(e);
+				i && i.return.stateNode.forceUpdate && i.return.stateNode.forceUpdate();
+			}
+		}
+
+	}
+})();
