@@ -80,7 +80,7 @@ const BetterReplyer = (() => {
 		 * @param {string} msg message
 		 */
 		log(msg) {
-			console.log(`%c[${this.getName()}] %c(v${this.getVersion()})%c ${msg}`, "color: #3a71c1; font-weight: 700;", "font-size: .8em; color: #555;", "");
+			console.log(`%c[${this.getName()}] %c(v${this.getVersion()})%c ${msg}`, "color: #3a71c1; font-weight: 700;", "font-size: .8em; color: #666;", "");
 		}
 
 		/**
