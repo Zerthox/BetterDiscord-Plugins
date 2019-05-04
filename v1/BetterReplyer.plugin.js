@@ -80,7 +80,7 @@ const BetterReplyer = (() => {
 		 * @param {string} msg message
 		 */
 		log(msg) {
-			console.log(`%c[${this.getName()}] %c(v${this.getVersion()})%c ${msg}`, "color: #3a71c1; font-weight: 700;", "font-size: .8em; color: #666;", "");
+			console.log(`%c[${this.getName()}] %c(v${this.getVersion()})%c ${msg}`, "color: #3a71c1; font-weight: 700;", "color: #666; font-size: .8em;", "");
 		}
 
 		/**
@@ -91,7 +91,7 @@ const BetterReplyer = (() => {
 		 * @return {ReactElement} New Anchor element
 		 */
 		createAnchor(props) {
-			return BdApi.React.createElement(BDV2.WebpackModules.findByDisplayName("Anchor"), {href: props.url, target: "_blank", title: props.url}, props.text);
+			return React.createElement(BDV2.WebpackModules.findByDisplayName("Anchor"), {href: props.url, target: "_blank", title: props.url}, props.text);
 		}
 
 		/**
