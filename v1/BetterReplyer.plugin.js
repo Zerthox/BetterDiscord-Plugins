@@ -2,7 +2,7 @@
 
 /**
  * @author Zerthox
- * @version 4.0.0
+ * @version 4.0.1
  * @return {class} BetterReplyer Plugin class
  */
 const BetterReplyer = (() => {
@@ -48,7 +48,7 @@ const BetterReplyer = (() => {
 		 * @return {string} Plugin version
 		 */
 		getVersion() {
-			return "4.0.0";
+			return "4.0.1";
 		}
 
 		/**
@@ -80,7 +80,7 @@ const BetterReplyer = (() => {
 		 * @param {string} msg message
 		 */
 		log(msg) {
-			console.log(`%c[${this.getName()}]%c (v${this.getVersion()})%c ${msg}`, "color: #3a71c1; font-weight: 700;", "font-size: .8em; color: hsla(0, 0%, 100%, .3);", "");
+			console.log(`%c[${this.getName()}] %c(v${this.getVersion()})%c ${msg}`, "color: #3a71c1; font-weight: 700;", "font-size: .8em; color: #555;", "");
 		}
 
 		/**
