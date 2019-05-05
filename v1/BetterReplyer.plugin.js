@@ -2,7 +2,7 @@
 
 /**
  * @author Zerthox
- * @version 4.0.2
+ * @version 4.0.3
  * @return {class} BetterReplyer Plugin class
  */
 const BetterReplyer = (() => {
@@ -48,7 +48,7 @@ const BetterReplyer = (() => {
 		 * @return {string} Plugin version
 		 */
 		getVersion() {
-			return "4.0.2";
+			return "4.0.3";
 		}
 
 		/**
@@ -138,8 +138,16 @@ const BetterReplyer = (() => {
 				// get message author id
 				const id = t.props.message.author.id;
 
-				// return unmodified if disabled, compact, no header, author is current user or no permission to send messages
-				if (t.props.isDisabled || t.props.isCompact || !t.props.isHeader || id === Module.Users.getCurrentUser().id || !(Module.Constants.Permissions.SEND_MESSAGES & Module.Permissions.getChannelPermissions(t.props.channel.id))) {
+				// return unmodified if disabled, compact, no header or author is current user
+				if (t.props.isDisabled || t.props.isCompact || !t.props.isHeader || id === Module.Users.getCurrentUser().id) {
+					return r;
+				}
+
+				// get current channel permissions
+				const p = Module.Permissions.getChannelPermissions(t.props.channel.id);
+
+				// return unmodified if no permissions to send messages
+				if (typeof p === "number" && !(p & Module.Constants.Permissions.SEND_MESSAGES)) {
 					return r;
 				}
 				
