@@ -2,7 +2,7 @@
 
 /**
  * @author Zerthox
- * @version 4.0.1
+ * @version 4.0.2
  * @return {class} BetterReplyer Plugin class
  */
 const BetterReplyer = (() => {
@@ -48,7 +48,7 @@ const BetterReplyer = (() => {
 		 * @return {string} Plugin version
 		 */
 		getVersion() {
-			return "4.0.1";
+			return "4.0.2";
 		}
 
 		/**
@@ -123,7 +123,7 @@ const BetterReplyer = (() => {
 					text-transform: uppercase;
 					cursor: pointer;
 				}
-				${Selector.Messages.messageContainer}:not(:hover) .replyer {
+				.${Selector.Messages.container}:not(:hover) .replyer {
 					visibility: hidden;
 				}`
 			);
