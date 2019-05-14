@@ -2,7 +2,7 @@
 
 /**
  * @author Zerthox
- * @version 4.0.4
+ * @version 4.0.5
  * @return {class} BetterReplyer Plugin class
  */
 const BetterReplyer = (() => {
@@ -48,7 +48,7 @@ const BetterReplyer = (() => {
 		 * @return {string} Plugin version
 		 */
 		getVersion() {
-			return "4.0.4";
+			return "4.0.5";
 		}
 
 		/**
@@ -128,7 +128,7 @@ const BetterReplyer = (() => {
 				}`
 			);
 			
-			// patch message render function
+			// patch "Message" component render function
 			Patches.message = BdApi.monkeyPatch(Component.Message.prototype, "render", {silent: true, after: (d) => {
 
 				// get this & old return value
@@ -152,68 +152,78 @@ const BetterReplyer = (() => {
 				}
 				
 				// find message header
-				const h = r.props.children.find((e) => e.props && e.props.className === Selector.Messages.headerCozy);
+				const h = [r.props.children].flat().find((e) => e.props && e.props.className === Selector.Messages.headerCozy);
 
 				// find message header meta
-				const m = h && h.props.children.find((e) => e.props && e.props.className === Selector.Messages.headerCozyMeta);
+				const m = h && [h.props.children].flat().find((e) => e.props && e.props.className === Selector.Messages.headerCozyMeta);
 				
-				// add reply button
-				m && m.props.children.push(React.createElement("span", {
-					className: "replyer",
-					onClick: () => {
+				// check if message header meta found
+				if (m) {
 
-						// get saved text area
-						const f = this.focused;
+					// get children
+					const c = [m.props.children].flat();
 
-						// check if text area saved
-						if (f) {
+					// push reply button
+					c.push(React.createElement("span", {
+						className: "replyer",
+						onClick: () => {
 
-							// focus textarea
-							f.focus();
+							// get saved text area
+							const f = this.focused;
 
-							// check mode
-							if (this.mode) {
+							// check if text area saved
+							if (f) {
 
-								// select saved selection
-								f.setSelectionRange(this.selection[0], this.selection[1]);
+								// focus textarea
+								f.focus();
 
-								// insert mention
-								document.execCommand("insertText", false, `<@!${id}>`);
+								// check mode
+								if (this.mode) {
 
-								// update saved text area
-								setTimeout(() => {
-									this.focused = f;
-								}, 100);
+									// select saved selection
+									f.setSelectionRange(this.selection[0], this.selection[1]);
+
+									// insert mention
+									document.execCommand("insertText", false, `<@!${id}>`);
+
+									// update saved text area
+									setTimeout(() => {
+										this.focused = f;
+									}, 100);
+								}
+								else {
+
+									// get mention
+									const m = `<@!${id}> `;
+								
+									// go to start of textarea
+									f.setSelectionRange(0, 0);
+								
+									// insert mention
+									document.execCommand("insertText", false, m);
+								
+									// select saved selection
+									f.setSelectionRange(this.selection[0] + m.length, this.selection[1] + m.length); 
+								}
 							}
 							else {
 
-								// get mention
-								const m = `<@!${id}> `;
-							
-								// go to start of textarea
-								f.setSelectionRange(0, 0);
-							
-								// insert mention
-								document.execCommand("insertText", false, m);
-							
-								// select saved selection
-								f.setSelectionRange(this.selection[0] + m.length, this.selection[1] + m.length); 
+								// default to current channel
+								Module.DraftActions.saveDraft(t.props.channel.id, `<@!${id}> ${Module.Drafts.getDraft(t.props.channel.id)}`);
 							}
 						}
-						else {
+					}, "Reply"));
 
-							// default to current channel
-							Module.DraftActions.saveDraft(t.props.channel.id, `<@!${id}> ${Module.Drafts.getDraft(t.props.channel.id)}`);
-						}
-					}
-				}, "Reply"));
+					// override children
+					m.props.children = c;
+				}
 
 				// return modified return value
 				return r;
 			}});
 			this.log("Patched render of Message");
 
-			// patch channel text area render function
+			// patch "ChannelTextArea" component render function
 			Patches.textarea = BdApi.monkeyPatch(Component.ChannelTextArea.prototype, "render", {silent: true, instead: (d) => {
 
 				// get this
@@ -294,7 +304,7 @@ const BetterReplyer = (() => {
 		}
 
 		/**
-		 * Force update the "Message" & "ChannelTextArea" Component State Nodes
+		 * Force update the "Message" & "ChannelTextArea" component state nodes
 		 */
 		forceUpdateAll() {
 
@@ -311,5 +321,5 @@ const BetterReplyer = (() => {
 			}
 		}
 
-	}
+	};
 })();
