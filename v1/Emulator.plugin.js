@@ -2,7 +2,7 @@
 
 /**
  * @author Zerthox
- * @version 0.3.1
+ * @version 0.4.0
  * @return {class} Emulator plugin class
  */
 const Emulator = (() => {
@@ -10,39 +10,47 @@ const Emulator = (() => {
     // Api constants
     const {React, ReactDOM} = BdApi;
 
-    /**
-     * settings
-     */
+    /** Settings storage */
     const Settings = {};
 
-    /**
-     * module storage
-     */
+    /** Module storage */
     const Module = {
-        native: BdApi.findModuleByProps("getPlatform", "isWindows", "isOSX", "isLinux", "isWeb", "PlatformTypes"),
-        settings: BDV2.WebpackModules.findByDisplayName("SettingsView")
+        Native: BdApi.findModuleByProps("getPlatform", "isWindows", "isOSX", "isLinux", "isWeb", "PlatformTypes"),
+        Overlay: BdApi.findModuleByProps("initialize", "isSupported", "getFocusedPID")
     };
 
     // get original platform
-    const platform = /^win/.test(Module.native.platform) ? Module.native.PlatformTypes.WINDOWS : Module.native.platform === "darwin" ? Module.native.PlatformTypes.OSX : Module.native.platform === "linux" ? Module.native.PlatformTypes.LINUX : Module.native.PlatformTypes.WEB;
+    const platform = /^win/.test(Module.Native.platform) ? Module.Native.PlatformTypes.WINDOWS : Module.Native.platform === "darwin" ? Module.Native.PlatformTypes.OSX : Module.Native.platform === "linux" ? Module.Native.PlatformTypes.LINUX : Module.Native.PlatformTypes.WEB;
 
-    /**
-     * storage for patches
-     */
+    /** Storage for Patches */
     const Patches = {};
 
     // return plugin class
     return class Emulator {
 
         /**
-         * @return {string} plugin name
+         * @return {string} Plugin name
          */
         getName() {
             return "Emulator";
         }
+
+        /**
+         * @return {string} Plugin version
+         */
+        getVersion() {
+            return "0.4.0";
+        }
+
+        /**
+         * @return {ReactElement} Plugin author
+         */
+        getAuthor() {
+            return this.createAnchor({text: "Zerthox", url: "https://github.com/Zerthox"});
+        }
         
         /**
-         * @return {*} plugin description
+         * @return {ReactElement} Plugin description
          */
         getDescription() {
             return React.createElement("span", {"white-space": "pre-line"},
@@ -51,23 +59,41 @@ const Emulator = (() => {
                 " Emulating a different platform may cause unwanted side effects. Use at own risk."
             );
         }
-        
+
         /**
-         * @return {string} plugin version
-         */
-        getVersion() {
-            return "0.3.1";
+		 * Log a message in Console
+		 * @param {string} msg message
+		 */
+		log(msg) {
+			console.log(`%c[${this.getName()}] %c(v${this.getVersion()})%c ${msg}`, "color: #3a71c1; font-weight: 700;", "color: #666; font-size: .8em;", "");
         }
         
         /**
-         * @return {*} plugin author
-         */
-        getAuthor() {
-            return React.createElement("a", {href: "https://github.com/Zerthox", target: "_blank"}, "Zerthox");
-        }
+		 * Show a toast and log a message in console
+		 * @param {string} msg message
+         * @param {object} opt options
+         * @param {string} opt.type toast type
+         * @param {number} opt.timeout toast duration
+         * @param {boolean} opt.icon enable/disable toast icon
+		 */
+		toast(msg, opt) {
+            this.log(msg);
+            BdApi.showToast(msg, opt);
+		}
+
+		/**
+		 * Create a new Anchor element based on Discord's Anchor Component
+		 * @param {object} props Component props
+		 * @param {string} props.text Anchor text
+		 * @param {string} props.url Anchor url
+		 * @return {ReactElement} New Anchor element
+		 */
+		createAnchor(props) {
+			return React.createElement(BDV2.WebpackModules.findByDisplayName("Anchor"), {href: props.url, target: "_blank", title: props.url}, props.text);
+		}
         
         /**
-         * @return {HTMLElement} plugin settings panel
+         * @return {HTMLElement} Plugin settings panel
          */
         getSettingsPanel() {
             const self = this;
@@ -85,7 +111,7 @@ const Emulator = (() => {
                 class settingsEmulator extends React.Component {
 
                     /**
-                     * constructor
+                     * Constructor
                      */
                     constructor(props) {
 
@@ -99,27 +125,26 @@ const Emulator = (() => {
                     }
 
                     /**
-                     * render settings panel component
-                     * @override
+                     * Render settings panel component
                      */
                     render() {
                         return React.createElement("div", {className: `container-${self.getName()}`, style: {padding: "5px 10px"}},
                             React.createElement("h3", {className: `header-${self.getName()}`, style: {margin: "3px 5px", fontSize: "20px", fontWeight: 700}}, "Emulated Platform:"),
                             this.renderItems([
                                 {
-                                    value: Module.native.PlatformTypes.WINDOWS,
+                                    value: Module.Native.PlatformTypes.WINDOWS,
                                     name: "Windows"
                                 },
                                 {
-                                    value: Module.native.PlatformTypes.OSX,
+                                    value: Module.Native.PlatformTypes.OSX,
                                     name: "MacOS"
                                 },
                                 {
-                                    value: Module.native.PlatformTypes.LINUX,
+                                    value: Module.Native.PlatformTypes.LINUX,
                                     name: "Linux"
                                 },
                                 {
-                                    value: Module.native.PlatformTypes.WEB,
+                                    value: Module.Native.PlatformTypes.WEB,
                                     name: "Browser"
                                 }
                             ])
@@ -127,7 +152,7 @@ const Emulator = (() => {
                     }
                     
                     /**
-                     * render radio buttons
+                     * Render radio buttons
                      * @param {object[]} a object array with names & values
                      */
                     renderItems(a) {
@@ -153,7 +178,7 @@ const Emulator = (() => {
                     }
 
                     /**
-                     * radio button change handler
+                     * Radio button change handler
                      * @param {*} e change event
                      */
                     handleChange(e) {
@@ -171,7 +196,7 @@ const Emulator = (() => {
                         ReactDOM.unmountComponentAtNode(root);
 
                         // show toast
-                        BdApi.showToast(`Emulating ${e.target.name}`, {type: "info", timeout: 5000});
+                        self.toast(`Emulating ${e.target.name}`, {type: "info", timeout: 5000});
                     }
                 
                 }
@@ -191,57 +216,46 @@ const Emulator = (() => {
         }
             
         /**
-         * plugin class constructor
+         * Plugin class constructor
          */
         constructor() {
                 
             // load settings
             Settings.platform = BdApi.loadData(this.getName(), "platform");
             
-            // if no custom platform default to old platform
+            // if no custom platform, default to old platform
             if (!Settings.platform) {
                 Settings.platform = platform;
             }
         }
         
         /**
-         * plugin start function
+         * Plugin start function
          */
         start() {
             
             // patch platform specific functions
             for (const e of ["Windows", "OSX", "Linux", "Web"]) {
-                Patches[`is${e}`] = BdApi.monkeyPatch(Module.native, `is${e}`, {displayName: "Native Module", instead: () => Settings.platform === Module.native.PlatformTypes[e.toUpperCase()]});
+                Patches[`is${e}`] = BdApi.monkeyPatch(Module.Native, `is${e}`, {silent: true, instead: () => Settings.platform === Module.Native.PlatformTypes[e.toUpperCase()]});
+                this.log(`Patched is${e} of Native Module`);
             }
             
             // patch settings render function
-            Patches.settings = BdApi.monkeyPatch(Module.settings.prototype, "render", {instead: (d) => {
-                
-                // get this
-                const t = d.thisObject;
-                
-                // modify overlay section predicate
-                const o = t.props.sections.find((e) => e.label === "Overlay");
-                if (o) {
-                    o.predicate = () => Module.native.isWindows();
-                }
-                
-                // return original method with modified props
-                return d.originalMethod.apply(t);
-            }});
+            Patches.overlay = BdApi.monkeyPatch(Module.Overlay, "isSupported", {silent: true, instead: () => Module.Native.isWindows()});
+            this.log("Patched isSupported of Overlay");
             
             // force update
             this.forceUpdateAll();
 
             // show toast
-            BdApi.showToast(`Emulating ${Module.native.isWindows() ? "Windows" : Module.native.isOSX() ? "MacOS" : Module.native.isLinux() ? "Linux" : "Browser"}`, {type: "info", timeout: 5000});
+            this.toast(`Emulating ${Module.Native.isWindows() ? "Windows" : Module.Native.isOSX() ? "MacOS" : Module.Native.isLinux() ? "Linux" : "Browser"}`, {type: "info", timeout: 5000});
             
             // console output
-            console.log(`%c[${this.getName()}]%c v${this.getVersion()} enabled`, "color: #3a71c1; font-weight: 700;", "");
+            this.log("Enabled");
         }
         
         /**
-         * plugin stop function
+         * Plugin stop function
          */
         stop() {
 
@@ -254,16 +268,19 @@ const Emulator = (() => {
             // force update
             this.forceUpdateAll();
 
+            // console output
+            this.log("Stopped Emulating");
+
             // show toast
-            BdApi.showToast(`Stopped Emulating`, {type: "info", timeout: 5000});
+            this.toast(`Stopped Emulating`, {type: "info", timeout: 5000});
 
             // console output
-            console.log(`%c[${this.getName()}]%c v${this.getVersion()} disabled`, "color: #3a71c1; font-weight: 700;", "");
+            this.log("Disabled");
         }
 
 
         /**
-         * force update app & close settings
+         * Force update app & close settings
          */
         forceUpdateAll() {
 
