@@ -264,6 +264,7 @@ const Emulator = (() => {
                 Patches[k]();
                 delete Patches[k];
             }
+            this.log("Unpatched all");
 
             // force update
             this.forceUpdateAll();
