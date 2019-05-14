@@ -2,7 +2,7 @@
 
 /**
  * @author Zerthox
- * @version 0.4.0
+ * @version 0.4.1
  * @return {class} Emulator plugin class
  */
 const Emulator = (() => {
@@ -39,7 +39,7 @@ const Emulator = (() => {
          * @return {string} Plugin version
          */
         getVersion() {
-            return "0.4.0";
+            return "0.4.1";
         }
 
         /**
@@ -267,9 +267,6 @@ const Emulator = (() => {
 
             // force update
             this.forceUpdateAll();
-
-            // console output
-            this.log("Stopped Emulating");
 
             // show toast
             this.toast(`Stopped Emulating`, {type: "info", timeout: 5000});

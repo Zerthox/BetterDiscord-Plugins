@@ -10,7 +10,7 @@ Add separators between Guilds with a button in the context menu.
 ## [OnlineFriendCount](/v1/OnlineFriendCount.plugin.js) <sub><sup>`v1.0.4` *(Updated: 02/05/19)*</sup></sub>
 Add the old online friend count back to guild list. Because nostalgia.
 
-## [Emulator](/v1/Emulator.plugin.js) <sub><sup>`v0.4.0` *(Updated: 14/05/19)*</sup></sub>
+## [Emulator](/v1/Emulator.plugin.js) <sub><sup>`v0.4.1` *(Updated: 14/05/19)*</sup></sub>
 Emulate Windows, MacOS, Linux or Browser on any platform.  
 **WARNING:** Emulating a different platform may cause unwanted side effects. Use at own risk.
 
