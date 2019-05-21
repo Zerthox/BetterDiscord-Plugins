@@ -2,7 +2,7 @@
 
 /**
  * @author Zerthox
- * @version 1.0.5
+ * @version 1.0.6
  * @return {class} OnlineFriendCount plugin class
  */
 const OnlineFriendCount = (() => {
@@ -39,23 +39,21 @@ const OnlineFriendCount = (() => {
 		 * @return {string} Plugin description
 		 */
 		getDescription() {
-			return React.createElement("span", {"white-space": "pre-line"},
-				"Add the old online friend count back to guild list. Because nostalgia."
-			);
+			return "Add the old online friend count back to guild list. Because nostalgia.";
 		}
 		
 		/**
 		 * @return {string} Plugin version
 		 */
 		getVersion() {
-			return "1.0.5";
+			return "1.0.6";
 		}
 		
 		/**
 		 * @return {string} Plugin author
 		 */
 		getAuthor() {
-			return React.createElement("a", {href: "https://github.com/Zerthox", target: "_blank"}, "Zerthox");
+			return "Zerthox";
 		}
 
 		/**
@@ -82,7 +80,7 @@ const OnlineFriendCount = (() => {
 
 				// check if online friends count is not inserted yet
 				if (!l.find((e) => e.props && e.props.children && e.props.children.props && e.props.children.props.className === Selector.guilds.friendsOnline)) {
-
+					
 					// insert online friends count before dms
 					l.splice(l.indexOf(l.find((e) => e.type && e.type.displayName === "TransitionGroup")), 0,
 						React.createElement("div", {className: Selector.guilds.listItem},
