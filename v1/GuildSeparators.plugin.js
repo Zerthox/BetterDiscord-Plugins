@@ -3,7 +3,7 @@
 /**
  * Guild Separators plugin class
  * @author Zerthox
- * @version 2.1.2
+ * @version 2.1.3
  */
 class GuildSeparators {
 
@@ -15,26 +15,24 @@ class GuildSeparators {
 	}
 
 	/**
-	 * @return {*} plugin description
+	 * @return {string} plugin description
 	 */
 	getDescription() {
-		return BdApi.React.createElement("span", {style: {"white-space": "pre-line"}},
-			"Add separators between Guilds with a button in the context menu."
-		);
+		return "Add separators between Guilds with a button in the context menu.";
 	}
 
 	/**
 	 * @return {string} plugin version
 	 */
 	getVersion() {
-		return "2.1.2";
+		return "2.1.3";
 	}
 
 	/**
-	 * @return {*} plugin author
+	 * @return {string} plugin author
 	 */
 	getAuthor() {
-		return BdApi.React.createElement("a", {href: "https://github.com/Zerthox", target: "_blank"}, "Zerthox");
+		return "Zerthox";
 	}
 
 	/**
