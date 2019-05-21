@@ -2,7 +2,7 @@
 
 /**
  * @author Zerthox
- * @version 4.0.5
+ * @version 4.0.6
  * @return {class} BetterReplyer Plugin class
  */
 const BetterReplyer = (() => {
@@ -22,7 +22,7 @@ const BetterReplyer = (() => {
 	/** Component storage */
 	const Component = {
 		Message: BdApi.findModuleByProps("Message", "MessageAvatar").Message,
-		ChannelTextArea: BDV2.WebpackModules.findByDisplayName("ChannelTextArea")
+		ChannelTextArea: BdApi.findModule((m) => m.displayName === "ChannelTextArea")
 	};
 
 	/** Selector storage */
@@ -48,31 +48,21 @@ const BetterReplyer = (() => {
 		 * @return {string} Plugin version
 		 */
 		getVersion() {
-			return "4.0.5";
+			return "4.0.6";
 		}
 
 		/**
-		 * @return {ReactElement} Plugin author
+		 * @return {string} Plugin author
 		 */
 		getAuthor() {
-			return this.createAnchor({text: "Zerthox", url: "https://github.com/Zerthox"});
+			return "Zerthox";
 		}
 
 		/**
 		 * @return {ReactElement} Plugin description
 		 */
 		getDescription() {
-			return React.createElement("span", {style: {"white-space": "pre-line"}},
-				"Reply to people using their ID with a button.\n Inspired by ",
-				this.createAnchor({text: "Replyer", url: "https://github.com/cosmicsalad/Discord-Themes-and-Plugins/blob/master/plugins/replyer.plugin.js"}),
-				" by ",
-				this.createAnchor({text: "@Hammmock#3110", url: "https://github.com/cosmicsalad"}),
-				", ",
-				this.createAnchor({text: "@Natsulus#0001", url: "https://github.com/Delivator"}),
-				" & ",
-				this.createAnchor({text: "@Zerebos#7790", url: "https://github.com/rauenzi"}),
-				"."
-			);
+			return "Reply to people using their ID with a button.\n Inspired by Replyer by @Hammmock#3110, @Natsulus#0001 & @Zerebos#7790.";
 		}
 
 		/**
@@ -81,17 +71,6 @@ const BetterReplyer = (() => {
 		 */
 		log(msg) {
 			console.log(`%c[${this.getName()}] %c(v${this.getVersion()})%c ${msg}`, "color: #3a71c1; font-weight: 700;", "color: #666; font-size: .8em;", "");
-		}
-
-		/**
-		 * Create a new Anchor element based on Discord's Anchor Component
-		 * @param {object} props Component props
-		 * @param {string} props.text Anchor text
-		 * @param {string} props.url Anchor url
-		 * @return {ReactElement} New Anchor element
-		 */
-		createAnchor(props) {
-			return React.createElement(BDV2.WebpackModules.findByDisplayName("Anchor"), {href: props.url, target: "_blank", title: props.url}, props.text);
 		}
 
 		/**
@@ -221,7 +200,7 @@ const BetterReplyer = (() => {
 				// return modified return value
 				return r;
 			}});
-			this.log("Patched render of Message");
+			this.log("Patched render of Message component");
 
 			// patch "ChannelTextArea" component render function
 			Patches.textarea = BdApi.monkeyPatch(Component.ChannelTextArea.prototype, "render", {silent: true, instead: (d) => {
@@ -267,7 +246,7 @@ const BetterReplyer = (() => {
 				// return render with modified this
 				return d.originalMethod.apply(t);
 			}});
-			this.log("Patched onBlur of ChannelTextArea");
+			this.log("Patched onBlur of ChannelTextArea component");
 			
 			// force update
 			this.forceUpdateAll();
