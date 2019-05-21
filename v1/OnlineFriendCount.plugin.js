@@ -13,7 +13,7 @@ const OnlineFriendCount = (() => {
 	/** Module storage */
 	const Module = {
 		Status: BdApi.findModuleByProps("getStatus", "getOnlineFriendCount"),
-		Guilds: BDV2.WebpackModules.findByDisplayName("Guilds")
+		Guilds: BdApi.findModule((m) => m.displayName === "Guilds")
 	};
 
 	/** Selector storage */
@@ -121,7 +121,6 @@ const OnlineFriendCount = (() => {
 			// console output
 			this.log("Disabled");
 		}
-
 
 		/**
 		 * Force update the "Guilds" component state nodes
