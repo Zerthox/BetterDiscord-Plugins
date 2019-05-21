@@ -2,134 +2,138 @@
 
 /**
  * @author Zerthox
- * @version 1.0.4
+ * @version 1.0.5
  * @return {class} OnlineFriendCount plugin class
  */
 const OnlineFriendCount = (() => {
 
-    // Api constants
-    const {React} = BdApi;
+	// Api constants
+	const {React} = BdApi;
 
-    /**
-     * module storage
-     */
-    const Module = {
-        status: BdApi.findModuleByProps("getStatus", "getOnlineFriendCount"),
-        guilds: BDV2.WebpackModules.findByDisplayName("Guilds")
-    };
+	/** Module storage */
+	const Module = {
+		Status: BdApi.findModuleByProps("getStatus", "getOnlineFriendCount"),
+		Guilds: BDV2.WebpackModules.findByDisplayName("Guilds")
+	};
 
-    /**
-     * selector storage
-     */
-    const Selector = {
-        guildsWrapper: BdApi.findModuleByProps("wrapper", "unreadMentionsBar"),
-        guilds: BdApi.findModuleByProps("listItem", "friendsOnline")
-    };
+	/** Selector storage */
+	const Selector = {
+		guildsWrapper: BdApi.findModuleByProps("wrapper", "unreadMentionsBar"),
+		guilds: BdApi.findModuleByProps("listItem", "friendsOnline")
+	};
 
-    /**
-     * storage for patches
-     */
-    const Patches = {};
+	/** Storage for Patches */
+	const Patches = {};
 
-    // return plugin class
-    return class OnlineFriendCount {
+	// return plugin class
+	return class OnlineFriendCount {
 
-        /**
-         * @return {string} plugin name
-         */
-        getName() {
-            return "OnlineFriendCount";
-        }
-        
-        /**
-         * @return {*} plugin description
-         */
-        getDescription() {
-            return React.createElement("span", {"white-space": "pre-line"},
-                "Add the old online friend count back to guild list. Because nostalgia."
-            );
-        }
-        
-        /**
-         * @return {string} plugin version
-         */
-        getVersion() {
-            return "1.0.4";
-        }
-        
-        /**
-         * @return {*} plugin author
-         */
-        getAuthor() {
-            return React.createElement("a", {href: "https://github.com/Zerthox", target: "_blank"}, "Zerthox");
-        }
-        
-        /**
-         * plugin start function
-         */
-        start() {
-            
-            // patch guilds render function
-            Patches.guilds = BdApi.monkeyPatch(Module.guilds.prototype, "render", {after: (d) => {
+		/**
+		 * @return {string} Plugin name
+		 */
+		getName() {
+			return "OnlineFriendCount";
+		}
+		
+		/**
+		 * @return {string} Plugin description
+		 */
+		getDescription() {
+			return React.createElement("span", {"white-space": "pre-line"},
+				"Add the old online friend count back to guild list. Because nostalgia."
+			);
+		}
+		
+		/**
+		 * @return {string} Plugin version
+		 */
+		getVersion() {
+			return "1.0.5";
+		}
+		
+		/**
+		 * @return {string} Plugin author
+		 */
+		getAuthor() {
+			return React.createElement("a", {href: "https://github.com/Zerthox", target: "_blank"}, "Zerthox");
+		}
 
-                // get return value
-                const r = d.returnValue;
+		/**
+		 * Log a message in Console
+		 * @param {string} msg message
+		 */
+		log(msg) {
+			console.log(`%c[${this.getName()}] %c(v${this.getVersion()})%c ${msg}`, "color: #3a71c1; font-weight: 700;", "color: #666; font-size: .8em;", "");
+		}
+		
+		/**
+		 * Plugin start function
+		 */
+		start() {
+			
+			// patch guilds render function
+			Patches.guilds = BdApi.monkeyPatch(Module.Guilds.prototype, "render", {silent: true, after: (d) => {
 
-                // find scroller
-                const l = r.props.children.find((e) => e.type && e.type.displayName === "VerticalScroller").props.children;
+				// get return value
+				const r = d.returnValue;
 
-                // check if online friends count is not inserted yet
-                if (!l.find((e) => e.props && e.props.children && e.props.children.props && e.props.children.props.className === Selector.guilds.friendsOnline)) {
+				// find scroller
+				const l = r.props.children.find((e) => e.type && e.type.displayName === "VerticalScroller").props.children;
 
-                    // insert online friends count before dms
-                    l.splice(l.indexOf(l.find((e) => e.type && e.type.displayName === "TransitionGroup")), 0,
-                        React.createElement("div", {className: Selector.guilds.listItem},
-                            React.createElement("div", {className: Selector.guilds.friendsOnline, style: {"margin": 0}}, `${Module.status.getOnlineFriendCount()} Online`)
-                        )
-                    );
-                }
+				// check if online friends count is not inserted yet
+				if (!l.find((e) => e.props && e.props.children && e.props.children.props && e.props.children.props.className === Selector.guilds.friendsOnline)) {
 
-                // return modified return value
-                return r;
-            }});
-            
-            // force update
-            this.forceUpdateAll();
-            
-            // console output
-            console.log(`%c[${this.getName()}]%c v${this.getVersion()} enabled`, "color: #3a71c1; font-weight: 700;", "");
-        }
-        
-        /**
-         * plugin stop function
-         */
-        stop() {
+					// insert online friends count before dms
+					l.splice(l.indexOf(l.find((e) => e.type && e.type.displayName === "TransitionGroup")), 0,
+						React.createElement("div", {className: Selector.guilds.listItem},
+							React.createElement("div", {className: Selector.guilds.friendsOnline, style: {"margin": 0}}, `${Module.Status.getOnlineFriendCount()} Online`)
+						)
+					);
+				}
 
-            // revert all patches
-            for (const k in Patches) {
-                Patches[k]();
-                delete Patches[k];
-            }
+				// return modified return value
+				return r;
+			}});
+			this.log("Patched render of Guilds component");
+			
+			// force update
+			this.forceUpdateAll();
+			
+			// console output
+			this.log("Enabled");
+		}
+		
+		/**
+		 * Plugin stop function
+		 */
+		stop() {
 
-            // force update
-            this.forceUpdateAll();
+			// revert all patches
+			for (const k in Patches) {
+				Patches[k]();
+				delete Patches[k];
+			}
+			this.log("Unpatched all");
 
-            // console output
-            console.log(`%c[${this.getName()}]%c v${this.getVersion()} disabled`, "color: #3a71c1; font-weight: 700;", "");
-        }
+			// force update
+			this.forceUpdateAll();
+
+			// console output
+			this.log("Disabled");
+		}
 
 
-        /**
-         * force update guild list
-         */
-        forceUpdateAll() {
+		/**
+		 * Force update the "Guilds" component state nodes
+		 */
+		forceUpdateAll() {
 
-            // force update guilds wrapper
-            for (const e of document.getElementsByClassName(Selector.guildsWrapper.wrapper)) {
-                const i = BdApi.getInternalInstance(e);
-                i && i.return.stateNode.forceUpdate();
-            }
-        }
+			// force update guilds wrapper
+			for (const e of document.getElementsByClassName(Selector.guildsWrapper.wrapper)) {
+				const i = BdApi.getInternalInstance(e);
+				i && i.return.stateNode.forceUpdate();
+			}
+		}
 
-    }
+	}
 })();
