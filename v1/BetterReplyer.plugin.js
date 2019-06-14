@@ -59,7 +59,7 @@ const BetterReplyer = (() => {
 		}
 
 		/**
-		 * @return {ReactElement} Plugin description
+		 * @return {string} Plugin description
 		 */
 		getDescription() {
 			return "Reply to people using their ID with a button.\n Inspired by Replyer by @Hammmock#3110, @Natsulus#0001 & @Zerebos#7790.";
