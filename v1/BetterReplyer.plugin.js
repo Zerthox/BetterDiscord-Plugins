@@ -2,7 +2,7 @@
 
 /**
  * @author Zerthox
- * @version 4.0.7
+ * @version 4.0.8
  * @return {class} BetterReplyer Plugin class
  */
 const BetterReplyer = (() => {
@@ -48,7 +48,7 @@ const BetterReplyer = (() => {
 		 * @return {string} Plugin version
 		 */
 		getVersion() {
-			return "4.0.7";
+			return "4.0.8";
 		}
 
 		/**
@@ -132,10 +132,11 @@ const BetterReplyer = (() => {
 				}
 				
 				// find message header
-				const h = [r.props.children].flat().find((e) => e.props && e.props.className === Selector.Messages.headerCozy);
-
+				const h = [t.props.jumpSequenceId ? r.props.children.props.children : r.props.children].flat().find((e) => e.props && e.props.className === Selector.Messages.headerCozy);
+				
 				// find message header meta
 				const m = h && [h.props.children].flat().find((e) => e.props && e.props.className === Selector.Messages.headerCozyMeta);
+
 				
 				// check if message header meta found
 				if (m) {
