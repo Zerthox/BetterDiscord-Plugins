@@ -7,7 +7,7 @@ Inspired by [Replyer](https://github.com/cosmicsalad/Discord-Themes-and-Plugins/
 ### [GuildSeparators](/v1/GuildSeparators.plugin.js) <sub><sup>`v2.1.3` *(Updated: 29/04/19)*</sup></sub>
 Add separators between Guilds with a button in the context menu.
 
-### [OnlineFriendCount](/v1/OnlineFriendCount.plugin.js) <sub><sup>`v1.0.6` *(Updated: 21/05/19)*</sup></sub>
+### [OnlineFriendCount](/v1/OnlineFriendCount.plugin.js) <sub><sup>`v1.0.7` *(Updated: 14/06/19)*</sup></sub>
 Add the old online friend count back to guild list. Because nostalgia.
 
 ### [Emulator](/v1/Emulator.plugin.js) <sub><sup>`v0.4.2` *(Updated: 21/05/19)*</sup></sub>

@@ -2,7 +2,7 @@
 
 /**
  * @author Zerthox
- * @version 1.0.6
+ * @version 1.0.7
  * @return {class} OnlineFriendCount plugin class
  */
 const OnlineFriendCount = (() => {
@@ -46,7 +46,7 @@ const OnlineFriendCount = (() => {
 		 * @return {string} Plugin version
 		 */
 		getVersion() {
-			return "1.0.6";
+			return "1.0.7";
 		}
 		
 		/**
@@ -71,24 +71,24 @@ const OnlineFriendCount = (() => {
 			
 			// patch guilds render function
 			Patches.guilds = BdApi.monkeyPatch(Module.Guilds.prototype, "render", {silent: true, after: (d) => {
-
+				
 				// get return value
 				const r = d.returnValue;
-
+				
 				// find scroller
-				const l = r.props.children.find((e) => e.type && e.type.displayName === "VerticalScroller").props.children;
-
+				const c = r.props.children.find((e) => e.type && e.type.displayName === "VerticalScroller").props.children;
+				
 				// check if online friends count is not inserted yet
-				if (!l.find((e) => e.props && e.props.children && e.props.children.props && e.props.children.props.className === Selector.guilds.friendsOnline)) {
+				if (!c.find((e) => e.props && e.props.children && e.props.children.props && e.props.children.props.className === Selector.guilds.friendsOnline)) {
 					
 					// insert online friends count before dms
-					l.splice(l.indexOf(l.find((e) => e.type && e.type.displayName === "TransitionGroup")), 0,
+					c.splice(c.indexOf(c.find((e) => e.type && e.type.displayName === "FluxContainer(UnreadDMs)")), 0,
 						React.createElement("div", {className: Selector.guilds.listItem},
-							React.createElement("div", {className: Selector.guilds.friendsOnline, style: {"margin": 0}}, `${Module.Status.getOnlineFriendCount()} Online`)
+						React.createElement("div", {className: Selector.guilds.friendsOnline, style: {"margin": 0}}, `${Module.Status.getOnlineFriendCount()} Online`)
 						)
 					);
 				}
-
+				
 				// return modified return value
 				return r;
 			}});
