@@ -268,7 +268,7 @@ const Emulator = (() => {
 		forceUpdateAll() {
 
 			// force update app
-			document.querySelector("#app-mount")._reactRootContainer._internalRoot.current.child.child.child.child.child.stateNode.forceUpdate();
+			document.querySelector("#app-mount")._reactRootContainer._internalRoot.current.child.child.child.child.child.child.stateNode.forceUpdate();
 
 			// pop settings layer
 			if (BdApi.findModuleByProps("getLayers").getLayers().indexOf("USER_SETTINGS") > -1) {
