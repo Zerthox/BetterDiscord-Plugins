@@ -2,7 +2,7 @@
 
 /**
  * @author Zerthox
- * @version 4.0.6
+ * @version 4.0.7
  * @return {class} BetterReplyer Plugin class
  */
 const BetterReplyer = (() => {
@@ -48,7 +48,7 @@ const BetterReplyer = (() => {
 		 * @return {string} Plugin version
 		 */
 		getVersion() {
-			return "4.0.6";
+			return "4.0.7";
 		}
 
 		/**
@@ -66,11 +66,12 @@ const BetterReplyer = (() => {
 		}
 
 		/**
-		 * Log a message in Console
+		 * Print a message in Console
 		 * @param {string} msg message
+		 * @param {function} [log=console.log] log function to call
 		 */
-		log(msg) {
-			console.log(`%c[${this.getName()}] %c(v${this.getVersion()})%c ${msg}`, "color: #3a71c1; font-weight: 700;", "color: #666; font-size: .8em;", "");
+		log(msg, log = console.log) {
+			log(`%c[${this.getName()}] %c(v${this.getVersion()})%c ${msg}`, "color: #3a71c1; font-weight: 700;", "color: #666; font-size: .8em;", "");
 		}
 
 		/**
@@ -287,16 +288,36 @@ const BetterReplyer = (() => {
 		 */
 		forceUpdateAll() {
 
-			// force update messages
-			for (const e of document.getElementsByClassName(Selector.Messages.message)) {
-				const i = BdApi.getInternalInstance(e);
-				i && i.return.stateNode.forceUpdate && i.return.stateNode.forceUpdate();
+			// catch errors
+			try {
+
+				// force update messages
+				for (const e of document.getElementsByClassName(Selector.Messages.message)) {
+					const i = BdApi.getInternalInstance(e);
+					i && i.return.stateNode.forceUpdate && i.return.stateNode.forceUpdate();
+				}
+			}
+			catch(e) {
+
+				// log error
+				this.log("Failed to force update Message nodes", console.warn);
+				console.error(e);
 			}
 			
-			// force update channel text areas
-			for (const e of document.getElementsByClassName(Selector.TextArea.channelTextArea)) {
-				const i = BdApi.getInternalInstance(e);
-				i && i.return.stateNode.forceUpdate && i.return.stateNode.forceUpdate();
+			// catch errors
+			try {
+
+				// force update channel text areas
+				for (const e of document.getElementsByClassName(Selector.TextArea.channelTextArea)) {
+					const i = BdApi.getInternalInstance(e);
+					i && i.return.stateNode.forceUpdate && i.return.stateNode.forceUpdate();
+				}
+			}
+			catch(e) {
+
+				// log error
+				this.log("Failed to force update ChannelTextArea nodes", console.warn);
+				console.error(e);
 			}
 		}
 

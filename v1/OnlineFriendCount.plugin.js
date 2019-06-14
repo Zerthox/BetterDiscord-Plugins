@@ -2,7 +2,7 @@
 
 /**
  * @author Zerthox
- * @version 1.0.7
+ * @version 1.0.8
  * @return {class} OnlineFriendCount plugin class
  */
 const OnlineFriendCount = (() => {
@@ -36,17 +36,10 @@ const OnlineFriendCount = (() => {
 		}
 		
 		/**
-		 * @return {string} Plugin description
-		 */
-		getDescription() {
-			return "Add the old online friend count back to guild list. Because nostalgia.";
-		}
-		
-		/**
 		 * @return {string} Plugin version
 		 */
 		getVersion() {
-			return "1.0.7";
+			return "1.0.8";
 		}
 		
 		/**
@@ -54,6 +47,13 @@ const OnlineFriendCount = (() => {
 		 */
 		getAuthor() {
 			return "Zerthox";
+		}
+
+		/**
+		 * @return {string} Plugin description
+		 */
+		getDescription() {
+			return "Add the old online friend count back to guild list. Because nostalgia.";
 		}
 
 		/**
@@ -125,10 +125,20 @@ const OnlineFriendCount = (() => {
 		 */
 		forceUpdateAll() {
 
-			// force update guilds wrapper
-			for (const e of document.getElementsByClassName(Selector.guildsWrapper.wrapper)) {
-				const i = BdApi.getInternalInstance(e);
-				i && i.return.stateNode.forceUpdate();
+			// catch errors
+			try {
+
+				// force update guilds wrapper
+				for (const e of document.getElementsByClassName(Selector.guildsWrapper.wrapper)) {
+					const i = BdApi.getInternalInstance(e);
+					i && i.return.stateNode.forceUpdate();
+				}
+			}
+			catch(e) {
+
+				// log error
+				this.log("Failed to force update Guilds nodes", console.warn);
+				console.error(e);
 			}
 		}
 

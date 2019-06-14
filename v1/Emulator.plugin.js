@@ -2,7 +2,7 @@
 
 /**
  * @author Zerthox
- * @version 0.4.2
+ * @version 0.4.3
  * @return {class} Emulator plugin class
  */
 const Emulator = (() => {
@@ -39,7 +39,7 @@ const Emulator = (() => {
 		 * @return {string} Plugin version
 		 */
 		getVersion() {
-			return "0.4.2";
+			return "0.4.3";
 		}
 
 		/**
@@ -57,11 +57,12 @@ const Emulator = (() => {
 		}
 
 		/**
-		 * Log a message in Console
+		 * Print a message in Console
 		 * @param {string} msg message
+		 * @param {function} [log=console.log] log function to call
 		 */
-		log(msg) {
-			console.log(`%c[${this.getName()}] %c(v${this.getVersion()})%c ${msg}`, "color: #3a71c1; font-weight: 700;", "color: #666; font-size: .8em;", "");
+		log(msg, log = console.log) {
+			log(`%c[${this.getName()}] %c(v${this.getVersion()})%c ${msg}`, "color: #3a71c1; font-weight: 700;", "color: #666; font-size: .8em;", "");
 		}
 		
 		/**
@@ -267,12 +268,22 @@ const Emulator = (() => {
 		 */
 		forceUpdateAll() {
 
-			// force update app
-			document.querySelector("#app-mount")._reactRootContainer._internalRoot.current.child.child.child.child.child.child.stateNode.forceUpdate();
+			// catch errors
+			try {
 
-			// pop settings layer
-			if (BdApi.findModuleByProps("getLayers").getLayers().indexOf("USER_SETTINGS") > -1) {
-				BdApi.findModuleByProps("pushLayer", "popLayer").popLayer();
+				// force update app
+				document.querySelector("#app-mount")._reactRootContainer._internalRoot.current.child.child.child.child.child.child.stateNode.forceUpdate();
+	
+				// pop settings layer
+				if (BdApi.findModuleByProps("getLayers").getLayers().indexOf("USER_SETTINGS") > -1) {
+					BdApi.findModuleByProps("pushLayer", "popLayer").popLayer();
+				}
+			}
+			catch(e) {
+
+				// log error
+				this.log("Failed to force update", console.warn);
+				console.error(e);
 			}
 		}
 
