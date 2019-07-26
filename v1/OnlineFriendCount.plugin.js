@@ -1,19 +1,26 @@
-//META {"name": "OnlineFriendCount", "source": "https://github.com/Zerthox/BetterDiscord-Plugins/blob/master/v1/OnlineFriendCount.plugin.js"} *//
-
 /**
+ * @name OnlineFriendCount
  * @author Zerthox
- * @version 1.0.8
+ * @version 1.1.0
+ * @description Add the old online friend count back to guild list. Because nostalgia.
+ * @source https://github.com/Zerthox/BetterDiscord-Plugins/blob/master/v1/OnlineFriendCount.plugin.js
  * @return {class} OnlineFriendCount plugin class
  */
 const OnlineFriendCount = (() => {
 
 	// Api constants
-	const {React} = BdApi;
+	const {React} = BdApi,
+		Flux = BdApi.findModuleByProps("connectStores");
 
 	/** Module storage */
 	const Module = {
-		Status: BdApi.findModuleByProps("getStatus", "getOnlineFriendCount"),
-		Guilds: BdApi.findModule((m) => m.displayName === "Guilds")
+		Status: BdApi.findModuleByProps("getStatus", "getOnlineFriendCount")
+	};
+
+	/** Component storage */
+	const Component = {
+		Guilds: BdApi.findModuleByDisplayName("Guilds"),
+		Link: BdApi.findModuleByProps("NavLink").Link
 	};
 
 	/** Selector storage */
@@ -24,6 +31,23 @@ const OnlineFriendCount = (() => {
 
 	/** Storage for Patches */
 	const Patches = {};
+
+	// OnlineCount component
+	class OnlineCount extends React.Component {
+		render() {
+			return React.createElement("div", {className: Selector.guilds.listItem},
+				React.createElement(Component.Link, {to: {pathname: "/channels/@me"}},
+					React.createElement("div", {className: Selector.guilds.friendsOnline, style: {
+						margin: 0,
+						cursor: "pointer"
+					}}, `${this.props.online} Online`)
+				)
+			);
+		}
+	}
+
+	// Flux container for OnlineCount component
+	const OnlineCountContainer = Flux.connectStores([Module.Status], () => ({online: Module.Status.getOnlineFriendCount()}))(OnlineCount);
 
 	// return plugin class
 	return class OnlineFriendCount {
@@ -39,7 +63,7 @@ const OnlineFriendCount = (() => {
 		 * @return {string} Plugin version
 		 */
 		getVersion() {
-			return "1.0.8";
+			return "1.1.0";
 		}
 		
 		/**
@@ -57,11 +81,12 @@ const OnlineFriendCount = (() => {
 		}
 
 		/**
-		 * Log a message in Console
+		 * Print a message in Console
 		 * @param {string} msg message
+		 * @param {function} [log=console.log] log function to call
 		 */
-		log(msg) {
-			console.log(`%c[${this.getName()}] %c(v${this.getVersion()})%c ${msg}`, "color: #3a71c1; font-weight: 700;", "color: #666; font-size: .8em;", "");
+		log(msg, log = console.log) {
+			log(`%c[${this.getName()}] %c(v${this.getVersion()})%c ${msg}`, "color: #3a71c1; font-weight: 700;", "color: #666; font-size: .8em;", "");
 		}
 		
 		/**
@@ -70,7 +95,7 @@ const OnlineFriendCount = (() => {
 		start() {
 			
 			// patch guilds render function
-			Patches.guilds = BdApi.monkeyPatch(Module.Guilds.prototype, "render", {silent: true, after: (d) => {
+			Patches.guilds = BdApi.monkeyPatch(Component.Guilds.prototype, "render", {silent: true, after: (d) => {
 				
 				// get return value
 				const r = d.returnValue;
@@ -80,13 +105,9 @@ const OnlineFriendCount = (() => {
 				
 				// check if online friends count is not inserted yet
 				if (!c.find((e) => e.props && e.props.children && e.props.children.props && e.props.children.props.className === Selector.guilds.friendsOnline)) {
-					
+
 					// insert online friends count before dms
-					c.splice(c.indexOf(c.find((e) => e.type && e.type.displayName === "FluxContainer(UnreadDMs)")), 0,
-						React.createElement("div", {className: Selector.guilds.listItem},
-						React.createElement("div", {className: Selector.guilds.friendsOnline, style: {"margin": 0}}, `${Module.Status.getOnlineFriendCount()} Online`)
-						)
-					);
+					c.splice(c.indexOf(c.find((e) => e.type && e.type.displayName === "FluxContainer(UnreadDMs)")), 0, React.createElement(OnlineCountContainer));
 				}
 				
 				// return modified return value
@@ -95,10 +116,7 @@ const OnlineFriendCount = (() => {
 			this.log("Patched render of Guilds component");
 			
 			// force update
-			this.forceUpdateAll();
-			
-			// console output
-			this.log("Enabled");
+			this.forceUpdateAll().then(() => this.log("Enabled"));
 		}
 		
 		/**
@@ -114,16 +132,13 @@ const OnlineFriendCount = (() => {
 			this.log("Unpatched all");
 
 			// force update
-			this.forceUpdateAll();
-
-			// console output
-			this.log("Disabled");
+			this.forceUpdateAll().then(() => this.log("Disabled"));
 		}
 
 		/**
 		 * Force update the "Guilds" component state nodes
 		 */
-		forceUpdateAll() {
+		async forceUpdateAll() {
 
 			// catch errors
 			try {
@@ -142,5 +157,5 @@ const OnlineFriendCount = (() => {
 			}
 		}
 
-	}
+	};
 })();
