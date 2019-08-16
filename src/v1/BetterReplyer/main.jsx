@@ -15,7 +15,7 @@ const Module = {
 /** Component storage */
 const Component = {
 	Message: BdApi.findModuleByProps("Message", "MessageAvatar").Message,
-	ChannelTextArea: BdApi.findModule((m) => m.displayName === "ChannelTextArea")
+	ChannelTextArea: BdApi.findModuleByDisplayName("ChannelTextArea")
 };
 
 /** Selector storage */
