@@ -1,0 +1,44 @@
+{
+	"name": "betterdiscord-plugins",
+	"version": "1.0.0",
+	"description": "Plugins for BetterDiscord (BandagedBD & BDV2).",
+	"main": "build.js",
+	"scripts": {
+		"build": "node build.js",
+		"develop": "node build.js --dev"
+	},
+	"repository": {
+		"type": "git",
+		"url": "git+https://github.com/Zerthox/BetterDiscord-Plugins.git"
+	},
+	"author": "Zerthox",
+	"license": "MIT",
+	"bugs": {
+		"url": "https://github.com/Zerthox/BetterDiscord-Plugins/issues"
+	},
+	"homepage": "https://github.com/Zerthox/BetterDiscord-Plugins#readme",
+	"dependencies": {},
+	"devDependencies": {
+		"@babel/cli": "^7.5.5",
+		"@babel/core": "^7.5.5",
+		"@babel/preset-react": "^7.0.0",
+		"babel-plugin-inject": "0.0.4",
+		"chalk": "^2.4.2",
+		"minimist": "^1.2.0",
+		"node-sass": "^4.12.0",
+		"prettier": "^1.18.2"
+	},
+	"babel": {
+		"presets": [
+			"@babel/preset-react"
+		]
+	},
+	"prettier": {
+		"parser": "babel",
+		"printWidth": 120,
+		"tabWidth": 4,
+		"useTabs": true,
+		"bracketSpacing": false,
+		"arrowParens": "always"
+	}
+}
