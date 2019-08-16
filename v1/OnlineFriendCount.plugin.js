@@ -1,161 +1,249 @@
 /**
  * @name OnlineFriendCount
  * @author Zerthox
- * @version 1.1.0
+ * @version 1.2.0
  * @description Add the old online friend count back to guild list. Because nostalgia.
  * @source https://github.com/Zerthox/BetterDiscord-Plugins/blob/master/v1/OnlineFriendCount.plugin.js
- * @return {class} OnlineFriendCount plugin class
  */
-const OnlineFriendCount = (() => {
 
-	// Api constants
-	const {React} = BdApi,
-		Flux = BdApi.findModuleByProps("connectStores");
+/*@cc_on
+	@if (@_jscript)
+		var name = WScript.ScriptName.split(".")[0];
+		var shell = WScript.CreateObject("WScript.Shell");
+		var fso = new ActiveXObject("Scripting.FileSystemObject");
+		shell.Popup("Do NOT run random scripts from the internet with the Windows Script Host!\n\nYou are supposed to move this file to your BandagedBD/BetterDiscord plugins folder.", 0, name + ": Warning!", 0x1030);
+		var pluginsPath = shell.expandEnvironmentStrings("%appdata%\\BetterDiscord\\plugins");
+		if (!fso.FolderExists(pluginsPath)) {
+			if (shell.Popup("Unable to find the BetterDiscord plugins folder on your computer.\nOpen the download page of BandagedBD/BetterDiscord?", 0, name + ": BetterDiscord installation not found", 0x14) === 6) {
+				shell.Exec("explorer \"https://github.com/rauenzi/betterdiscordapp/releases\"");
+			}
+		}
+		else if (WScript.ScriptFullName === pluginsPath + "\\" + WScript.ScriptName) {
+			shell.Popup("This plugin is already in the correct folder.\nNavigate to the \"Plugins\" settings tab in Discord and enable it there.", 0, name, 0x40);
+		}
+		else {
+			shell.Exec("explorer " + pluginsPath);
+		}
+		WScript.Quit();
+	@else
+@*/
 
-	/** Module storage */
-	const Module = {
-		Status: BdApi.findModuleByProps("getStatus", "getOnlineFriendCount")
-	};
+const {React, ReactDOM} = BdApi,
+	Flux = BdApi.findModuleByProps("connectStores");
+const Patches = [];
 
-	/** Component storage */
-	const Component = {
-		Guilds: BdApi.findModuleByDisplayName("Guilds"),
-		Link: BdApi.findModuleByProps("NavLink").Link
-	};
+function qReact(node, query) {
+	let match = false;
 
-	/** Selector storage */
-	const Selector = {
-		guildsWrapper: BdApi.findModuleByProps("wrapper", "unreadMentionsBar"),
-		guilds: BdApi.findModuleByProps("listItem", "friendsOnline")
-	};
+	try {
+		match = query(node);
+	} catch (err) {
+		console.debug("Suppressed error in qReact query:\n", err);
+	}
 
-	/** Storage for Patches */
-	const Patches = {};
+	if (match) {
+		return node;
+	} else if (node && node.props && node.props.children) {
+		for (const child of [node.props.children].flat()) {
+			const result = arguments.callee(child, query);
 
-	// OnlineCount component
-	class OnlineCount extends React.Component {
-		render() {
-			return React.createElement("div", {className: Selector.guilds.listItem},
-				React.createElement(Component.Link, {to: {pathname: "/channels/@me"}},
-					React.createElement("div", {className: Selector.guilds.friendsOnline, style: {
-						margin: 0,
-						cursor: "pointer"
-					}}, `${this.props.online} Online`)
-				)
-			);
+			if (result) {
+				return result;
+			}
 		}
 	}
 
-	// Flux container for OnlineCount component
-	const OnlineCountContainer = Flux.connectStores([Module.Status], () => ({online: Module.Status.getOnlineFriendCount()}))(OnlineCount);
+	return null;
+}
 
-	// return plugin class
-	return class OnlineFriendCount {
+const Module = {
+	Status: BdApi.findModuleByProps("getStatus", "getOnlineFriendCount")
+};
+const Component = {
+	Guilds: BdApi.findModuleByDisplayName("Guilds"),
+	Link: BdApi.findModuleByProps("NavLink").Link
+};
+const Selector = {
+	guildsWrapper: BdApi.findModuleByProps("wrapper", "unreadMentionsBar"),
+	guilds: BdApi.findModuleByProps("listItem", "friendsOnline")
+};
 
-		/**
-		 * @return {string} Plugin name
-		 */
-		getName() {
-			return "OnlineFriendCount";
-		}
-		
-		/**
-		 * @return {string} Plugin version
-		 */
-		getVersion() {
-			return "1.1.0";
-		}
-		
-		/**
-		 * @return {string} Plugin author
-		 */
-		getAuthor() {
-			return "Zerthox";
-		}
+class OnlineCount extends React.Component {
+	render() {
+		return React.createElement(
+			"div",
+			{
+				className: Selector.guilds.listItem
+			},
+			React.createElement(
+				Component.Link,
+				{
+					to: {
+						pathname: "/channels/@me"
+					}
+				},
+				React.createElement(
+					"div",
+					{
+						className: Selector.guilds.friendsOnline,
+						style: {
+							margin: 0,
+							cursor: "pointer"
+						}
+					},
+					this.props.online,
+					" Online"
+				)
+			)
+		);
+	}
+}
 
-		/**
-		 * @return {string} Plugin description
-		 */
-		getDescription() {
-			return "Add the old online friend count back to guild list. Because nostalgia.";
-		}
+const OnlineCountContainer = Flux.connectStores([Module.Status], () => ({
+	online: Module.Status.getOnlineFriendCount()
+}))(OnlineCount);
 
-		/**
-		 * Print a message in Console
-		 * @param {string} msg message
-		 * @param {function} [log=console.log] log function to call
-		 */
-		log(msg, log = console.log) {
-			log(`%c[${this.getName()}] %c(v${this.getVersion()})%c ${msg}`, "color: #3a71c1; font-weight: 700;", "color: #666; font-size: .8em;", "");
-		}
-		
-		/**
-		 * Plugin start function
-		 */
-		start() {
-			
-			// patch guilds render function
-			Patches.guilds = BdApi.monkeyPatch(Component.Guilds.prototype, "render", {silent: true, after: (d) => {
-				
-				// get return value
+class Plugin {
+	start() {
+		this.createPatch(Component.Guilds.prototype, "render", {
+			after: (d) => {
 				const r = d.returnValue;
-				
-				// find scroller
-				const c = r.props.children.find((e) => e.type && e.type.displayName === "VerticalScroller").props.children;
-				
-				// check if online friends count is not inserted yet
-				if (!c.find((e) => e.props && e.props.children && e.props.children.props && e.props.children.props.className === Selector.guilds.friendsOnline)) {
+				const c = qReact(r, (e) => e.type.displayName === "VerticalScroller").props.children;
 
-					// insert online friends count before dms
-					c.splice(c.indexOf(c.find((e) => e.type && e.type.displayName === "FluxContainer(UnreadDMs)")), 0, React.createElement(OnlineCountContainer));
+				if (!qReact(c, (e) => e.props.children.props.className === Selector.guilds.friendsOnline)) {
+					c.splice(
+						c.indexOf(c.find((e) => e.type && e.type.displayName === "FluxContainer(UnreadDMs)")),
+						0,
+						React.createElement(OnlineCountContainer, null)
+					);
 				}
-				
-				// return modified return value
+
 				return r;
-			}});
-			this.log("Patched render of Guilds component");
-			
-			// force update
-			this.forceUpdateAll().then(() => this.log("Enabled"));
-		}
-		
-		/**
-		 * Plugin stop function
-		 */
-		stop() {
-
-			// revert all patches
-			for (const k in Patches) {
-				Patches[k]();
-				delete Patches[k];
 			}
-			this.log("Unpatched all");
+		});
+		this.forceUpdate(`.${Selector.guildsWrapper.wrapper}`);
+	}
 
-			// force update
-			this.forceUpdateAll().then(() => this.log("Disabled"));
+	stop() {
+		this.forceUpdate(`.${Selector.guildsWrapper.wrapper}`);
+	}
+}
+
+module.exports = class Wrapper extends Plugin {
+	getName() {
+		return "OnlineFriendCount";
+	}
+
+	getVersion() {
+		return "1.2.0";
+	}
+
+	getAuthor() {
+		return "Zerthox";
+	}
+
+	getDescription() {
+		return "Add the old online friend count back to guild list. Because nostalgia.";
+	}
+
+	log(msg, log = console.log) {
+		log(
+			`%c[${this.getName()}] %c(v${this.getVersion()})%c ${msg}`,
+			"color: #3a71c1; font-weight: 700;",
+			"color: #666; font-size: .8em;",
+			""
+		);
+	}
+
+	start() {
+		super.start();
+		this.log("Enabled");
+	}
+
+	stop() {
+		while (Patches.length > 0) {
+			Patches.pop()();
 		}
 
-		/**
-		 * Force update the "Guilds" component state nodes
-		 */
-		async forceUpdateAll() {
+		this.log("Unpatched all");
 
-			// catch errors
+		if (document.getElementById(this.getName())) {
+			BdApi.clearCSS(this.getName(), css);
+		}
+
+		super.stop();
+
+		if (this.settingsRoot) {
+			ReactDOM.unmountComponentAtNode(this.settingsRoot);
+			delete this.settingsRoot;
+		}
+
+		this.log("Disabled");
+	}
+
+	saveData(id, value) {
+		return BdApi.saveData(this.getName(), id, value);
+	}
+
+	loadData(id, fallback = null) {
+		const l = BdApi.loadData(this.getName(), id);
+		return l ? l : fallback;
+	}
+
+	injectCSS(css) {
+		const el = document.getElementById(this.getName());
+
+		if (!el) {
+			BdApi.injectCSS(this.getName(), css);
+		} else {
+			el.innerHTML += "\n\n/* --- */\n\n" + css;
+		}
+	}
+
+	createPatch(target, method, options) {
+		options.silent = true;
+		Patches.push(BdApi.monkeyPatch(target, method, options));
+		this.log(
+			`Patched ${method} of ${target.displayName ||
+				target.name ||
+				target.constructor.displayName ||
+				target.constructor.name ||
+				"Unknown"} ${target instanceof React.Component ? "component" : "module"}`
+		);
+	}
+
+	async forceUpdate(...selectors) {
+		for (const sel of selectors) {
 			try {
+				for (const el of document.querySelectorAll(sel)) {
+					let fiber = BdApi.getInternalInstance(el);
 
-				// force update guilds wrapper
-				for (const e of document.getElementsByClassName(Selector.guildsWrapper.wrapper)) {
-					const i = BdApi.getInternalInstance(e);
-					i && i.return.stateNode.forceUpdate();
+					if (fiber) {
+						while (!fiber.stateNode || !fiber.stateNode.forceUpdate) {
+							fiber = fiber.return;
+						}
+
+						fiber.stateNode.forceUpdate();
+					}
 				}
-			}
-			catch(e) {
-
-				// log error
-				this.log("Failed to force update Guilds nodes", console.warn);
+			} catch (e) {
+				this.log(`Failed to force update "${sel}" nodes`, console.warn);
 				console.error(e);
 			}
 		}
+	}
+};
 
+if (Plugin.prototype.getSettings) {
+	module.exports.prototype.getSettingsPanel = function() {
+		if (!this.settingsRoot) {
+			this.settingsRoot = document.createElement("div");
+			this.settingsRoot.className = `settingsRoot-${this.getName()}`;
+			ReactDOM.render(this.getSettings(), this.settingsRoot);
+		}
+
+		return this.settingsRoot;
 	};
-})();
+}
+
+/*@end@*/
