@@ -2,8 +2,7 @@
  * @name BetterReplyer
  * @author Zerthox
  * @version 4.1.0
- * @description Reply to people using their ID with a button.
-Inspired by Replyer by @Hammmock#3110, @Natsulus#0001 & @Zerebos#7790.
+ * @description Reply to people using their ID with a button.\nInspired by Replyer by @Hammmock#3110, @Natsulus#0001 & @Zerebos#7790.
  * @source https://github.com/Zerthox/BetterDiscord-Plugins/blob/master/v1/BetterReplyer.plugin.js
  */
 

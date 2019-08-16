@@ -110,7 +110,7 @@ async function build(data) {
 function generateMeta(info) {
 	let meta = "/**";
 	for (const [key, val] of Object.entries(info)) {
-		meta += `\n * @${key} ${val}`;
+		meta += `\n * @${key} ${val.replace(/\n/g, "\\n")}`;
 	}
 	return meta + "\n */";
 }
