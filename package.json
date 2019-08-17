@@ -22,7 +22,6 @@
 		"@babel/cli": "^7.5.5",
 		"@babel/core": "^7.5.5",
 		"@babel/preset-react": "^7.0.0",
-		"babel-plugin-inject": "0.0.4",
 		"chalk": "^2.4.2",
 		"minimist": "^1.2.0",
 		"node-sass": "^4.12.0",
