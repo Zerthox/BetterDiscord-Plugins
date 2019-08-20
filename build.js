@@ -66,7 +66,7 @@ async function build(data) {
 		const info = require(path.resolve(dir, "config.json"));
 
 		// generate source link
-		info.source = `https://github.com/Zerthox/BetterDiscord-Plugins/blob/master/${data.version}/${data.name}.plugin.js`;
+		info.source = "https://github.com/Zerthox/BetterDiscord-Plugins";
 
 		// find main file
 		const main = path.resolve(dir, "main.jsx");
@@ -150,11 +150,13 @@ function dev(data) {
 	// declare compile function
 	function compile() {
 		try {
-
 			const time = process.hrtime();
 
 			// load plugin config
 			const info = require(cfg);
+
+			// generate source link
+			info.source = "https://github.com/Zerthox/BetterDiscord-Plugins";
 
 			// transform file
 			const transformed = babel.transformFileSync(
