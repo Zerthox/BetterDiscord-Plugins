@@ -182,7 +182,7 @@ class Plugin {
 		}});
 		
 		// force update
-		this.forceUpdate(`.${Selector.Messages.message}`);
+		this.forceUpdate(Selector.Messages.message);
 	}
 	
 	stop() {
@@ -193,7 +193,7 @@ class Plugin {
 		this.mode = false;
 
 		// force update
-		this.forceUpdate(`.${Selector.Messages.message}`);
+		this.forceUpdate(Selector.Messages.message);
 	}
 
 }

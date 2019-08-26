@@ -1,7 +1,7 @@
 /**
  * @name BetterReplyer
  * @author Zerthox
- * @version 4.1.0
+ * @version 4.1.1
  * @description Reply to people using their ID with a button.\nInspired by Replyer by @Hammmock#3110, @Natsulus#0001 & @Zerebos#7790.
  * @source https://github.com/Zerthox/BetterDiscord-Plugins
  */
@@ -30,7 +30,6 @@
 
 const {React, ReactDOM} = BdApi,
 	Flux = BdApi.findModuleByProps("connectStores");
-const Patches = [];
 
 function qReact(node, query) {
 	let match = false;
@@ -202,14 +201,14 @@ class Plugin {
 				return d.originalMethod.apply(t);
 			}
 		});
-		this.forceUpdate(`.${Selector.Messages.message}`);
+		this.forceUpdate(Selector.Messages.message);
 	}
 
 	stop() {
 		this.focused = null;
 		this.selection = [0, 0];
 		this.mode = false;
-		this.forceUpdate(`.${Selector.Messages.message}`);
+		this.forceUpdate(Selector.Messages.message);
 	}
 }
 
@@ -219,7 +218,7 @@ module.exports = class Wrapper extends Plugin {
 	}
 
 	getVersion() {
-		return "4.1.0";
+		return "4.1.1";
 	}
 
 	getAuthor() {
@@ -240,26 +239,27 @@ module.exports = class Wrapper extends Plugin {
 	}
 
 	start() {
+		this._Patches = [];
 		super.start();
 		this.log("Enabled");
 	}
 
 	stop() {
-		while (Patches.length > 0) {
-			Patches.pop()();
+		while (this._Patches.length > 0) {
+			this._Patches.pop()();
 		}
 
 		this.log("Unpatched all");
 
 		if (document.getElementById(this.getName())) {
-			BdApi.clearCSS(this.getName(), css);
+			BdApi.clearCSS(this.getName());
 		}
 
 		super.stop();
 
-		if (this.settingsRoot) {
-			ReactDOM.unmountComponentAtNode(this.settingsRoot);
-			delete this.settingsRoot;
+		if (this._settingsRoot) {
+			ReactDOM.unmountComponentAtNode(this._settingsRoot);
+			delete this._settingsRoot;
 		}
 
 		this.log("Disabled");
@@ -286,32 +286,46 @@ module.exports = class Wrapper extends Plugin {
 
 	createPatch(target, method, options) {
 		options.silent = true;
-		Patches.push(BdApi.monkeyPatch(target, method, options));
+
+		this._Patches.push(BdApi.monkeyPatch(target, method, options));
+
 		this.log(
-			`Patched ${method} of ${target.displayName ||
+			`Patched ${method} of ${options.name ||
+				target.displayName ||
 				target.name ||
 				target.constructor.displayName ||
 				target.constructor.name ||
-				"Unknown"} ${target instanceof React.Component ? "component" : "module"}`
+				"Unknown"} ${
+				options.type === "component" || target instanceof React.Component ? "component" : "module"
+			}`
 		);
 	}
 
-	async forceUpdate(...selectors) {
-		for (const sel of selectors) {
+	async forceUpdate(...classes) {
+		this.forceUpdateElements(
+			...classes.map((e) => document.getElementsByClassName(e)).reduce((p, e) => p.append(e))
+		);
+	}
+
+	async forceUpdateElements(...elements) {
+		for (const el of elements) {
 			try {
-				for (const el of document.querySelectorAll(sel)) {
-					let fiber = BdApi.getInternalInstance(el);
+				let fiber = BdApi.getInternalInstance(el);
 
-					if (fiber) {
-						while (!fiber.stateNode || !fiber.stateNode.forceUpdate) {
-							fiber = fiber.return;
-						}
-
-						fiber.stateNode.forceUpdate();
+				if (fiber) {
+					while (!fiber.stateNode || !fiber.stateNode.forceUpdate) {
+						fiber = fiber.return;
 					}
+
+					fiber.stateNode.forceUpdate();
 				}
 			} catch (e) {
-				this.log(`Failed to force update "${sel}" nodes`, console.warn);
+				this.log(
+					`Failed to force update "${
+						el.id ? `#${el.id}` : el.className ? `.${el.className}` : el.tagName
+					}" state node`,
+					console.warn
+				);
 				console.error(e);
 			}
 		}
@@ -320,13 +334,26 @@ module.exports = class Wrapper extends Plugin {
 
 if (Plugin.prototype.getSettings) {
 	module.exports.prototype.getSettingsPanel = function() {
-		if (!this.settingsRoot) {
-			this.settingsRoot = document.createElement("div");
-			this.settingsRoot.className = `settingsRoot-${this.getName()}`;
-			ReactDOM.render(this.getSettings(), this.settingsRoot);
+		const self = this;
+
+		class SettingsBase extends React.Component {
+			constructor(props) {
+				super(props);
+				this.state = self.settings;
+			}
+
+			componentDidUpdate(prevProps, prevState, snapshot) {
+				self.saveData("settings", Object.assign(self.settings, this.state));
+			}
 		}
 
-		return this.settingsRoot;
+		if (!this._settingsRoot) {
+			this._settingsRoot = document.createElement("div");
+			this._settingsRoot.className = `settingsRoot-${this.getName()}`;
+			ReactDOM.render(this.getSettings(SettingsBase), this._settingsRoot);
+		}
+
+		return this._settingsRoot;
 	};
 }
 
