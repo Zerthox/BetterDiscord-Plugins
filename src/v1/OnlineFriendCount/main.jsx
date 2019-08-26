@@ -42,33 +42,36 @@ class Plugin {
 	start() {
 		
 		// patch guilds render function
-		this.createPatch(Component.Guilds.prototype, "render", {after: (d) => {
+		this.createPatch(Component.Guilds.prototype, "render", {after: (data) => {
 			
 			// get return value
-			const r = d.returnValue;
+			const result = data.returnValue;
 			
 			// find scroller
-			const c = qReact(r, (e) => e.type.displayName === "VerticalScroller").props.children;
+			const scroller = qReact(result, (e) => e.type.displayName === "VerticalScroller");
 			
 			// check if online friends count is not inserted yet
-			if (!qReact(c, (e) => e.props.children.props.className === Selector.guilds.friendsOnline)) {
+			if (!qReact(scroller, (e) => e.props.className === Selector.guilds.friendsOnline)) {
+
+				// grab scroller children
+				const children = scroller.props.children;
 
 				// insert online friends count before dms
-				c.splice(c.indexOf(c.find((e) => e.type && e.type.displayName === "FluxContainer(UnreadDMs)")), 0, <OnlineCountContainer/>);
+				children.splice(children.indexOf(qReact(scroller, (e) => e.type.displayName === "FluxContainer(UnreadDMs)")), 0, <OnlineCountContainer/>);
 			}
 			
 			// return modified return value
-			return r;
+			return result;
 		}});
 		
 		// force update
-		this.forceUpdate(`.${Selector.guildsWrapper.wrapper}`);
+		this.forceUpdate(Selector.guildsWrapper.wrapper);
 	}
 	
 	stop() {
 
 		// force update
-		this.forceUpdate(`.${Selector.guildsWrapper.wrapper}`);
+		this.forceUpdate(Selector.guildsWrapper.wrapper);
 	}
 
 }
