@@ -1,4 +1,5 @@
-const fs = require("fs")
+const pkg = require("./package.json"),
+	fs = require("fs")
 	path = require("path"),
 	minimist = require("minimist"),
 	chalk = require("chalk"),
@@ -44,14 +45,14 @@ if (data.dev) {
 		dev(Object.assign({name: data.plugins[0], watch: true}, data));
 	}
 }
-else if (data.devBuild) {
-	for (const plugin of data.plugins) {
-		dev(Object.assign({name: plugin, watch: false}, data));
-	}
-}
 else {
 	for (const plugin of data.plugins) {
 		build(Object.assign({name: plugin}, data));
+	}
+	if (data.devBuild) {
+		for (const plugin of data.plugins) {
+			dev(Object.assign({name: plugin, watch: false}, data));
+		}
 	}
 }
 
@@ -121,7 +122,7 @@ function generatePlugin(info, contents) {
 		plugin = plugin.split(`@meta{${key}}`).join(val.replace(/\n/g, "\\n"));
 	}
 	plugin = plugin.replace(/^"contents";$/gm, contents);
-	return babel.transformSync(plugin, {comments: false}).code;
+	return babel.transformSync(plugin, Object.assign({comments: false}, pkg.babel)).code;
 }
 
 function wrapWScript(contents) {
