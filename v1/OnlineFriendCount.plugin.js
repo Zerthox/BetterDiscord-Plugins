@@ -1,7 +1,7 @@
 /**
  * @name OnlineFriendCount
  * @author Zerthox
- * @version 1.2.1
+ * @version 1.2.2
  * @description Add the old online friend count back to guild list. Because nostalgia.
  * @source https://github.com/Zerthox/BetterDiscord-Plugins
  */
@@ -111,11 +111,10 @@ class Plugin {
 
 				if (!qReact(scroller, (e) => e.props.className === Selector.guilds.friendsOnline)) {
 					const children = scroller.props.children;
-					children.splice(
-						children.indexOf(qReact(scroller, (e) => e.type.displayName === "FluxContainer(UnreadDMs)")),
-						0,
-						React.createElement(OnlineCountContainer, null)
+					const index = children.indexOf(
+						qReact(scroller, (e) => e.type.displayName === "ConnectedUnreadDMs")
 					);
+					children.splice(index > -1 ? index : 1, 0, React.createElement(OnlineCountContainer, null));
 				}
 
 				return result;
@@ -135,7 +134,7 @@ module.exports = class Wrapper extends Plugin {
 	}
 
 	getVersion() {
-		return "1.2.1";
+		return "1.2.2";
 	}
 
 	getAuthor() {
@@ -155,10 +154,18 @@ module.exports = class Wrapper extends Plugin {
 		);
 	}
 
-	start() {
+	constructor() {
+		super(...arguments);
 		this._Patches = [];
-		super.start();
+
+		if (this.defaults) {
+			this.settings = Object.assign({}, this.defaults, this.loadData("settings"));
+		}
+	}
+
+	start() {
 		this.log("Enabled");
+		super.start();
 	}
 
 	stop() {
@@ -206,13 +213,15 @@ module.exports = class Wrapper extends Plugin {
 
 		this._Patches.push(BdApi.monkeyPatch(target, method, options));
 
+		const name =
+			options.name ||
+			target.displayName ||
+			target.name ||
+			target.constructor.displayName ||
+			target.constructor.name ||
+			"Unknown";
 		this.log(
-			`Patched ${method} of ${options.name ||
-				target.displayName ||
-				target.name ||
-				target.constructor.displayName ||
-				target.constructor.name ||
-				"Unknown"} ${
+			`Patched ${method} of ${name} ${
 				options.type === "component" || target instanceof React.Component ? "component" : "module"
 			}`
 		);
@@ -251,23 +260,86 @@ module.exports = class Wrapper extends Plugin {
 
 if (Plugin.prototype.getSettings) {
 	module.exports.prototype.getSettingsPanel = function() {
+		const Flex = BdApi.findModuleByDisplayName("Flex"),
+			Button = BdApi.findModuleByProps("Link", "Hovers"),
+			FormSection = BdApi.findModuleByDisplayName("FormSection"),
+			FormTitle = BdApi.findModuleByDisplayName("FormTitle"),
+			FormDivider = BdApi.findModuleByDisplayName("FormDivider"),
+			Margins = BdApi.findModuleByProps("marginLarge");
+		const SettingsPanel = Object.assign(this.getSettings(), {
+			displayName: "SettingsPanel"
+		});
 		const self = this;
 
-		class SettingsBase extends React.Component {
+		class Settings extends React.Component {
 			constructor(props) {
 				super(props);
-				this.state = self.settings;
+				this.state = this.props.settings;
 			}
 
-			componentDidUpdate(prevProps, prevState, snapshot) {
-				self.saveData("settings", Object.assign(self.settings, this.state));
+			render() {
+				const props = Object.assign(
+					{
+						update: (e) => this.setState(e, () => this.props.update(this.state))
+					},
+					this.state
+				);
+				return React.createElement(
+					FormSection,
+					null,
+					React.createElement(
+						FormTitle,
+						{
+							tag: "h2"
+						},
+						this.props.name,
+						" Settings"
+					),
+					React.createElement(SettingsPanel, props),
+					React.createElement(FormDivider, {
+						className: [Margins.marginTop20, Margins.marginBottom20].join(" ")
+					}),
+					React.createElement(
+						Flex,
+						{
+							justify: Flex.Justify.END
+						},
+						React.createElement(
+							Button,
+							{
+								size: Button.Sizes.SMALL,
+								onClick: () => {
+									BdApi.showConfirmationModal(this.props.name, "Reset all settings?", {
+										onConfirm: () => {
+											this.props.reset();
+											this.setState(self.settings);
+										}
+									});
+								}
+							},
+							"Reset"
+						)
+					)
+				);
 			}
 		}
+
+		Settings.displayName = this.getName() + "Settings";
 
 		if (!this._settingsRoot) {
 			this._settingsRoot = document.createElement("div");
 			this._settingsRoot.className = `settingsRoot-${this.getName()}`;
-			ReactDOM.render(this.getSettings(SettingsBase), this._settingsRoot);
+			ReactDOM.render(
+				React.createElement(Settings, {
+					name: this.getName(),
+					settings: this.settings,
+					update: (state) => this.saveData("settings", Object.assign(this.settings, state)),
+					reset: () => {
+						this.saveData("settings", Object.assign(this.settings, this.defaults));
+					}
+				}),
+				this._settingsRoot
+			);
 		}
 
 		return this._settingsRoot;

@@ -56,8 +56,11 @@ class Plugin {
 				// grab scroller children
 				const children = scroller.props.children;
 
+				// find index of dms
+				const index = children.indexOf(qReact(scroller, (e) => e.type.displayName === "ConnectedUnreadDMs"));
+
 				// insert online friends count before dms
-				children.splice(children.indexOf(qReact(scroller, (e) => e.type.displayName === "FluxContainer(UnreadDMs)")), 0, <OnlineCountContainer/>);
+				children.splice(index > - 1 ? index : 1, 0, <OnlineCountContainer/>);
 			}
 			
 			// return modified return value
