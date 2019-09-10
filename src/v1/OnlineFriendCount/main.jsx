@@ -17,8 +17,12 @@ const Component = {
 /** Selector storage */
 const Selector = {
 	guildsWrapper: BdApi.findModuleByProps("wrapper", "unreadMentionsBar"),
-	guilds: BdApi.findModuleByProps("listItem", "friendsOnline")
+	guilds: BdApi.findModuleByProps("listItem"),
+	friendsOnline: "friendsOnline-2JkivW"
 };
+
+/** Plugin styles */
+const Styles = _require("./styles.scss");
 
 // OnlineCount component
 class OnlineCount extends React.Component {
@@ -26,7 +30,7 @@ class OnlineCount extends React.Component {
 		return (
 			<div className={Selector.guilds.listItem}>
 				<Component.Link to={{pathname: "/channels/@me"}}>
-					<div className={Selector.guilds.friendsOnline} style={{margin: 0, cursor: "pointer"}}>{this.props.online} Online</div>
+					<div className={Selector.friendsOnline}>{this.props.online} Online</div>
 				</Component.Link>
 			</div>
 		);
@@ -40,6 +44,9 @@ const OnlineCountContainer = Flux.connectStores([Module.Status], () => ({online:
 class Plugin {
 
 	start() {
+
+		// inject styles
+		this.injectCSS(Styles);
 		
 		// patch guilds render function
 		this.createPatch(Component.Guilds.prototype, "render", {after: (data) => {
@@ -51,7 +58,7 @@ class Plugin {
 			const scroller = qReact(result, (e) => e.type.displayName === "VerticalScroller");
 			
 			// check if online friends count is not inserted yet
-			if (!qReact(scroller, (e) => e.props.className === Selector.guilds.friendsOnline)) {
+			if (!qReact(scroller, (e) => e.props.className === Selector.friendsOnline)) {
 
 				// grab scroller children
 				const children = scroller.props.children;

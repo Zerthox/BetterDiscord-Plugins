@@ -1,7 +1,7 @@
 /**
  * @name OnlineFriendCount
  * @author Zerthox
- * @version 1.2.2
+ * @version 1.2.3
  * @description Add the old online friend count back to guild list. Because nostalgia.
  * @source https://github.com/Zerthox/BetterDiscord-Plugins
  */
@@ -64,8 +64,27 @@ const Component = {
 };
 const Selector = {
 	guildsWrapper: BdApi.findModuleByProps("wrapper", "unreadMentionsBar"),
-	guilds: BdApi.findModuleByProps("listItem", "friendsOnline")
+	guilds: BdApi.findModuleByProps("listItem"),
+	friendsOnline: "friendsOnline-2JkivW"
 };
+const Styles = `/*! OnlineFriendCount styles */
+/*! Powered by DiscordSelectors v0.1.4 */
+.friendsOnline-2JkivW {
+  color: rgba(255, 255, 255, 0.3);
+  text-align: center;
+  text-transform: uppercase;
+  font-size: 10px;
+  font-weight: 500;
+  line-height: 1.3;
+  width: 70px;
+  word-wrap: normal;
+  white-space: nowrap;
+  cursor: pointer;
+}
+
+.friendsOnline-2JkivW:hover {
+  color: rgba(255, 255, 255, 0.5);
+}`;
 
 class OnlineCount extends React.Component {
 	render() {
@@ -84,11 +103,7 @@ class OnlineCount extends React.Component {
 				React.createElement(
 					"div",
 					{
-						className: Selector.guilds.friendsOnline,
-						style: {
-							margin: 0,
-							cursor: "pointer"
-						}
+						className: Selector.friendsOnline
 					},
 					this.props.online,
 					" Online"
@@ -104,12 +119,13 @@ const OnlineCountContainer = Flux.connectStores([Module.Status], () => ({
 
 class Plugin {
 	start() {
+		this.injectCSS(Styles);
 		this.createPatch(Component.Guilds.prototype, "render", {
 			after: (data) => {
 				const result = data.returnValue;
 				const scroller = qReact(result, (e) => e.type.displayName === "VerticalScroller");
 
-				if (!qReact(scroller, (e) => e.props.className === Selector.guilds.friendsOnline)) {
+				if (!qReact(scroller, (e) => e.props.className === Selector.friendsOnline)) {
 					const children = scroller.props.children;
 					const index = children.indexOf(
 						qReact(scroller, (e) => e.type.displayName === "ConnectedUnreadDMs")
@@ -134,7 +150,7 @@ module.exports = class Wrapper extends Plugin {
 	}
 
 	getVersion() {
-		return "1.2.2";
+		return "1.2.3";
 	}
 
 	getAuthor() {
@@ -262,9 +278,7 @@ if (Plugin.prototype.getSettings) {
 	module.exports.prototype.getSettingsPanel = function() {
 		const Flex = BdApi.findModuleByDisplayName("Flex"),
 			Button = BdApi.findModuleByProps("Link", "Hovers"),
-			FormSection = BdApi.findModuleByDisplayName("FormSection"),
-			FormTitle = BdApi.findModuleByDisplayName("FormTitle"),
-			FormDivider = BdApi.findModuleByDisplayName("FormDivider"),
+			Form = BdApi.findModuleByProps("FormItem", "FormSection", "FormDivider"),
 			Margins = BdApi.findModuleByProps("marginLarge");
 		const SettingsPanel = Object.assign(this.getSettings(), {
 			displayName: "SettingsPanel"
@@ -285,10 +299,10 @@ if (Plugin.prototype.getSettings) {
 					this.state
 				);
 				return React.createElement(
-					FormSection,
+					Form.FormSection,
 					null,
 					React.createElement(
-						FormTitle,
+						Form.FormTitle,
 						{
 							tag: "h2"
 						},
@@ -296,7 +310,7 @@ if (Plugin.prototype.getSettings) {
 						" Settings"
 					),
 					React.createElement(SettingsPanel, props),
-					React.createElement(FormDivider, {
+					React.createElement(Form.FormDivider, {
 						className: [Margins.marginTop20, Margins.marginBottom20].join(" ")
 					}),
 					React.createElement(
