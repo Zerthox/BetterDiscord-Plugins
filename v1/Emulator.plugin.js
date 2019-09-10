@@ -1,291 +1,400 @@
-//META {"name": "Emulator", "source": "https://github.com/Zerthox/BetterDiscord-Plugins/blob/master/v1/Emulator.plugin.js"} *//
-
 /**
+ * @name Emulator
  * @author Zerthox
- * @version 0.4.3
- * @return {class} Emulator plugin class
+ * @version 1.0.0
+ * @description Emulate Windows, MacOS, Linux or Browser on any platform.\nWARNING: Emulating a different platform may cause unwanted side effects. Use at own risk.
+ * @source https://github.com/Zerthox/BetterDiscord-Plugins
  */
-const Emulator = (() => {
 
-	// Api constants
-	const {React, ReactDOM} = BdApi;
-
-	/** Settings storage */
-	const Settings = {};
-
-	/** Module storage */
-	const Module = {
-		Native: BdApi.findModuleByProps("getPlatform", "isWindows", "isOSX", "isLinux", "isWeb", "PlatformTypes"),
-		Overlay: BdApi.findModuleByProps("initialize", "isSupported", "getFocusedPID")
-	};
-
-	// get original platform
-	const platform = /^win/.test(Module.Native.platform) ? Module.Native.PlatformTypes.WINDOWS : Module.Native.platform === "darwin" ? Module.Native.PlatformTypes.OSX : Module.Native.platform === "linux" ? Module.Native.PlatformTypes.LINUX : Module.Native.PlatformTypes.WEB;
-
-	/** Storage for Patches */
-	const Patches = {};
-
-	// return plugin class
-	return class Emulator {
-
-		/**
-		 * @return {string} Plugin name
-		 */
-		getName() {
-			return "Emulator";
-		}
-
-		/**
-		 * @return {string} Plugin version
-		 */
-		getVersion() {
-			return "0.4.3";
-		}
-
-		/**
-		 * @return {string} Plugin author
-		 */
-		getAuthor() {
-			return "Zerthox";
-		}
-		
-		/**
-		 * @return {string} Plugin description
-		 */
-		getDescription() {
-			return "Emulate Windows, MacOS, Linux or Browser on any platform.\nWARNING: Emulating a different platform may cause unwanted side effects. Use at own risk.";
-		}
-
-		/**
-		 * Print a message in Console
-		 * @param {string} msg message
-		 * @param {function} [log=console.log] log function to call
-		 */
-		log(msg, log = console.log) {
-			log(`%c[${this.getName()}] %c(v${this.getVersion()})%c ${msg}`, "color: #3a71c1; font-weight: 700;", "color: #666; font-size: .8em;", "");
-		}
-		
-		/**
-		 * Show a toast and log a message in console
-		 * @param {string} msg message
-		 * @param {object} opt options
-		 * @param {string} opt.type toast type
-		 * @param {number} opt.timeout toast duration
-		 * @param {boolean} opt.icon enable/disable toast icon
-		 */
-		toast(msg, opt) {
-			this.log(msg);
-			BdApi.showToast(msg, opt);
-		}
-		
-		/**
-		 * @return {HTMLElement} Plugin settings panel
-		 */
-		getSettingsPanel() {
-			const self = this;
-
-			// create root element
-			const root = document.createElement("div");
-			root.className = `root-${this.getName()}`;
-
-			// queue react render
-			setTimeout(() => {
-
-				/**
-				 * Emulator settings component
-				 */
-				class settingsEmulator extends React.Component {
-
-					/**
-					 * Constructor
-					 */
-					constructor(props) {
-
-						// call parent constructor
-						super(props);
-
-						// set initial state
-						this.state = {
-							selected: Settings.platform
-						};
-					}
-
-					/**
-					 * Render settings panel component
-					 */
-					render() {
-						return React.createElement("div", {className: `container-${self.getName()}`, style: {padding: "5px 10px"}},
-							React.createElement("h3", {className: `header-${self.getName()}`, style: {margin: "3px 5px", fontSize: "20px", fontWeight: 700}}, "Emulated Platform:"),
-							this.renderItems([
-								{
-									value: Module.Native.PlatformTypes.WINDOWS,
-									name: "Windows"
-								},
-								{
-									value: Module.Native.PlatformTypes.OSX,
-									name: "MacOS"
-								},
-								{
-									value: Module.Native.PlatformTypes.LINUX,
-									name: "Linux"
-								},
-								{
-									value: Module.Native.PlatformTypes.WEB,
-									name: "Browser"
-								}
-							])
-						);
-					}
-					
-					/**
-					 * Render radio buttons
-					 * @param {object[]} a object array with names & values
-					 */
-					renderItems(a) {
-						
-						// map passed array
-						return a.map((c) => {
-							
-							// return new item for each element
-							return React.createElement("div", {className: `item-${self.getName()}`, style: {margin: "3px 5px"}},
-								React.createElement("label", {className: `label-${self.getName()}`},
-									React.createElement("input", {
-										className: `radio-${self.getName()}`,
-										type: "radio",
-										name: c.name,
-										value: c.value,
-										checked: c.value === Settings.platform,
-										onChange: (e) => this.handleChange(e)
-									}),
-									c.name
-								)
-							);
-						});
-					}
-
-					/**
-					 * Radio button change handler
-					 * @param {*} e change event
-					 */
-					handleChange(e) {
-
-						// set platform to target value
-						Settings.platform = e.target.value;
-
-						// save platform
-						BdApi.saveData(self.getName(), "platform", Settings.platform);
-
-						// force update
-						self.forceUpdateAll();
-
-						// unmount settings
-						ReactDOM.unmountComponentAtNode(root);
-
-						// show toast
-						self.toast(`Emulating ${e.target.name}`, {type: "info", timeout: 5000});
-					}
-				
-				}
-					
-				// unmount upon close
-				const e = document.querySelector(`.settings-open > div[style*="cursor: pointer"]`);
-				BdApi.monkeyPatch(e[Object.keys(e).find((e) => /^__reactEventHandlers/.test(e))], "onClick", {once: true, silent: true, before: () => {
-					ReactDOM.unmountComponentAtNode(root);
-				}});
-				
-				// render container
-				ReactDOM.render(React.createElement(settingsEmulator), root);
-			}, 0);
-				
-			// return root element
-			return root;
-		}
-			
-		/**
-		 * Plugin class constructor
-		 */
-		constructor() {
-				
-			// load settings
-			Settings.platform = BdApi.loadData(this.getName(), "platform");
-			
-			// if no custom platform, default to old platform
-			if (!Settings.platform) {
-				Settings.platform = platform;
+/*@cc_on
+	@if (@_jscript)
+		var name = WScript.ScriptName.split(".")[0];
+		var shell = WScript.CreateObject("WScript.Shell");
+		var fso = new ActiveXObject("Scripting.FileSystemObject");
+		shell.Popup("Do NOT run random scripts from the internet with the Windows Script Host!\n\nYou are supposed to move this file to your BandagedBD/BetterDiscord plugins folder.", 0, name + ": Warning!", 0x1030);
+		var pluginsPath = shell.expandEnvironmentStrings("%appdata%\\BetterDiscord\\plugins");
+		if (!fso.FolderExists(pluginsPath)) {
+			if (shell.Popup("Unable to find the BetterDiscord plugins folder on your computer.\nOpen the download page of BandagedBD/BetterDiscord?", 0, name + ": BetterDiscord installation not found", 0x14) === 6) {
+				shell.Exec("explorer \"https://github.com/rauenzi/betterdiscordapp/releases\"");
 			}
 		}
-		
-		/**
-		 * Plugin start function
-		 */
-		start() {
-			
-			// patch platform specific functions
-			for (const e of ["Windows", "OSX", "Linux", "Web"]) {
-				Patches[`is${e}`] = BdApi.monkeyPatch(Module.Native, `is${e}`, {silent: true, instead: () => Settings.platform === Module.Native.PlatformTypes[e.toUpperCase()]});
-				this.log(`Patched is${e} of Native module`);
-			}
-			
-			// patch settings render function
-			Patches.overlay = BdApi.monkeyPatch(Module.Overlay, "isSupported", {silent: true, instead: () => Module.Native.isWindows()});
-			this.log("Patched isSupported of Overlay module");
-			
-			// force update
-			this.forceUpdateAll();
-
-			// show toast
-			this.toast(`Emulating ${Module.Native.isWindows() ? "Windows" : Module.Native.isOSX() ? "MacOS" : Module.Native.isLinux() ? "Linux" : "Browser"}`, {type: "info", timeout: 5000});
-			
-			// console output
-			this.log("Enabled");
+		else if (WScript.ScriptFullName === pluginsPath + "\\" + WScript.ScriptName) {
+			shell.Popup("This plugin is already in the correct folder.\nNavigate to the \"Plugins\" settings tab in Discord and enable it there.", 0, name, 0x40);
 		}
-		
-		/**
-		 * Plugin stop function
-		 */
-		stop() {
+		else {
+			shell.Exec("explorer " + pluginsPath);
+		}
+		WScript.Quit();
+	@else
+@*/
 
-			// revert all patches
-			for (const k in Patches) {
-				Patches[k]();
-				delete Patches[k];
+const {React, ReactDOM} = BdApi,
+	Flux = BdApi.findModuleByProps("connectStores");
+
+function qReact(node, query) {
+	let match = false;
+
+	try {
+		match = query(node);
+	} catch (err) {
+		console.debug("Suppressed error in qReact query:\n", err);
+	}
+
+	if (match) {
+		return node;
+	} else if (node && node.props && node.props.children) {
+		for (const child of [node.props.children].flat()) {
+			const result = arguments.callee(child, query);
+
+			if (result) {
+				return result;
 			}
-			this.log("Unpatched all");
+		}
+	}
 
-			// force update
-			this.forceUpdateAll();
+	return null;
+}
 
-			// show toast
-			this.toast(`Stopped Emulating`, {type: "info", timeout: 5000});
+const Module = {
+	Platform: BdApi.findModuleByProps("getPlatform", "isWindows", "isOSX", "isLinux", "isWeb", "PlatformTypes"),
+	Overlay: BdApi.findModuleByProps("initialize", "isSupported", "getFocusedPID")
+};
+const Component = {
+	RadioGroup: BdApi.findModuleByDisplayName("RadioGroup")
+};
 
-			// console output
-			this.log("Disabled");
+class Plugin {
+	constructor() {
+		this.defaults = {
+			platform: /^win/.test(Module.Platform.platform)
+				? Module.Platform.PlatformTypes.WINDOWS
+				: Module.Platform.platform === "darwin"
+				? Module.Platform.PlatformTypes.OSX
+				: Module.Platform.platform === "linux"
+				? Module.Platform.PlatformTypes.LINUX
+				: Module.Platform.PlatformTypes.WEB
+		};
+	}
+
+	getSettings() {
+		return (props) => {
+			return React.createElement(Component.RadioGroup, {
+				value: props.platform,
+				onChange: (e) =>
+					props.update({
+						platform: e.value
+					}),
+				options: [
+					{
+						value: Module.Platform.PlatformTypes.WINDOWS,
+						name: "Windows"
+					},
+					{
+						value: Module.Platform.PlatformTypes.OSX,
+						name: "MacOS"
+					},
+					{
+						value: Module.Platform.PlatformTypes.LINUX,
+						name: "Linux"
+					},
+					{
+						value: Module.Platform.PlatformTypes.WEB,
+						name: "Browser"
+					}
+				]
+			});
+		};
+	}
+
+	async update() {
+		await this.forceUpdateRoot();
+		this.toast(
+			`Emulating ${
+				Module.Platform.isWindows()
+					? "Windows"
+					: Module.Platform.isOSX()
+					? "MacOS"
+					: Module.Platform.isLinux()
+					? "Linux"
+					: "Browser"
+			}`,
+			{
+				type: "info",
+				timeout: 5000
+			}
+		);
+	}
+
+	toast(msg, opt) {
+		this.log(msg);
+		BdApi.showToast(msg, opt);
+	}
+
+	start() {
+		for (const platform of ["Windows", "OSX", "Linux", "Web"]) {
+			this.createPatch(Module.Platform, `is${platform}`, {
+				name: "Platform",
+				instead: () => this.settings.platform === Module.Platform.PlatformTypes[platform.toUpperCase()]
+			});
 		}
 
+		this.createPatch(Module.Overlay, "isSupported", {
+			name: "Overlay",
+			instead: () => Module.Platform.isWindows()
+		});
+		this.update();
+	}
 
-		/**
-		 * Force update app & close settings
-		 */
-		forceUpdateAll() {
+	stop() {
+		this.forceUpdateRoot();
+		this.toast(`Stopped Emulating`, {
+			type: "info",
+			timeout: 5000
+		});
+	}
 
-			// catch errors
+	async forceUpdateRoot() {
+		try {
+			let fiber = document.querySelector("#app-mount")._reactRootContainer._internalRoot.current;
+
+			while (!(fiber.type && fiber.type.displayName === "FluxContainer(App)")) {
+				fiber = fiber.child;
+			}
+
+			fiber.stateNode.forceUpdate();
+
+			if (
+				BdApi.findModuleByProps("getLayers")
+					.getLayers()
+					.indexOf("USER_SETTINGS") > -1
+			) {
+				BdApi.findModuleByProps("pushLayer", "popLayer").popLayer();
+			}
+		} catch (e) {
+			this.log("Failed to force update", console.warn);
+			console.error(e);
+		}
+	}
+}
+
+module.exports = class Wrapper extends Plugin {
+	getName() {
+		return "Emulator";
+	}
+
+	getVersion() {
+		return "1.0.0";
+	}
+
+	getAuthor() {
+		return "Zerthox";
+	}
+
+	getDescription() {
+		return "Emulate Windows, MacOS, Linux or Browser on any platform.\nWARNING: Emulating a different platform may cause unwanted side effects. Use at own risk.";
+	}
+
+	log(msg, log = console.log) {
+		log(
+			`%c[${this.getName()}] %c(v${this.getVersion()})%c ${msg}`,
+			"color: #3a71c1; font-weight: 700;",
+			"color: #666; font-size: .8em;",
+			""
+		);
+	}
+
+	constructor() {
+		super(...arguments);
+		this._Patches = [];
+
+		if (this.defaults) {
+			this.settings = Object.assign({}, this.defaults, this.loadData("settings"));
+		}
+	}
+
+	start() {
+		this.log("Enabled");
+		super.start();
+	}
+
+	stop() {
+		while (this._Patches.length > 0) {
+			this._Patches.pop()();
+		}
+
+		this.log("Unpatched all");
+
+		if (document.getElementById(this.getName())) {
+			BdApi.clearCSS(this.getName());
+		}
+
+		super.stop();
+
+		if (this._settingsRoot) {
+			ReactDOM.unmountComponentAtNode(this._settingsRoot);
+			delete this._settingsRoot;
+		}
+
+		this.log("Disabled");
+	}
+
+	saveData(id, value) {
+		return BdApi.saveData(this.getName(), id, value);
+	}
+
+	loadData(id, fallback = null) {
+		const l = BdApi.loadData(this.getName(), id);
+		return l ? l : fallback;
+	}
+
+	injectCSS(css) {
+		const el = document.getElementById(this.getName());
+
+		if (!el) {
+			BdApi.injectCSS(this.getName(), css);
+		} else {
+			el.innerHTML += "\n\n/* --- */\n\n" + css;
+		}
+	}
+
+	createPatch(target, method, options) {
+		options.silent = true;
+
+		this._Patches.push(BdApi.monkeyPatch(target, method, options));
+
+		const name =
+			options.name ||
+			target.displayName ||
+			target.name ||
+			target.constructor.displayName ||
+			target.constructor.name ||
+			"Unknown";
+		this.log(
+			`Patched ${method} of ${name} ${
+				options.type === "component" || target instanceof React.Component ? "component" : "module"
+			}`
+		);
+	}
+
+	async forceUpdate(...classes) {
+		this.forceUpdateElements(
+			...classes.map((e) => document.getElementsByClassName(e)).reduce((p, e) => p.append(e))
+		);
+	}
+
+	async forceUpdateElements(...elements) {
+		for (const el of elements) {
 			try {
+				let fiber = BdApi.getInternalInstance(el);
 
-				// force update app
-				document.querySelector("#app-mount")._reactRootContainer._internalRoot.current.child.child.child.child.child.child.stateNode.forceUpdate();
-	
-				// pop settings layer
-				if (BdApi.findModuleByProps("getLayers").getLayers().indexOf("USER_SETTINGS") > -1) {
-					BdApi.findModuleByProps("pushLayer", "popLayer").popLayer();
+				if (fiber) {
+					while (!fiber.stateNode || !fiber.stateNode.forceUpdate) {
+						fiber = fiber.return;
+					}
+
+					fiber.stateNode.forceUpdate();
 				}
-			}
-			catch(e) {
-
-				// log error
-				this.log("Failed to force update", console.warn);
+			} catch (e) {
+				this.log(
+					`Failed to force update "${
+						el.id ? `#${el.id}` : el.className ? `.${el.className}` : el.tagName
+					}" state node`,
+					console.warn
+				);
 				console.error(e);
 			}
 		}
-
 	}
-})();
+};
+
+if (Plugin.prototype.getSettings) {
+	module.exports.prototype.getSettingsPanel = function() {
+		const Flex = BdApi.findModuleByDisplayName("Flex"),
+			Button = BdApi.findModuleByProps("Link", "Hovers"),
+			Form = BdApi.findModuleByProps("FormItem", "FormSection", "FormDivider"),
+			Margins = BdApi.findModuleByProps("marginLarge");
+		const SettingsPanel = Object.assign(this.getSettings(), {
+			displayName: "SettingsPanel"
+		});
+		const self = this;
+
+		class Settings extends React.Component {
+			constructor(props) {
+				super(props);
+				this.state = this.props.settings;
+			}
+
+			render() {
+				const props = Object.assign(
+					{
+						update: (e) => this.setState(e, () => this.props.update(this.state))
+					},
+					this.state
+				);
+				return React.createElement(
+					Form.FormSection,
+					null,
+					React.createElement(
+						Form.FormTitle,
+						{
+							tag: "h2"
+						},
+						this.props.name,
+						" Settings"
+					),
+					React.createElement(SettingsPanel, props),
+					React.createElement(Form.FormDivider, {
+						className: [Margins.marginTop20, Margins.marginBottom20].join(" ")
+					}),
+					React.createElement(
+						Flex,
+						{
+							justify: Flex.Justify.END
+						},
+						React.createElement(
+							Button,
+							{
+								size: Button.Sizes.SMALL,
+								onClick: () => {
+									BdApi.showConfirmationModal(this.props.name, "Reset all settings?", {
+										onConfirm: () => {
+											this.props.reset();
+											this.setState(self.settings);
+										}
+									});
+								}
+							},
+							"Reset"
+						)
+					)
+				);
+			}
+		}
+
+		Settings.displayName = this.getName() + "Settings";
+
+		if (!this._settingsRoot) {
+			this._settingsRoot = document.createElement("div");
+			this._settingsRoot.className = `settingsRoot-${this.getName()}`;
+			ReactDOM.render(
+				React.createElement(Settings, {
+					name: this.getName(),
+					settings: this.settings,
+					update: (state) => {
+						this.saveData("settings", Object.assign(this.settings, state));
+						this.update && this.update();
+					},
+					reset: () => {
+						this.saveData("settings", Object.assign(this.settings, this.defaults));
+						this.update && this.update();
+					}
+				}),
+				this._settingsRoot
+			);
+		}
+
+		return this._settingsRoot;
+	};
+}
+
+/*@end@*/

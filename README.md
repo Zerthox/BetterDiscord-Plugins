@@ -13,7 +13,7 @@ Current Features:
 ### [OnlineFriendCount](/v1/OnlineFriendCount.plugin.js) <sub><sup>`v1.2.3` *(Updated: 10/09/19)*</sup></sub>
 Add the old online friend count back to guild list. Because nostalgia.
 
-### [Emulator](/v1/Emulator.plugin.js) <sub><sup>`v0.4.3` *(Updated: 14/06/19)*</sup></sub>
+### [Emulator](/v1/Emulator.plugin.js) <sub><sup>`1.0.0` *(Updated: 10/09/19)*</sup></sub>
 Emulate Windows, MacOS, Linux or Browser on any platform.  
 **WARNING:** Emulating a different platform may cause unwanted side effects. Use at own risk.
 
