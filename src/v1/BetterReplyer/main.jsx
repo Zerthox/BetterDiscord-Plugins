@@ -20,7 +20,7 @@ const Component = {
 
 /** Selector storage */
 const Selector = {
-	Messages: BdApi.findModuleByProps("message", "container", "headerCozy"),
+	Messages: BdApi.findModuleByProps("container", "containerCozyBounded"),
 	TextArea: BdApi.findModuleByProps("channelTextArea")
 };
 
@@ -182,7 +182,7 @@ class Plugin {
 		}});
 		
 		// force update
-		this.forceUpdate(Selector.Messages.message);
+		this.forceUpdate(Selector.Messages.container);
 	}
 	
 	stop() {
@@ -193,7 +193,7 @@ class Plugin {
 		this.mode = false;
 
 		// force update
-		this.forceUpdate(Selector.Messages.message);
+		this.forceUpdate(Selector.Messages.container);
 	}
 
 }

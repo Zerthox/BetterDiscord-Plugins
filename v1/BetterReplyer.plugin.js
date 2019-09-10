@@ -1,7 +1,7 @@
 /**
  * @name BetterReplyer
  * @author Zerthox
- * @version 4.1.1
+ * @version 4.1.2
  * @description Reply to people using their ID with a button.\nInspired by Replyer by @Hammmock#3110, @Natsulus#0001 & @Zerebos#7790.
  * @source https://github.com/Zerthox/BetterDiscord-Plugins
  */
@@ -67,7 +67,7 @@ const Component = {
 	ChannelTextArea: BdApi.findModuleByDisplayName("ChannelTextArea")
 };
 const Selector = {
-	Messages: BdApi.findModuleByProps("message", "container", "headerCozy"),
+	Messages: BdApi.findModuleByProps("container", "containerCozyBounded"),
 	TextArea: BdApi.findModuleByProps("channelTextArea")
 };
 const Styles = `/*! BetterReplyer styles */
@@ -201,14 +201,14 @@ class Plugin {
 				return d.originalMethod.apply(t);
 			}
 		});
-		this.forceUpdate(Selector.Messages.message);
+		this.forceUpdate(Selector.Messages.container);
 	}
 
 	stop() {
 		this.focused = null;
 		this.selection = [0, 0];
 		this.mode = false;
-		this.forceUpdate(Selector.Messages.message);
+		this.forceUpdate(Selector.Messages.container);
 	}
 }
 
@@ -218,7 +218,7 @@ module.exports = class Wrapper extends Plugin {
 	}
 
 	getVersion() {
-		return "4.1.1";
+		return "4.1.2";
 	}
 
 	getAuthor() {
@@ -238,10 +238,18 @@ module.exports = class Wrapper extends Plugin {
 		);
 	}
 
-	start() {
+	constructor() {
+		super(...arguments);
 		this._Patches = [];
-		super.start();
+
+		if (this.defaults) {
+			this.settings = Object.assign({}, this.defaults, this.loadData("settings"));
+		}
+	}
+
+	start() {
 		this.log("Enabled");
+		super.start();
 	}
 
 	stop() {
@@ -289,13 +297,15 @@ module.exports = class Wrapper extends Plugin {
 
 		this._Patches.push(BdApi.monkeyPatch(target, method, options));
 
+		const name =
+			options.name ||
+			target.displayName ||
+			target.name ||
+			target.constructor.displayName ||
+			target.constructor.name ||
+			"Unknown";
 		this.log(
-			`Patched ${method} of ${options.name ||
-				target.displayName ||
-				target.name ||
-				target.constructor.displayName ||
-				target.constructor.name ||
-				"Unknown"} ${
+			`Patched ${method} of ${name} ${
 				options.type === "component" || target instanceof React.Component ? "component" : "module"
 			}`
 		);
@@ -334,23 +344,84 @@ module.exports = class Wrapper extends Plugin {
 
 if (Plugin.prototype.getSettings) {
 	module.exports.prototype.getSettingsPanel = function() {
+		const Flex = BdApi.findModuleByDisplayName("Flex"),
+			Button = BdApi.findModuleByProps("Link", "Hovers"),
+			Form = BdApi.findModuleByProps("FormItem", "FormSection", "FormDivider"),
+			Margins = BdApi.findModuleByProps("marginLarge");
+		const SettingsPanel = Object.assign(this.getSettings(), {
+			displayName: "SettingsPanel"
+		});
 		const self = this;
 
-		class SettingsBase extends React.Component {
+		class Settings extends React.Component {
 			constructor(props) {
 				super(props);
-				this.state = self.settings;
+				this.state = this.props.settings;
 			}
 
-			componentDidUpdate(prevProps, prevState, snapshot) {
-				self.saveData("settings", Object.assign(self.settings, this.state));
+			render() {
+				const props = Object.assign(
+					{
+						update: (e) => this.setState(e, () => this.props.update(this.state))
+					},
+					this.state
+				);
+				return React.createElement(
+					Form.FormSection,
+					null,
+					React.createElement(
+						Form.FormTitle,
+						{
+							tag: "h2"
+						},
+						this.props.name,
+						" Settings"
+					),
+					React.createElement(SettingsPanel, props),
+					React.createElement(Form.FormDivider, {
+						className: [Margins.marginTop20, Margins.marginBottom20].join(" ")
+					}),
+					React.createElement(
+						Flex,
+						{
+							justify: Flex.Justify.END
+						},
+						React.createElement(
+							Button,
+							{
+								size: Button.Sizes.SMALL,
+								onClick: () => {
+									BdApi.showConfirmationModal(this.props.name, "Reset all settings?", {
+										onConfirm: () => {
+											this.props.reset();
+											this.setState(self.settings);
+										}
+									});
+								}
+							},
+							"Reset"
+						)
+					)
+				);
 			}
 		}
+
+		Settings.displayName = this.getName() + "Settings";
 
 		if (!this._settingsRoot) {
 			this._settingsRoot = document.createElement("div");
 			this._settingsRoot.className = `settingsRoot-${this.getName()}`;
-			ReactDOM.render(this.getSettings(SettingsBase), this._settingsRoot);
+			ReactDOM.render(
+				React.createElement(Settings, {
+					name: this.getName(),
+					settings: this.settings,
+					update: (state) => this.saveData("settings", Object.assign(this.settings, state)),
+					reset: () => {
+						this.saveData("settings", Object.assign(this.settings, this.defaults));
+					}
+				}),
+				this._settingsRoot
+			);
 		}
 
 		return this._settingsRoot;
