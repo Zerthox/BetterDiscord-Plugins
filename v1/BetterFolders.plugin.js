@@ -477,9 +477,7 @@ if (Plugin.prototype.getSettings) {
 	module.exports.prototype.getSettingsPanel = function() {
 		const Flex = BdApi.findModuleByDisplayName("Flex"),
 			Button = BdApi.findModuleByProps("Link", "Hovers"),
-			FormSection = BdApi.findModuleByDisplayName("FormSection"),
-			FormTitle = BdApi.findModuleByDisplayName("FormTitle"),
-			FormDivider = BdApi.findModuleByDisplayName("FormDivider"),
+			Form = BdApi.findModuleByProps("FormItem", "FormSection", "FormDivider"),
 			Margins = BdApi.findModuleByProps("marginLarge");
 		const SettingsPanel = Object.assign(this.getSettings(), {
 			displayName: "SettingsPanel"
@@ -500,10 +498,10 @@ if (Plugin.prototype.getSettings) {
 					this.state
 				);
 				return React.createElement(
-					FormSection,
+					Form.FormSection,
 					null,
 					React.createElement(
-						FormTitle,
+						Form.FormTitle,
 						{
 							tag: "h2"
 						},
@@ -511,7 +509,7 @@ if (Plugin.prototype.getSettings) {
 						" Settings"
 					),
 					React.createElement(SettingsPanel, props),
-					React.createElement(FormDivider, {
+					React.createElement(Form.FormDivider, {
 						className: [Margins.marginTop20, Margins.marginBottom20].join(" ")
 					}),
 					React.createElement(
