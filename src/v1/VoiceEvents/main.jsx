@@ -18,14 +18,11 @@ const Component = {
 	Flex: BdApi.findModuleByDisplayName("Flex"),
 	VerticalScroller: BdApi.findModuleByDisplayName("VerticalScroller"),
 	Button: BdApi.findModuleByProps("Link", "Hovers"),
-	FormSection: BdApi.findModuleByDisplayName("FormSection"),
-	FormItem: BdApi.findModuleByDisplayName("FormItem"),
-	FormDivider: BdApi.findModuleByDisplayName("FormDivider"),
-	FormTitle: BdApi.findModuleByDisplayName("FormTitle"),
-	FormText: BdApi.findModuleByDisplayName("FormText"),
+	Form: BdApi.findModuleByProps("FormSection", "FormText"),
 	TextInput: BdApi.findModuleByDisplayName("TextInput"),
 	SelectTempWrapper: BdApi.findModuleByDisplayName("SelectTempWrapper")
 };
+console.log(Component);
 
 /** Selector storage */
 const Selector = {
@@ -56,29 +53,31 @@ class Plugin {
 	}
 
 	getSettings() {
-		const self = this;
+		const self = this,
+			{SelectTempWrapper, TextInput} = Component,
+			{FormSection, FormTitle, FormItem, FormText, FormDivider} = Component.Form;
 
 		return class SettingsPanel extends React.Component {
 
 			render() {
 				return (
 					<>
-						<Component.FormItem>
-							<Component.FormTitle>TTS Voice</Component.FormTitle>
-							<Component.SelectTempWrapper
+						<FormItem>
+							<FormTitle>TTS Voice</FormTitle>
+							<SelectTempWrapper
 								value={this.props.voice}
 								searchable={false}
 								clearable={false}
 								onChange={(e) => this.props.update({voice: e.value})}
 								options={speechSynthesis.getVoices().map((e) => ({label: `${e.name} [${e.lang}]`, value: e.name}))}
 							/>
-						</Component.FormItem>
-						<Component.FormDivider className={[Selector.margins.marginTop20, Selector.margins.marginBottom20].join(" ")}/>
-						<Component.FormSection>
-							<Component.FormTitle tag="h3">Messages</Component.FormTitle>
-							<Component.FormText type="description" className={Selector.margins.marginBottom20}>
+						</FormItem>
+						<FormDivider className={[Selector.margins.marginTop20, Selector.margins.marginBottom20].join(" ")}/>
+						<FormSection>
+							<FormTitle tag="h3">Messages</FormTitle>
+							<FormText type="description" className={Selector.margins.marginBottom20}>
 								$user will get replaced with the respective Username and $channel with the respective Voice Channel name.
-							</Component.FormText>
+							</FormText>
 							{this.generateInputs([
 								{
 									title: "Join Message (Other Users)",
@@ -105,17 +104,17 @@ class Plugin {
 									setting: "privateCall"
 								}
 							])}
-						</Component.FormSection>
+						</FormSection>
 					</>
 				);
 			}
 
 			generateInputs(values) {
 				return values.map((val) => (
-					<Component.FormItem className={Selector.margins.marginBottom20}>
-						<Component.FormTitle>{val.title}</Component.FormTitle>
-						<Component.TextInput onChange={(e) => this.props.update({[val.setting]: e})} value={this.props[val.setting]} placeholder={self.defaults[val.setting]}/>
-					</Component.FormItem>
+					<FormItem className={Selector.margins.marginBottom20}>
+						<FormTitle>{val.title}</FormTitle>
+						<TextInput onChange={(e) => this.props.update({[val.setting]: e})} value={this.props[val.setting]} placeholder={self.defaults[val.setting]}/>
+					</FormItem>
 				));
 			}
 

@@ -1,7 +1,7 @@
 /**
  * @name VoiceEvents
  * @author Zerthox
- * @version 1.0.0
+ * @version 1.0.1
  * @description Adds TTS Event Notifications to your selected Voice Channel. Teamspeak feeling.
  * @source https://github.com/Zerthox/BetterDiscord-Plugins
  */
@@ -67,14 +67,11 @@ const Component = {
 	Flex: BdApi.findModuleByDisplayName("Flex"),
 	VerticalScroller: BdApi.findModuleByDisplayName("VerticalScroller"),
 	Button: BdApi.findModuleByProps("Link", "Hovers"),
-	FormSection: BdApi.findModuleByDisplayName("FormSection"),
-	FormItem: BdApi.findModuleByDisplayName("FormItem"),
-	FormDivider: BdApi.findModuleByDisplayName("FormDivider"),
-	FormTitle: BdApi.findModuleByDisplayName("FormTitle"),
-	FormText: BdApi.findModuleByDisplayName("FormText"),
+	Form: BdApi.findModuleByProps("FormSection", "FormText"),
 	TextInput: BdApi.findModuleByDisplayName("TextInput"),
 	SelectTempWrapper: BdApi.findModuleByDisplayName("SelectTempWrapper")
 };
+console.log(Component);
 const Selector = {
 	margins: BdApi.findModuleByProps("marginLarge")
 };
@@ -103,17 +100,19 @@ class Plugin {
 	}
 
 	getSettings() {
-		const self = this;
+		const self = this,
+			{SelectTempWrapper, TextInput} = Component,
+			{FormSection, FormTitle, FormItem, FormText, FormDivider} = Component.Form;
 		return class SettingsPanel extends React.Component {
 			render() {
 				return React.createElement(
 					React.Fragment,
 					null,
 					React.createElement(
-						Component.FormItem,
+						FormItem,
 						null,
-						React.createElement(Component.FormTitle, null, "TTS Voice"),
-						React.createElement(Component.SelectTempWrapper, {
+						React.createElement(FormTitle, null, "TTS Voice"),
+						React.createElement(SelectTempWrapper, {
 							value: this.props.voice,
 							searchable: false,
 							clearable: false,
@@ -127,21 +126,21 @@ class Plugin {
 							}))
 						})
 					),
-					React.createElement(Component.FormDivider, {
+					React.createElement(FormDivider, {
 						className: [Selector.margins.marginTop20, Selector.margins.marginBottom20].join(" ")
 					}),
 					React.createElement(
-						Component.FormSection,
+						FormSection,
 						null,
 						React.createElement(
-							Component.FormTitle,
+							FormTitle,
 							{
 								tag: "h3"
 							},
 							"Messages"
 						),
 						React.createElement(
-							Component.FormText,
+							FormText,
 							{
 								type: "description",
 								className: Selector.margins.marginBottom20
@@ -181,12 +180,12 @@ class Plugin {
 			generateInputs(values) {
 				return values.map((val) =>
 					React.createElement(
-						Component.FormItem,
+						FormItem,
 						{
 							className: Selector.margins.marginBottom20
 						},
-						React.createElement(Component.FormTitle, null, val.title),
-						React.createElement(Component.TextInput, {
+						React.createElement(FormTitle, null, val.title),
+						React.createElement(TextInput, {
 							onChange: (e) =>
 								this.props.update({
 									[val.setting]: e
@@ -283,7 +282,7 @@ module.exports = class Wrapper extends Plugin {
 	}
 
 	getVersion() {
-		return "1.0.0";
+		return "1.0.1";
 	}
 
 	getAuthor() {
