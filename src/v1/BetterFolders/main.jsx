@@ -68,6 +68,7 @@ const BetterFolderStore = (() => {
 				folderId: id,
 				data
 			});
+			BdApi.saveData("BetterFolders", "folders", Folders);
 		}
 		getFolder(id) {
 			return Folders[id];
@@ -77,6 +78,7 @@ const BetterFolderStore = (() => {
 				type: "delete",
 				folderId: id
 			});
+			BdApi.saveData("BetterFolders", "folders", Folders);
 		}
 	}
 
@@ -271,7 +273,6 @@ class Plugin {
 				else if (Object.keys(Folders).indexOf(id.toString()) > -1) {
 					BetterFolderStore.deleteFolder(id)
 				}
-				BdApi.saveData("BetterFolders", "folders", Folders);
 			}});
 			if (context.state.iconType !== "default") {
 				children.push(

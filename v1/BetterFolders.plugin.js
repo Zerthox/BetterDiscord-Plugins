@@ -1,7 +1,7 @@
 /**
  * @name BetterFolders
  * @author Zerthox
- * @version 2.0.0
+ * @version 2.0.1
  * @description Add new functionality to server folders.
  * @source https://github.com/Zerthox/BetterDiscord-Plugins
  */
@@ -125,6 +125,7 @@ const BetterFolderStore = (() => {
 				folderId: id,
 				data
 			});
+			BdApi.saveData("BetterFolders", "folders", Folders);
 		}
 
 		getFolder(id) {
@@ -136,6 +137,7 @@ const BetterFolderStore = (() => {
 				type: "delete",
 				folderId: id
 			});
+			BdApi.saveData("BetterFolders", "folders", Folders);
 		}
 	}
 
@@ -413,8 +415,6 @@ class Plugin {
 						} else if (Object.keys(Folders).indexOf(id.toString()) > -1) {
 							BetterFolderStore.deleteFolder(id);
 						}
-
-						BdApi.saveData("BetterFolders", "folders", Folders);
 					}
 				});
 
@@ -466,7 +466,7 @@ module.exports = class Wrapper extends Plugin {
 	}
 
 	getVersion() {
-		return "2.0.0";
+		return "2.0.1";
 	}
 
 	getAuthor() {
