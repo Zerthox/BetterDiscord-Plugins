@@ -22,7 +22,6 @@ const Component = {
 	TextInput: BdApi.findModuleByDisplayName("TextInput"),
 	SelectTempWrapper: BdApi.findModuleByDisplayName("SelectTempWrapper")
 };
-console.log(Component);
 
 /** Selector storage */
 const Selector = {
