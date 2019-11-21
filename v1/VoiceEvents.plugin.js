@@ -71,7 +71,6 @@ const Component = {
 	TextInput: BdApi.findModuleByDisplayName("TextInput"),
 	SelectTempWrapper: BdApi.findModuleByDisplayName("SelectTempWrapper")
 };
-console.log(Component);
 const Selector = {
 	margins: BdApi.findModuleByProps("marginLarge")
 };
