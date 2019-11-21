@@ -13,7 +13,7 @@ Current Features:
 ### [OnlineFriendCount](/v1/OnlineFriendCount.plugin.js) <sub><sup>`v1.2.3` *(Updated: 10/09/19)*</sup></sub>
 Add the old online friend count back to guild list. Because nostalgia.
 
-### [VoiceEvents](/v1/VoiceEvents.plugin.js) <sub><sup>`v1.0.1` *(Updated: 21/11/19)*</sup></sub>
+### [VoiceEvents](/v1/VoiceEvents.plugin.js) <sub><sup>`v1.1.0` *(Updated: 21/11/19)*</sup></sub>
 Adds TTS Event Notifications to your selected Voice Channel. Teamspeak feeling.
 
 ### [Emulator](/v1/Emulator.plugin.js) <sub><sup>`1.0.0` *(Updated: 10/09/19)*</sup></sub>

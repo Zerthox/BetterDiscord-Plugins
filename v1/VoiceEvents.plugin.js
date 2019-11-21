@@ -1,7 +1,7 @@
 /**
  * @name VoiceEvents
  * @author Zerthox
- * @version 1.0.1
+ * @version 1.1.0
  * @description Adds TTS Event Notifications to your selected Voice Channel. Teamspeak feeling.
  * @source https://github.com/Zerthox/BetterDiscord-Plugins
  */
@@ -57,7 +57,6 @@ function qReact(node, query) {
 
 const Module = {
 	Events: BdApi.findModuleByProps("dispatch", "subscribe"),
-	SelectedGuild: BdApi.findModuleByProps("getGuildId"),
 	Channels: BdApi.findModuleByProps("getChannel"),
 	SelectedChannel: BdApi.findModuleByProps("getChannelId"),
 	VoiceStates: BdApi.findModuleByProps("getVoiceStates"),
@@ -75,8 +74,8 @@ const Selector = {
 	margins: BdApi.findModuleByProps("marginLarge")
 };
 
-function cloneStates(guild, channel) {
-	return Module.VoiceStates.getVoiceStatesForChannel(guild, channel).slice(0);
+function cloneStates(channel) {
+	return Module.VoiceStates.getVoiceStatesForChannel(channel).slice(0);
 }
 
 function isDM(channel) {
@@ -199,7 +198,7 @@ class Plugin {
 	}
 
 	start() {
-		this.states = cloneStates(Module.SelectedGuild.getGuildId(), Module.SelectedChannel.getVoiceChannelId());
+		this.states = cloneStates(Module.Channels.getChannel(Module.SelectedChannel.getVoiceChannelId()));
 		Module.Events.subscribe("VOICE_STATE_UPDATE", this.callback);
 	}
 
@@ -209,55 +208,55 @@ class Plugin {
 	}
 
 	onChange(event) {
-		if (event.userId === Module.Users.getCurrentUser().id) {
+		const {Channels, Users, SelectedChannel} = Module;
+
+		if (event.userId === Users.getCurrentUser().id) {
 			if (!event.channelId) {
-				const channel = Module.Channels.getChannel(this.states[0].channelId);
+				const channel = Channels.getChannel(this.states[0].channelId);
 				this.speak({
 					type: "leaveSelf",
-					user: Module.Users.getCurrentUser().username,
+					user: Users.getCurrentUser().username,
 					channel: isDM(channel) ? this.settings.privateCall : channel.name
 				});
 			} else {
-				const channel = Module.Channels.getChannel(event.channelId);
+				const channel = Channels.getChannel(event.channelId);
 
 				if (!isDM(channel) && this.states.length > 0 && this.states[0].channelId !== event.channelId) {
 					this.speak({
 						type: "moveSelf",
-						user: Module.Users.getCurrentUser().username,
+						user: Users.getCurrentUser().username,
 						channel: isDM(channel) ? this.settings.privateCall : channel.name
 					});
 				} else if (this.states.length === 0) {
 					this.speak({
 						type: "joinSelf",
-						user: Module.Users.getCurrentUser().username,
+						user: Users.getCurrentUser().username,
 						channel: isDM(channel) ? this.settings.privateCall : channel.name
 					});
 				}
 			}
 
-			this.states = cloneStates(event.guildId, event.channelId);
+			this.states = cloneStates(Channels.getChannel(event.channelId));
 		} else {
-			const selected = Module.SelectedChannel.getVoiceChannelId();
+			const channel = Channels.getChannel(SelectedChannel.getVoiceChannelId());
 
-			if (selected) {
-				const prev = this.states.find((u) => u.userId === event.userId);
+			if (channel) {
+				const prev = this.states.find((user) => user.userId === event.userId);
 
-				if (event.channelId === selected && !prev) {
-					const channel = Module.Channels.getChannel(selected);
+				if (event.channelId === channel.id && !prev) {
 					this.speak({
 						type: "join",
-						user: Module.Users.getUser(event.userId).username,
+						user: Users.getUser(event.userId).username,
 						channel: isDM(channel) ? this.settings.privateCall : channel.name
 					});
-					this.states = cloneStates(event.guildId, selected);
+					this.states = cloneStates(channel);
 				} else if (!event.channelId && prev) {
-					const channel = Module.Channels.getChannel(selected);
 					this.speak({
 						type: "leave",
-						user: Module.Users.getUser(event.userId).username,
+						user: Users.getUser(event.userId).username,
 						channel: isDM(channel) ? this.settings.privateCall : channel.name
 					});
-					this.states = cloneStates(Module.SelectedGuild.getGuildId(), selected);
+					this.states = cloneStates(channel);
 				}
 			}
 		}
@@ -281,7 +280,7 @@ module.exports = class Wrapper extends Plugin {
 	}
 
 	getVersion() {
-		return "1.0.1";
+		return "1.1.0";
 	}
 
 	getAuthor() {
