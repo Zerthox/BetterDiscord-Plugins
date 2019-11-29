@@ -63,6 +63,10 @@ const BetterFolderStore = (() => {
 	// create custom store
 	class BetterFolderStore extends Flux.Store {
 		setFolder(id, data) {
+			if (!Folders[id]) {
+				Folders[id] = {};
+			}
+			Object.assign(Folders[id], data);
 			FoldersDispatcher.dirtyDispatch({
 				type: "update",
 				folderId: id,
@@ -74,6 +78,7 @@ const BetterFolderStore = (() => {
 			return Folders[id];
 		}
 		deleteFolder(id) {
+			delete Folders[id];
 			FoldersDispatcher.dirtyDispatch({
 				type: "delete",
 				folderId: id
@@ -84,15 +89,8 @@ const BetterFolderStore = (() => {
 
 	// return new custom store instance
 	return new BetterFolderStore(FoldersDispatcher, {
-		update: ({folderId, data}) => {
-			if (!Folders[folderId]) {
-				Folders[folderId] = {};
-			}
-			Object.assign(Folders[folderId], data);
-		},
-		delete: ({folderId}) => {
-			delete Folders[folderId];
-		}
+		update: () => {},
+		delete: () => {}
 	});
 })();
 

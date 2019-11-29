@@ -1,7 +1,7 @@
 /**
  * @name BetterFolders
  * @author Zerthox
- * @version 2.0.1
+ * @version 2.0.2
  * @description Add new functionality to server folders.
  * @source https://github.com/Zerthox/BetterDiscord-Plugins
  */
@@ -120,6 +120,11 @@ const BetterFolderStore = (() => {
 
 	class BetterFolderStore extends Flux.Store {
 		setFolder(id, data) {
+			if (!Folders[id]) {
+				Folders[id] = {};
+			}
+
+			Object.assign(Folders[id], data);
 			FoldersDispatcher.dirtyDispatch({
 				type: "update",
 				folderId: id,
@@ -133,6 +138,7 @@ const BetterFolderStore = (() => {
 		}
 
 		deleteFolder(id) {
+			delete Folders[id];
 			FoldersDispatcher.dirtyDispatch({
 				type: "delete",
 				folderId: id
@@ -142,16 +148,8 @@ const BetterFolderStore = (() => {
 	}
 
 	return new BetterFolderStore(FoldersDispatcher, {
-		update: ({folderId, data}) => {
-			if (!Folders[folderId]) {
-				Folders[folderId] = {};
-			}
-
-			Object.assign(Folders[folderId], data);
-		},
-		delete: ({folderId}) => {
-			delete Folders[folderId];
-		}
+		update: () => {},
+		delete: () => {}
 	});
 })();
 
@@ -466,7 +464,7 @@ module.exports = class Wrapper extends Plugin {
 	}
 
 	getVersion() {
-		return "2.0.1";
+		return "2.0.2";
 	}
 
 	getAuthor() {
