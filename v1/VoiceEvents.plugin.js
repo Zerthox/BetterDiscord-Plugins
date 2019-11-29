@@ -1,7 +1,7 @@
 /**
  * @name VoiceEvents
  * @author Zerthox
- * @version 1.1.0
+ * @version 1.1.1
  * @description Adds TTS Event Notifications to your selected Voice Channel. Teamspeak feeling.
  * @source https://github.com/Zerthox/BetterDiscord-Plugins
  */
@@ -85,8 +85,7 @@ function isDM(channel) {
 class Plugin {
 	constructor() {
 		this.defaults = {
-			voice:
-				speechSynthesis.getVoices().find((e) => e.lang === "en-US").name || speechSynthesis.getVoices()[0].name,
+			voice: (speechSynthesis.getVoices().find((e) => e.lang === "en-US") || speechSynthesis.getVoices()[0]).name,
 			join: "$user joined $channel",
 			leave: "$user left $channel",
 			joinSelf: "You joined $channel",
@@ -280,7 +279,7 @@ module.exports = class Wrapper extends Plugin {
 	}
 
 	getVersion() {
-		return "1.1.0";
+		return "1.1.1";
 	}
 
 	getAuthor() {

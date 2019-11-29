@@ -39,7 +39,7 @@ class Plugin {
 
 	constructor() {
 		this.defaults = {
-			voice: speechSynthesis.getVoices().find((e) => e.lang === "en-US").name || speechSynthesis.getVoices()[0].name,
+			voice: (speechSynthesis.getVoices().find((e) => e.lang === "en-US") || speechSynthesis.getVoices()[0]).name,
 			join: "$user joined $channel",
 			leave: "$user left $channel",
 			joinSelf: "You joined $channel",
