@@ -4,8 +4,7 @@
 	"description": "Plugins for BetterDiscord (BandagedBD & BDV2).",
 	"main": "build.js",
 	"scripts": {
-		"build": "node build.js",
-		"develop": "node build.js --dev"
+		"build": "node scripts/build.js --plugins=*"
 	},
 	"repository": {
 		"type": "git",

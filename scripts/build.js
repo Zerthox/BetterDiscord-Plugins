@@ -1,5 +1,5 @@
-const pkg = require("./package.json"),
-	fs = require("fs")
+const pkg = require("../package.json"),
+	fs = require("fs"),
 	path = require("path"),
 	minimist = require("minimist"),
 	chalk = require("chalk"),
@@ -7,7 +7,7 @@ const pkg = require("./package.json"),
 	prettier = require("prettier");
 
 // save cwd
-const cwd = process.cwd();
+const cwd = path.resolve(__dirname, "../");
 
 // parse args
 const argv = minimist(process.argv);
