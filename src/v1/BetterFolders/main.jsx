@@ -147,7 +147,14 @@ class BetterFolderUploader extends React.Component {
 						/>
 					</Button>
 					<FormText type="description" style={{margin: "0 10px 0 40px"}}>Preview:</FormText>
-					<div className={[Selector.folder.folder, "betterFolders-preview"].join(" ")} style={{"background-image": this.state.icon ? `url(${this.state.icon})` : null}}/>
+					<BetterFolderIcon
+						childProps={{
+							color: this.props.color,
+							guildIds: []
+						}}
+						icon={this.state.icon}
+						always
+					/>
 				</Flex>
 				<Flex>
 					<SwitchItem
@@ -233,8 +240,9 @@ class Plugin {
 				}
 			}
 			const children = qReact(returnValue, (e) => e.type === "form").props.children;
+			const {className} = children[0].props;
 			children.push(
-				<FormItem title="Icon" className={children[0].props.className}>
+				<FormItem title="Icon" className={className}>
 					<RadioGroup value={context.state.iconType}
 						options={[
 							{
@@ -261,7 +269,7 @@ class Plugin {
 				</FormItem>
 			);
 			const button = qReact(returnValue, (e) => e.props.type === "submit");
-			BdApi.monkeyPatch(button.props, "onClick", {silent: true, after: (data) => {
+			BdApi.monkeyPatch(button.props, "onClick", {silent: true, after: () => {
 				if (context.state.iconType !== "default" && context.state.icon) {
 					BetterFolderStore.setFolder(id, {
 						icon: context.state.icon,
@@ -274,8 +282,8 @@ class Plugin {
 			}});
 			if (context.state.iconType !== "default") {
 				children.push(
-					<FormItem title="Custom Icon" className={children[0].props.className}>
-						<BetterFolderUploader icon={context.state.icon} always={context.state.always} onChange={(data) => context.setState({icon: data.icon, always: data.always})}/>
+					<FormItem title="Custom Icon" className={className}>
+						<BetterFolderUploader color={context.state.color} icon={context.state.icon} always={context.state.always} onChange={(data) => context.setState({icon: data.icon, always: data.always})}/>
 					</FormItem>
 				);
 			}

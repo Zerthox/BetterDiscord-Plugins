@@ -1,7 +1,7 @@
 /**
  * @name BetterFolders
  * @author Zerthox
- * @version 2.0.2
+ * @version 2.0.3
  * @description Add new functionality to server folders.
  * @source https://github.com/Zerthox/BetterDiscord-Plugins
  */
@@ -246,11 +246,13 @@ class BetterFolderUploader extends React.Component {
 					},
 					"Preview:"
 				),
-				React.createElement("div", {
-					className: [Selector.folder.folder, "betterFolders-preview"].join(" "),
-					style: {
-						"background-image": this.state.icon ? `url(${this.state.icon})` : null
-					}
+				React.createElement(BetterFolderIcon, {
+					childProps: {
+						color: this.props.color,
+						guildIds: []
+					},
+					icon: this.state.icon,
+					always: true
 				})
 			),
 			React.createElement(
@@ -355,12 +357,13 @@ class Plugin {
 				}
 
 				const children = qReact(returnValue, (e) => e.type === "form").props.children;
+				const {className} = children[0].props;
 				children.push(
 					React.createElement(
 						FormItem,
 						{
 							title: "Icon",
-							className: children[0].props.className
+							className: className
 						},
 						React.createElement(RadioGroup, {
 							value: context.state.iconType,
@@ -404,7 +407,7 @@ class Plugin {
 				const button = qReact(returnValue, (e) => e.props.type === "submit");
 				BdApi.monkeyPatch(button.props, "onClick", {
 					silent: true,
-					after: (data) => {
+					after: () => {
 						if (context.state.iconType !== "default" && context.state.icon) {
 							BetterFolderStore.setFolder(id, {
 								icon: context.state.icon,
@@ -422,9 +425,10 @@ class Plugin {
 							FormItem,
 							{
 								title: "Custom Icon",
-								className: children[0].props.className
+								className: className
 							},
 							React.createElement(BetterFolderUploader, {
+								color: context.state.color,
 								icon: context.state.icon,
 								always: context.state.always,
 								onChange: (data) =>
@@ -464,7 +468,7 @@ module.exports = class Wrapper extends Plugin {
 	}
 
 	getVersion() {
-		return "2.0.2";
+		return "2.0.3";
 	}
 
 	getAuthor() {
