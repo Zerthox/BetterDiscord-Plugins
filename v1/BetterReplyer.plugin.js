@@ -1,7 +1,7 @@
 /**
  * @name BetterReplyer
  * @author Zerthox
- * @version 4.1.2
+ * @version 4.2.0
  * @description Reply to people using their ID with a button.\nInspired by Replyer by @Hammmock#3110, @Natsulus#0001 & @Zerebos#7790.
  * @source https://github.com/Zerthox/BetterDiscord-Plugins
  */
@@ -58,13 +58,11 @@ function qReact(node, query) {
 const Module = {
 	Constants: BdApi.findModuleByProps("Permissions"),
 	Permissions: BdApi.findModuleByProps("getChannelPermissions"),
-	Drafts: BdApi.findModuleByProps("getDraft"),
-	DraftActions: BdApi.findModuleByProps("saveDraft"),
 	Users: BdApi.findModuleByProps("getUser", "getCurrentUser")
 };
 const Component = {
 	Message: BdApi.findModuleByProps("Message", "MessageAvatar").Message,
-	ChannelTextArea: BdApi.findModuleByDisplayName("ChannelTextArea")
+	SlateChannelTextArea: BdApi.findModuleByDisplayName("SlateChannelTextArea")
 };
 const Selector = {
 	Messages: BdApi.findModuleByProps("container", "containerCozyBounded"),
@@ -91,124 +89,95 @@ const Styles = `/*! BetterReplyer styles */
 
 class Plugin {
 	constructor() {
-		this.focused = null;
-		this.selection = [0, 0];
-		this.mode = false;
+		this.editor = null;
+		this.focused = false;
 	}
 
 	start() {
 		this.injectCSS(Styles);
 		this.createPatch(Component.Message.prototype, "render", {
-			after: (d) => {
-				const t = d.thisObject,
-					r = d.returnValue;
-				const id = t.props.message.author.id;
+			after: ({thisObject, returnValue}) => {
+				const {author} = thisObject.props.message;
 
 				if (
-					t.props.isDisabled ||
-					t.props.isCompact ||
-					!t.props.isHeader ||
-					id === Module.Users.getCurrentUser().id
+					thisObject.props.isDisabled ||
+					thisObject.props.isCompact ||
+					!thisObject.props.isHeader ||
+					author.id === Module.Users.getCurrentUser().id
 				) {
-					return r;
+					return returnValue;
 				}
 
-				const p = Module.Permissions.getChannelPermissions(t.props.channel.id);
+				const perms = Module.Permissions.getChannelPermissions(thisObject.props.channel.id);
 
-				if (typeof p === "number" && !(p & Module.Constants.Permissions.SEND_MESSAGES)) {
-					return r;
+				if (typeof perms === "number" && !(perms & Module.Constants.Permissions.SEND_MESSAGES)) {
+					return returnValue;
 				}
 
-				const h = [t.props.jumpSequenceId ? r.props.children.props.children : r.props.children]
-					.flat()
-					.find((e) => e.props && e.props.className === Selector.Messages.headerCozy);
-				const m =
-					h &&
-					[h.props.children]
-						.flat()
-						.find((e) => e.props && e.props.className === Selector.Messages.headerCozyMeta);
+				const meta = qReact(returnValue, (node) => node.props.className === Selector.Messages.headerCozyMeta);
 
-				if (m) {
-					const c = [m.props.children].flat();
-					c.push(
+				if (meta) {
+					const children = [meta.props.children].flat();
+					children.push(
 						React.createElement(
 							"span",
 							{
 								className: "replyer",
 								onClick: () => {
-									const f = this.focused;
-
-									if (f) {
-										f.focus();
-
-										if (this.mode) {
-											f.setSelectionRange(this.selection[0], this.selection[1]);
-											document.execCommand("insertText", false, `<@!${id}>`);
-											setTimeout(() => {
-												this.focused = f;
-											}, 100);
-										} else {
-											const m = `<@!${id}> `;
-											f.setSelectionRange(0, 0);
-											document.execCommand("insertText", false, m);
-											f.setSelectionRange(
-												this.selection[0] + m.length,
-												this.selection[1] + m.length
-											);
-										}
+									if (this.focused) {
+										this.editor.insertText(`<@!${author.id}>`);
 									} else {
-										Module.DraftActions.saveDraft(
-											t.props.channel.id,
-											`<@!${id}> ${Module.Drafts.getDraft(t.props.channel.id)}`
-										);
+										this.editor.applyOperation({
+											type: "insert_text",
+											path: [0, 0],
+											offset: 0,
+											text: `<@!${author.id}> `
+										});
 									}
+
+									this.editor.focus();
 								}
 							},
 							"Reply"
 						)
 					);
-					m.props.children = c;
+					meta.props.children = children;
 				}
 
-				return r;
+				return returnValue;
 			}
 		});
-		this.createPatch(Component.ChannelTextArea.prototype, "render", {
-			instead: (d) => {
-				const t = d.thisObject;
+		this.createPatch(Component.SlateChannelTextArea.prototype, "render", {
+			before: ({thisObject}) => {
+				const editor = thisObject._editorRef;
 
-				const f = () => {
-					const e = ReactDOM.findDOMNode(d.thisObject).querySelector("textarea");
-					this.focused = e;
-					this.selection = [e.selectionStart, e.selectionEnd];
-					this.mode = true;
-					setTimeout(() => {
-						if (this.focused === e) {
-							this.mode = false;
-						}
-					}, 100);
-				};
-
-				if (t.props.onBlur) {
-					BdApi.monkeyPatch(t.props, "onBlur", {
+				if (editor) {
+					this.editor = editor;
+					BdApi.monkeyPatch(editor, "focus", {
 						silent: true,
-						before: f
+						before: () => {
+							this.editor = editor;
+							this.focused = true;
+						}
 					});
-				} else {
-					t.props.onBlur = f;
+					BdApi.monkeyPatch(editor, "blur", {
+						silent: true,
+						after: () => {
+							setTimeout(() => {
+								this.focused = false;
+							}, 100);
+						}
+					});
 				}
-
-				return d.originalMethod.apply(t);
 			}
 		});
-		this.forceUpdate(Selector.Messages.container);
+		this.forceUpdate(Selector.Messages.container, Selector.TextArea.textArea);
 	}
 
 	stop() {
-		this.focused = null;
-		this.selection = [0, 0];
-		this.mode = false;
-		this.forceUpdate(Selector.Messages.container);
+		this.editor = null;
+		this.focused = false;
+		this.forceUpdate(Selector.Messages.container, Selector.TextArea.textArea);
 	}
 }
 
@@ -218,7 +187,7 @@ module.exports = class Wrapper extends Plugin {
 	}
 
 	getVersion() {
-		return "4.1.2";
+		return "4.2.0";
 	}
 
 	getAuthor() {
@@ -312,9 +281,7 @@ module.exports = class Wrapper extends Plugin {
 	}
 
 	async forceUpdate(...classes) {
-		this.forceUpdateElements(
-			...classes.map((e) => document.getElementsByClassName(e)).reduce((p, e) => p.append(e))
-		);
+		this.forceUpdateElements(...classes.map((e) => Array.from(document.getElementsByClassName(e))).flat());
 	}
 
 	async forceUpdateElements(...elements) {
@@ -415,9 +382,13 @@ if (Plugin.prototype.getSettings) {
 				React.createElement(Settings, {
 					name: this.getName(),
 					settings: this.settings,
-					update: (state) => this.saveData("settings", Object.assign(this.settings, state)),
+					update: (state) => {
+						this.saveData("settings", Object.assign(this.settings, state));
+						this.update && this.update();
+					},
 					reset: () => {
 						this.saveData("settings", Object.assign(this.settings, this.defaults));
+						this.update && this.update();
 					}
 				}),
 				this._settingsRoot
