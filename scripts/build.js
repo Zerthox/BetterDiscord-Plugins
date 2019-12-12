@@ -154,7 +154,7 @@ function dev(data) {
 			const time = process.hrtime();
 
 			// load plugin config
-			const info = require(cfg);
+			const info = JSON.parse(fs.readFileSync(cfg, "utf8"));
 
 			// generate source link
 			info.source = "https://github.com/Zerthox/BetterDiscord-Plugins";
