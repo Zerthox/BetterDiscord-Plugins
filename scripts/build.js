@@ -101,7 +101,7 @@ async function build(data) {
 		fs.writeFileSync(out, formatted);
 
 		// console output
-		console.log(chalk.green(`Successfully compiled ${info.name}${info.version ? ` v${info.version}` : ""} to "${out}" [${Math.round(process.hrtime(time)[1] / 1000000)}ms]`));
+		console.log(chalk.green(`Compiled ${info.name}${info.version ? ` v${info.version}` : ""} to: "${out}" [${Math.round(process.hrtime(time)[1] / 1000000)}ms]`));
 	}
 	catch (err) {
 		console.log(chalk.red(`${err.name ? err.name : "Error"} during build:`), err.message);
@@ -175,7 +175,7 @@ function dev(data) {
 			fs.writeFileSync(out, generateMeta(info) + generatePlugin(info, transformed));
 
 			// console output
-			console.log(chalk.green(`Compiled "${data.name}.plugin.js" to the BetterDiscord plugins folder [${Math.round(process.hrtime(time)[1] / 1000000)}ms]`));
+			console.log(chalk.green(`Compiled "${info.name}.plugin.js" to the BetterDiscord plugins folder [${Math.round(process.hrtime(time)[1] / 1000000)}ms]`));
 		}
 		catch (err) {
 
@@ -189,7 +189,7 @@ function dev(data) {
 
 	// watch for changes if necessary
 	if (data.watch) {
-		console.log(`Watching for changes in "${file}"`);
+		console.log(`Watching for changes in "${dir}"`);
 		fs.watch(dir, {}, (event, filename) => {
 			console.log(`=> ${event === "rename" ? "Renamed" : "Changed"} "${filename}"`);
 			compile();
