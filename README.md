@@ -1,6 +1,6 @@
 # [BandagedBD (/v1)](/v1)
 
-### [BetterReplyer](/v1/BetterReplyer.plugin.js) <sub><sup>`v4.2.0` *(Updated: 12/12/19)*</sup></sub>
+### [BetterReplyer](/v1/BetterReplyer.plugin.js) <sub><sup>`v4.2.1` *(Updated: 25/12/19)*</sup></sub>
 Reply to people using their ID with a button.  
 Inspired by [Replyer](https://github.com/cosmicsalad/Discord-Themes-and-Plugins/blob/master/plugins/replyer.plugin.js) by [Hammmock#3110](https://github.com/cosmicsalad), [@Natsulus#0001](https://github.com/Delivator) & [@Zerebos#7790](https://github.com/rauenzi).
 
