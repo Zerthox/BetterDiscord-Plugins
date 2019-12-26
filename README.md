@@ -20,6 +20,9 @@ Adds TTS Event Notifications to your selected Voice Channel. Teamspeak feeling.
 Emulate Windows, MacOS, Linux or Browser on any platform.  
 **WARNING:** Emulating a different platform may cause unwanted side effects. Use at own risk.
 
+### [HypeSquadCheatsheet](/v1/HypeSquadCheatsheet.plugin.js) <sub><sup>`v0.1.0` *(Updated: 27/12/19)*</sup></sub>
+Displays the resulting HypeSquad house next to the questions in the HypeSquad questions modal.
+
 ### [GuildSeparators](/v1/GuildSeparators.plugin.js) <sub><sup>`v2.1.3` *(Updated: 29/04/19)*</sup></sub>
 Add separators between Guilds with a button in the context menu.
 
