@@ -1,7 +1,7 @@
 /**
  * @name BetterFolders
  * @author Zerthox
- * @version 2.0.3
+ * @version 2.0.4
  * @description Add new functionality to server folders.
  * @source https://github.com/Zerthox/BetterDiscord-Plugins
  */
@@ -200,9 +200,7 @@ class BetterFolderUploader extends React.Component {
 	}
 
 	setState(state) {
-		super.setState(state, () => {
-			this.props.onChange && this.props.onChange(this.state);
-		});
+		super.setState(state, () => this.props.onChange && this.props.onChange(this.state));
 	}
 
 	render() {
@@ -229,11 +227,10 @@ class BetterFolderUploader extends React.Component {
 					},
 					"Upload Image",
 					React.createElement(ImageInput, {
-						onChange: (e) => {
+						onChange: (e) =>
 							this.setState({
 								icon: e
-							});
-						}
+							})
 					})
 				),
 				React.createElement(
@@ -310,9 +307,9 @@ class Plugin {
 	start() {
 		this.injectCSS(Styles);
 		this.createPatch(Component.GuildFolder.prototype, "render", {
-			after: (d) => {
-				const id = d.thisObject.props.folderId;
-				const icon = qReact(d.returnValue, (e) => e.props.children.type.displayName === "FolderIcon");
+			after: ({thisObject, returnValue}) => {
+				const id = thisObject.props.folderId;
+				const icon = qReact(returnValue, (e) => e.props.children.type.displayName === "FolderIcon");
 
 				if (icon) {
 					if (!Component.FolderIcon) {
@@ -329,26 +326,26 @@ class Plugin {
 		});
 		this.forceUpdate(`.${Selector.folder.wrapper}`);
 		this.createPatch(Component.GuildFolderSettingsModal.prototype, "render", {
-			after: ({thisObject: context, returnValue}) => {
+			after: ({thisObject, returnValue}) => {
 				const {
 						Flex,
 						Icon,
 						RadioGroup,
 						Form: {FormItem}
 					} = Component,
-					id = context.props.folderId;
+					id = thisObject.props.folderId;
 
-				if (!context.state.iconType) {
+				if (!thisObject.state.iconType) {
 					const folder = BetterFolderStore.getFolder(id);
 
 					if (folder) {
-						Object.assign(context.state, {
+						Object.assign(thisObject.state, {
 							iconType: "custom",
 							icon: folder.icon,
 							always: folder.always
 						});
 					} else {
-						Object.assign(context.state, {
+						Object.assign(thisObject.state, {
 							iconType: "default",
 							icon: null,
 							always: false
@@ -366,7 +363,7 @@ class Plugin {
 							className: className
 						},
 						React.createElement(RadioGroup, {
-							value: context.state.iconType,
+							value: thisObject.state.iconType,
 							options: [
 								{
 									name: React.createElement(
@@ -398,7 +395,7 @@ class Plugin {
 								}
 							],
 							onChange: ({value}) =>
-								context.setState({
+								thisObject.setState({
 									iconType: value
 								})
 						})
@@ -408,18 +405,18 @@ class Plugin {
 				BdApi.monkeyPatch(button.props, "onClick", {
 					silent: true,
 					after: () => {
-						if (context.state.iconType !== "default" && context.state.icon) {
+						if (thisObject.state.iconType !== "default" && thisObject.state.icon) {
 							BetterFolderStore.setFolder(id, {
-								icon: context.state.icon,
-								always: context.state.always
+								icon: thisObject.state.icon,
+								always: thisObject.state.always
 							});
-						} else if (Object.keys(Folders).indexOf(id.toString()) > -1) {
+						} else if (thisObject.state.iconType === "default" && BetterFolderStore.getFolder(id)) {
 							BetterFolderStore.deleteFolder(id);
 						}
 					}
 				});
 
-				if (context.state.iconType !== "default") {
+				if (thisObject.state.iconType !== "default") {
 					children.push(
 						React.createElement(
 							FormItem,
@@ -428,13 +425,13 @@ class Plugin {
 								className: className
 							},
 							React.createElement(BetterFolderUploader, {
-								color: context.state.color,
-								icon: context.state.icon,
-								always: context.state.always,
-								onChange: (data) =>
-									context.setState({
-										icon: data.icon,
-										always: data.always
+								color: thisObject.state.color,
+								icon: thisObject.state.icon,
+								always: thisObject.state.always,
+								onChange: ({icon, always}) =>
+									thisObject.setState({
+										icon,
+										always
 									})
 							})
 						)
@@ -444,12 +441,12 @@ class Plugin {
 		});
 		this.createPatch(Module.ClientActions, "toggleGuildFolderExpand", {
 			name: "ClientActions",
-			after: (data) => {
+			after: ({methodArguments, originalMethod}) => {
 				if (this.settings.closeOnOpen) {
-					const target = data.methodArguments[0];
+					const target = methodArguments[0];
 
 					for (const id of Module.FolderStore.getExpandedFolders()) {
-						id !== target && data.originalMethod(id);
+						id !== target && originalMethod(id);
 					}
 				}
 			}
@@ -468,7 +465,7 @@ module.exports = class Wrapper extends Plugin {
 	}
 
 	getVersion() {
-		return "2.0.3";
+		return "2.0.4";
 	}
 
 	getAuthor() {
@@ -562,9 +559,7 @@ module.exports = class Wrapper extends Plugin {
 	}
 
 	async forceUpdate(...classes) {
-		this.forceUpdateElements(
-			...classes.map((e) => document.getElementsByClassName(e)).reduce((p, e) => p.append(e))
-		);
+		this.forceUpdateElements(...classes.map((e) => Array.from(document.getElementsByClassName(e))).flat());
 	}
 
 	async forceUpdateElements(...elements) {

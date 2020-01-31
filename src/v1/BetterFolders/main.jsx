@@ -128,9 +128,7 @@ class BetterFolderUploader extends React.Component {
 	}
 
 	setState(state) {
-		super.setState(state, () => {
-			this.props.onChange && this.props.onChange(this.state);
-		});
+		super.setState(state, () => this.props.onChange && this.props.onChange(this.state));
 	}
 
 	render() {
@@ -140,11 +138,7 @@ class BetterFolderUploader extends React.Component {
 				<Flex align={Selector.flex.alignCenter}>
 					<Button color={Selector.button.colorWhite} look={Selector.button.lookOutlined}>
 						Upload Image
-						<ImageInput
-							onChange={(e) => {
-								this.setState({icon: e});
-							}}
-						/>
+						<ImageInput onChange={(e) => this.setState({icon: e})}/>
 					</Button>
 					<FormText type="description" style={{margin: "0 10px 0 40px"}}>Preview:</FormText>
 					<BetterFolderIcon
@@ -196,16 +190,16 @@ class Plugin {
 			>Close On Open</Component.SwitchItem>
 		);
 	}
-	
+
 	start() {
 
 		// inject styles
 		this.injectCSS(Styles);
 
 		// patch guild folder render function
-		this.createPatch(Component.GuildFolder.prototype, "render", {after: (d) => {
-			const id = d.thisObject.props.folderId;
-			const icon = qReact(d.returnValue, (e) => e.props.children.type.displayName === "FolderIcon");
+		this.createPatch(Component.GuildFolder.prototype, "render", {after: ({thisObject, returnValue}) => {
+			const id = thisObject.props.folderId;
+			const icon = qReact(returnValue, (e) => e.props.children.type.displayName === "FolderIcon");
 			if (icon) {
 				if (!Component.FolderIcon) {
 					Component.FolderIcon = icon.props.children.type;
@@ -218,21 +212,20 @@ class Plugin {
 		this.forceUpdate(`.${Selector.folder.wrapper}`);
 
 		// patch guild folder settings modal render function
-		this.createPatch(Component.GuildFolderSettingsModal.prototype, "render", {after: ({thisObject: context, returnValue}) => {
+		this.createPatch(Component.GuildFolderSettingsModal.prototype, "render", {after: ({thisObject, returnValue}) => {
 			const {Flex, Icon, RadioGroup, Form: {FormItem}} = Component,
-				id = context.props.folderId;
-
-			if (!context.state.iconType) {
+				id = thisObject.props.folderId;
+			if (!thisObject.state.iconType) {
 				const folder = BetterFolderStore.getFolder(id);
 				if (folder) {
-					Object.assign(context.state, {
+					Object.assign(thisObject.state, {
 						iconType: "custom",
 						icon: folder.icon,
 						always: folder.always
 					});
 				}
 				else {
-					Object.assign(context.state, {
+					Object.assign(thisObject.state, {
 						iconType: "default",
 						icon: null,
 						always: false
@@ -243,7 +236,7 @@ class Plugin {
 			const {className} = children[0].props;
 			children.push(
 				<FormItem title="Icon" className={className}>
-					<RadioGroup value={context.state.iconType}
+					<RadioGroup value={thisObject.state.iconType}
 						options={[
 							{
 								name: (
@@ -264,45 +257,50 @@ class Plugin {
 								value: "custom"
 							}
 						]}
-						onChange={({value}) => context.setState({iconType: value})}
+						onChange={({value}) => thisObject.setState({iconType: value})}
 					/>
 				</FormItem>
 			);
 			const button = qReact(returnValue, (e) => e.props.type === "submit");
 			BdApi.monkeyPatch(button.props, "onClick", {silent: true, after: () => {
-				if (context.state.iconType !== "default" && context.state.icon) {
+				if (thisObject.state.iconType !== "default" && thisObject.state.icon) {
 					BetterFolderStore.setFolder(id, {
-						icon: context.state.icon,
-						always: context.state.always
+						icon: thisObject.state.icon,
+						always: thisObject.state.always
 					});
 				}
-				else if (Object.keys(Folders).indexOf(id.toString()) > -1) {
+				else if (thisObject.state.iconType === "default" && BetterFolderStore.getFolder(id)) {
 					BetterFolderStore.deleteFolder(id)
 				}
 			}});
-			if (context.state.iconType !== "default") {
+			if (thisObject.state.iconType !== "default") {
 				children.push(
 					<FormItem title="Custom Icon" className={className}>
-						<BetterFolderUploader color={context.state.color} icon={context.state.icon} always={context.state.always} onChange={(data) => context.setState({icon: data.icon, always: data.always})}/>
+						<BetterFolderUploader
+							color={thisObject.state.color}
+							icon={thisObject.state.icon}
+							always={thisObject.state.always}
+							onChange={({icon, always}) => thisObject.setState({icon, always})}
+						/>
 					</FormItem>
 				);
 			}
 		}});
 
 		// patch client actions toggle guild folder expand function
-		this.createPatch(Module.ClientActions, "toggleGuildFolderExpand", {name: "ClientActions", after: (data) => {
+		this.createPatch(Module.ClientActions, "toggleGuildFolderExpand", {name: "ClientActions", after: ({methodArguments, originalMethod}) => {
 			if (this.settings.closeOnOpen) {
-				const target = data.methodArguments[0];
+				const target = methodArguments[0];
 				for (const id of Module.FolderStore.getExpandedFolders()) {
-					id !== target && data.originalMethod(id);
+					id !== target && originalMethod(id);
 				}
 			}
 		}});
-		
+
 		// force update
 		this.forceUpdate(Selector.folder.wrapper);
 	}
-	
+
 	stop() {
 
 		// force update
