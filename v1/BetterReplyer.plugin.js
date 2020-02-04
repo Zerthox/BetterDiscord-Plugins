@@ -1,7 +1,7 @@
 /**
  * @name BetterReplyer
  * @author Zerthox
- * @version 4.2.1
+ * @version 4.3.0
  * @description Reply to people using their ID with a button.\nInspired by Replyer by @Hammmock#3110, @Natsulus#0001 & @Zerebos#7790.
  * @source https://github.com/Zerthox/BetterDiscord-Plugins
  */
@@ -57,58 +57,51 @@ function qReact(node, query) {
 
 const Module = {
 	Constants: BdApi.findModuleByProps("Permissions"),
-	Permissions: BdApi.findModuleByProps("getChannelPermissions"),
+	Channels: BdApi.findModuleByProps("getChannel"),
 	Users: BdApi.findModuleByProps("getUser", "getCurrentUser"),
-	ComponentDispatch: BdApi.findModuleByProps("ComponentDispatch").ComponentDispatch
-};
-const Component = {
-	Message: BdApi.findModuleByProps("Message", "MessageAvatar").Message
+	Permissions: BdApi.findModuleByProps("getChannelPermissions"),
+	ComponentDispatch: BdApi.findModuleByProps("ComponentDispatch").ComponentDispatch,
+	MessageHeader: BdApi.findModule((m) => m && m.default && m.default.displayName === "MessageHeader")
 };
 const Selector = {
-	Messages: BdApi.findModuleByProps("container", "containerCozyBounded")
+	Message: BdApi.findModuleByProps("cozyMessage"),
+	MessageHeader: BdApi.findModuleByProps("headerCozy")
 };
-const Styles = `/*! BetterReplyer styles */
-/*! Powered by DiscordSelectors v0.1.4 */
+const Styles =
+	`/*! BetterReplyer v4.3.0 styles */
 .replyer {
   position: relative;
-  top: -1px;
   margin-left: 5px;
-  padding: 3px 5px;
+  padding: 2px 4px;
   background: rgba(0, 0, 0, 0.4);
   border-radius: 3px;
-  color: #fff !important;
+  color: #fff;
   font-size: 10px;
   text-transform: uppercase;
-  cursor: pointer;
-}
-
-.container-1YxwTf:not(:hover) .replyer {
   visibility: hidden;
+  cursor: pointer;
+}` +
+	`
+.${Selector.Message.message}:hover .replyer {
+	visibility: visible;
 }`;
 
 class Plugin {
 	start() {
 		this.injectCSS(Styles);
-		this.createPatch(Component.Message.prototype, "render", {
-			after: ({thisObject: {props}, returnValue}) => {
-				const {author} = props.message;
+		this.createPatch(Module.MessageHeader, "default", {
+			name: "MessageHeader",
+			after: ({methodArguments: [props], returnValue}) => {
+				const {author} = props.message,
+					channel = Module.Channels.getChannel(props.message.getChannelId());
 
 				if (
-					props.isDisabled ||
-					props.isCompact ||
-					!props.isHeader ||
-					author.id === Module.Users.getCurrentUser().id ||
-					(!props.channel.isPrivate() &&
-						!Module.Permissions.can(Module.Constants.Permissions.SEND_MESSAGES, props.channel))
+					!props.isCompact &&
+					author.id !== Module.Users.getCurrentUser().id &&
+					(channel.isPrivate() || Module.Permissions.can(Module.Constants.Permissions.SEND_MESSAGES, channel))
 				) {
-					return returnValue;
-				}
-
-				const meta = qReact(returnValue, (node) => node.props.className === Selector.Messages.headerCozyMeta);
-
-				if (meta) {
-					meta.props.children = [
-						meta.props.children,
+					returnValue.props.children = [
+						returnValue.props.children,
 						React.createElement(
 							"span",
 							{
@@ -130,12 +123,10 @@ class Plugin {
 				return returnValue;
 			}
 		});
-		this.forceUpdate(Selector.Messages.container);
+		Module.MessageHeader.default.displayName = "MessageHeader";
 	}
 
-	stop() {
-		this.forceUpdate(Selector.Messages.container);
-	}
+	stop() {}
 }
 
 module.exports = class Wrapper extends Plugin {
@@ -144,7 +135,7 @@ module.exports = class Wrapper extends Plugin {
 	}
 
 	getVersion() {
-		return "4.2.1";
+		return "4.3.0";
 	}
 
 	getAuthor() {
@@ -155,12 +146,30 @@ module.exports = class Wrapper extends Plugin {
 		return "Reply to people using their ID with a button.\nInspired by Replyer by @Hammmock#3110, @Natsulus#0001 & @Zerebos#7790.";
 	}
 
-	log(msg, log = console.log) {
-		log(
-			`%c[${this.getName()}] %c(v${this.getVersion()})%c ${msg}`,
+	log(...msgs) {
+		console.log(
+			`%c[${this.getName()}] %c(v${this.getVersion()})`,
 			"color: #3a71c1; font-weight: 700;",
 			"color: #666; font-size: .8em;",
-			""
+			...msgs
+		);
+	}
+
+	warn(...msgs) {
+		console.warn(
+			`%c[${this.getName()}] %c(v${this.getVersion()})`,
+			"color: #3a71c1; font-weight: 700;",
+			"color: #666; font-size: .8em;",
+			...msgs
+		);
+	}
+
+	error(...msgs) {
+		console.error(
+			`%c[${this.getName()}] %c(v${this.getVersion()})`,
+			"color: #3a71c1; font-weight: 700;",
+			"color: #666; font-size: .8em;",
+			...msgs
 		);
 	}
 
@@ -254,11 +263,10 @@ module.exports = class Wrapper extends Plugin {
 					fiber.stateNode.forceUpdate();
 				}
 			} catch (e) {
-				this.log(
+				this.warn(
 					`Failed to force update "${
 						el.id ? `#${el.id}` : el.className ? `.${el.className}` : el.tagName
-					}" state node`,
-					console.warn
+					}" state node`
 				);
 				console.error(e);
 			}

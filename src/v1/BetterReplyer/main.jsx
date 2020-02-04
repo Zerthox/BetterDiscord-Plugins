@@ -6,58 +6,50 @@
 /** Module storage */
 const Module = {
 	Constants: BdApi.findModuleByProps("Permissions"),
-	Permissions: BdApi.findModuleByProps("getChannelPermissions"),
+	Channels: BdApi.findModuleByProps("getChannel"),
 	Users: BdApi.findModuleByProps("getUser", "getCurrentUser"),
-	ComponentDispatch: BdApi.findModuleByProps("ComponentDispatch").ComponentDispatch
-};
-
-/** Component storage */
-const Component = {
-	Message: BdApi.findModuleByProps("Message", "MessageAvatar").Message,
+	Permissions: BdApi.findModuleByProps("getChannelPermissions"),
+	ComponentDispatch: BdApi.findModuleByProps("ComponentDispatch").ComponentDispatch,
+	MessageHeader: BdApi.findModule((m) => m && m.default && m.default.displayName === "MessageHeader"),
 };
 
 /** Selector storage */
 const Selector = {
-	Messages: BdApi.findModuleByProps("container", "containerCozyBounded")
+	Message: BdApi.findModuleByProps("cozyMessage"),
+	MessageHeader: BdApi.findModuleByProps("headerCozy")
 };
 
 /** Plugin styles */
-const Styles = _require("./styles.scss");
+const Styles = $include("./styles.scss") + `
+.${Selector.Message.message}:hover .replyer {
+	visibility: visible;
+}`;
 
 /** Plugin class */
 class Plugin {
-	
+
 	start() {
 
 		// inject styles
 		this.injectCSS(Styles);
-		
-		// patch "Message" component render function
-		this.createPatch(Component.Message.prototype, "render", {after: ({thisObject : {props}, returnValue}) => {
 
-			// get message author
-			const {author} = props.message;
+		// patch "MessageHeader" component
+		this.createPatch(Module.MessageHeader, "default", {name: "MessageHeader", after: ({methodArguments: [props], returnValue}) => {
 
-			// return unmodified if disabled, compact, no header, author is current user or no permissions to send messages
+			// get message author & channel
+			const {author} = props.message,
+				channel = Module.Channels.getChannel(props.message.getChannelId());
+
+			// ensure mode is cozy, author is not current user and user has permissions to send messages
 			if (
-				props.isDisabled
-				|| props.isCompact
-				|| !props.isHeader
-				|| author.id === Module.Users.getCurrentUser().id
-				|| !props.channel.isPrivate() && !Module.Permissions.can(Module.Constants.Permissions.SEND_MESSAGES, props.channel)
+				!props.isCompact
+				&& author.id !== Module.Users.getCurrentUser().id
+				&& (channel.isPrivate() || Module.Permissions.can(Module.Constants.Permissions.SEND_MESSAGES, channel))
 			) {
-				return returnValue;
-			}
-			
-			// find message header meta
-			const meta = qReact(returnValue, (node) => node.props.className === Selector.Messages.headerCozyMeta);
-			
-			// check if message header meta found
-			if (meta) {
 
 				// add reply button to children
-				meta.props.children = [
-					meta.props.children,
+				returnValue.props.children = [
+					returnValue.props.children,
 					React.createElement("span", {
 						className: "replyer",
 						onClick: () => {
@@ -68,19 +60,15 @@ class Plugin {
 					}, "Reply")
 				].flat();
 			}
-	
-			// return modified return value
+
+			// return return value
 			return returnValue;
 		}});
-		
-		// force update
-		this.forceUpdate(Selector.Messages.container);
-	}
-	
-	stop() {
 
-		// force update
-		this.forceUpdate(Selector.Messages.container);
+		// fix the display name ("patched default" sucks)
+		Module.MessageHeader.default.displayName = "MessageHeader";
 	}
+
+	stop() {}
 
 }
