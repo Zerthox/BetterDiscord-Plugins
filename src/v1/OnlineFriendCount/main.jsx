@@ -22,7 +22,7 @@ const Selector = {
 };
 
 /** Plugin styles */
-const Styles = _require("./styles.scss");
+const Styles = $include("./styles.scss");
 
 // OnlineCount component
 class OnlineCount extends React.Component {
@@ -47,16 +47,16 @@ class Plugin {
 
 		// inject styles
 		this.injectCSS(Styles);
-		
+
 		// patch guilds render function
 		this.createPatch(Component.Guilds.prototype, "render", {after: (data) => {
-			
+
 			// get return value
 			const result = data.returnValue;
-			
+
 			// find scroller
 			const scroller = qReact(result, (e) => e.type.displayName === "VerticalScroller");
-			
+
 			// check if online friends count is not inserted yet
 			if (!qReact(scroller, (e) => e.props.className === Selector.friendsOnline)) {
 
@@ -69,15 +69,15 @@ class Plugin {
 				// insert online friends count before dms
 				children.splice(index > - 1 ? index : 1, 0, <OnlineCountContainer/>);
 			}
-			
+
 			// return modified return value
 			return result;
 		}});
-		
+
 		// force update
 		this.forceUpdate(Selector.guildsWrapper.wrapper);
 	}
-	
+
 	stop() {
 
 		// force update

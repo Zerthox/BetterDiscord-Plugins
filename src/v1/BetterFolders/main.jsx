@@ -34,7 +34,7 @@ const Selector = {
 };
 
 /** Plugin styles */
-const Styles = _require("./styles.scss");
+const Styles = $include("./styles.scss");
 
 /** Store for Folders */
 const BetterFolderStore = (() => {
