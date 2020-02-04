@@ -1,9 +1,0 @@
-{
-	"info": {
-		"name": "BetterReplyer",
-		"authors": ["Zerthox"],
-		"version": "0.3.1",
-		"description": "Reply to people using their ID with a button.\nInspired by Replyer by Hammmock#3110, @Natsulus#0001 and @Zerebos#7790."
-	},
-	"main": "main.js"
-}
