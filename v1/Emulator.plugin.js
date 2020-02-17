@@ -1,7 +1,7 @@
 /**
  * @name Emulator
  * @author Zerthox
- * @version 1.0.0
+ * @version 1.1.0
  * @description Emulate Windows, MacOS, Linux or Browser on any platform.\nWARNING: Emulating a different platform may cause unwanted side effects. Use at own risk.
  * @source https://github.com/Zerthox/BetterDiscord-Plugins
  */
@@ -56,8 +56,12 @@ function qReact(node, query) {
 }
 
 const Module = {
+	LayerStore: BdApi.findModuleByProps("getLayers"),
+	LayerManager: BdApi.findModuleByProps("pushLayer", "popLayer"),
 	Platform: BdApi.findModuleByProps("getPlatform", "isWindows", "isOSX", "isLinux", "isWeb", "PlatformTypes"),
-	Overlay: BdApi.findModuleByProps("initialize", "isSupported", "getFocusedPID")
+	Overlay: BdApi.findModuleByProps("initialize", "isSupported", "getFocusedPID"),
+	AppearanceStore: BdApi.findModuleByProps("keyboardModeEnabled"),
+	AppearanceManager: BdApi.findModuleByProps("enableKeyboardMode")
 };
 const Component = {
 	RadioGroup: BdApi.findModuleByDisplayName("RadioGroup")
@@ -157,21 +161,25 @@ class Plugin {
 		try {
 			let fiber = document.querySelector("#app-mount")._reactRootContainer._internalRoot.current;
 
-			while (!(fiber.type && fiber.type.displayName === "FluxContainer(App)")) {
+			while (!(fiber.type && fiber.type.displayName === "App")) {
 				fiber = fiber.child;
 			}
 
 			fiber.stateNode.forceUpdate();
 
-			if (
-				BdApi.findModuleByProps("getLayers")
-					.getLayers()
-					.indexOf("USER_SETTINGS") > -1
-			) {
-				BdApi.findModuleByProps("pushLayer", "popLayer").popLayer();
+			if (Module.AppearanceStore.keyboardModeEnabled) {
+				Module.AppearanceManager.disableKeyboardMode();
+				Module.AppearanceManager.enableKeyboardMode();
+			} else {
+				Module.AppearanceManager.enableKeyboardMode();
+				Module.AppearanceManager.disableKeyboardMode();
+			}
+
+			if (Module.LayerStore.getLayers().includes("USER_SETTINGS")) {
+				Module.LayerManager.popLayer();
 			}
 		} catch (e) {
-			this.log("Failed to force update", console.warn);
+			this.warn("Failed to force update app");
 			console.error(e);
 		}
 	}
@@ -183,7 +191,7 @@ module.exports = class Wrapper extends Plugin {
 	}
 
 	getVersion() {
-		return "1.0.0";
+		return "1.1.0";
 	}
 
 	getAuthor() {
@@ -194,12 +202,30 @@ module.exports = class Wrapper extends Plugin {
 		return "Emulate Windows, MacOS, Linux or Browser on any platform.\nWARNING: Emulating a different platform may cause unwanted side effects. Use at own risk.";
 	}
 
-	log(msg, log = console.log) {
-		log(
-			`%c[${this.getName()}] %c(v${this.getVersion()})%c ${msg}`,
+	log(...msgs) {
+		console.log(
+			`%c[${this.getName()}] %c(v${this.getVersion()})`,
 			"color: #3a71c1; font-weight: 700;",
 			"color: #666; font-size: .8em;",
-			""
+			...msgs
+		);
+	}
+
+	warn(...msgs) {
+		console.warn(
+			`%c[${this.getName()}] %c(v${this.getVersion()})`,
+			"color: #3a71c1; font-weight: 700;",
+			"color: #666; font-size: .8em;",
+			...msgs
+		);
+	}
+
+	error(...msgs) {
+		console.error(
+			`%c[${this.getName()}] %c(v${this.getVersion()})`,
+			"color: #3a71c1; font-weight: 700;",
+			"color: #666; font-size: .8em;",
+			...msgs
 		);
 	}
 
@@ -277,9 +303,7 @@ module.exports = class Wrapper extends Plugin {
 	}
 
 	async forceUpdate(...classes) {
-		this.forceUpdateElements(
-			...classes.map((e) => document.getElementsByClassName(e)).reduce((p, e) => p.append(e))
-		);
+		this.forceUpdateElements(...classes.map((e) => Array.from(document.getElementsByClassName(e))).flat());
 	}
 
 	async forceUpdateElements(...elements) {
@@ -295,11 +319,10 @@ module.exports = class Wrapper extends Plugin {
 					fiber.stateNode.forceUpdate();
 				}
 			} catch (e) {
-				this.log(
+				this.warn(
 					`Failed to force update "${
 						el.id ? `#${el.id}` : el.className ? `.${el.className}` : el.tagName
-					}" state node`,
-					console.warn
+					}" state node`
 				);
 				console.error(e);
 			}

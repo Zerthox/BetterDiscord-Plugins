@@ -16,7 +16,7 @@ Add the old online friend count back to guild list. Because nostalgia.
 ### [VoiceEvents](/v1/VoiceEvents.plugin.js) <sub><sup>`v1.1.1` *(Updated: 29/11/19)*</sup></sub>
 Adds TTS Event Notifications to your selected Voice Channel. Teamspeak feeling.
 
-### [Emulator](/v1/Emulator.plugin.js) <sub><sup>`1.0.0` *(Updated: 10/09/19)*</sup></sub>
+### [Emulator](/v1/Emulator.plugin.js) <sub><sup>`1.1.0` *(Updated: 17/02/20)*</sup></sub>
 Emulate Windows, MacOS, Linux or Browser on any platform.
 **WARNING:** Emulating a different platform may cause unwanted side effects. Use at own risk.
 

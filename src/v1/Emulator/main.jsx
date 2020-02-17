@@ -5,8 +5,12 @@
 
 /** Module storage */
 const Module = {
+	LayerStore: BdApi.findModuleByProps("getLayers"),
+	LayerManager: BdApi.findModuleByProps("pushLayer", "popLayer"),
 	Platform: BdApi.findModuleByProps("getPlatform", "isWindows", "isOSX", "isLinux", "isWeb", "PlatformTypes"),
-	Overlay: BdApi.findModuleByProps("initialize", "isSupported", "getFocusedPID")
+	Overlay: BdApi.findModuleByProps("initialize", "isSupported", "getFocusedPID"),
+	AppearanceStore: BdApi.findModuleByProps("keyboardModeEnabled"),
+	AppearanceManager: BdApi.findModuleByProps("enableKeyboardMode")
 };
 
 /** Component storage */
@@ -71,14 +75,14 @@ class Plugin {
 		for (const platform of ["Windows", "OSX", "Linux", "Web"]) {
 			this.createPatch(Module.Platform, `is${platform}`, {name: "Platform", instead: () => this.settings.platform === Module.Platform.PlatformTypes[platform.toUpperCase()]});
 		}
-		
+
 		// patch settings render function
 		this.createPatch(Module.Overlay, "isSupported", {name: "Overlay", instead: () => Module.Platform.isWindows()});
-		
+
 		// force update
 		this.update();
 	}
-	
+
 	stop() {
 
 		// force update root
@@ -97,22 +101,32 @@ class Plugin {
 			let fiber = document.querySelector("#app-mount")._reactRootContainer._internalRoot.current;
 
 			// walk down until app component found
-			while (!(fiber.type && fiber.type.displayName === "FluxContainer(App)")) {
+			while (!(fiber.type && fiber.type.displayName === "App")) {
 				fiber = fiber.child;
 			}
 
 			// force update app
 			fiber.stateNode.forceUpdate();
 
+			// trigger helmet rerender by flipping keyboard mode
+			if (Module.AppearanceStore.keyboardModeEnabled) {
+				Module.AppearanceManager.disableKeyboardMode();
+				Module.AppearanceManager.enableKeyboardMode();
+			}
+			else {
+				Module.AppearanceManager.enableKeyboardMode();
+				Module.AppearanceManager.disableKeyboardMode();
+			}
+
 			// pop settings layer
-			if (BdApi.findModuleByProps("getLayers").getLayers().indexOf("USER_SETTINGS") > -1) {
-				BdApi.findModuleByProps("pushLayer", "popLayer").popLayer();
+			if (Module.LayerStore.getLayers().includes("USER_SETTINGS")) {
+				Module.LayerManager.popLayer();
 			}
 		}
 		catch(e) {
 
 			// log error
-			this.log("Failed to force update", console.warn);
+			this.warn("Failed to force update app");
 			console.error(e);
 		}
 	}
