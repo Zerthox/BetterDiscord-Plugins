@@ -1,7 +1,7 @@
 /**
  * @name BetterReplyer
  * @author Zerthox
- * @version 4.3.0
+ * @version 4.3.1
  * @description Reply to people using their ID with a button.\nInspired by Replyer by @Hammmock#3110, @Natsulus#0001 & @Zerebos#7790.
  * @source https://github.com/Zerthox/BetterDiscord-Plugins
  */
@@ -68,7 +68,7 @@ const Selector = {
 	MessageHeader: BdApi.findModuleByProps("headerCozy")
 };
 const Styles =
-	`/*! BetterReplyer v4.3.0 styles */
+	`/*! BetterReplyer v4.3.1 styles */
 .replyer {
   position: relative;
   margin-left: 5px;
@@ -82,7 +82,7 @@ const Styles =
   cursor: pointer;
 }` +
 	`
-.${Selector.Message.message}:hover .replyer {
+.${Selector.Message.message.replace(/\s/g, ".")}:hover .replyer {
 	visibility: visible;
 }`;
 
@@ -135,7 +135,7 @@ module.exports = class Wrapper extends Plugin {
 	}
 
 	getVersion() {
-		return "4.3.0";
+		return "4.3.1";
 	}
 
 	getAuthor() {

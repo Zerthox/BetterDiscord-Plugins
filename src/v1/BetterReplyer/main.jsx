@@ -21,7 +21,7 @@ const Selector = {
 
 /** Plugin styles */
 const Styles = $include("./styles.scss") + `
-.${Selector.Message.message}:hover .replyer {
+.${Selector.Message.message.replace(/\s/g, ".")}:hover .replyer {
 	visibility: visible;
 }`;
 
