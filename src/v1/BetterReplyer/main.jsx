@@ -10,13 +10,17 @@ const Module = {
 	Users: BdApi.findModuleByProps("getUser", "getCurrentUser"),
 	Permissions: BdApi.findModuleByProps("getChannelPermissions"),
 	ComponentDispatch: BdApi.findModuleByProps("ComponentDispatch").ComponentDispatch,
-	MessageHeader: BdApi.findModule((m) => m && m.default && m.default.displayName === "MessageHeader"),
+};
+
+/** Component storage */
+const Component = {
+	MessageHeader: BdApi.findModuleByProps("MessageTimestamp")
 };
 
 /** Selector storage */
 const Selector = {
 	Message: BdApi.findModuleByProps("cozyMessage"),
-	MessageHeader: BdApi.findModuleByProps("headerCozy")
+	MessageContent: BdApi.findModuleByProps("isSending")
 };
 
 /** Plugin styles */
@@ -33,8 +37,8 @@ class Plugin {
 		// inject styles
 		this.injectCSS(Styles);
 
-		// patch "MessageHeader" component
-		this.createPatch(Module.MessageHeader, "default", {name: "MessageHeader", after: ({methodArguments: [props], returnValue}) => {
+		// patch message header component
+		this.createPatch(Component.MessageHeader, "default", {name: "MessageHeader", after({methodArguments: [props], returnValue}) {
 
 			// get message author & channel
 			const {author} = props.message,
@@ -47,26 +51,30 @@ class Plugin {
 				&& (channel.isPrivate() || Module.Permissions.can(Module.Constants.Permissions.SEND_MESSAGES, channel))
 			) {
 
-				// add reply button to children
-				returnValue.props.children = [
-					returnValue.props.children,
-					React.createElement("span", {
-						className: "replyer",
-						onClick: () => {
-							Module.ComponentDispatch.dispatchToLastSubscribed(Module.Constants.ComponentActions.INSERT_TEXT, {
-								content: `<@!${author.id}>`
-							});
-						}
-					}, "Reply")
-				].flat();
+				// find header & append reply button
+				const h2 = qReact(returnValue, (e) => e.props.className === Selector.MessageContent.header);
+				if (h2) {
+					h2.props.children = [
+						h2.props.children,
+						React.createElement("span", {
+							className: "replyer",
+							onClick() {
+								Module.ComponentDispatch.dispatchToLastSubscribed(Module.Constants.ComponentActions.INSERT_TEXT, {
+									content: `<@!${author.id}>`
+								});
+							}
+						}, "Reply")
+					].flat();
+				}
 			}
 
 			// return return value
 			return returnValue;
 		}});
 
-		// fix the display name ("patched default" sucks)
-		Module.MessageHeader.default.displayName = "MessageHeader";
+		// remove artificial display name
+		delete Component.MessageHeader.default.displayName;
+
 	}
 
 	stop() {}
