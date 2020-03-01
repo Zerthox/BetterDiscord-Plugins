@@ -1,7 +1,7 @@
 /**
  * @name BetterReplyer
  * @author Zerthox
- * @version 4.3.1
+ * @version 4.3.2
  * @description Reply to people using their ID with a button.\nInspired by Replyer by @Hammmock#3110, @Natsulus#0001 & @Zerebos#7790.
  * @source https://github.com/Zerthox/BetterDiscord-Plugins
  */
@@ -60,15 +60,17 @@ const Module = {
 	Channels: BdApi.findModuleByProps("getChannel"),
 	Users: BdApi.findModuleByProps("getUser", "getCurrentUser"),
 	Permissions: BdApi.findModuleByProps("getChannelPermissions"),
-	ComponentDispatch: BdApi.findModuleByProps("ComponentDispatch").ComponentDispatch,
-	MessageHeader: BdApi.findModule((m) => m && m.default && m.default.displayName === "MessageHeader")
+	ComponentDispatch: BdApi.findModuleByProps("ComponentDispatch").ComponentDispatch
+};
+const Component = {
+	MessageHeader: BdApi.findModuleByProps("MessageTimestamp")
 };
 const Selector = {
 	Message: BdApi.findModuleByProps("cozyMessage"),
-	MessageHeader: BdApi.findModuleByProps("headerCozy")
+	MessageContent: BdApi.findModuleByProps("isSending")
 };
 const Styles =
-	`/*! BetterReplyer v4.3.1 styles */
+	`/*! BetterReplyer v4.3.2 styles */
 .replyer {
   position: relative;
   margin-left: 5px;
@@ -89,9 +91,10 @@ const Styles =
 class Plugin {
 	start() {
 		this.injectCSS(Styles);
-		this.createPatch(Module.MessageHeader, "default", {
+		this.createPatch(Component.MessageHeader, "default", {
 			name: "MessageHeader",
-			after: ({methodArguments: [props], returnValue}) => {
+
+			after({methodArguments: [props], returnValue}) {
 				const {author} = props.message,
 					channel = Module.Channels.getChannel(props.message.getChannelId());
 
@@ -100,30 +103,35 @@ class Plugin {
 					author.id !== Module.Users.getCurrentUser().id &&
 					(channel.isPrivate() || Module.Permissions.can(Module.Constants.Permissions.SEND_MESSAGES, channel))
 				) {
-					returnValue.props.children = [
-						returnValue.props.children,
-						React.createElement(
-							"span",
-							{
-								className: "replyer",
-								onClick: () => {
-									Module.ComponentDispatch.dispatchToLastSubscribed(
-										Module.Constants.ComponentActions.INSERT_TEXT,
-										{
-											content: `<@!${author.id}>`
-										}
-									);
-								}
-							},
-							"Reply"
-						)
-					].flat();
+					const h2 = qReact(returnValue, (e) => e.props.className === Selector.MessageContent.header);
+
+					if (h2) {
+						h2.props.children = [
+							h2.props.children,
+							React.createElement(
+								"span",
+								{
+									className: "replyer",
+
+									onClick() {
+										Module.ComponentDispatch.dispatchToLastSubscribed(
+											Module.Constants.ComponentActions.INSERT_TEXT,
+											{
+												content: `<@!${author.id}>`
+											}
+										);
+									}
+								},
+								"Reply"
+							)
+						].flat();
+					}
 				}
 
 				return returnValue;
 			}
 		});
-		Module.MessageHeader.default.displayName = "MessageHeader";
+		delete Component.MessageHeader.default.displayName;
 	}
 
 	stop() {}
@@ -135,7 +143,7 @@ module.exports = class Wrapper extends Plugin {
 	}
 
 	getVersion() {
-		return "4.3.1";
+		return "4.3.2";
 	}
 
 	getAuthor() {
