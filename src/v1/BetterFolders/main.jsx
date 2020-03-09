@@ -15,7 +15,6 @@ const Component = {
 	Flex: BdApi.findModuleByDisplayName("Flex"),
 	GuildFolder: BdApi.findModuleByDisplayName("GuildFolder"),
 	GuildFolderSettingsModal: BdApi.findModuleByDisplayName("GuildFolderSettingsModal"),
-	Icon: BdApi.findModuleByDisplayName("Icon"),
 	Form: BdApi.findModuleByProps("FormSection", "FormText"),
 	TextInput: BdApi.findModuleByDisplayName("TextInput"),
 	RadioGroup: BdApi.findModuleByDisplayName("RadioGroup"),
@@ -41,21 +40,6 @@ const BetterFolderStore = (() => {
 
 	// read folders data
 	const Folders = BdApi.loadData("BetterFolders", "folders") || {};
-
-	// backwards compatibility - TODO: remove in a future version
-	let changed = false;
-	for (const [id, value] of Object.entries(Folders)) {
-		if (typeof value === "string") {
-			Folders[id] = {
-				icon: value,
-				always: false
-			};
-			changed = true;
-		}
-	}
-	if (changed) {
-		BdApi.saveData("BetterFolders", "folders", Folders);
-	}
 
 	// create dispatcher
 	const FoldersDispatcher = new Module.Dispatcher();
@@ -89,24 +73,16 @@ const BetterFolderStore = (() => {
 
 	// return new custom store instance
 	return new BetterFolderStore(FoldersDispatcher, {
-		update: () => {},
-		delete: () => {}
+		update() {},
+		delete() {}
 	});
 })();
 
 /** BetterFolderIcon component */
 function BetterFolderIcon({expanded, icon, always, childProps}) {
 	const result = Component.FolderIcon.call(this, childProps);
-	if (icon) {
-		if (expanded) {
-			const Icon = qReact(result, (e) => e.props.children.type.displayName === "Icon");
-			if (Icon) {
-				Icon.props.children = <div className="betterFolders-customIcon" style={{backgroundImage: `url(${icon}`}}/>;
-			}
-		}
-		else if (always) {
-			result.props.children = <div className="betterFolders-customIcon" style={{backgroundImage: `url(${icon}`}}/>;
-		}
+	if (icon && (always || expanded)) {
+		result.props.children = <div className="betterFolders-customIcon" style={{backgroundImage: `url(${icon}`}}/>;
 	}
 	return result;
 }
@@ -213,7 +189,7 @@ class Plugin {
 
 		// patch guild folder settings modal render function
 		this.createPatch(Component.GuildFolderSettingsModal.prototype, "render", {after: ({thisObject, returnValue}) => {
-			const {Flex, Icon, RadioGroup, Form: {FormItem}} = Component,
+			const {RadioGroup, Form: {FormItem}} = Component,
 				id = thisObject.props.folderId;
 			if (!thisObject.state.iconType) {
 				const folder = BetterFolderStore.getFolder(id);
@@ -239,21 +215,11 @@ class Plugin {
 					<RadioGroup value={thisObject.state.iconType}
 						options={[
 							{
-								name: (
-									<Flex align={Selector.flex.alignCenter}>
-										<Icon className={Selector.modal.icon} name="Folder"/>
-										Default Icon
-									</Flex>
-								),
+								name: "Default Icon",
 								value: "default"
 							},
 							{
-								name: (
-									<Flex align={Selector.flex.alignCenter}>
-										<Icon className={Selector.modal.icon} name="Nova_Help"/>
-										Custom Icon
-									</Flex>
-								),
+								name: "Custom Icon",
 								value: "custom"
 							}
 						]}

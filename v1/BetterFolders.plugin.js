@@ -1,7 +1,7 @@
 /**
  * @name BetterFolders
  * @author Zerthox
- * @version 2.0.4
+ * @version 2.1.0
  * @description Add new functionality to server folders.
  * @source https://github.com/Zerthox/BetterDiscord-Plugins
  */
@@ -64,7 +64,6 @@ const Component = {
 	Flex: BdApi.findModuleByDisplayName("Flex"),
 	GuildFolder: BdApi.findModuleByDisplayName("GuildFolder"),
 	GuildFolderSettingsModal: BdApi.findModuleByDisplayName("GuildFolderSettingsModal"),
-	Icon: BdApi.findModuleByDisplayName("Icon"),
 	Form: BdApi.findModuleByProps("FormSection", "FormText"),
 	TextInput: BdApi.findModuleByDisplayName("TextInput"),
 	RadioGroup: BdApi.findModuleByDisplayName("RadioGroup"),
@@ -79,8 +78,7 @@ const Selector = {
 	button: BdApi.findModuleByProps("colorWhite"),
 	margins: BdApi.findModuleByProps("marginLarge")
 };
-const Styles = `/*! BetterFolders styles */
-/*! Powered by DiscordSelectors v0.1.4 */
+const Styles = `/*! BetterFolders v2.1.0 styles */
 .betterFolders-customIcon {
   width: 100%;
   height: 100%;
@@ -100,22 +98,6 @@ const Styles = `/*! BetterFolders styles */
 
 const BetterFolderStore = (() => {
 	const Folders = BdApi.loadData("BetterFolders", "folders") || {};
-	let changed = false;
-
-	for (const [id, value] of Object.entries(Folders)) {
-		if (typeof value === "string") {
-			Folders[id] = {
-				icon: value,
-				always: false
-			};
-			changed = true;
-		}
-	}
-
-	if (changed) {
-		BdApi.saveData("BetterFolders", "folders", Folders);
-	}
-
 	const FoldersDispatcher = new Module.Dispatcher();
 
 	class BetterFolderStore extends Flux.Store {
@@ -148,34 +130,22 @@ const BetterFolderStore = (() => {
 	}
 
 	return new BetterFolderStore(FoldersDispatcher, {
-		update: () => {},
-		delete: () => {}
+		update() {},
+
+		delete() {}
 	});
 })();
 
 function BetterFolderIcon({expanded, icon, always, childProps}) {
 	const result = Component.FolderIcon.call(this, childProps);
 
-	if (icon) {
-		if (expanded) {
-			const Icon = qReact(result, (e) => e.props.children.type.displayName === "Icon");
-
-			if (Icon) {
-				Icon.props.children = React.createElement("div", {
-					className: "betterFolders-customIcon",
-					style: {
-						backgroundImage: `url(${icon}`
-					}
-				});
+	if (icon && (always || expanded)) {
+		result.props.children = React.createElement("div", {
+			className: "betterFolders-customIcon",
+			style: {
+				backgroundImage: `url(${icon}`
 			}
-		} else if (always) {
-			result.props.children = React.createElement("div", {
-				className: "betterFolders-customIcon",
-				style: {
-					backgroundImage: `url(${icon}`
-				}
-			});
-		}
+		});
 	}
 
 	return result;
@@ -328,8 +298,6 @@ class Plugin {
 		this.createPatch(Component.GuildFolderSettingsModal.prototype, "render", {
 			after: ({thisObject, returnValue}) => {
 				const {
-						Flex,
-						Icon,
 						RadioGroup,
 						Form: {FormItem}
 					} = Component,
@@ -366,31 +334,11 @@ class Plugin {
 							value: thisObject.state.iconType,
 							options: [
 								{
-									name: React.createElement(
-										Flex,
-										{
-											align: Selector.flex.alignCenter
-										},
-										React.createElement(Icon, {
-											className: Selector.modal.icon,
-											name: "Folder"
-										}),
-										"Default Icon"
-									),
+									name: "Default Icon",
 									value: "default"
 								},
 								{
-									name: React.createElement(
-										Flex,
-										{
-											align: Selector.flex.alignCenter
-										},
-										React.createElement(Icon, {
-											className: Selector.modal.icon,
-											name: "Nova_Help"
-										}),
-										"Custom Icon"
-									),
+									name: "Custom Icon",
 									value: "custom"
 								}
 							],
@@ -465,7 +413,7 @@ module.exports = class Wrapper extends Plugin {
 	}
 
 	getVersion() {
-		return "2.0.4";
+		return "2.1.0";
 	}
 
 	getAuthor() {
@@ -476,12 +424,30 @@ module.exports = class Wrapper extends Plugin {
 		return "Add new functionality to server folders.";
 	}
 
-	log(msg, log = console.log) {
-		log(
-			`%c[${this.getName()}] %c(v${this.getVersion()})%c ${msg}`,
+	log(...msgs) {
+		console.log(
+			`%c[${this.getName()}] %c(v${this.getVersion()})`,
 			"color: #3a71c1; font-weight: 700;",
 			"color: #666; font-size: .8em;",
-			""
+			...msgs
+		);
+	}
+
+	warn(...msgs) {
+		console.warn(
+			`%c[${this.getName()}] %c(v${this.getVersion()})`,
+			"color: #3a71c1; font-weight: 700;",
+			"color: #666; font-size: .8em;",
+			...msgs
+		);
+	}
+
+	error(...msgs) {
+		console.error(
+			`%c[${this.getName()}] %c(v${this.getVersion()})`,
+			"color: #3a71c1; font-weight: 700;",
+			"color: #666; font-size: .8em;",
+			...msgs
 		);
 	}
 
@@ -575,11 +541,10 @@ module.exports = class Wrapper extends Plugin {
 					fiber.stateNode.forceUpdate();
 				}
 			} catch (e) {
-				this.log(
+				this.warn(
 					`Failed to force update "${
 						el.id ? `#${el.id}` : el.className ? `.${el.className}` : el.tagName
-					}" state node`,
-					console.warn
+					}" state node`
 				);
 				console.error(e);
 			}
