@@ -1,7 +1,7 @@
 /**
  * @name BetterFolders
  * @author Zerthox
- * @version 2.1.0
+ * @version 2.2.1
  * @description Add new functionality to server folders.
  * @source https://github.com/Zerthox/BetterDiscord-Plugins
  */
@@ -62,7 +62,7 @@ const Module = {
 };
 const Component = {
 	Flex: BdApi.findModuleByDisplayName("Flex"),
-	GuildFolder: BdApi.findModuleByDisplayName("GuildFolder"),
+	GuildFolder: BdApi.findModule((m) => m && m.type && m.type.toString().includes("defaultFolderName")),
 	GuildFolderSettingsModal: BdApi.findModuleByDisplayName("GuildFolderSettingsModal"),
 	Form: BdApi.findModuleByProps("FormSection", "FormText"),
 	TextInput: BdApi.findModuleByDisplayName("TextInput"),
@@ -73,12 +73,13 @@ const Component = {
 };
 const Selector = {
 	flex: BdApi.findModuleByProps("flex"),
-	folder: BdApi.findModuleByProps("folder", "expandedGuilds", "wrapper"),
+	folder: BdApi.findModuleByProps("folder", "expandedFolderBackground", "wrapper"),
 	modal: BdApi.findModuleByProps("permissionsTitle"),
 	button: BdApi.findModuleByProps("colorWhite"),
-	margins: BdApi.findModuleByProps("marginLarge")
+	margins: BdApi.findModuleByProps("marginLarge"),
+	guilds: BdApi.findModuleByProps("guilds", "base")
 };
-const Styles = `/*! BetterFolders v2.1.0 styles */
+const Styles = `/*! BetterFolders v2.2.1 styles */
 .betterFolders-customIcon {
   width: 100%;
   height: 100%;
@@ -276,9 +277,11 @@ class Plugin {
 
 	start() {
 		this.injectCSS(Styles);
-		this.createPatch(Component.GuildFolder.prototype, "render", {
-			after: ({thisObject, returnValue}) => {
-				const id = thisObject.props.folderId;
+		this.createPatch(Component.GuildFolder, "type", {
+			name: "GuildFolder",
+			type: "component",
+			after: ({methodArguments: [props], returnValue}) => {
+				const id = props.folderId;
 				const icon = qReact(returnValue, (e) => e.props.children.type.displayName === "FolderIcon");
 
 				if (icon) {
@@ -294,7 +297,6 @@ class Plugin {
 				}
 			}
 		});
-		this.forceUpdate(`.${Selector.folder.wrapper}`);
 		this.createPatch(Component.GuildFolderSettingsModal.prototype, "render", {
 			after: ({thisObject, returnValue}) => {
 				const {
@@ -399,11 +401,43 @@ class Plugin {
 				}
 			}
 		});
-		this.forceUpdate(Selector.folder.wrapper);
+		this.triggerRerender();
 	}
 
 	stop() {
-		this.forceUpdate(Selector.folder.wrapper);
+		this.triggerRerender();
+	}
+
+	triggerRerender() {
+		let fiber = BdApi.getInternalInstance(document.getElementsByClassName(Selector.guilds.guilds)[0]);
+
+		if (!fiber) {
+			this.error("Unable to trigger rerender: Cannot find Guilds element fiber");
+			return;
+		}
+
+		while (!fiber.type || fiber.type.displayName !== "Guilds") {
+			if (!fiber.return) {
+				this.error("Unable to trigger rerender: Cannot find Guilds Component");
+				return;
+			}
+
+			fiber = fiber.return;
+		}
+
+		BdApi.monkeyPatch(fiber.type.prototype, "render", {
+			silent: true,
+			once: true,
+			after: ({returnValue}) => delete returnValue.props.children
+		});
+		fiber.stateNode.forceUpdate();
+		return new Promise((resolve) =>
+			setTimeout(() => {
+				fiber.stateNode.forceUpdate();
+				this.log("Successfully triggered rerender");
+				resolve();
+			}, 0)
+		);
 	}
 }
 
@@ -413,7 +447,7 @@ module.exports = class Wrapper extends Plugin {
 	}
 
 	getVersion() {
-		return "2.1.0";
+		return "2.2.1";
 	}
 
 	getAuthor() {

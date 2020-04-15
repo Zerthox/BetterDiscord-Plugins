@@ -292,8 +292,11 @@ class Plugin {
 			after: ({returnValue}) => delete returnValue.props.children
 		});
 		fiber.stateNode.forceUpdate();
-		fiber.stateNode.forceUpdate();
-		this.log("Successfully triggered rerender");
+		return new Promise((resolve) => setTimeout(() => {
+			fiber.stateNode.forceUpdate();
+			this.log("Successfully triggered rerender");
+			resolve();
+		}, 0));
 	}
 
 }
