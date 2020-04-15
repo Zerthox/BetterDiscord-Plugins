@@ -1,7 +1,7 @@
 /**
  * @name OnlineFriendCount
  * @author Zerthox
- * @version 1.2.3
+ * @version 1.3.0
  * @description Add the old online friend count back to guild list. Because nostalgia.
  * @source https://github.com/Zerthox/BetterDiscord-Plugins
  */
@@ -59,16 +59,14 @@ const Module = {
 	Status: BdApi.findModuleByProps("getStatus", "getOnlineFriendCount")
 };
 const Component = {
-	Guilds: BdApi.findModuleByDisplayName("Guilds"),
 	Link: BdApi.findModuleByProps("NavLink").Link
 };
 const Selector = {
-	guildsWrapper: BdApi.findModuleByProps("wrapper", "unreadMentionsBar"),
-	guilds: BdApi.findModuleByProps("listItem"),
+	guilds: BdApi.findModuleByProps("guilds", "base"),
+	list: BdApi.findModuleByProps("listItem"),
 	friendsOnline: "friendsOnline-2JkivW"
 };
-const Styles = `/*! OnlineFriendCount styles */
-/*! Powered by DiscordSelectors v0.1.4 */
+const Styles = `/*! OnlineFriendCount v1.3.0 styles */
 .friendsOnline-2JkivW {
   color: rgba(255, 255, 255, 0.3);
   text-align: center;
@@ -86,31 +84,29 @@ const Styles = `/*! OnlineFriendCount styles */
   color: rgba(255, 255, 255, 0.5);
 }`;
 
-class OnlineCount extends React.Component {
-	render() {
-		return React.createElement(
-			"div",
+function OnlineCount({online}) {
+	return React.createElement(
+		"div",
+		{
+			className: Selector.list.listItem
+		},
+		React.createElement(
+			Component.Link,
 			{
-				className: Selector.guilds.listItem
+				to: {
+					pathname: "/channels/@me"
+				}
 			},
 			React.createElement(
-				Component.Link,
+				"div",
 				{
-					to: {
-						pathname: "/channels/@me"
-					}
+					className: Selector.friendsOnline
 				},
-				React.createElement(
-					"div",
-					{
-						className: Selector.friendsOnline
-					},
-					this.props.online,
-					" Online"
-				)
+				online,
+				" Online"
 			)
-		);
-	}
+		)
+	);
 }
 
 const OnlineCountContainer = Flux.connectStores([Module.Status], () => ({
@@ -120,27 +116,45 @@ const OnlineCountContainer = Flux.connectStores([Module.Status], () => ({
 class Plugin {
 	start() {
 		this.injectCSS(Styles);
-		this.createPatch(Component.Guilds.prototype, "render", {
-			after: (data) => {
-				const result = data.returnValue;
-				const scroller = qReact(result, (e) => e.type.displayName === "VerticalScroller");
+		let fiber = BdApi.getInternalInstance(document.getElementsByClassName(Selector.guilds.guilds)[0]);
+
+		if (!fiber) {
+			this.error("Error patching Guilds: Cannot find Guilds element fiber");
+			return;
+		}
+
+		while (!fiber.type || fiber.type.displayName !== "Guilds") {
+			if (!fiber.return) {
+				this.error("Error patching Guilds: Cannot find Guilds Component");
+				return;
+			}
+
+			fiber = fiber.return;
+		}
+
+		this.createPatch(fiber.type.prototype, "render", {
+			after: ({returnValue}) => {
+				const scroller = qReact(returnValue, (e) => e.type.displayName === "VerticalScroller");
+
+				if (!scroller) {
+					this.error("Error during render: Cannot find VerticalScroller Component");
+					return;
+				}
 
 				if (!qReact(scroller, (e) => e.props.className === Selector.friendsOnline)) {
-					const children = scroller.props.children;
+					const {children} = scroller.props;
 					const index = children.indexOf(
 						qReact(scroller, (e) => e.type.displayName === "ConnectedUnreadDMs")
 					);
 					children.splice(index > -1 ? index : 1, 0, React.createElement(OnlineCountContainer, null));
 				}
-
-				return result;
 			}
 		});
-		this.forceUpdate(Selector.guildsWrapper.wrapper);
+		fiber.stateNode.forceUpdate();
 	}
 
 	stop() {
-		this.forceUpdate(Selector.guildsWrapper.wrapper);
+		this.forceUpdate(Selector.guilds.guilds);
 	}
 }
 
@@ -150,7 +164,7 @@ module.exports = class Wrapper extends Plugin {
 	}
 
 	getVersion() {
-		return "1.2.3";
+		return "1.3.0";
 	}
 
 	getAuthor() {
@@ -161,12 +175,30 @@ module.exports = class Wrapper extends Plugin {
 		return "Add the old online friend count back to guild list. Because nostalgia.";
 	}
 
-	log(msg, log = console.log) {
-		log(
-			`%c[${this.getName()}] %c(v${this.getVersion()})%c ${msg}`,
+	log(...msgs) {
+		console.log(
+			`%c[${this.getName()}] %c(v${this.getVersion()})`,
 			"color: #3a71c1; font-weight: 700;",
 			"color: #666; font-size: .8em;",
-			""
+			...msgs
+		);
+	}
+
+	warn(...msgs) {
+		console.warn(
+			`%c[${this.getName()}] %c(v${this.getVersion()})`,
+			"color: #3a71c1; font-weight: 700;",
+			"color: #666; font-size: .8em;",
+			...msgs
+		);
+	}
+
+	error(...msgs) {
+		console.error(
+			`%c[${this.getName()}] %c(v${this.getVersion()})`,
+			"color: #3a71c1; font-weight: 700;",
+			"color: #666; font-size: .8em;",
+			...msgs
 		);
 	}
 
@@ -244,9 +276,7 @@ module.exports = class Wrapper extends Plugin {
 	}
 
 	async forceUpdate(...classes) {
-		this.forceUpdateElements(
-			...classes.map((e) => document.getElementsByClassName(e)).reduce((p, e) => p.append(e))
-		);
+		this.forceUpdateElements(...classes.map((e) => Array.from(document.getElementsByClassName(e))).flat());
 	}
 
 	async forceUpdateElements(...elements) {
@@ -262,11 +292,10 @@ module.exports = class Wrapper extends Plugin {
 					fiber.stateNode.forceUpdate();
 				}
 			} catch (e) {
-				this.log(
+				this.warn(
 					`Failed to force update "${
 						el.id ? `#${el.id}` : el.className ? `.${el.className}` : el.tagName
-					}" state node`,
-					console.warn
+					}" state node`
 				);
 				console.error(e);
 			}
@@ -347,9 +376,13 @@ if (Plugin.prototype.getSettings) {
 				React.createElement(Settings, {
 					name: this.getName(),
 					settings: this.settings,
-					update: (state) => this.saveData("settings", Object.assign(this.settings, state)),
+					update: (state) => {
+						this.saveData("settings", Object.assign(this.settings, state));
+						this.update && this.update();
+					},
 					reset: () => {
 						this.saveData("settings", Object.assign(this.settings, this.defaults));
+						this.update && this.update();
 					}
 				}),
 				this._settingsRoot

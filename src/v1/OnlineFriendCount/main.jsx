@@ -10,14 +10,13 @@ const Module = {
 
 /** Component storage */
 const Component = {
-	Guilds: BdApi.findModuleByDisplayName("Guilds"),
 	Link: BdApi.findModuleByProps("NavLink").Link
 };
 
 /** Selector storage */
 const Selector = {
-	guildsWrapper: BdApi.findModuleByProps("wrapper", "unreadMentionsBar"),
-	guilds: BdApi.findModuleByProps("listItem"),
+	guilds: BdApi.findModuleByProps("guilds", "base"),
+	list: BdApi.findModuleByProps("listItem"),
 	friendsOnline: "friendsOnline-2JkivW"
 };
 
@@ -25,16 +24,14 @@ const Selector = {
 const Styles = $include("./styles.scss");
 
 // OnlineCount component
-class OnlineCount extends React.Component {
-	render() {
-		return (
-			<div className={Selector.guilds.listItem}>
-				<Component.Link to={{pathname: "/channels/@me"}}>
-					<div className={Selector.friendsOnline}>{this.props.online} Online</div>
-				</Component.Link>
-			</div>
-		);
-	}
+function OnlineCount({online}) {
+	return (
+		<div className={Selector.list.listItem}>
+			<Component.Link to={{pathname: "/channels/@me"}}>
+				<div className={Selector.friendsOnline}>{online} Online</div>
+			</Component.Link>
+		</div>
+	);
 }
 
 // Flux container for OnlineCount component
@@ -48,20 +45,36 @@ class Plugin {
 		// inject styles
 		this.injectCSS(Styles);
 
-		// patch guilds render function
-		this.createPatch(Component.Guilds.prototype, "render", {after: (data) => {
+		// TODO: add to template?
+		// grab guilds fiber
+		let fiber = BdApi.getInternalInstance(document.getElementsByClassName(Selector.guilds.guilds)[0]);
+		if (!fiber) {
+			this.error("Error patching Guilds: Cannot find Guilds element fiber");
+			return;
+		}
+		while (!fiber.type || fiber.type.displayName !== "Guilds") {
+			if (!fiber.return) {
+				this.error("Error patching Guilds: Cannot find Guilds Component");
+				return;
+			}
+			fiber = fiber.return;
+		}
 
-			// get return value
-			const result = data.returnValue;
+		// patch guilds render function
+		this.createPatch(fiber.type.prototype, "render", {after: ({returnValue}) => {
 
 			// find scroller
-			const scroller = qReact(result, (e) => e.type.displayName === "VerticalScroller");
+			const scroller = qReact(returnValue, (e) => e.type.displayName === "VerticalScroller");
+			if (!scroller) {
+				this.error("Error during render: Cannot find VerticalScroller Component");
+				return;
+			}
 
 			// check if online friends count is not inserted yet
 			if (!qReact(scroller, (e) => e.props.className === Selector.friendsOnline)) {
 
 				// grab scroller children
-				const children = scroller.props.children;
+				const {children} = scroller.props;
 
 				// find index of dms
 				const index = children.indexOf(qReact(scroller, (e) => e.type.displayName === "ConnectedUnreadDMs"));
@@ -69,19 +82,16 @@ class Plugin {
 				// insert online friends count before dms
 				children.splice(index > - 1 ? index : 1, 0, <OnlineCountContainer/>);
 			}
-
-			// return modified return value
-			return result;
 		}});
 
 		// force update
-		this.forceUpdate(Selector.guildsWrapper.wrapper);
+		fiber.stateNode.forceUpdate();
 	}
 
 	stop() {
 
 		// force update
-		this.forceUpdate(Selector.guildsWrapper.wrapper);
+		this.forceUpdate(Selector.guilds.guilds);
 	}
 
 }
