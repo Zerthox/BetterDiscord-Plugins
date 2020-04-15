@@ -13,7 +13,7 @@ const Module = {
 /** Component storage */
 const Component = {
 	Flex: BdApi.findModuleByDisplayName("Flex"),
-	GuildFolder: BdApi.findModuleByDisplayName("GuildFolder"),
+	GuildFolder: BdApi.findModule((m) => m && m.type && m.type.toString().includes("defaultFolderName")),
 	GuildFolderSettingsModal: BdApi.findModuleByDisplayName("GuildFolderSettingsModal"),
 	Form: BdApi.findModuleByProps("FormSection", "FormText"),
 	TextInput: BdApi.findModuleByDisplayName("TextInput"),
@@ -26,10 +26,11 @@ const Component = {
 /** Selector storage */
 const Selector = {
 	flex: BdApi.findModuleByProps("flex"),
-	folder: BdApi.findModuleByProps("folder", "expandedGuilds", "wrapper"),
+	folder: BdApi.findModuleByProps("folder", "expandedFolderBackground", "wrapper"),
 	modal: BdApi.findModuleByProps("permissionsTitle"),
 	button: BdApi.findModuleByProps("colorWhite"),
-	margins: BdApi.findModuleByProps("marginLarge")
+	margins: BdApi.findModuleByProps("marginLarge"),
+	guilds: BdApi.findModuleByProps("guilds", "base")
 };
 
 /** Plugin styles */
@@ -173,8 +174,8 @@ class Plugin {
 		this.injectCSS(Styles);
 
 		// patch guild folder render function
-		this.createPatch(Component.GuildFolder.prototype, "render", {after: ({thisObject, returnValue}) => {
-			const id = thisObject.props.folderId;
+		this.createPatch(Component.GuildFolder, "type", {name: "GuildFolder", type: "component", after: ({methodArguments: [props], returnValue}) => {
+			const id = props.folderId;
 			const icon = qReact(returnValue, (e) => e.props.children.type.displayName === "FolderIcon");
 			if (icon) {
 				if (!Component.FolderIcon) {
@@ -185,7 +186,6 @@ class Plugin {
 				icon.props.children = <BetterFolderIconContainer childProps={iconProps}/>;
 			}
 		}});
-		this.forceUpdate(`.${Selector.folder.wrapper}`);
 
 		// patch guild folder settings modal render function
 		this.createPatch(Component.GuildFolderSettingsModal.prototype, "render", {after: ({thisObject, returnValue}) => {
@@ -264,13 +264,36 @@ class Plugin {
 		}});
 
 		// force update
-		this.forceUpdate(Selector.folder.wrapper);
+		this.triggerRerender();
 	}
 
 	stop() {
 
 		// force update
-		this.forceUpdate(Selector.folder.wrapper);
+		this.triggerRerender();
+	}
+
+	triggerRerender() {
+		let fiber = BdApi.getInternalInstance(document.getElementsByClassName(Selector.guilds.guilds)[0]);
+		if (!fiber) {
+			this.error("Unable to trigger rerender: Cannot find Guilds element fiber");
+			return;
+		}
+		while (!fiber.type || fiber.type.displayName !== "Guilds") {
+			if (!fiber.return) {
+				this.error("Unable to trigger rerender: Cannot find Guilds Component");
+				return;
+			}
+			fiber = fiber.return;
+		}
+		BdApi.monkeyPatch(fiber.type.prototype, "render", {
+			silent: true,
+			once: true,
+			after: ({returnValue}) => delete returnValue.props.children
+		});
+		fiber.stateNode.forceUpdate();
+		fiber.stateNode.forceUpdate();
+		this.log("Successfully triggered rerender");
 	}
 
 }
