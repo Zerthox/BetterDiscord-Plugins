@@ -20,6 +20,9 @@ Adds TTS Event Notifications to your selected Voice Channel. Teamspeak feeling.
 Emulate Windows, MacOS, Linux or Browser on any platform.
 **WARNING:** Emulating a different platform may cause unwanted side effects. Use at own risk.
 
+### [VoiceCount](/v1/VoiceCount.plugin.js) <sub><sup>`v0.1.0` *(Updated: 18/04/20)*</sup></sub>
+Add a user count to all voice channels.
+
 ### [HypeSquadCheatsheet](/v1/HypeSquadCheatsheet.plugin.js) <sub><sup>`v0.1.0` *(Updated: 27/12/19)*</sup></sub>
 Displays the resulting HypeSquad house next to the questions in the HypeSquad questions modal.
 
