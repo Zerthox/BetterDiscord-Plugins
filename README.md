@@ -14,7 +14,7 @@ Current Features:
 Add the old online friend count back to guild list. Because nostalgia.
 
 ### [VoiceEvents](/v1/VoiceEvents.plugin.js) <sub><sup>`v1.1.2` *(Updated: 18/04/20)*</sup></sub>
-Adds TTS Event Notifications to your selected Voice Channel. Teamspeak feeling.
+Add TTS Event Notifications to your selected Voice Channel. Teamspeak feeling.
 
 ### [Emulator](/v1/Emulator.plugin.js) <sub><sup>`1.1.0` *(Updated: 17/02/20)*</sup></sub>
 Emulate Windows, MacOS, Linux or Browser on any platform.
@@ -24,7 +24,7 @@ Emulate Windows, MacOS, Linux or Browser on any platform.
 Add a user count to all voice channels.
 
 ### [HypeSquadCheatsheet](/v1/HypeSquadCheatsheet.plugin.js) <sub><sup>`v0.1.0` *(Updated: 27/12/19)*</sup></sub>
-Displays the resulting HypeSquad house next to the questions in the HypeSquad questions modal.
+Display the resulting HypeSquad house next to the questions in the HypeSquad questions modal.
 
 <br>
 

@@ -2,7 +2,7 @@
  * @name VoiceEvents
  * @author Zerthox
  * @version 1.1.2
- * @description Adds TTS Event Notifications to your selected Voice Channel. Teamspeak feeling.
+ * @description Add TTS Event Notifications to your selected Voice Channel. Teamspeak feeling.
  * @source https://github.com/Zerthox/BetterDiscord-Plugins
  */
 
@@ -315,7 +315,7 @@ module.exports = class Wrapper extends Plugin {
 	}
 
 	getDescription() {
-		return "Adds TTS Event Notifications to your selected Voice Channel. Teamspeak feeling.";
+		return "Add TTS Event Notifications to your selected Voice Channel. Teamspeak feeling.";
 	}
 
 	log(...msgs) {

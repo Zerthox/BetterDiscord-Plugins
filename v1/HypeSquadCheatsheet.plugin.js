@@ -2,7 +2,7 @@
  * @name HypeSquadCheatsheet
  * @author Zerthox
  * @version 0.1.0
- * @description Displays the resulting HypeSquad house next to the questions in the HypeSquad questions modal.
+ * @description Display the resulting HypeSquad house next to the questions in the HypeSquad questions modal.
  * @source https://github.com/Zerthox/BetterDiscord-Plugins
  */
 
@@ -99,15 +99,33 @@ module.exports = class Wrapper extends Plugin {
 	}
 
 	getDescription() {
-		return "Displays the resulting HypeSquad house next to the questions in the HypeSquad questions modal.";
+		return "Display the resulting HypeSquad house next to the questions in the HypeSquad questions modal.";
 	}
 
-	log(msg, log = console.log) {
-		log(
-			`%c[${this.getName()}] %c(v${this.getVersion()})%c ${msg}`,
+	log(...msgs) {
+		console.log(
+			`%c[${this.getName()}] %c(v${this.getVersion()})`,
 			"color: #3a71c1; font-weight: 700;",
 			"color: #666; font-size: .8em;",
-			""
+			...msgs
+		);
+	}
+
+	warn(...msgs) {
+		console.warn(
+			`%c[${this.getName()}] %c(v${this.getVersion()})`,
+			"color: #3a71c1; font-weight: 700;",
+			"color: #666; font-size: .8em;",
+			...msgs
+		);
+	}
+
+	error(...msgs) {
+		console.error(
+			`%c[${this.getName()}] %c(v${this.getVersion()})`,
+			"color: #3a71c1; font-weight: 700;",
+			"color: #666; font-size: .8em;",
+			...msgs
 		);
 	}
 
@@ -201,11 +219,10 @@ module.exports = class Wrapper extends Plugin {
 					fiber.stateNode.forceUpdate();
 				}
 			} catch (e) {
-				this.log(
+				this.warn(
 					`Failed to force update "${
 						el.id ? `#${el.id}` : el.className ? `.${el.className}` : el.tagName
-					}" state node`,
-					console.warn
+					}" state node`
 				);
 				console.error(e);
 			}
