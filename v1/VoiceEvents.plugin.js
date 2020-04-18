@@ -1,7 +1,7 @@
 /**
  * @name VoiceEvents
  * @author Zerthox
- * @version 1.1.1
+ * @version 1.1.2
  * @description Adds TTS Event Notifications to your selected Voice Channel. Teamspeak feeling.
  * @source https://github.com/Zerthox/BetterDiscord-Plugins
  */
@@ -64,6 +64,7 @@ const Module = {
 };
 const Component = {
 	Flex: BdApi.findModuleByDisplayName("Flex"),
+	Text: BdApi.findModuleByDisplayName("Text"),
 	VerticalScroller: BdApi.findModuleByDisplayName("VerticalScroller"),
 	Button: BdApi.findModuleByProps("Link", "Hovers"),
 	Form: BdApi.findModuleByProps("FormSection", "FormText"),
@@ -79,13 +80,14 @@ function cloneStates(channel) {
 }
 
 function isDM(channel) {
-	return channel.type === 1 || channel.type === 3;
+	return channel.isDM() || channel.isGroupDM();
 }
 
 class Plugin {
 	constructor() {
+		this.callback = this.onChange.bind(this);
 		this.defaults = {
-			voice: (speechSynthesis.getVoices().find((e) => e.lang === "en-US") || speechSynthesis.getVoices()[0]).name,
+			voice: null,
 			join: "$user joined $channel",
 			leave: "$user left $channel",
 			joinSelf: "You joined $channel",
@@ -93,7 +95,26 @@ class Plugin {
 			leaveSelf: "You left $channel",
 			privateCall: "The call"
 		};
-		this.callback = this.onChange.bind(this);
+		const voices = speechSynthesis.getVoices();
+
+		if (voices.length === 0) {
+			this.error("Unable to find any speech synthesis voices");
+			const {Text} = Component;
+			BdApi.alert(
+				`${this.getName()}`,
+				React.createElement(
+					Text,
+					{
+						color: Text.Colors.STANDARD
+					},
+					"Electron does not have any Speech Synthesis Voices available on your system.",
+					React.createElement("br", null),
+					"The plugin will be unable to function properly."
+				)
+			);
+		} else {
+			this.defaults.voice = (voices.find((voice) => voice.lang === "en-US") || voices[0]).name;
+		}
 	}
 
 	getSettings() {
@@ -117,9 +138,9 @@ class Plugin {
 								this.props.update({
 									voice: e.value
 								}),
-							options: speechSynthesis.getVoices().map((e) => ({
-								label: `${e.name} [${e.lang}]`,
-								value: e.name
+							options: speechSynthesis.getVoices().map((voice) => ({
+								label: `${voice.name} [${voice.lang}]`,
+								value: voice.name
 							}))
 						})
 					),
@@ -175,20 +196,20 @@ class Plugin {
 			}
 
 			generateInputs(values) {
-				return values.map((val) =>
+				return values.map((value) =>
 					React.createElement(
 						FormItem,
 						{
 							className: Selector.margins.marginBottom20
 						},
-						React.createElement(FormTitle, null, val.title),
+						React.createElement(FormTitle, null, value.title),
 						React.createElement(TextInput, {
 							onChange: (e) =>
 								this.props.update({
-									[val.setting]: e
+									[value.setting]: e
 								}),
-							value: this.props[val.setting],
-							placeholder: self.defaults[val.setting]
+							value: this.props[value.setting],
+							placeholder: self.defaults[value.setting]
 						})
 					)
 				);
@@ -262,13 +283,20 @@ class Plugin {
 	}
 
 	speak(data) {
+		const voices = speechSynthesis.getVoices();
 		const message = this.settings[data.type]
 			.split("$user")
 			.join(data.user)
 			.split("$channel")
 			.join(data.channel);
+
+		if (voices.length === 0) {
+			this.error(`${message} could not be played: No speech synthesis voices available`);
+			return;
+		}
+
 		const utterance = new SpeechSynthesisUtterance(message);
-		utterance.voice = speechSynthesis.getVoices().find((e) => e.name === this.settings.voice);
+		utterance.voice = voices.find((e) => e.name === this.settings.voice);
 		speechSynthesis.speak(utterance);
 	}
 }
@@ -279,7 +307,7 @@ module.exports = class Wrapper extends Plugin {
 	}
 
 	getVersion() {
-		return "1.1.1";
+		return "1.1.2";
 	}
 
 	getAuthor() {
@@ -290,12 +318,30 @@ module.exports = class Wrapper extends Plugin {
 		return "Adds TTS Event Notifications to your selected Voice Channel. Teamspeak feeling.";
 	}
 
-	log(msg, log = console.log) {
-		log(
-			`%c[${this.getName()}] %c(v${this.getVersion()})%c ${msg}`,
+	log(...msgs) {
+		console.log(
+			`%c[${this.getName()}] %c(v${this.getVersion()})`,
 			"color: #3a71c1; font-weight: 700;",
 			"color: #666; font-size: .8em;",
-			""
+			...msgs
+		);
+	}
+
+	warn(...msgs) {
+		console.warn(
+			`%c[${this.getName()}] %c(v${this.getVersion()})`,
+			"color: #3a71c1; font-weight: 700;",
+			"color: #666; font-size: .8em;",
+			...msgs
+		);
+	}
+
+	error(...msgs) {
+		console.error(
+			`%c[${this.getName()}] %c(v${this.getVersion()})`,
+			"color: #3a71c1; font-weight: 700;",
+			"color: #666; font-size: .8em;",
+			...msgs
 		);
 	}
 
@@ -373,9 +419,7 @@ module.exports = class Wrapper extends Plugin {
 	}
 
 	async forceUpdate(...classes) {
-		this.forceUpdateElements(
-			...classes.map((e) => document.getElementsByClassName(e)).reduce((p, e) => p.append(e))
-		);
+		this.forceUpdateElements(...classes.map((e) => Array.from(document.getElementsByClassName(e))).flat());
 	}
 
 	async forceUpdateElements(...elements) {
@@ -391,11 +435,10 @@ module.exports = class Wrapper extends Plugin {
 					fiber.stateNode.forceUpdate();
 				}
 			} catch (e) {
-				this.log(
+				this.warn(
 					`Failed to force update "${
 						el.id ? `#${el.id}` : el.className ? `.${el.className}` : el.tagName
-					}" state node`,
-					console.warn
+					}" state node`
 				);
 				console.error(e);
 			}

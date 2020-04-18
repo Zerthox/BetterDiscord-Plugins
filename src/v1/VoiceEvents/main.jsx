@@ -15,6 +15,7 @@ const Module = {
 /** Component storage */
 const Component = {
 	Flex: BdApi.findModuleByDisplayName("Flex"),
+	Text: BdApi.findModuleByDisplayName("Text"),
 	VerticalScroller: BdApi.findModuleByDisplayName("VerticalScroller"),
 	Button: BdApi.findModuleByProps("Link", "Hovers"),
 	Form: BdApi.findModuleByProps("FormSection", "FormText"),
@@ -32,14 +33,15 @@ function cloneStates(channel) {
 }
 
 function isDM(channel) {
-	return channel.type === 1 || channel.type === 3;
+	return channel.isDM() || channel.isGroupDM();
 }
 
 class Plugin {
 
 	constructor() {
+		this.callback = this.onChange.bind(this);
 		this.defaults = {
-			voice: (speechSynthesis.getVoices().find((e) => e.lang === "en-US") || speechSynthesis.getVoices()[0]).name,
+			voice: null,
 			join: "$user joined $channel",
 			leave: "$user left $channel",
 			joinSelf: "You joined $channel",
@@ -47,7 +49,23 @@ class Plugin {
 			leaveSelf: "You left $channel",
 			privateCall: "The call"
 		};
-		this.callback = this.onChange.bind(this);
+
+		const voices = speechSynthesis.getVoices();
+		if (voices.length === 0) {
+			this.error("Unable to find any speech synthesis voices");
+			const {Text} = Component;
+			BdApi.alert(
+				`${this.getName()}`,
+				<Text color={Text.Colors.STANDARD}>
+					Electron does not have any Speech Synthesis Voices available on your system.
+					<br/>
+					The plugin will be unable to function properly.
+				</Text>
+			);
+		}
+		else {
+			this.defaults.voice = (voices.find((voice) => voice.lang === "en-US") || voices[0]).name
+		}
 	}
 
 	getSettings() {
@@ -67,7 +85,10 @@ class Plugin {
 								searchable={false}
 								clearable={false}
 								onChange={(e) => this.props.update({voice: e.value})}
-								options={speechSynthesis.getVoices().map((e) => ({label: `${e.name} [${e.lang}]`, value: e.name}))}
+								options={speechSynthesis.getVoices().map((voice) => ({
+									label: `${voice.name} [${voice.lang}]`,
+									value: voice.name
+								}))}
 							/>
 						</FormItem>
 						<FormDivider className={[Selector.margins.marginTop20, Selector.margins.marginBottom20].join(" ")}/>
@@ -108,10 +129,14 @@ class Plugin {
 			}
 
 			generateInputs(values) {
-				return values.map((val) => (
+				return values.map((value) => (
 					<FormItem className={Selector.margins.marginBottom20}>
-						<FormTitle>{val.title}</FormTitle>
-						<TextInput onChange={(e) => this.props.update({[val.setting]: e})} value={this.props[val.setting]} placeholder={self.defaults[val.setting]}/>
+						<FormTitle>{value.title}</FormTitle>
+						<TextInput
+							onChange={(e) => this.props.update({[value.setting]: e})}
+							value={this.props[value.setting]}
+							placeholder={self.defaults[value.setting]}
+						/>
 					</FormItem>
 				));
 			}
@@ -135,10 +160,10 @@ class Plugin {
 			if (!event.channelId) {
 				const channel = Channels.getChannel(this.states[0].channelId);
 				this.speak({
-						type: "leaveSelf",
-						user: Users.getCurrentUser().username,
-						channel: isDM(channel) ? this.settings.privateCall : channel.name
-					});
+					type: "leaveSelf",
+					user: Users.getCurrentUser().username,
+					channel: isDM(channel) ? this.settings.privateCall : channel.name
+				});
 			}
 			else {
 				const channel = Channels.getChannel(event.channelId);
@@ -184,9 +209,14 @@ class Plugin {
 	}
 
 	speak(data) {
+		const voices = speechSynthesis.getVoices();
 		const message = this.settings[data.type].split("$user").join(data.user).split("$channel").join(data.channel);
+		if (voices.length === 0) {
+			this.error(`${message} could not be played: No speech synthesis voices available`);
+			return;
+		}
 		const utterance = new SpeechSynthesisUtterance(message);
-		utterance.voice = speechSynthesis.getVoices().find((e) => e.name === this.settings.voice);
+		utterance.voice = voices.find((e) => e.name === this.settings.voice);
 		speechSynthesis.speak(utterance);
 	}
 }
