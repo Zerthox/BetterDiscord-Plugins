@@ -70,7 +70,7 @@ class Plugin {
 
 	getSettings() {
 		const self = this,
-			{SelectTempWrapper, TextInput} = Component,
+			{SelectTempWrapper, TextInput, Button, Flex} = Component,
 			{FormSection, FormTitle, FormItem, FormText, FormDivider} = Component.Form;
 
 		return class SettingsPanel extends React.Component {
@@ -129,14 +129,26 @@ class Plugin {
 			}
 
 			generateInputs(values) {
-				return values.map((value) => (
+				return values.map(({title, setting}) => (
 					<FormItem className={Selector.margins.marginBottom20}>
-						<FormTitle>{value.title}</FormTitle>
-						<TextInput
-							onChange={(e) => this.props.update({[value.setting]: e})}
-							value={this.props[value.setting]}
-							placeholder={self.defaults[value.setting]}
-						/>
+						<FormTitle>{title}</FormTitle>
+						<Flex align={Flex.Align.CENTER}>
+							<div style={{
+								flexGrow: 1,
+								marginRight: 20
+							}}>
+								<TextInput
+									onChange={(e) => this.props.update({[setting]: e})}
+									value={this.props[setting]}
+									placeholder={self.defaults[setting]}
+								/>
+							</div>
+							<Button
+								size={Button.Sizes.SMALL}
+								onClick={() => self.speak(self.settings[setting].split("$user").join("user").split("$channel").join("channel"))}
+							>Test</Button>
+						</Flex>
+
 					</FormItem>
 				));
 			}
@@ -159,45 +171,47 @@ class Plugin {
 		if (event.userId === Users.getCurrentUser().id) {
 			if (!event.channelId) {
 				const channel = Channels.getChannel(this.states[0].channelId);
-				this.speak({
+				this.notify({
 					type: "leaveSelf",
 					user: Users.getCurrentUser().username,
 					channel: isDM(channel) ? this.settings.privateCall : channel.name
 				});
+				this.states = [];
 			}
 			else {
 				const channel = Channels.getChannel(event.channelId);
 				if (!isDM(channel) && this.states.length > 0 && this.states[0].channelId !== event.channelId) {
-					this.speak({
+					this.notify({
 						type: "moveSelf",
 						user: Users.getCurrentUser().username,
 						channel: isDM(channel) ? this.settings.privateCall : channel.name
 					});
+					this.states = cloneStates(channel);
 				}
 				else if (this.states.length === 0) {
-					this.speak({
+					this.notify({
 						type: "joinSelf",
 						user: Users.getCurrentUser().username,
 						channel: isDM(channel) ? this.settings.privateCall : channel.name
 					});
+					this.states = cloneStates(channel);
 				}
 			}
-			this.states = cloneStates(Channels.getChannel(event.channelId));
 		}
 		else {
 			const channel = Channels.getChannel(SelectedChannel.getVoiceChannelId());
 			if (channel) {
 				const prev = this.states.find((user) => user.userId === event.userId);
 				if (event.channelId === channel.id && !prev) {
-					this.speak({
+					this.notify({
 						type: "join",
 						user: Users.getUser(event.userId).username,
 						channel: isDM(channel) ? this.settings.privateCall : channel.name
 					});
 					this.states = cloneStates(channel);
 				}
-				else if (!event.channelId && prev) {
-					this.speak({
+				else if (event.channelId !== channel.id && prev) {
+					this.notify({
 						type: "leave",
 						user: Users.getUser(event.userId).username,
 						channel: isDM(channel) ? this.settings.privateCall : channel.name
@@ -208,14 +222,17 @@ class Plugin {
 		}
 	}
 
-	speak(data) {
+	notify(data) {
+		this.speak(this.settings[data.type].split("$user").join(data.user).split("$channel").join(data.channel));
+	}
+
+	speak(msg) {
 		const voices = speechSynthesis.getVoices();
-		const message = this.settings[data.type].split("$user").join(data.user).split("$channel").join(data.channel);
 		if (voices.length === 0) {
-			this.error(`${message} could not be played: No speech synthesis voices available`);
+			this.error(`Message "${msg}" could not be played: No speech synthesis voices available`);
 			return;
 		}
-		const utterance = new SpeechSynthesisUtterance(message);
+		const utterance = new SpeechSynthesisUtterance(msg);
 		utterance.voice = voices.find((e) => e.name === this.settings.voice);
 		speechSynthesis.speak(utterance);
 	}
