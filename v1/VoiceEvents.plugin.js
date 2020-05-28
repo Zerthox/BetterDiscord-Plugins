@@ -1,7 +1,7 @@
 /**
  * @name VoiceEvents
  * @author Zerthox
- * @version 1.2.0
+ * @version 1.3.0
  * @description Add TTS Event Notifications to your selected Voice Channel. Teamspeak feeling.
  * @source https://github.com/Zerthox/BetterDiscord-Plugins
  */
@@ -60,7 +60,8 @@ const Module = {
 	Channels: BdApi.findModuleByProps("getChannel"),
 	SelectedChannel: BdApi.findModuleByProps("getChannelId"),
 	VoiceStates: BdApi.findModuleByProps("getVoiceStates"),
-	Users: BdApi.findModuleByProps("getUser")
+	Users: BdApi.findModuleByProps("getUser"),
+	Members: BdApi.findModuleByProps("getMember")
 };
 const Component = {
 	Flex: BdApi.findModuleByDisplayName("Flex"),
@@ -69,7 +70,8 @@ const Component = {
 	Button: BdApi.findModuleByProps("Link", "Hovers"),
 	Form: BdApi.findModuleByProps("FormSection", "FormText"),
 	TextInput: BdApi.findModuleByDisplayName("TextInput"),
-	SelectTempWrapper: BdApi.findModuleByDisplayName("SelectTempWrapper")
+	SelectTempWrapper: BdApi.findModuleByDisplayName("SelectTempWrapper"),
+	Slider: BdApi.findModuleByDisplayName("Slider")
 };
 const Selector = {
 	margins: BdApi.findModuleByProps("marginLarge")
@@ -79,15 +81,12 @@ function cloneStates(channel) {
 	return Module.VoiceStates.getVoiceStatesForChannel(channel).slice(0);
 }
 
-function isDM(channel) {
-	return channel.isDM() || channel.isGroupDM();
-}
-
 class Plugin {
 	constructor() {
 		this.callback = this.onChange.bind(this);
 		this.defaults = {
 			voice: null,
+			volume: 100,
 			join: "$user joined $channel",
 			leave: "$user left $channel",
 			joinSelf: "You joined $channel",
@@ -119,7 +118,7 @@ class Plugin {
 
 	getSettings() {
 		const self = this,
-			{SelectTempWrapper, TextInput, Button, Flex} = Component,
+			{Flex, Text, Button, TextInput, SelectTempWrapper, Slider} = Component,
 			{FormSection, FormTitle, FormItem, FormText, FormDivider} = Component.Form;
 		return class SettingsPanel extends React.Component {
 			render() {
@@ -128,7 +127,9 @@ class Plugin {
 					null,
 					React.createElement(
 						FormItem,
-						null,
+						{
+							className: Selector.margins.marginBottom20
+						},
 						React.createElement(FormTitle, null, "TTS Voice"),
 						React.createElement(SelectTempWrapper, {
 							value: this.props.voice,
@@ -138,10 +139,47 @@ class Plugin {
 								this.props.update({
 									voice: e.value
 								}),
-							options: speechSynthesis.getVoices().map((voice) => ({
-								label: `${voice.name} [${voice.lang}]`,
-								value: voice.name
+							options: speechSynthesis.getVoices().map(({name, lang}) => ({
+								label: React.createElement(
+									Flex,
+									null,
+									React.createElement(
+										Text,
+										{
+											style: {
+												marginRight: 4
+											}
+										},
+										name
+									),
+									React.createElement(
+										Text,
+										{
+											color: Text.Colors.MUTED
+										},
+										"[",
+										lang,
+										"]"
+									)
+								),
+								value: name
 							}))
+						})
+					),
+					React.createElement(
+						FormItem,
+						{
+							className: Selector.margins.marginBottom20
+						},
+						React.createElement(FormTitle, null, "TTS Volume"),
+						React.createElement(Slider, {
+							asValueChanges: (e) =>
+								this.props.update({
+									volume: e
+								}),
+							initialValue: this.props.volume,
+							maxValue: 100,
+							minValue: 0
 						})
 					),
 					React.createElement(FormDivider, {
@@ -265,25 +303,30 @@ class Plugin {
 				const channel = Channels.getChannel(this.states[0].channelId);
 				this.notify({
 					type: "leaveSelf",
-					user: Users.getCurrentUser().username,
-					channel: isDM(channel) ? this.settings.privateCall : channel.name
+					user: event.userId,
+					channel
 				});
 				this.states = [];
 			} else {
 				const channel = Channels.getChannel(event.channelId);
 
-				if (!isDM(channel) && this.states.length > 0 && this.states[0].channelId !== event.channelId) {
+				if (
+					!channel.isDM() &&
+					!channel.isGroupDM() &&
+					this.states.length > 0 &&
+					this.states[0].channelId !== event.channelId
+				) {
 					this.notify({
 						type: "moveSelf",
-						user: Users.getCurrentUser().username,
-						channel: isDM(channel) ? this.settings.privateCall : channel.name
+						user: event.userId,
+						channel
 					});
 					this.states = cloneStates(channel);
 				} else if (this.states.length === 0) {
 					this.notify({
 						type: "joinSelf",
-						user: Users.getCurrentUser().username,
-						channel: isDM(channel) ? this.settings.privateCall : channel.name
+						user: event.userId,
+						channel
 					});
 					this.states = cloneStates(channel);
 				}
@@ -297,15 +340,15 @@ class Plugin {
 				if (event.channelId === channel.id && !prev) {
 					this.notify({
 						type: "join",
-						user: Users.getUser(event.userId).username,
-						channel: isDM(channel) ? this.settings.privateCall : channel.name
+						user: event.userId,
+						channel
 					});
 					this.states = cloneStates(channel);
 				} else if (event.channelId !== channel.id && prev) {
 					this.notify({
 						type: "leave",
-						user: Users.getUser(event.userId).username,
-						channel: isDM(channel) ? this.settings.privateCall : channel.name
+						user: event.userId,
+						channel
 					});
 					this.states = cloneStates(channel);
 				}
@@ -313,13 +356,14 @@ class Plugin {
 		}
 	}
 
-	notify(data) {
+	notify({type, user, channel}) {
+		const {Members, Users} = Module;
 		this.speak(
-			this.settings[data.type]
+			this.settings[type]
 				.split("$user")
-				.join(data.user)
+				.join(Members.getMember(channel.getGuildId(), user).nick || Users.getUser(user).username)
 				.split("$channel")
-				.join(data.channel)
+				.join(channel.isDM() || channel.isGroupDM() ? this.settings.privateCall : channel.name)
 		);
 	}
 
@@ -333,6 +377,15 @@ class Plugin {
 
 		const utterance = new SpeechSynthesisUtterance(msg);
 		utterance.voice = voices.find((e) => e.name === this.settings.voice);
+		utterance.volume = this.settings.volume / 100;
+
+		if (!utterance.voice) {
+			this.error(
+				`Message "${msg}" could not be played: Set speech synthesis voice "${this.settings.voice}" could not be found`
+			);
+			return;
+		}
+
 		speechSynthesis.speak(utterance);
 	}
 }
@@ -343,7 +396,7 @@ module.exports = class Wrapper extends Plugin {
 	}
 
 	getVersion() {
-		return "1.2.0";
+		return "1.3.0";
 	}
 
 	getAuthor() {
