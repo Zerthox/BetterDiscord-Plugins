@@ -239,7 +239,7 @@ class Plugin {
 		const {Members, Users} = Module;
 		this.speak(
 			this.settings[type]
-				.split("$user").join(Members.getMember(channel.getGuildId(), user).nick || Users.getUser(user).username)
+				.split("$user").join((!channel.isDM() && !channel.isGroupDM() && Members.getMember(channel.getGuildId(), user).nick) || Users.getUser(user).username)
 				.split("$channel").join(channel.isDM() || channel.isGroupDM() ? this.settings.privateCall : channel.name)
 		);
 	}
