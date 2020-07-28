@@ -108,7 +108,7 @@ class Plugin {
 						<FormSection>
 							<FormTitle tag="h3">Messages</FormTitle>
 							<FormText type="description" className={Selector.margins.marginBottom20}>
-								$user will get replaced with the respective Username and $channel with the respective Voice Channel name.
+								$user will get replaced with the respective User Nickname, $username with the User Account name and $channel with the respective Voice Channel name.
 							</FormText>
 							{this.generateInputs([
 								{
@@ -158,7 +158,12 @@ class Plugin {
 							</div>
 							<Button
 								size={Button.Sizes.SMALL}
-								onClick={() => self.speak(self.settings[setting].split("$user").join("user").split("$channel").join("channel"))}
+								onClick={() => self.speak(
+									self.settings[setting]
+										.split("$user").join("user")
+										.split("$username").join("username")
+										.split("$channel").join("channel")
+								)}
 							>Test</Button>
 						</Flex>
 
@@ -240,6 +245,7 @@ class Plugin {
 		this.speak(
 			this.settings[type]
 				.split("$user").join((!channel.isDM() && !channel.isGroupDM() && Members.getMember(channel.getGuildId(), user).nick) || Users.getUser(user).username)
+				.split("$username").join(Users.getUser(user).username)
 				.split("$channel").join(channel.isDM() || channel.isGroupDM() ? this.settings.privateCall : channel.name)
 		);
 	}

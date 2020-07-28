@@ -1,8 +1,8 @@
 /**
  * @name VoiceEvents
  * @author Zerthox
- * @version 1.3.1
- * @description Add TTS Event Notifications to your selected Voice Channel. Teamspeak feeling.
+ * @version 1.3.2
+ * @description Add TTS Event Notifications to your selected Voice Channel. TeamSpeak feeling.
  * @source https://github.com/Zerthox/BetterDiscord-Plugins
  */
 
@@ -201,7 +201,7 @@ class Plugin {
 								type: "description",
 								className: Selector.margins.marginBottom20
 							},
-							"$user will get replaced with the respective Username and $channel with the respective Voice Channel name."
+							"$user will get replaced with the respective User Nickname, $username with the User Account name and $channel with the respective Voice Channel name."
 						),
 						this.generateInputs([
 							{
@@ -272,6 +272,8 @@ class Plugin {
 											self.settings[setting]
 												.split("$user")
 												.join("user")
+												.split("$username")
+												.join("username")
 												.split("$channel")
 												.join("channel")
 										)
@@ -365,6 +367,8 @@ class Plugin {
 					(!channel.isDM() && !channel.isGroupDM() && Members.getMember(channel.getGuildId(), user).nick) ||
 						Users.getUser(user).username
 				)
+				.split("$username")
+				.join(Users.getUser(user).username)
 				.split("$channel")
 				.join(channel.isDM() || channel.isGroupDM() ? this.settings.privateCall : channel.name)
 		);
@@ -399,7 +403,7 @@ module.exports = class Wrapper extends Plugin {
 	}
 
 	getVersion() {
-		return "1.3.1";
+		return "1.3.2";
 	}
 
 	getAuthor() {
@@ -407,7 +411,7 @@ module.exports = class Wrapper extends Plugin {
 	}
 
 	getDescription() {
-		return "Add TTS Event Notifications to your selected Voice Channel. Teamspeak feeling.";
+		return "Add TTS Event Notifications to your selected Voice Channel. TeamSpeak feeling.";
 	}
 
 	log(...msgs) {
