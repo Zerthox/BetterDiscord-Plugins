@@ -1,7 +1,7 @@
 /**
  * @name BetterReplyer
  * @author Zerthox
- * @version 4.3.2
+ * @version 4.3.3
  * @description Reply to people using their ID with a button.\nInspired by Replyer by @Hammmock#3110, @Natsulus#0001 & @Zerebos#7790.
  * @source https://github.com/Zerthox/BetterDiscord-Plugins
  */
@@ -70,7 +70,7 @@ const Selector = {
 	MessageContent: BdApi.findModuleByProps("isSending")
 };
 const Styles =
-	`/*! BetterReplyer v4.3.2 styles */
+	`/*! BetterReplyer v4.3.3 styles */
 .replyer {
   position: relative;
   margin-left: 5px;
@@ -93,8 +93,7 @@ class Plugin {
 		this.injectCSS(Styles);
 		this.createPatch(Component.MessageHeader, "default", {
 			name: "MessageHeader",
-
-			after({methodArguments: [props], returnValue}) {
+			after: ({methodArguments: [props], returnValue}) => {
 				const {author} = props.message,
 					channel = Module.Channels.getChannel(props.message.getChannelId());
 
@@ -103,29 +102,34 @@ class Plugin {
 					author.id !== Module.Users.getCurrentUser().id &&
 					(channel.isPrivate() || Module.Permissions.can(Module.Constants.Permissions.SEND_MESSAGES, channel))
 				) {
-					const h2 = qReact(returnValue, (e) => e.props.className === Selector.MessageContent.header);
+					const h2 = qReact(returnValue, (e) =>
+						e.props.className.split(" ").includes(Selector.MessageContent.header)
+					);
 
-					if (h2) {
-						h2.props.children = [
-							h2.props.children,
-							React.createElement(
-								"span",
-								{
-									className: "replyer",
-
-									onClick() {
-										Module.ComponentDispatch.dispatchToLastSubscribed(
-											Module.Constants.ComponentActions.INSERT_TEXT,
-											{
-												content: `<@!${author.id}>`
-											}
-										);
-									}
-								},
-								"Reply"
-							)
-						].flat();
+					if (!h2) {
+						this.error("Unable to find header element in MessageHeader component");
+						return returnValue;
 					}
+
+					h2.props.children = [
+						h2.props.children,
+						React.createElement(
+							"span",
+							{
+								className: "replyer",
+
+								onClick() {
+									Module.ComponentDispatch.dispatchToLastSubscribed(
+										Module.Constants.ComponentActions.INSERT_TEXT,
+										{
+											content: `<@!${author.id}>`
+										}
+									);
+								}
+							},
+							"Reply"
+						)
+					].flat();
 				}
 
 				return returnValue;
@@ -143,7 +147,7 @@ module.exports = class Wrapper extends Plugin {
 	}
 
 	getVersion() {
-		return "4.3.2";
+		return "4.3.3";
 	}
 
 	getAuthor() {

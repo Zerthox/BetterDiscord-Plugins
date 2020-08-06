@@ -38,7 +38,7 @@ class Plugin {
 		this.injectCSS(Styles);
 
 		// patch message header component
-		this.createPatch(Component.MessageHeader, "default", {name: "MessageHeader", after({methodArguments: [props], returnValue}) {
+		this.createPatch(Component.MessageHeader, "default", {name: "MessageHeader", after: ({methodArguments: [props], returnValue}) => {
 
 			// get message author & channel
 			const {author} = props.message,
@@ -52,20 +52,22 @@ class Plugin {
 			) {
 
 				// find header & append reply button
-				const h2 = qReact(returnValue, (e) => e.props.className === Selector.MessageContent.header);
-				if (h2) {
-					h2.props.children = [
-						h2.props.children,
-						React.createElement("span", {
-							className: "replyer",
-							onClick() {
-								Module.ComponentDispatch.dispatchToLastSubscribed(Module.Constants.ComponentActions.INSERT_TEXT, {
-									content: `<@!${author.id}>`
-								});
-							}
-						}, "Reply")
-					].flat();
+				const h2 = qReact(returnValue, (e) => e.props.className.split(" ").includes(Selector.MessageContent.header));
+				if (!h2) {
+					this.error("Unable to find header element in MessageHeader component");
+					return returnValue;
 				}
+				h2.props.children = [
+					h2.props.children,
+					React.createElement("span", {
+						className: "replyer",
+						onClick() {
+							Module.ComponentDispatch.dispatchToLastSubscribed(Module.Constants.ComponentActions.INSERT_TEXT, {
+								content: `<@!${author.id}>`
+							});
+						}
+					}, "Reply")
+				].flat();
 			}
 
 			// return return value
