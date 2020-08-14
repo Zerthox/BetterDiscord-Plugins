@@ -1,7 +1,7 @@
 /**
  * @name VoiceEvents
  * @author Zerthox
- * @version 1.3.2
+ * @version 1.3.3
  * @description Add TTS Event Notifications to your selected Voice Channel. TeamSpeak feeling.
  * @source https://github.com/Zerthox/BetterDiscord-Plugins
  */
@@ -58,7 +58,7 @@ function qReact(node, query) {
 const Module = {
 	Events: BdApi.findModuleByProps("dispatch", "subscribe"),
 	Channels: BdApi.findModuleByProps("getChannel"),
-	SelectedChannel: BdApi.findModuleByProps("getChannelId"),
+	SelectedChannel: BdApi.findModuleByProps("getChannelId", "getVoiceChannelId"),
 	VoiceStates: BdApi.findModuleByProps("getVoiceStates"),
 	Users: BdApi.findModuleByProps("getUser"),
 	Members: BdApi.findModuleByProps("getMember")
@@ -78,7 +78,7 @@ const Selector = {
 };
 
 function cloneStates(channel) {
-	return Module.VoiceStates.getVoiceStatesForChannel(channel).slice(0);
+	return channel ? Module.VoiceStates.getVoiceStatesForChannel(channel).slice(0) : [];
 }
 
 class Plugin {
@@ -403,7 +403,7 @@ module.exports = class Wrapper extends Plugin {
 	}
 
 	getVersion() {
-		return "1.3.2";
+		return "1.3.3";
 	}
 
 	getAuthor() {
