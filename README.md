@@ -2,7 +2,7 @@
 
 ### [BetterReplyer](/v1/BetterReplyer.plugin.js) <sub><sup>`v4.3.3` *(Updated: 06/08/20)*</sup></sub>
 Reply to people using their ID with a button.
-Inspired by [Replyer](https://github.com/cosmicsalad/Discord-Themes-and-Plugins/blob/master/plugins/replyer.plugin.js) by [Hammmock#3110](https://github.com/cosmicsalad), [@Natsulus#0001](https://github.com/Delivator) & [@Zerebos#7790](https://github.com/rauenzi).
+Inspired by [Replyer](https://github.com/cosmicsalad/Discord-Themes-and-Plugins/blob/master/plugins/replyer.plugin.js) by [@Hammmock#3110](https://github.com/cosmicsalad), [@Natsulus#0001](https://github.com/Delivator) & [@Zerebos#7790](https://github.com/rauenzi).
 
 ### [BetterFolders](/v1/BetterFolders.plugin.js) <sub><sup>`v2.2.1` *(Updated: 15/04/20)*</sup></sub>
 Add new functionality to server folders.
