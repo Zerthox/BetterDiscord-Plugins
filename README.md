@@ -23,6 +23,9 @@ Emulate Windows, MacOS, Linux or Browser on any platform.
 ### [VoiceCount](/v1/VoiceCount.plugin.js) <sub><sup>`v0.1.0` *(Updated: 18/04/20)*</sup></sub>
 Add a user count to all voice channels.
 
+### [BetterVolume](/v1/BetterVolume.plugin.js) <sub><sup>`v0.1.0` *(Updated: 03/09/20)*</sup></sub>
+Set user volume values manually instead of using a limited slider.
+
 ### [HypeSquadCheatsheet](/v1/HypeSquadCheatsheet.plugin.js) <sub><sup>`v0.1.0` *(Updated: 27/12/19)*</sup></sub>
 Display the resulting HypeSquad house next to the questions in the HypeSquad questions modal.
 
