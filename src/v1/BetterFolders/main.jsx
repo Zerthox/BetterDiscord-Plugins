@@ -127,14 +127,12 @@ class BetterFolderUploader extends React.Component {
 						always
 					/>
 				</Flex>
-				<Flex>
-					<SwitchItem
-						hideBorder
-						className={Selector.margins.marginTop8}
-						value={this.state.always}
-						onChange={({currentTarget: {checked}}) => this.setState({always: checked})}
-					>Always display icon</SwitchItem>
-				</Flex>
+				<SwitchItem
+					hideBorder
+					className={Selector.margins.marginTop8}
+					value={this.state.always}
+					onChange={(checked) => this.setState({always: checked})}
+				>Always display icon</SwitchItem>
 			</>
 		);
 	}
@@ -156,7 +154,7 @@ class Plugin {
 				note="Close other folders when opening a new folder"
 				hideBorder
 				value={props.closeOnOpen}
-				onChange={({currentTarget: {checked}}) => {
+				onChange={(checked) => {
 					if (checked) {
 						for (const id of Array.from(Module.FolderStore.getExpandedFolders()).slice(1)) {
 							Module.ClientActions.toggleGuildFolderExpand(id);

@@ -1,7 +1,7 @@
 /**
  * @name BetterFolders
  * @author Zerthox
- * @version 2.2.1
+ * @version 2.2.2
  * @description Add new functionality to server folders.
  * @source https://github.com/Zerthox/BetterDiscord-Plugins
  */
@@ -79,7 +79,7 @@ const Selector = {
 	margins: BdApi.findModuleByProps("marginLarge"),
 	guilds: BdApi.findModuleByProps("guilds", "base")
 };
-const Styles = `/*! BetterFolders v2.2.1 styles */
+const Styles = `/*! BetterFolders v2.2.2 styles */
 .betterFolders-customIcon {
   width: 100%;
   height: 100%;
@@ -224,21 +224,17 @@ class BetterFolderUploader extends React.Component {
 				})
 			),
 			React.createElement(
-				Flex,
-				null,
-				React.createElement(
-					SwitchItem,
-					{
-						hideBorder: true,
-						className: Selector.margins.marginTop8,
-						value: this.state.always,
-						onChange: ({currentTarget: {checked}}) =>
-							this.setState({
-								always: checked
-							})
-					},
-					"Always display icon"
-				)
+				SwitchItem,
+				{
+					hideBorder: true,
+					className: Selector.margins.marginTop8,
+					value: this.state.always,
+					onChange: (checked) =>
+						this.setState({
+							always: checked
+						})
+				},
+				"Always display icon"
 			)
 		);
 	}
@@ -259,7 +255,7 @@ class Plugin {
 					note: "Close other folders when opening a new folder",
 					hideBorder: true,
 					value: props.closeOnOpen,
-					onChange: ({currentTarget: {checked}}) => {
+					onChange: (checked) => {
 						if (checked) {
 							for (const id of Array.from(Module.FolderStore.getExpandedFolders()).slice(1)) {
 								Module.ClientActions.toggleGuildFolderExpand(id);
@@ -447,7 +443,7 @@ module.exports = class Wrapper extends Plugin {
 	}
 
 	getVersion() {
-		return "2.2.1";
+		return "2.2.2";
 	}
 
 	getAuthor() {
