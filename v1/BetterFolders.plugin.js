@@ -1,7 +1,7 @@
 /**
  * @name BetterFolders
  * @author Zerthox
- * @version 2.2.2
+ * @version 2.2.3
  * @description Add new functionality to server folders.
  * @source https://github.com/Zerthox/BetterDiscord-Plugins
  */
@@ -79,7 +79,7 @@ const Selector = {
 	margins: BdApi.findModuleByProps("marginLarge"),
 	guilds: BdApi.findModuleByProps("guilds", "base")
 };
-const Styles = `/*! BetterFolders v2.2.2 styles */
+const Styles = `/*! BetterFolders v2.2.3 styles */
 .betterFolders-customIcon {
   width: 100%;
   height: 100%;
@@ -424,7 +424,7 @@ class Plugin {
 		BdApi.monkeyPatch(fiber.type.prototype, "render", {
 			silent: true,
 			once: true,
-			after: ({returnValue}) => delete returnValue.props.children
+			instead: () => null
 		});
 		fiber.stateNode.forceUpdate();
 		return new Promise((resolve) =>
@@ -443,7 +443,7 @@ module.exports = class Wrapper extends Plugin {
 	}
 
 	getVersion() {
-		return "2.2.2";
+		return "2.2.3";
 	}
 
 	getAuthor() {

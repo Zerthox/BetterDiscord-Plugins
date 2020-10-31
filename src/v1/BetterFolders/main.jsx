@@ -287,7 +287,7 @@ class Plugin {
 		BdApi.monkeyPatch(fiber.type.prototype, "render", {
 			silent: true,
 			once: true,
-			after: ({returnValue}) => delete returnValue.props.children
+			instead: () => null
 		});
 		fiber.stateNode.forceUpdate();
 		return new Promise((resolve) => setTimeout(() => {
