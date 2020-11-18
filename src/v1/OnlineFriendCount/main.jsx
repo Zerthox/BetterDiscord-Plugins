@@ -45,53 +45,71 @@ class Plugin {
 		// inject styles
 		this.injectCSS(Styles);
 
-		// TODO: add to template?
-		// grab guilds fiber
-		let fiber = BdApi.getInternalInstance(document.getElementsByClassName(Selector.guilds.guilds)[0]);
-		if (!fiber) {
-			this.error("Error patching Guilds: Cannot find Guilds element fiber");
-			return;
-		}
-		while (!fiber.type || fiber.type.displayName !== "Guilds") {
-			if (!fiber.return) {
-				this.error("Error patching Guilds: Cannot find Guilds Component");
-				return;
+		// find guilds fiber
+		const guilds = this.findGuilds();
+
+		// helper for finding children function
+		const findChildFunc = (el) => {
+			while (!(el.props.children instanceof Function)) {
+				if (!el.props.children) {
+					this.log(`Unable to find children function for "${el.type.toString()}"`);
+					return null;
+				}
+				el = el.props.children;
 			}
-			fiber = fiber.return;
-		}
+			return el;
+		};
 
-		// patch guilds render function
-		this.createPatch(fiber.type.prototype, "render", {after: ({returnValue}) => {
+		// chain patch into children
+		this.createPatch(guilds.type.prototype, "render", {after: ({returnValue}) => {
+			BdApi.monkeyPatch(findChildFunc(returnValue).props, "children", {silent: true, after: ({returnValue}) => {
+				BdApi.monkeyPatch(findChildFunc(returnValue).props, "children", {silent: true, after: ({returnValue}) => {
 
-			// find scroller
-			const scroller = qReact(returnValue, (e) => e.type.displayName === "VerticalScroller");
-			if (!scroller) {
-				this.error("Error during render: Cannot find VerticalScroller Component");
-				return;
-			}
+					// find scroller
+					const scroller = qReact(returnValue, (e) => e.props.children.find((e) => e.type.displayName === "ConnectedUnreadDMs"));
+					if (!scroller) {
+						this.error("Error during render: Cannot find guilds scroller Component");
+						return;
+					}
 
-			// check if online friends count is not inserted yet
-			if (!qReact(scroller, (e) => e.props.className === Selector.friendsOnline)) {
+					// grab scroller children
+					const {children} = scroller.props;
 
-				// grab scroller children
-				const {children} = scroller.props;
+					// find index of dms
+					const index = children.indexOf(qReact(scroller, (e) => e.type.displayName === "ConnectedUnreadDMs"));
 
-				// find index of dms
-				const index = children.indexOf(qReact(scroller, (e) => e.type.displayName === "ConnectedUnreadDMs"));
-
-				// insert online friends count before dms
-				children.splice(index > - 1 ? index : 1, 0, <OnlineCountContainer/>);
-			}
+					// insert online friends count before dms
+					children.splice(index > -1 ? index : 1, 0, <OnlineCountContainer/>);
+				}});
+			}});
 		}});
 
 		// force update
-		fiber.stateNode.forceUpdate();
+		guilds.stateNode.forceUpdate();
 	}
 
 	stop() {
+		this.findGuilds().stateNode.forceUpdate();
+	}
 
-		// force update
-		this.forceUpdate(Selector.guilds.guilds);
+	findGuilds() {
+
+		// grab fiber
+		let guilds = BdApi.getInternalInstance(document.getElementsByClassName(Selector.guilds.guilds)[0]);
+		if (!guilds) {
+			this.error("Cannot find Guilds element fiber");
+			return;
+		}
+
+		// walk until guilds component found
+		while (!guilds.type || guilds.type.displayName !== "Guilds") {
+			if (!guilds.return) {
+				this.error("Cannot find Guilds Component");
+				return;
+			}
+			guilds = guilds.return;
+		}
+		return guilds;
 	}
 
 }
