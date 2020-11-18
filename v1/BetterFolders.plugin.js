@@ -1,7 +1,7 @@
 /**
  * @name BetterFolders
  * @author Zerthox
- * @version 2.2.3
+ * @version 2.3.0
  * @description Add new functionality to server folders.
  * @source https://github.com/Zerthox/BetterDiscord-Plugins
  */
@@ -62,7 +62,9 @@ const Module = {
 };
 const Component = {
 	Flex: BdApi.findModuleByDisplayName("Flex"),
-	GuildFolder: BdApi.findModule((m) => m && m.type && m.type.toString().includes("defaultFolderName")),
+	GuildFolder: BdApi.findModule(
+		(m) => m && m.type && m.type.render && m.type.render.toString().includes("defaultFolderName")
+	),
 	GuildFolderSettingsModal: BdApi.findModuleByDisplayName("GuildFolderSettingsModal"),
 	Form: BdApi.findModuleByProps("FormSection", "FormText"),
 	TextInput: BdApi.findModuleByDisplayName("TextInput"),
@@ -73,13 +75,14 @@ const Component = {
 };
 const Selector = {
 	flex: BdApi.findModuleByProps("flex"),
-	folder: BdApi.findModuleByProps("folder", "expandedFolderBackground", "wrapper"),
 	modal: BdApi.findModuleByProps("permissionsTitle"),
 	button: BdApi.findModuleByProps("colorWhite"),
 	margins: BdApi.findModuleByProps("marginLarge"),
-	guilds: BdApi.findModuleByProps("guilds", "base")
+	folder: BdApi.findModuleByProps("folder", "expandedFolderBackground", "wrapper"),
+	guilds: BdApi.findModuleByProps("guilds", "base"),
+	tree: BdApi.findModuleByProps("scroller", "tree")
 };
-const Styles = `/*! BetterFolders v2.2.3 styles */
+const Styles = `/*! BetterFolders v2.3.0 styles */
 .betterFolders-customIcon {
   width: 100%;
   height: 100%;
@@ -137,29 +140,33 @@ const BetterFolderStore = (() => {
 	});
 })();
 
-function BetterFolderIcon({expanded, icon, always, childProps}) {
+function BetterFolderIcon({icon, always, childProps}) {
 	const result = Component.FolderIcon.call(this, childProps);
 
-	if (icon && (always || expanded)) {
-		result.props.children = React.createElement("div", {
-			className: "betterFolders-customIcon",
-			style: {
-				backgroundImage: `url(${icon}`
-			}
-		});
+	if (icon) {
+		if (childProps.expanded) {
+			result.props.children[0] = React.createElement("div", {
+				className: "betterFolders-customIcon",
+				style: {
+					backgroundImage: `url(${icon}`
+				}
+			});
+		} else if (always) {
+			result.props.children[1] = React.createElement("div", {
+				className: "betterFolders-customIcon",
+				style: {
+					backgroundImage: `url(${icon}`
+				}
+			});
+		}
 	}
 
 	return result;
 }
 
-const BetterFolderIconContainer = Flux.connectStores([BetterFolderStore], ({childProps: {expanded, folderId}}) =>
-	Object.assign(
-		{
-			expanded
-		},
-		BetterFolderStore.getFolder(folderId)
-	)
-)(BetterFolderIcon);
+const BetterFolderIconContainer = Flux.connectStores([BetterFolderStore], ({folderId}) => ({
+	...BetterFolderStore.getFolder(folderId)
+}))(BetterFolderIcon);
 
 class BetterFolderUploader extends React.Component {
 	constructor(props) {
@@ -273,22 +280,22 @@ class Plugin {
 
 	start() {
 		this.injectCSS(Styles);
-		this.createPatch(Component.GuildFolder, "type", {
+		this.createPatch(Component.GuildFolder.type, "render", {
 			name: "GuildFolder",
 			type: "component",
 			after: ({methodArguments: [props], returnValue}) => {
-				const id = props.folderId;
-				const icon = qReact(returnValue, (e) => e.props.children.type.displayName === "FolderIcon");
+				const container = qReact(returnValue, (e) => e.props.children.type.displayName === "FolderIcon");
 
-				if (icon) {
+				if (container) {
+					const icon = container.props.children;
+
 					if (!Component.FolderIcon) {
-						Component.FolderIcon = icon.props.children.type;
+						Component.FolderIcon = icon.type;
 					}
 
-					const iconProps = icon.props.children.props;
-					iconProps.folderId = id;
-					icon.props.children = React.createElement(BetterFolderIconContainer, {
-						childProps: iconProps
+					container.props.children = React.createElement(BetterFolderIconContainer, {
+						folderId: props.folderId,
+						childProps: icon.props
 					});
 				}
 			}
@@ -387,12 +394,10 @@ class Plugin {
 		});
 		this.createPatch(Module.ClientActions, "toggleGuildFolderExpand", {
 			name: "ClientActions",
-			after: ({methodArguments, originalMethod}) => {
+			after: ({methodArguments: [folderId], originalMethod}) => {
 				if (this.settings.closeOnOpen) {
-					const target = methodArguments[0];
-
 					for (const id of Module.FolderStore.getExpandedFolders()) {
-						id !== target && originalMethod(id);
+						id !== folderId && originalMethod(id);
 					}
 				}
 			}
@@ -404,36 +409,55 @@ class Plugin {
 		this.triggerRerender();
 	}
 
-	triggerRerender() {
-		let fiber = BdApi.getInternalInstance(document.getElementsByClassName(Selector.guilds.guilds)[0]);
+	async triggerRerender() {
+		let tree = BdApi.getInternalInstance(document.getElementsByClassName(Selector.tree.tree)[0]);
 
-		if (!fiber) {
+		if (!tree) {
+			this.error("Unable to trigger rerender: Cannot find tree element fiber");
+			return;
+		}
+
+		BdApi.monkeyPatch(tree.return, "type", {
+			silent: true,
+			once: true,
+			after: ({returnValue}) => {
+				const servers = qReact(returnValue, (e) => e.props.children.find((e) => e.props.folderId));
+
+				if (!servers) {
+					this.error("Unable to trigger rerender: Cannot find servers list");
+					return;
+				}
+
+				for (let {props} of servers.props.children) {
+					if (props.folderId) {
+						props.draggable = !props.draggable;
+					}
+				}
+			}
+		});
+		let guilds = BdApi.getInternalInstance(document.getElementsByClassName(Selector.guilds.guilds)[0]);
+
+		if (!guilds) {
 			this.error("Unable to trigger rerender: Cannot find Guilds element fiber");
 			return;
 		}
 
-		while (!fiber.type || fiber.type.displayName !== "Guilds") {
-			if (!fiber.return) {
+		while (!guilds.type || guilds.type.displayName !== "Guilds") {
+			if (!guilds.return) {
 				this.error("Unable to trigger rerender: Cannot find Guilds Component");
 				return;
 			}
 
-			fiber = fiber.return;
+			guilds = guilds.return;
 		}
 
-		BdApi.monkeyPatch(fiber.type.prototype, "render", {
-			silent: true,
-			once: true,
-			instead: () => null
-		});
-		fiber.stateNode.forceUpdate();
-		return new Promise((resolve) =>
-			setTimeout(() => {
-				fiber.stateNode.forceUpdate();
-				this.log("Successfully triggered rerender");
-				resolve();
-			}, 0)
-		);
+		function forceUpdate(stateNode) {
+			return new Promise((resolve) => stateNode.forceUpdate(() => resolve()));
+		}
+
+		await forceUpdate(guilds.stateNode);
+		await forceUpdate(guilds.stateNode);
+		this.log("Successfully triggered rerender");
 	}
 }
 
@@ -443,7 +467,7 @@ module.exports = class Wrapper extends Plugin {
 	}
 
 	getVersion() {
-		return "2.2.3";
+		return "2.3.0";
 	}
 
 	getAuthor() {
