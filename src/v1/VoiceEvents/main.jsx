@@ -31,7 +31,7 @@ const Selector = {
 };
 
 function cloneStates(channel) {
-	return channel ? Module.VoiceStates.getVoiceStatesForChannel(channel).slice(0) : [];
+	return channel ? Object.assign({}, Module.VoiceStates.getVoiceStatesForChannel(channel)) : {};
 }
 
 class Plugin {
@@ -180,61 +180,62 @@ class Plugin {
 	}
 
 	stop() {
-		this.states = [];
+		this.states = {};
 		Module.Events.unsubscribe("VOICE_STATE_UPDATE", this.callback);
 	}
 
 	onChange(event) {
 		const {Channels, Users, SelectedChannel} = Module;
-		if (event.userId === Users.getCurrentUser().id) {
-			if (!event.channelId) {
-				const channel = Channels.getChannel(this.states[0].channelId);
+		const {userId, channelId} = event;
+		if (userId === Users.getCurrentUser().id) {
+			if (!channelId) {
+				const channel = Channels.getChannel(this.states[userId].channelId);
 				this.notify({
 					type: "leaveSelf",
-					user: event.userId,
+					user: userId,
 					channel
 				});
-				this.states = [];
+				this.states = {};
 			}
 			else {
-				const channel = Channels.getChannel(event.channelId);
-				if (!channel.isDM() && !channel.isGroupDM() && this.states.length > 0 && this.states[0].channelId !== event.channelId) {
+				const channel = Channels.getChannel(channelId);
+				if (!channel.isDM() && !channel.isGroupDM() && this.states[userId] && this.states[userId].channelId !== channelId) {
 					this.notify({
 						type: "moveSelf",
-						user: event.userId,
+						user: userId,
 						channel
 					});
-					this.states = cloneStates(channel);
+					this.states = cloneStates(channelId);
 				}
-				else if (this.states.length === 0) {
+				else if (!this.states[userId]) {
 					this.notify({
 						type: "joinSelf",
-						user: event.userId,
+						user: userId,
 						channel
 					});
-					this.states = cloneStates(channel);
+					this.states = cloneStates(channelId);
 				}
 			}
 		}
 		else {
 			const channel = Channels.getChannel(SelectedChannel.getVoiceChannelId());
 			if (channel) {
-				const prev = this.states.find((user) => user.userId === event.userId);
-				if (event.channelId === channel.id && !prev) {
+				const prev = this.states[userId];
+				if (channelId === channel.id && !prev) {
 					this.notify({
 						type: "join",
-						user: event.userId,
+						user: userId,
 						channel
 					});
-					this.states = cloneStates(channel);
+					this.states = cloneStates(channel.id);
 				}
-				else if (event.channelId !== channel.id && prev) {
+				else if (channelId !== channel.id && prev) {
 					this.notify({
 						type: "leave",
-						user: event.userId,
+						user: userId,
 						channel
 					});
-					this.states = cloneStates(channel);
+					this.states = cloneStates(channel.id);
 				}
 			}
 		}
