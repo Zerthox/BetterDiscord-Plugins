@@ -74,7 +74,7 @@ async function build(data) {
 
 		// transform with babel & custom sass-importer plugin
 		const transformed = babel.transformFileSync(
-			main, 
+			main,
 			{
 				plugins: [
 					["./lib/sass-importer", {
@@ -161,7 +161,7 @@ function dev(data) {
 
 			// transform file
 			const transformed = babel.transformFileSync(
-				file, 
+				file,
 				{
 					plugins: [
 						["./lib/sass-importer", {
@@ -191,6 +191,10 @@ function dev(data) {
 	if (data.watch) {
 		console.log(`Watching for changes in "${dir}"`);
 		fs.watch(dir, {}, (event, filename) => {
+			console.log(`=> ${event === "rename" ? "Renamed" : "Changed"} "${filename}"`);
+			compile();
+		});
+		fs.watch(path.join(__dirname, "../lib/template"), {}, (event, filename) => {
 			console.log(`=> ${event === "rename" ? "Renamed" : "Changed"} "${filename}"`);
 			compile();
 		});
