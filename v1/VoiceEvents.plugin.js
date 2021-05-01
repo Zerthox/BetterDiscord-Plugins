@@ -1,7 +1,7 @@
 /**
  * @name VoiceEvents
  * @author Zerthox
- * @version 1.3.4
+ * @version 1.4.0
  * @description Add TTS Event Notifications to your selected Voice Channel. TeamSpeak feeling.
  * @source https://github.com/Zerthox/BetterDiscord-Plugins
  */
@@ -28,8 +28,25 @@
 	@else
 @*/
 
-const {React, ReactDOM} = BdApi,
-	Flux = BdApi.findModuleByProps("connectStores");
+function _extends() {
+	_extends =
+		Object.assign ||
+		function(target) {
+			for (var i = 1; i < arguments.length; i++) {
+				var source = arguments[i];
+				for (var key in source) {
+					if (Object.prototype.hasOwnProperty.call(source, key)) {
+						target[key] = source[key];
+					}
+				}
+			}
+			return target;
+		};
+	return _extends.apply(this, arguments);
+}
+
+const {React, ReactDOM} = BdApi;
+const Flux = BdApi.findModuleByProps("connectStores");
 
 function qReact(node, query) {
 	let match = false;
@@ -69,6 +86,7 @@ const Component = {
 	VerticalScroller: BdApi.findModuleByDisplayName("VerticalScroller"),
 	Button: BdApi.findModuleByProps("Link", "Hovers"),
 	Form: BdApi.findModuleByProps("FormSection", "FormText"),
+	SwitchItem: BdApi.findModuleByDisplayName("SwitchItem"),
 	TextInput: BdApi.findModuleByDisplayName("TextInput"),
 	SelectTempWrapper: BdApi.findModuleByDisplayName("SelectTempWrapper"),
 	Slider: BdApi.findModuleByDisplayName("Slider")
@@ -77,16 +95,15 @@ const Selector = {
 	margins: BdApi.findModuleByProps("marginLarge")
 };
 
-function cloneStates(channel) {
-	return channel ? Object.assign({}, Module.VoiceStates.getVoiceStatesForChannel(channel)) : {};
-}
-
 class Plugin {
 	constructor() {
 		this.callback = this.onChange.bind(this);
 		this.defaults = {
 			voice: null,
 			volume: 100,
+			speed: 1,
+			filterBots: false,
+			filterNames: true,
 			join: "$user joined $channel",
 			leave: "$user left $channel",
 			joinSelf: "You joined $channel",
@@ -118,7 +135,7 @@ class Plugin {
 
 	getSettings() {
 		const self = this,
-			{Flex, Text, Button, TextInput, SelectTempWrapper, Slider} = Component,
+			{Flex, Text, Button, SwitchItem, TextInput, SelectTempWrapper, Slider} = Component,
 			{FormSection, FormTitle, FormItem, FormText, FormDivider} = Component.Form;
 		return class SettingsPanel extends React.Component {
 			render() {
@@ -173,18 +190,69 @@ class Plugin {
 						},
 						React.createElement(FormTitle, null, "TTS Volume"),
 						React.createElement(Slider, {
-							asValueChanges: (e) =>
-								this.props.update({
-									volume: e
-								}),
 							initialValue: this.props.volume,
 							maxValue: 100,
-							minValue: 0
+							minValue: 0,
+							asValueChanges: (value) =>
+								this.props.update({
+									volume: value
+								})
+						})
+					),
+					React.createElement(
+						FormItem,
+						{
+							className: Selector.margins.marginBottom20
+						},
+						React.createElement(FormTitle, null, "TTS Speed"),
+						React.createElement(Slider, {
+							initialValue: this.props.speed,
+							maxValue: 10,
+							minValue: 0.1,
+							asValueChanges: (value) =>
+								this.props.update({
+									speed: value
+								}),
+							onValueRender: (value) => `${value.toFixed(2)}x`,
+							markers: [0.1, 1, 2, 5, 10],
+							onMarkerRender: (value) => `${value.toFixed(2)}x`
 						})
 					),
 					React.createElement(FormDivider, {
 						className: [Selector.margins.marginTop20, Selector.margins.marginBottom20].join(" ")
 					}),
+					React.createElement(
+						FormItem,
+						null,
+						React.createElement(
+							SwitchItem,
+							{
+								value: this.props.filterBots,
+								onChange: (checked) =>
+									this.props.update({
+										filterBots: checked
+									}),
+								note: "Disable notifications for bot users in voice."
+							},
+							"Enable Bot Filter"
+						)
+					),
+					React.createElement(
+						FormItem,
+						null,
+						React.createElement(
+							SwitchItem,
+							{
+								value: this.props.filterNames,
+								onChange: (checked) =>
+									this.props.update({
+										filterNames: checked
+									}),
+								note: "Limit user & channel names to alphanumeric characters."
+							},
+							"Enable Name Filter"
+						)
+					),
 					React.createElement(
 						FormSection,
 						null,
@@ -288,7 +356,7 @@ class Plugin {
 	}
 
 	start() {
-		this.states = cloneStates(Module.Channels.getChannel(Module.SelectedChannel.getVoiceChannelId()));
+		this.cloneStates();
 		Module.Events.subscribe("VOICE_STATE_UPDATE", this.callback);
 	}
 
@@ -297,82 +365,96 @@ class Plugin {
 		Module.Events.unsubscribe("VOICE_STATE_UPDATE", this.callback);
 	}
 
+	cloneStates() {
+		const {SelectedChannel, VoiceStates} = Module;
+		this.states = {...VoiceStates.getVoiceStatesForChannel(SelectedChannel.getVoiceChannelId())};
+	}
+
 	onChange(event) {
-		const {Channels, Users, SelectedChannel} = Module;
+		const {Users, SelectedChannel, VoiceStates} = Module;
 		const {userId, channelId} = event;
+		const prev = this.states[userId];
 
-		if (userId === Users.getCurrentUser().id) {
-			if (!channelId) {
-				const channel = Channels.getChannel(this.states[userId].channelId);
-				this.notify({
-					type: "leaveSelf",
-					user: userId,
-					channel
-				});
-				this.states = {};
-			} else {
-				const channel = Channels.getChannel(channelId);
-
-				if (
-					!channel.isDM() &&
-					!channel.isGroupDM() &&
-					this.states[userId] &&
-					this.states[userId].channelId !== channelId
-				) {
+		try {
+			if (userId === Users.getCurrentUser().id) {
+				if (!channelId) {
 					this.notify({
-						type: "moveSelf",
-						user: userId,
-						channel
+						type: "leaveSelf",
+						userId,
+						channelId: prev.channelId
 					});
-					this.states = cloneStates(channelId);
-				} else if (!this.states[userId]) {
+					this.cloneStates();
+				} else if (!prev) {
 					this.notify({
 						type: "joinSelf",
-						user: userId,
-						channel
+						userId,
+						channelId
 					});
-					this.states = cloneStates(channelId);
+					this.cloneStates();
+				} else if (prev.channelId !== channelId) {
+					this.notify({
+						type: "moveSelf",
+						userId,
+						channelId
+					});
+					this.cloneStates();
+				}
+			} else {
+				const selectedChannelId = SelectedChannel.getVoiceChannelId();
+
+				if (selectedChannelId) {
+					if (!prev && channelId === selectedChannelId) {
+						this.notify({
+							type: "join",
+							userId,
+							channelId
+						});
+						this.cloneStates();
+					} else if (prev && !VoiceStates.getVoiceStatesForChannel(selectedChannelId)[userId]) {
+						this.notify({
+							type: "leave",
+							userId,
+							channelId: selectedChannelId
+						});
+						this.cloneStates();
+					}
 				}
 			}
-		} else {
-			const channel = Channels.getChannel(SelectedChannel.getVoiceChannelId());
-
-			if (channel) {
-				const prev = this.states[userId];
-
-				if (channelId === channel.id && !prev) {
-					this.notify({
-						type: "join",
-						user: userId,
-						channel
-					});
-					this.states = cloneStates(channel.id);
-				} else if (channelId !== channel.id && prev) {
-					this.notify({
-						type: "leave",
-						user: userId,
-						channel
-					});
-					this.states = cloneStates(channel.id);
-				}
-			}
+		} catch (err) {
+			this.error("Error processing voice state change, see details below");
+			console.error(err);
 		}
 	}
 
-	notify({type, user, channel}) {
-		const {Members, Users} = Module;
-		this.speak(
-			this.settings[type]
-				.split("$user")
-				.join(
-					(!channel.isDM() && !channel.isGroupDM() && Members.getMember(channel.getGuildId(), user).nick) ||
-						Users.getUser(user).username
-				)
-				.split("$username")
-				.join(Users.getUser(user).username)
-				.split("$channel")
-				.join(channel.isDM() || channel.isGroupDM() ? this.settings.privateCall : channel.name)
-		);
+	processName(name) {
+		return this.settings.filterNames
+			? name
+					.split("")
+					.map((char) => (/[a-zA-Z0-9]/.test(char) ? char : " "))
+					.join("")
+			: name;
+	}
+
+	notify({type, userId, channelId}) {
+		const {Channels, Users, Members} = Module;
+		const channel = Channels.getChannel(channelId);
+		const isDM = channel.isDM() || channel.isGroupDM();
+		const user = Users.getUser(userId);
+
+		if (this.settings.filterBots && user.bot) {
+			return;
+		}
+
+		const nick = (!isDM && Members.getMember(channel.getGuildId(), userId).nick) || user.username;
+		const channelName = isDM ? this.settings.privateCall : channel.name;
+		let msg = this.settings[type]
+			.split("$user")
+			.join(this.processName(nick))
+			.split("$username")
+			.join(this.processName(user.username))
+			.split("$channel")
+			.join(this.processName(channelName));
+		this.speak(msg);
 	}
 
 	speak(msg) {
@@ -386,6 +468,7 @@ class Plugin {
 		const utterance = new SpeechSynthesisUtterance(msg);
 		utterance.voice = voices.find((e) => e.name === this.settings.voice);
 		utterance.volume = this.settings.volume / 100;
+		utterance.rate = this.settings.speed;
 
 		if (!utterance.voice) {
 			this.error(
@@ -404,7 +487,7 @@ module.exports = class Wrapper extends Plugin {
 	}
 
 	getVersion() {
-		return "1.3.4";
+		return "1.4.0";
 	}
 
 	getAuthor() {
@@ -447,7 +530,7 @@ module.exports = class Wrapper extends Plugin {
 		this._Patches = [];
 
 		if (this.defaults) {
-			this.settings = Object.assign({}, this.defaults, this.loadData("settings"));
+			this.settings = {...this.defaults, ...this.loadData("settings")};
 		}
 	}
 
@@ -468,12 +551,6 @@ module.exports = class Wrapper extends Plugin {
 		}
 
 		super.stop();
-
-		if (this._settingsRoot) {
-			ReactDOM.unmountComponentAtNode(this._settingsRoot);
-			delete this._settingsRoot;
-		}
-
 		this.log("Disabled");
 	}
 
@@ -482,8 +559,8 @@ module.exports = class Wrapper extends Plugin {
 	}
 
 	loadData(id, fallback = null) {
-		const l = BdApi.loadData(this.getName(), id);
-		return l ? l : fallback;
+		const data = BdApi.loadData(this.getName(), id);
+		return data !== undefined && data !== null ? data : fallback;
 	}
 
 	injectCSS(css) {
@@ -544,92 +621,79 @@ module.exports = class Wrapper extends Plugin {
 };
 
 if (Plugin.prototype.getSettings) {
-	module.exports.prototype.getSettingsPanel = function() {
-		const Flex = BdApi.findModuleByDisplayName("Flex"),
-			Button = BdApi.findModuleByProps("Link", "Hovers"),
-			Form = BdApi.findModuleByProps("FormItem", "FormSection", "FormDivider"),
-			Margins = BdApi.findModuleByProps("marginLarge");
-		const SettingsPanel = Object.assign(this.getSettings(), {
-			displayName: "SettingsPanel"
-		});
-		const self = this;
+	const Flex = BdApi.findModuleByDisplayName("Flex");
+	const Button = BdApi.findModuleByProps("Link", "Hovers");
+	const Form = BdApi.findModuleByProps("FormItem", "FormSection", "FormDivider");
+	const Margins = BdApi.findModuleByProps("marginLarge");
 
-		class Settings extends React.Component {
-			constructor(props) {
-				super(props);
-				this.state = this.props.settings;
-			}
-
-			render() {
-				const props = Object.assign(
-					{
-						update: (e) => this.setState(e, () => this.props.update(this.state))
-					},
-					this.state
-				);
-				return React.createElement(
-					Form.FormSection,
-					null,
-					React.createElement(
-						Form.FormTitle,
-						{
-							tag: "h2"
-						},
-						this.props.name,
-						" Settings"
-					),
-					React.createElement(SettingsPanel, props),
-					React.createElement(Form.FormDivider, {
-						className: [Margins.marginTop20, Margins.marginBottom20].join(" ")
-					}),
-					React.createElement(
-						Flex,
-						{
-							justify: Flex.Justify.END
-						},
-						React.createElement(
-							Button,
-							{
-								size: Button.Sizes.SMALL,
-								onClick: () => {
-									BdApi.showConfirmationModal(this.props.name, "Reset all settings?", {
-										onConfirm: () => {
-											this.props.reset();
-											this.setState(self.settings);
-										}
-									});
-								}
-							},
-							"Reset"
-						)
-					)
-				);
-			}
+	class Settings extends React.Component {
+		constructor(...args) {
+			super(...args);
+			this.state = this.props.current;
 		}
 
-		Settings.displayName = this.getName() + "Settings";
-
-		if (!this._settingsRoot) {
-			this._settingsRoot = document.createElement("div");
-			this._settingsRoot.className = `settingsRoot-${this.getName()}`;
-			ReactDOM.render(
-				React.createElement(Settings, {
-					name: this.getName(),
-					settings: this.settings,
-					update: (state) => {
-						this.saveData("settings", Object.assign(this.settings, state));
-						this.update && this.update();
-					},
-					reset: () => {
-						this.saveData("settings", Object.assign(this.settings, this.defaults));
-						this.update && this.update();
-					}
+		render() {
+			const {name, defaults, children: Child} = this.props;
+			return React.createElement(
+				Form.FormSection,
+				null,
+				React.createElement(
+					Child,
+					_extends(
+						{
+							update: (changed) => this.update({...this.state, ...changed})
+						},
+						this.state
+					)
+				),
+				React.createElement(Form.FormDivider, {
+					className: [Margins.marginTop20, Margins.marginBottom20].join(" ")
 				}),
-				this._settingsRoot
+				React.createElement(
+					Flex,
+					{
+						justify: Flex.Justify.END
+					},
+					React.createElement(
+						Button,
+						{
+							size: Button.Sizes.SMALL,
+							onClick: () =>
+								BdApi.showConfirmationModal(name, "Reset all settings?", {
+									onConfirm: () => this.update(defaults)
+								})
+						},
+						"Reset"
+					)
+				)
 			);
 		}
 
-		return this._settingsRoot;
+		update(settings) {
+			this.setState(settings);
+			this.props.onChange(settings);
+		}
+	}
+
+	module.exports.prototype.getSettingsPanel = function() {
+		return React.createElement(
+			Settings,
+			{
+				name: this.getName(),
+				current: this.settings,
+				defaults: this.defaults,
+				onChange: (settings) => {
+					this.settings = settings;
+
+					if (this.update instanceof Function) {
+						this.update();
+					}
+
+					this.saveData("settings", settings);
+				}
+			},
+			this.getSettings()
+		);
 	};
 }
 

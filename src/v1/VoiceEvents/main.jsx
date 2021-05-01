@@ -20,6 +20,7 @@ const Component = {
 	VerticalScroller: BdApi.findModuleByDisplayName("VerticalScroller"),
 	Button: BdApi.findModuleByProps("Link", "Hovers"),
 	Form: BdApi.findModuleByProps("FormSection", "FormText"),
+	SwitchItem: BdApi.findModuleByDisplayName("SwitchItem"),
 	TextInput: BdApi.findModuleByDisplayName("TextInput"),
 	SelectTempWrapper: BdApi.findModuleByDisplayName("SelectTempWrapper"),
 	Slider: BdApi.findModuleByDisplayName("Slider")
@@ -30,10 +31,6 @@ const Selector = {
 	margins: BdApi.findModuleByProps("marginLarge")
 };
 
-function cloneStates(channel) {
-	return channel ? Object.assign({}, Module.VoiceStates.getVoiceStatesForChannel(channel)) : {};
-}
-
 class Plugin {
 
 	constructor() {
@@ -41,6 +38,9 @@ class Plugin {
 		this.defaults = {
 			voice: null,
 			volume: 100,
+			speed: 1,
+			filterBots: false,
+			filterNames: true,
 			join: "$user joined $channel",
 			leave: "$user left $channel",
 			joinSelf: "You joined $channel",
@@ -69,7 +69,7 @@ class Plugin {
 
 	getSettings() {
 		const self = this,
-			{Flex, Text, Button, TextInput, SelectTempWrapper, Slider} = Component,
+			{Flex, Text, Button, SwitchItem, TextInput, SelectTempWrapper, Slider} = Component,
 			{FormSection, FormTitle, FormItem, FormText, FormDivider} = Component.Form;
 
 		return class SettingsPanel extends React.Component {
@@ -98,13 +98,39 @@ class Plugin {
 						<FormItem className={Selector.margins.marginBottom20}>
 							<FormTitle>TTS Volume</FormTitle>
 							<Slider
-								asValueChanges={(e) => this.props.update({volume: e})}
 								initialValue={this.props.volume}
 								maxValue={100}
 								minValue={0}
+								asValueChanges={(value) => this.props.update({volume: value})}
+							/>
+						</FormItem>
+						<FormItem className={Selector.margins.marginBottom20}>
+							<FormTitle>TTS Speed</FormTitle>
+							<Slider
+								initialValue={this.props.speed}
+								maxValue={10}
+								minValue={0.1}
+								asValueChanges={(value) => this.props.update({speed: value})}
+								onValueRender={(value) => `${value.toFixed(2)}x`}
+								markers={[0.1, 1, 2, 5, 10]}
+								onMarkerRender={(value) => `${value.toFixed(2)}x`}
 							/>
 						</FormItem>
 						<FormDivider className={[Selector.margins.marginTop20, Selector.margins.marginBottom20].join(" ")}/>
+						<FormItem>
+							<SwitchItem
+								value={this.props.filterBots}
+								onChange={(checked) => this.props.update({filterBots: checked})}
+								note="Disable notifications for bot users in voice."
+							>Enable Bot Filter</SwitchItem>
+						</FormItem>
+						<FormItem>
+							<SwitchItem
+								value={this.props.filterNames}
+								onChange={(checked) => this.props.update({filterNames: checked})}
+								note="Limit user & channel names to alphanumeric characters."
+							>Enable Name Filter</SwitchItem>
+						</FormItem>
 						<FormSection>
 							<FormTitle tag="h3">Messages</FormTitle>
 							<FormText type="description" className={Selector.margins.marginBottom20}>
@@ -175,7 +201,7 @@ class Plugin {
 	}
 
 	start() {
-		this.states = cloneStates(Module.Channels.getChannel(Module.SelectedChannel.getVoiceChannelId()));
+		this.cloneStates();
 		Module.Events.subscribe("VOICE_STATE_UPDATE", this.callback);
 	}
 
@@ -184,71 +210,77 @@ class Plugin {
 		Module.Events.unsubscribe("VOICE_STATE_UPDATE", this.callback);
 	}
 
+	cloneStates() {
+		const {SelectedChannel, VoiceStates} = Module;
+		this.states = {...VoiceStates.getVoiceStatesForChannel(SelectedChannel.getVoiceChannelId())};
+	}
+
 	onChange(event) {
-		const {Channels, Users, SelectedChannel} = Module;
+		const {Users, SelectedChannel, VoiceStates} = Module;
 		const {userId, channelId} = event;
-		if (userId === Users.getCurrentUser().id) {
-			if (!channelId) {
-				const channel = Channels.getChannel(this.states[userId].channelId);
-				this.notify({
-					type: "leaveSelf",
-					user: userId,
-					channel
-				});
-				this.states = {};
-			}
-			else {
-				const channel = Channels.getChannel(channelId);
-				if (!channel.isDM() && !channel.isGroupDM() && this.states[userId] && this.states[userId].channelId !== channelId) {
-					this.notify({
-						type: "moveSelf",
-						user: userId,
-						channel
-					});
-					this.states = cloneStates(channelId);
+		const prev = this.states[userId];
+
+		try {
+			// check for self
+			if (userId === Users.getCurrentUser().id) {
+				if (!channelId) {
+					// no channel is leave
+					this.notify({type: "leaveSelf", userId, channelId: prev.channelId})
+					this.cloneStates();
+				} else if (!prev) {
+					// no previous state is join
+					this.notify({type: "joinSelf", userId, channelId})
+					this.cloneStates();
+				} else if (prev.channelId !== channelId) {
+					// previous state in different channel is move
+					this.notify({type: "moveSelf", userId, channelId})
+					this.cloneStates();
 				}
-				else if (!this.states[userId]) {
-					this.notify({
-						type: "joinSelf",
-						user: userId,
-						channel
-					});
-					this.states = cloneStates(channelId);
-				}
-			}
-		}
-		else {
-			const channel = Channels.getChannel(SelectedChannel.getVoiceChannelId());
-			if (channel) {
-				const prev = this.states[userId];
-				if (channelId === channel.id && !prev) {
-					this.notify({
-						type: "join",
-						user: userId,
-						channel
-					});
-					this.states = cloneStates(channel.id);
-				}
-				else if (channelId !== channel.id && prev) {
-					this.notify({
-						type: "leave",
-						user: userId,
-						channel
-					});
-					this.states = cloneStates(channel.id);
+			} else {
+				const selectedChannelId = SelectedChannel.getVoiceChannelId();
+				if (selectedChannelId) {
+					if (!prev && channelId === selectedChannelId) {
+						// no previous state & same channel is join
+						this.notify({type: "join", userId, channelId});
+						this.cloneStates();
+					} else if (prev && !VoiceStates.getVoiceStatesForChannel(selectedChannelId)[userId]) {
+						// previous state & no current state is leave
+						this.notify({type: "leave", userId, channelId: selectedChannelId});
+						this.cloneStates();
+					}
 				}
 			}
+		} catch (err) {
+			this.error("Error processing voice state change, see details below");
+			console.error(err);
 		}
 	}
 
-	notify({type, user, channel}) {
-		const {Members, Users} = Module;
-		this.speak(
-			this.settings[type]
-				.split("$user").join((!channel.isDM() && !channel.isGroupDM() && Members.getMember(channel.getGuildId(), user).nick) || Users.getUser(user).username)
-				.split("$username").join(Users.getUser(user).username)
-				.split("$channel").join(channel.isDM() || channel.isGroupDM() ? this.settings.privateCall : channel.name)
-		);
+	processName(name) {
+		return this.settings.filterNames ? name.split("").map((char) => /[a-zA-Z0-9]/.test(char) ? char : " ").join("") : name;
+	}
+
+	notify({type, userId, channelId}) {
+		const {Channels, Users, Members} = Module;
+		const channel = Channels.getChannel(channelId);
+		const isDM = channel.isDM() || channel.isGroupDM();
+		const user = Users.getUser(userId);
+
+		// check for bot filter
+		if (this.settings.filterBots && user.bot) {
+			return;
+		}
+
+		// find nick & channel name
+		const nick = (!isDM && Members.getMember(channel.getGuildId(), userId).nick) || user.username;
+		const channelName = isDM ? this.settings.privateCall : channel.name;
+
+		// speak message
+		let msg = this.settings[type]
+			.split("$user").join(this.processName(nick))
+			.split("$username").join(this.processName(user.username))
+			.split("$channel").join(this.processName(channelName));
+		this.speak(msg);
 	}
 
 	speak(msg) {
@@ -257,9 +289,13 @@ class Plugin {
 			this.error(`Message "${msg}" could not be played: No speech synthesis voices available`);
 			return;
 		}
+
+		// create utterance
 		const utterance = new SpeechSynthesisUtterance(msg);
 		utterance.voice = voices.find((e) => e.name === this.settings.voice);
 		utterance.volume = this.settings.volume / 100;
+		utterance.rate = this.settings.speed;
+
 		if (!utterance.voice) {
 			this.error(`Message "${msg}" could not be played: Set speech synthesis voice "${this.settings.voice}" could not be found`);
 			return;
