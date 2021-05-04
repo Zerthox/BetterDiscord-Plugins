@@ -2,5 +2,6 @@
 	"name": "OnlineFriendCount",
 	"author": "Zerthox",
 	"version": "1.4.0",
-	"description": "Add the old online friend count back to guild list. Because nostalgia."
+	"description": "Add the old online friend count back to guild list. Because nostalgia.",
+	"updateUrl": "https://raw.githubusercontent.com/Zerthox/BetterDiscord-Plugins/master/v1/OnlineFriendCount.plugin.js"
 }

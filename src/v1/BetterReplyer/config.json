@@ -2,5 +2,6 @@
 	"name": "BetterReplyer",
 	"author": "Zerthox",
 	"version": "4.3.3",
-	"description": "Reply to people using their ID with a button.\nInspired by Replyer by @Hammmock#3110, @Natsulus#0001 & @Zerebos#7790."
+	"description": "Reply to people using their ID with a button.\nInspired by Replyer by @Hammmock#3110, @Natsulus#0001 & @Zerebos#7790.",
+	"updateUrl": "https://raw.githubusercontent.com/Zerthox/BetterDiscord-Plugins/master/v1/BetterReplyer.plugin.js"
 }

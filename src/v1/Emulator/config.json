@@ -2,5 +2,6 @@
 	"name": "Emulator",
 	"author": "Zerthox",
 	"version": "1.1.0",
-	"description": "Emulate Windows, MacOS, Linux or Browser on any platform.\nWARNING: Emulating a different platform may cause unwanted side effects. Use at own risk."
+	"description": "Emulate Windows, MacOS, Linux or Browser on any platform.\nWARNING: Emulating a different platform may cause unwanted side effects. Use at own risk.",
+	"updateUrl": "https://raw.githubusercontent.com/Zerthox/BetterDiscord-Plugins/master/v1/Emulator.plugin.js"
 }

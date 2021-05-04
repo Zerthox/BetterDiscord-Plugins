@@ -2,5 +2,6 @@
 	"name": "VoiceCount",
 	"author": "Zerthox",
 	"version": "0.1.0",
-	"description": "Add a user count to all voice channels."
+	"description": "Add a user count to all voice channels.",
+	"updateUrl": "https://raw.githubusercontent.com/Zerthox/BetterDiscord-Plugins/master/v1/VoiceCount.plugin.js"
 }

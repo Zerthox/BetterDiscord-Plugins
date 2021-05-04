@@ -2,5 +2,6 @@
 	"name": "BetterFolders",
 	"author": "Zerthox",
 	"version": "2.3.0",
-	"description": "Add new functionality to server folders."
+	"description": "Add new functionality to server folders.",
+	"updateUrl": "https://raw.githubusercontent.com/Zerthox/BetterDiscord-Plugins/master/v1/BetterFolders.plugin.js"
 }

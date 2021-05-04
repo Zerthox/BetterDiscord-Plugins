@@ -2,5 +2,6 @@
 	"name": "BetterVolume",
 	"author": "Zerthox",
 	"version": "0.1.0",
-	"description": "Set user volume values manually instead of using a limited slider."
+	"description": "Set user volume values manually instead of using a limited slider.",
+	"updateUrl": "https://raw.githubusercontent.com/Zerthox/BetterDiscord-Plugins/master/v1/BetterVolume.plugin.js"
 }

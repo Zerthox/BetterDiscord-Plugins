@@ -2,5 +2,6 @@
 	"name": "VoiceEvents",
 	"author": "Zerthox",
 	"version": "1.4.0",
-	"description": "Add TTS Event Notifications to your selected Voice Channel. TeamSpeak feeling."
+	"description": "Add TTS Event Notifications to your selected Voice Channel. TeamSpeak feeling.",
+	"updateUrl": "https://raw.githubusercontent.com/Zerthox/BetterDiscord-Plugins/master/v1/VoiceEvents.plugin.js"
 }

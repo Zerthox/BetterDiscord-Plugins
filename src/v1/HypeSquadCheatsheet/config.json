@@ -2,5 +2,6 @@
 	"name": "HypeSquadCheatsheet",
 	"author": "Zerthox",
 	"version": "0.1.0",
-	"description": "Display the resulting HypeSquad house next to the questions in the HypeSquad questions modal."
+	"description": "Display the resulting HypeSquad house next to the questions in the HypeSquad questions modal.",
+	"updateUrl": "https://raw.githubusercontent.com/Zerthox/BetterDiscord-Plugins/master/v1/HypeSquadCheatsheet.plugin.js"
 }
