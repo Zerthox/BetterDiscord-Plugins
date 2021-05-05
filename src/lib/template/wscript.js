@@ -9,11 +9,9 @@
             if (shell.Popup("Unable to find the BetterDiscord plugins folder on your computer.\nOpen the download page of BandagedBD/BetterDiscord?", 0, name + ": BetterDiscord installation not found", 0x14) === 6) {
                 shell.Exec("explorer \"https://github.com/rauenzi/betterdiscordapp/releases\"");
             }
-        }
-        else if (WScript.ScriptFullName === pluginsPath + "\\" + WScript.ScriptName) {
+        } else if (WScript.ScriptFullName === pluginsPath + "\\" + WScript.ScriptName) {
             shell.Popup("This plugin is already in the correct folder.\nNavigate to the \"Plugins\" settings tab in Discord and enable it there.", 0, name, 0x40);
-        }
-        else {
+        } else {
             shell.Exec("explorer " + pluginsPath);
         }
         WScript.Quit();

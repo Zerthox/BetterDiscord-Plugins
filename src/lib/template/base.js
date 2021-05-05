@@ -237,12 +237,12 @@ module.exports = class Wrapper extends Plugin {
 
 // check if plugin has settings
 if (Plugin.prototype.getSettings) {
-    // define settings wrapper
     const Flex = BdApi.findModuleByDisplayName("Flex");
     const Button = BdApi.findModuleByProps("Link", "Hovers");
     const Form = BdApi.findModuleByProps("FormItem", "FormSection", "FormDivider");
     const Margins = BdApi.findModuleByProps("marginLarge");
 
+    // define settings wrapper
     class Settings extends React.Component {
         constructor(...args) {
             super(...args);
