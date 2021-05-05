@@ -4,7 +4,9 @@
 	"description": "Plugins for BetterDiscord (BandagedBD & BDV2).",
 	"main": "build.js",
 	"scripts": {
-		"build": "node scripts/build.js --plugins=*"
+		"build": "node scripts/build.js --plugins=*",
+		"lint": "eslint src --ext .js,.jsx -f node_modules/eslint-friendly-formatter",
+		"lint-fix": "eslint src --fix --ext .js,.jsx -f node_modules/eslint-friendly-formatter"
 	},
 	"repository": {
 		"type": "git",
@@ -16,12 +18,17 @@
 		"url": "https://github.com/Zerthox/BetterDiscord-Plugins/issues"
 	},
 	"homepage": "https://github.com/Zerthox/BetterDiscord-Plugins#readme",
-	"dependencies": {},
 	"devDependencies": {
 		"@babel/cli": "^7.12.1",
 		"@babel/core": "^7.12.3",
+		"@babel/eslint-parser": "^7.13.14",
 		"@babel/preset-react": "^7.12.1",
 		"chalk": "^2.4.2",
+		"eslint": "^7.25.0",
+		"eslint-config-google": "^0.14.0",
+		"eslint-friendly-formatter": "^4.0.1",
+		"eslint-plugin-node": "^11.1.0",
+		"eslint-plugin-react": "^7.23.2",
 		"minimist": "^1.2.5",
 		"node-sass": "^4.14.1",
 		"prettier": "^1.19.1"
@@ -33,9 +40,9 @@
 	},
 	"prettier": {
 		"parser": "babel",
-		"printWidth": 120,
+		"endOfLine": "lf",
 		"tabWidth": 4,
-		"useTabs": true,
+		"printWidth": 120,
 		"bracketSpacing": false,
 		"arrowParens": "always"
 	}
