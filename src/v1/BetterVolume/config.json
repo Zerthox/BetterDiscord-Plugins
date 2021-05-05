@@ -1,6 +1,6 @@
 {
 	"name": "BetterVolume",
 	"author": "Zerthox",
-	"version": "0.1.0",
+	"version": "1.0.0",
 	"description": "Set user volume values manually instead of using a limited slider."
 }

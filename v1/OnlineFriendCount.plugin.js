@@ -1,429 +1,406 @@
 /**
  * @name OnlineFriendCount
  * @author Zerthox
- * @version 1.4.0
+ * @version 1.4.1
  * @description Add the old online friend count back to guild list. Because nostalgia.
- * @source https://github.com/Zerthox/BetterDiscord-Plugins
+ * @authorLink https://github.com/Zerthox
+ * @donate https://paypal.me/zerthox
+ * @website https://github.com/Zerthox/BetterDiscord-Plugins
+ * @source https://github.com/Zerthox/BetterDiscord-Plugins/tree/master/v1/onlinefriendcount.plugin.js
+ * @updateUrl https://raw.githubusercontent.com/Zerthox/BetterDiscord-Plugins/master/v1/onlinefriendcount.plugin.js
  */
 
-/*@cc_on
-	@if (@_jscript)
-		var name = WScript.ScriptName.split(".")[0];
-		var shell = WScript.CreateObject("WScript.Shell");
-		var fso = new ActiveXObject("Scripting.FileSystemObject");
-		shell.Popup("Do NOT run random scripts from the internet with the Windows Script Host!\n\nYou are supposed to move this file to your BandagedBD/BetterDiscord plugins folder.", 0, name + ": Warning!", 0x1030);
-		var pluginsPath = shell.expandEnvironmentStrings("%appdata%\\BetterDiscord\\plugins");
-		if (!fso.FolderExists(pluginsPath)) {
-			if (shell.Popup("Unable to find the BetterDiscord plugins folder on your computer.\nOpen the download page of BandagedBD/BetterDiscord?", 0, name + ": BetterDiscord installation not found", 0x14) === 6) {
-				shell.Exec("explorer \"https://github.com/rauenzi/betterdiscordapp/releases\"");
-			}
-		}
-		else if (WScript.ScriptFullName === pluginsPath + "\\" + WScript.ScriptName) {
-			shell.Popup("This plugin is already in the correct folder.\nNavigate to the \"Plugins\" settings tab in Discord and enable it there.", 0, name, 0x40);
-		}
-		else {
-			shell.Exec("explorer " + pluginsPath);
-		}
-		WScript.Quit();
-	@else
+/* @cc_on
+    @if (@_jscript)
+        var name = WScript.ScriptName.split(".")[0];
+        var shell = WScript.CreateObject("WScript.Shell");
+        var fso = new ActiveXObject("Scripting.FileSystemObject");
+        shell.Popup("Do NOT run random scripts from the internet with the Windows Script Host!\n\nYou are supposed to move this file to your BandagedBD/BetterDiscord plugins folder.", 0, name + ": Warning!", 0x1030);
+        var pluginsPath = shell.expandEnvironmentStrings("%appdata%\\BetterDiscord\\plugins");
+        if (!fso.FolderExists(pluginsPath)) {
+            if (shell.Popup("Unable to find the BetterDiscord plugins folder on your computer.\nOpen the download page of BandagedBD/BetterDiscord?", 0, name + ": BetterDiscord installation not found", 0x14) === 6) {
+                shell.Exec("explorer \"https://github.com/rauenzi/betterdiscordapp/releases\"");
+            }
+        } else if (WScript.ScriptFullName === pluginsPath + "\\" + WScript.ScriptName) {
+            shell.Popup("This plugin is already in the correct folder.\nNavigate to the \"Plugins\" settings tab in Discord and enable it there.", 0, name, 0x40);
+        } else {
+            shell.Exec("explorer " + pluginsPath);
+        }
+        WScript.Quit();
+    @else
 @*/
 
-const {React, ReactDOM} = BdApi,
-	Flux = BdApi.findModuleByProps("connectStores");
+const {React, ReactDOM} = BdApi;
+const Flux = BdApi.findModuleByProps("connectStores");
 
 function qReact(node, query) {
-	let match = false;
+    let match = false;
 
-	try {
-		match = query(node);
-	} catch (err) {
-		console.debug("Suppressed error in qReact query:\n", err);
-	}
+    try {
+        match = query(node);
+    } catch (err) {
+        console.debug("Suppressed error in qReact query:\n", err);
+    }
 
-	if (match) {
-		return node;
-	} else if (node && node.props && node.props.children) {
-		for (const child of [node.props.children].flat()) {
-			const result = arguments.callee(child, query);
+    if (match) {
+        return node;
+    } else if (node && node.props && node.props.children) {
+        for (const child of [node.props.children].flat()) {
+            const result = qReact(child, query);
 
-			if (result) {
-				return result;
-			}
-		}
-	}
+            if (result) {
+                return result;
+            }
+        }
+    }
 
-	return null;
+    return null;
 }
 
 const Module = {
-	Status: BdApi.findModuleByProps("getStatus", "getOnlineFriendCount")
+    Status: BdApi.findModuleByProps("getStatus", "getOnlineFriendCount")
 };
 const Component = {
-	Link: BdApi.findModuleByProps("NavLink").Link
+    Link: BdApi.findModuleByProps("NavLink").Link
 };
 const Selector = {
-	guilds: BdApi.findModuleByProps("guilds", "base"),
-	list: BdApi.findModuleByProps("listItem"),
-	friendsOnline: "friendsOnline-2JkivW"
+    guilds: BdApi.findModuleByProps("guilds", "base"),
+    list: BdApi.findModuleByProps("listItem"),
+    friendsOnline: "friendsOnline-2JkivW"
 };
-const Styles = `/*! OnlineFriendCount v1.4.0 styles */
+const Styles = `/*! OnlineFriendCount v1.4.1 styles */
 .friendsOnline-2JkivW {
-  color: rgba(255, 255, 255, 0.3);
-  text-align: center;
-  text-transform: uppercase;
-  font-size: 10px;
-  font-weight: 500;
-  line-height: 1.3;
-  width: 70px;
-  word-wrap: normal;
-  white-space: nowrap;
-  cursor: pointer;
+    color: rgba(255, 255, 255, 0.3);
+    text-align: center;
+    text-transform: uppercase;
+    font-size: 10px;
+    font-weight: 500;
+    line-height: 1.3;
+    width: 70px;
+    word-wrap: normal;
+    white-space: nowrap;
+    cursor: pointer;
 }
-
 .friendsOnline-2JkivW:hover {
-  color: rgba(255, 255, 255, 0.5);
+    color: rgba(255, 255, 255, 0.5);
 }`;
 
 function OnlineCount({online}) {
-	return React.createElement(
-		"div",
-		{
-			className: Selector.list.listItem
-		},
-		React.createElement(
-			Component.Link,
-			{
-				to: {
-					pathname: "/channels/@me"
-				}
-			},
-			React.createElement(
-				"div",
-				{
-					className: Selector.friendsOnline
-				},
-				online,
-				" Online"
-			)
-		)
-	);
+    return React.createElement(
+        "div",
+        {
+            className: Selector.list.listItem
+        },
+        React.createElement(
+            Component.Link,
+            {
+                to: {
+                    pathname: "/channels/@me"
+                }
+            },
+            React.createElement(
+                "div",
+                {
+                    className: Selector.friendsOnline
+                },
+                online,
+                " Online"
+            )
+        )
+    );
 }
 
 const OnlineCountContainer = Flux.connectStores([Module.Status], () => ({
-	online: Module.Status.getOnlineFriendCount()
+    online: Module.Status.getOnlineFriendCount()
 }))(OnlineCount);
 
 class Plugin {
-	start() {
-		this.injectCSS(Styles);
-		const guilds = this.findGuilds();
+    start() {
+        this.injectCSS(Styles);
+        const guilds = this.findGuilds();
 
-		const findChildFunc = (el) => {
-			while (!(el.props.children instanceof Function)) {
-				if (!el.props.children) {
-					this.log(`Unable to find children function for "${el.type.toString()}"`);
-					return null;
-				}
+        const findChildFunc = (el) => {
+            while (!(el.props.children instanceof Function)) {
+                if (!el.props.children) {
+                    this.log(`Unable to find children function for "${el.type.toString()}"`);
+                    return null;
+                }
 
-				el = el.props.children;
-			}
+                el = el.props.children;
+            }
 
-			return el;
-		};
+            return el;
+        };
 
-		this.createPatch(guilds.type.prototype, "render", {
-			after: ({returnValue}) => {
-				BdApi.monkeyPatch(findChildFunc(returnValue).props, "children", {
-					silent: true,
-					after: ({returnValue}) => {
-						BdApi.monkeyPatch(findChildFunc(returnValue).props, "children", {
-							silent: true,
-							after: ({returnValue}) => {
-								const scroller = qReact(returnValue, (e) =>
-									e.props.children.find((e) => e.type.displayName === "ConnectedUnreadDMs")
-								);
+        this.createPatch(guilds.type.prototype, "render", {
+            after: ({returnValue}) => {
+                BdApi.monkeyPatch(findChildFunc(returnValue).props, "children", {
+                    silent: true,
+                    after: ({returnValue}) => {
+                        BdApi.monkeyPatch(findChildFunc(returnValue).props, "children", {
+                            silent: true,
+                            after: ({returnValue}) => {
+                                const scroller = qReact(returnValue, (e) =>
+                                    e.props.children.find((e) => e.type.displayName === "ConnectedUnreadDMs")
+                                );
 
-								if (!scroller) {
-									this.error("Error during render: Cannot find guilds scroller Component");
-									return;
-								}
+                                if (!scroller) {
+                                    this.error("Error during render: Cannot find guilds scroller Component");
+                                    return;
+                                }
 
-								const {children} = scroller.props;
-								const index = children.indexOf(
-									qReact(scroller, (e) => e.type.displayName === "ConnectedUnreadDMs")
-								);
-								children.splice(
-									index > -1 ? index : 1,
-									0,
-									React.createElement(OnlineCountContainer, null)
-								);
-							}
-						});
-					}
-				});
-			}
-		});
-		guilds.stateNode.forceUpdate();
-	}
+                                const {children} = scroller.props;
+                                const index = children.indexOf(
+                                    qReact(scroller, (e) => e.type.displayName === "ConnectedUnreadDMs")
+                                );
+                                children.splice(
+                                    index > -1 ? index : 1,
+                                    0,
+                                    React.createElement(OnlineCountContainer, null)
+                                );
+                            }
+                        });
+                    }
+                });
+            }
+        });
+        guilds.stateNode.forceUpdate();
+    }
 
-	stop() {
-		this.findGuilds().stateNode.forceUpdate();
-	}
+    stop() {
+        this.findGuilds().stateNode.forceUpdate();
+    }
 
-	findGuilds() {
-		let guilds = BdApi.getInternalInstance(document.getElementsByClassName(Selector.guilds.guilds)[0]);
+    findGuilds() {
+        let guilds = BdApi.getInternalInstance(document.getElementsByClassName(Selector.guilds.guilds)[0]);
 
-		if (!guilds) {
-			this.error("Cannot find Guilds element fiber");
-			return;
-		}
+        if (!guilds) {
+            this.error("Cannot find Guilds element fiber");
+            return;
+        }
 
-		while (!guilds.type || guilds.type.displayName !== "Guilds") {
-			if (!guilds.return) {
-				this.error("Cannot find Guilds Component");
-				return;
-			}
+        while (!guilds.type || guilds.type.displayName !== "Guilds") {
+            if (!guilds.return) {
+                this.error("Cannot find Guilds Component");
+                return;
+            }
 
-			guilds = guilds.return;
-		}
+            guilds = guilds.return;
+        }
 
-		return guilds;
-	}
+        return guilds;
+    }
 }
 
 module.exports = class Wrapper extends Plugin {
-	getName() {
-		return "OnlineFriendCount";
-	}
+    getName() {
+        return "OnlineFriendCount";
+    }
 
-	getVersion() {
-		return "1.4.0";
-	}
+    getVersion() {
+        return "1.4.1";
+    }
 
-	getAuthor() {
-		return "Zerthox";
-	}
+    getAuthor() {
+        return "Zerthox";
+    }
 
-	getDescription() {
-		return "Add the old online friend count back to guild list. Because nostalgia.";
-	}
+    getDescription() {
+        return "Add the old online friend count back to guild list. Because nostalgia.";
+    }
 
-	log(...msgs) {
-		console.log(
-			`%c[${this.getName()}] %c(v${this.getVersion()})`,
-			"color: #3a71c1; font-weight: 700;",
-			"color: #666; font-size: .8em;",
-			...msgs
-		);
-	}
+    log(...msgs) {
+        console.log(
+            `%c[${this.getName()}] %c(v${this.getVersion()})`,
+            "color: #3a71c1; font-weight: 700;",
+            "color: #666; font-size: .8em;",
+            ...msgs
+        );
+    }
 
-	warn(...msgs) {
-		console.warn(
-			`%c[${this.getName()}] %c(v${this.getVersion()})`,
-			"color: #3a71c1; font-weight: 700;",
-			"color: #666; font-size: .8em;",
-			...msgs
-		);
-	}
+    warn(...msgs) {
+        console.warn(
+            `%c[${this.getName()}] %c(v${this.getVersion()})`,
+            "color: #3a71c1; font-weight: 700;",
+            "color: #666; font-size: .8em;",
+            ...msgs
+        );
+    }
 
-	error(...msgs) {
-		console.error(
-			`%c[${this.getName()}] %c(v${this.getVersion()})`,
-			"color: #3a71c1; font-weight: 700;",
-			"color: #666; font-size: .8em;",
-			...msgs
-		);
-	}
+    error(...msgs) {
+        console.error(
+            `%c[${this.getName()}] %c(v${this.getVersion()})`,
+            "color: #3a71c1; font-weight: 700;",
+            "color: #666; font-size: .8em;",
+            ...msgs
+        );
+    }
 
-	constructor() {
-		super(...arguments);
-		this._Patches = [];
+    constructor(...args) {
+        super(...args);
+        this._Patches = [];
 
-		if (this.defaults) {
-			this.settings = Object.assign({}, this.defaults, this.loadData("settings"));
-		}
-	}
+        if (this.defaults) {
+            this.settings = {...this.defaults, ...this.loadData("settings")};
+        }
+    }
 
-	start() {
-		this.log("Enabled");
-		super.start();
-	}
+    start() {
+        this.log("Enabled");
+        super.start();
+    }
 
-	stop() {
-		while (this._Patches.length > 0) {
-			this._Patches.pop()();
-		}
+    stop() {
+        while (this._Patches.length > 0) {
+            this._Patches.pop()();
+        }
 
-		this.log("Unpatched all");
+        this.log("Unpatched all");
 
-		if (document.getElementById(this.getName())) {
-			BdApi.clearCSS(this.getName());
-		}
+        if (document.getElementById(this.getName())) {
+            BdApi.clearCSS(this.getName());
+        }
 
-		super.stop();
+        super.stop();
+        this.log("Disabled");
+    }
 
-		if (this._settingsRoot) {
-			ReactDOM.unmountComponentAtNode(this._settingsRoot);
-			delete this._settingsRoot;
-		}
+    saveData(id, value) {
+        return BdApi.saveData(this.getName(), id, value);
+    }
 
-		this.log("Disabled");
-	}
+    loadData(id, fallback = null) {
+        const data = BdApi.loadData(this.getName(), id);
+        return data !== undefined && data !== null ? data : fallback;
+    }
 
-	saveData(id, value) {
-		return BdApi.saveData(this.getName(), id, value);
-	}
+    injectCSS(css) {
+        const el = document.getElementById(this.getName());
 
-	loadData(id, fallback = null) {
-		const l = BdApi.loadData(this.getName(), id);
-		return l ? l : fallback;
-	}
+        if (!el) {
+            BdApi.injectCSS(this.getName(), css);
+        } else {
+            el.innerHTML += "\n\n/* --- */\n\n" + css;
+        }
+    }
 
-	injectCSS(css) {
-		const el = document.getElementById(this.getName());
+    createPatch(target, method, options) {
+        options.silent = true;
 
-		if (!el) {
-			BdApi.injectCSS(this.getName(), css);
-		} else {
-			el.innerHTML += "\n\n/* --- */\n\n" + css;
-		}
-	}
+        this._Patches.push(BdApi.monkeyPatch(target, method, options));
 
-	createPatch(target, method, options) {
-		options.silent = true;
+        const name =
+            options.name ||
+            target.displayName ||
+            target.name ||
+            target.constructor.displayName ||
+            target.constructor.name ||
+            "Unknown";
+        this.log(
+            `Patched ${method} of ${name} ${
+                options.type === "component" || target instanceof React.Component ? "component" : "module"
+            }`
+        );
+    }
 
-		this._Patches.push(BdApi.monkeyPatch(target, method, options));
+    async forceUpdate(...classes) {
+        this.forceUpdateElements(...classes.map((e) => Array.from(document.getElementsByClassName(e))).flat());
+    }
 
-		const name =
-			options.name ||
-			target.displayName ||
-			target.name ||
-			target.constructor.displayName ||
-			target.constructor.name ||
-			"Unknown";
-		this.log(
-			`Patched ${method} of ${name} ${
-				options.type === "component" || target instanceof React.Component ? "component" : "module"
-			}`
-		);
-	}
+    async forceUpdateElements(...elements) {
+        for (const el of elements) {
+            try {
+                let fiber = BdApi.getInternalInstance(el);
 
-	async forceUpdate(...classes) {
-		this.forceUpdateElements(...classes.map((e) => Array.from(document.getElementsByClassName(e))).flat());
-	}
+                if (fiber) {
+                    while (!fiber.stateNode || !fiber.stateNode.forceUpdate) {
+                        fiber = fiber.return;
+                    }
 
-	async forceUpdateElements(...elements) {
-		for (const el of elements) {
-			try {
-				let fiber = BdApi.getInternalInstance(el);
-
-				if (fiber) {
-					while (!fiber.stateNode || !fiber.stateNode.forceUpdate) {
-						fiber = fiber.return;
-					}
-
-					fiber.stateNode.forceUpdate();
-				}
-			} catch (e) {
-				this.warn(
-					`Failed to force update "${
-						el.id ? `#${el.id}` : el.className ? `.${el.className}` : el.tagName
-					}" state node`
-				);
-				console.error(e);
-			}
-		}
-	}
+                    fiber.stateNode.forceUpdate();
+                }
+            } catch (e) {
+                this.warn(
+                    `Failed to force update "${
+                        el.id ? `#${el.id}` : el.className ? `.${el.className}` : el.tagName
+                    }" state node`
+                );
+                console.error(e);
+            }
+        }
+    }
 };
 
 if (Plugin.prototype.getSettings) {
-	module.exports.prototype.getSettingsPanel = function() {
-		const Flex = BdApi.findModuleByDisplayName("Flex"),
-			Button = BdApi.findModuleByProps("Link", "Hovers"),
-			Form = BdApi.findModuleByProps("FormItem", "FormSection", "FormDivider"),
-			Margins = BdApi.findModuleByProps("marginLarge");
-		const SettingsPanel = Object.assign(this.getSettings(), {
-			displayName: "SettingsPanel"
-		});
-		const self = this;
+    const Flex = BdApi.findModuleByDisplayName("Flex");
+    const Button = BdApi.findModuleByProps("Link", "Hovers");
+    const Form = BdApi.findModuleByProps("FormItem", "FormSection", "FormDivider");
+    const Margins = BdApi.findModuleByProps("marginLarge");
 
-		class Settings extends React.Component {
-			constructor(props) {
-				super(props);
-				this.state = this.props.settings;
-			}
+    class Settings extends React.Component {
+        constructor(...args) {
+            super(...args);
+            this.state = this.props.current;
+        }
 
-			render() {
-				const props = Object.assign(
-					{
-						update: (e) => this.setState(e, () => this.props.update(this.state))
-					},
-					this.state
-				);
-				return React.createElement(
-					Form.FormSection,
-					null,
-					React.createElement(
-						Form.FormTitle,
-						{
-							tag: "h2"
-						},
-						this.props.name,
-						" Settings"
-					),
-					React.createElement(SettingsPanel, props),
-					React.createElement(Form.FormDivider, {
-						className: [Margins.marginTop20, Margins.marginBottom20].join(" ")
-					}),
-					React.createElement(
-						Flex,
-						{
-							justify: Flex.Justify.END
-						},
-						React.createElement(
-							Button,
-							{
-								size: Button.Sizes.SMALL,
-								onClick: () => {
-									BdApi.showConfirmationModal(this.props.name, "Reset all settings?", {
-										onConfirm: () => {
-											this.props.reset();
-											this.setState(self.settings);
-										}
-									});
-								}
-							},
-							"Reset"
-						)
-					)
-				);
-			}
-		}
+        render() {
+            const {name, defaults, children: Child} = this.props;
+            return React.createElement(
+                Form.FormSection,
+                null,
+                React.createElement(Child, {
+                    update: (changed) => this.update({...this.state, ...changed}),
+                    ...this.state
+                }),
+                React.createElement(Form.FormDivider, {
+                    className: [Margins.marginTop20, Margins.marginBottom20].join(" ")
+                }),
+                React.createElement(
+                    Flex,
+                    {
+                        justify: Flex.Justify.END
+                    },
+                    React.createElement(
+                        Button,
+                        {
+                            size: Button.Sizes.SMALL,
+                            onClick: () =>
+                                BdApi.showConfirmationModal(name, "Reset all settings?", {
+                                    onConfirm: () => this.update(defaults)
+                                })
+                        },
+                        "Reset"
+                    )
+                )
+            );
+        }
 
-		Settings.displayName = this.getName() + "Settings";
+        update(settings) {
+            this.setState(settings);
+            this.props.onChange(settings);
+        }
+    }
 
-		if (!this._settingsRoot) {
-			this._settingsRoot = document.createElement("div");
-			this._settingsRoot.className = `settingsRoot-${this.getName()}`;
-			ReactDOM.render(
-				React.createElement(Settings, {
-					name: this.getName(),
-					settings: this.settings,
-					update: (state) => {
-						this.saveData("settings", Object.assign(this.settings, state));
-						this.update && this.update();
-					},
-					reset: () => {
-						this.saveData("settings", Object.assign(this.settings, this.defaults));
-						this.update && this.update();
-					}
-				}),
-				this._settingsRoot
-			);
-		}
+    module.exports.prototype.getSettingsPanel = function () {
+        return React.createElement(
+            Settings,
+            {
+                name: this.getName(),
+                current: this.settings,
+                defaults: this.defaults,
+                onChange: (settings) => {
+                    this.settings = settings;
 
-		return this._settingsRoot;
-	};
+                    if (this.update instanceof Function) {
+                        this.update();
+                    }
+
+                    this.saveData("settings", settings);
+                }
+            },
+            this.getSettings()
+        );
+    };
 }
 
-/*@end@*/
+/* @end@*/
