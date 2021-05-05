@@ -6,11 +6,20 @@ const chalk = require("chalk");
 const babel = require("@babel/core");
 const prettier = require("prettier");
 
+const repo = "Zerthox/BetterDiscord-Plugins";
+const authorLinks = {
+    Zerthox: "https://github.com/Zerthox"
+};
+const donateLink = "https://paypal.me/zerthox";
+
 // save cwd
-const cwd = path.resolve(__dirname, "../");
+const cwd = path.join(__dirname, "..");
 
 // parse args
 const argv = minimist(process.argv);
+
+// resolve sass importer for babel
+const sassImporter = path.join(cwd, "src/lib/sass-importer");
 
 // check if plugins passed
 if (!argv.plugin && !argv.plugins) {
@@ -29,7 +38,7 @@ const data = {
 // check if all plugins
 if (data.plugins[0] === "*") {
     data.plugins = [];
-    const dir = path.resolve(cwd, "src", data.version);
+    const dir = path.join(cwd, "src", data.version);
     const folders = fs.readdirSync(dir, {withFileTypes: true}).filter((entry) => entry.isDirectory());
     for (const folder of folders) {
         data.plugins.push(folder.name);
@@ -41,15 +50,15 @@ if (data.dev) {
     if (data.plugins.length > 1) {
         console.log(chalk.red("Error: More than 1 Plugin passed in Dev mode."));
     } else {
-        dev(Object.assign({name: data.plugins[0], watch: true}, data));
+        dev({name: data.plugins[0], watch: true, ...data});
     }
 } else {
     for (const plugin of data.plugins) {
-        build(Object.assign({name: plugin}, data));
+        build({name: plugin, ...data});
     }
     if (data.devBuild) {
         for (const plugin of data.plugins) {
-            dev(Object.assign({name: plugin, watch: false}, data));
+            dev({name: plugin, watch: false, ...data});
         }
     }
 }
@@ -59,41 +68,40 @@ async function build(data) {
         const time = process.hrtime();
 
         // resolve source directory
-        const dir = path.resolve(cwd, "src", data.version, data.name);
+        const dir = path.join(cwd, "src", data.version, data.name);
 
         // load plugin config
-        const info = require(path.resolve(dir, "config.json"));
+        const info = require(path.join(dir, "config.json"));
 
-        // generate source link
-        info.source = "https://github.com/Zerthox/BetterDiscord-Plugins";
+        // add additional plugin information
+        info.authorLink = authorLinks[info.author];
+        info.donate = donateLink;
+        info.website = `https://github.com/${repo}`;
+        info.source = `https://github.com/${repo}/tree/master/${data.version}/${data.name}.plugin.js`;
+        info.updateUrl = `https://raw.githubusercontent.com/${repo}/master/${data.version}/${data.name}.plugin.js`;
 
         // find main file
-        const main = path.resolve(dir, "main.jsx");
+        const main = path.join(dir, "main.jsx");
 
         // transform with babel & custom sass-importer plugin
-        const transformed = babel.transformFileSync(
-            main,
-            {
-                plugins: [
-                    ["./src/lib/sass-importer", {
-                        plugin: info
-                    }]
-                ],
-                comments: false
-            }
-        ).code;
+        const transformed = babel.transformFileSync(main, {
+            plugins: [
+                [sassImporter, {plugin: info}]
+            ],
+            comments: false
+        }).code;
 
         // prepend meta & base
         const result = generateMeta(info) + "\n\n" + wrapWScript(generatePlugin(info, transformed));
 
         // load prettier config
-        const cfg = await prettier.resolveConfig(path.resolve(dir));
+        const cfg = await prettier.resolveConfig(path.join(dir));
 
         // format code
         const formatted = prettier.format(result, cfg);
 
         // determine output file
-        const out = path.resolve(cwd, data.version, `${data.name}.plugin.js`);
+        const out = path.join(cwd, data.version, `${data.name}.plugin.js`);
 
         // save result
         fs.writeFileSync(out, formatted);
@@ -114,7 +122,7 @@ function generateMeta(info) {
 }
 
 function generatePlugin(info, contents) {
-    let plugin = fs.readFileSync("./src/lib/template/base.js", "utf8");
+    let plugin = fs.readFileSync(path.join(cwd, "src/lib/template/base.js"), "utf8");
     for (const [key, val] of Object.entries(info)) {
         plugin = plugin.split(`@meta{${key}}`).join(val.replace(/\n/g, "\\n"));
     }
@@ -123,26 +131,26 @@ function generatePlugin(info, contents) {
 }
 
 function wrapWScript(contents) {
-    const wscript = fs.readFileSync("./src/lib/template/wscript.js", "utf8");
+    const wscript = fs.readFileSync(path.join(cwd, "src/lib/template/wscript.js"), "utf8");
     return wscript.replace(/^"contents";$/gm, contents);
 }
 
 function dev(data) {
     // resolve source directory
-    const dir = path.resolve(cwd, "src", data.version, data.name);
+    const dir = path.join(cwd, "src", data.version, data.name);
 
     // find main file & config
-    const file = path.resolve(dir, "main.jsx");
-    const cfg = path.resolve(dir, "config.json");
+    const file = path.join(dir, "main.jsx");
+    const cfg = path.join(dir, "config.json");
 
     // resolve betterdiscord path
-    const bdPath = path.resolve(
-        process.platform === "win32" ? process.env.APPDATA : process.platform === "darwin" ? path.resolve(process.env.HOME, "Library/Preferences") : path.resolve(process.env.HOME, ".config"),
+    const bdPath = path.join(
+        process.platform === "win32" ? process.env.APPDATA : process.platform === "darwin" ? path.join(process.env.HOME, "Library/Preferences") : path.join(process.env.HOME, ".config"),
         "BetterDiscord"
     );
 
     // find output file path
-    const out = path.resolve(bdPath, "plugins", `${data.name}.plugin.js`);
+    const out = path.join(bdPath, "plugins", `${data.name}.plugin.js`);
 
     // declare compile function
     function compile() {
@@ -156,16 +164,11 @@ function dev(data) {
             info.source = "https://github.com/Zerthox/BetterDiscord-Plugins";
 
             // transform file
-            const transformed = babel.transformFileSync(
-                file,
-                {
-                    plugins: [
-                        ["./src/lib/sass-importer", {
-                            plugin: info
-                        }]
-                    ]
-                }
-            ).code;
+            const transformed = babel.transformFileSync(file, {
+                plugins: [
+                    [sassImporter, {plugin: info}]
+                ]
+            }).code;
 
             // write to output file
             fs.writeFileSync(out, generateMeta(info) + generatePlugin(info, transformed));

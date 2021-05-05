@@ -4,13 +4,14 @@
 	"description": "Plugins for BetterDiscord (BandagedBD & BDV2).",
 	"main": "build.js",
 	"scripts": {
-		"build": "node scripts/build.js --plugins=*",
+		"build": "node scripts/build.js",
+		"build-all": "node scripts/build.js --plugins=*",
 		"lint": "eslint src --ext .js,.jsx -f node_modules/eslint-friendly-formatter",
 		"lint-fix": "eslint src --fix --ext .js,.jsx -f node_modules/eslint-friendly-formatter"
 	},
 	"repository": {
 		"type": "git",
-		"url": "git+https://github.com/Zerthox/BetterDiscord-Plugins.git"
+		"url": "https://github.com/Zerthox/BetterDiscord-Plugins.git"
 	},
 	"author": "Zerthox",
 	"license": "MIT",
@@ -23,7 +24,7 @@
 		"@babel/core": "^7.12.3",
 		"@babel/eslint-parser": "^7.13.14",
 		"@babel/preset-react": "^7.12.1",
-		"chalk": "^2.4.2",
+		"chalk": "^4.1.1",
 		"eslint": "^7.25.0",
 		"eslint-config-google": "^0.14.0",
 		"eslint-friendly-formatter": "^4.0.1",
@@ -31,11 +32,13 @@
 		"eslint-plugin-react": "^7.23.2",
 		"minimist": "^1.2.5",
 		"node-sass": "^4.14.1",
-		"prettier": "^1.19.1"
+		"prettier": "^2.2.1"
 	},
 	"babel": {
 		"presets": [
-			"@babel/preset-react"
+			["@babel/preset-react", {
+				"useSpread": true
+			}]
 		]
 	},
 	"prettier": {
@@ -44,6 +47,7 @@
 		"tabWidth": 4,
 		"printWidth": 120,
 		"bracketSpacing": false,
+		"trailingComma": "none",
 		"arrowParens": "always"
 	}
 }
