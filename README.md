@@ -28,12 +28,3 @@ Set user volume values manually instead of using a limited slider.
 
 ### [HypeSquadCheatsheet](/v1/HypeSquadCheatsheet.plugin.js) <sub><sup>`v0.1.0` *(Updated: 27/12/19)*</sup></sub>
 Display the resulting HypeSquad house next to the questions in the HypeSquad questions modal.
-
-<br>
-
----
-
-<br>
-
-# [BDV2 (/v2)](/v2)
-#### **WARNING:** Plugins for v2 are still experimental. *Use with caution!*
