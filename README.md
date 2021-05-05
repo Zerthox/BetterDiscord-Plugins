@@ -12,7 +12,7 @@ Add the old online friend count back to guild list. Because nostalgia.
 ### [VoiceEvents](/v1/VoiceEvents.plugin.js) <sub><sup>`v1.4.1` *(Updated: 06/05/21)*</sup></sub>
 Add TTS Event Notifications to your selected Voice Channel. TeamSpeak feeling.
 
-### [BetterVolume](/v1/BetterVolume.plugin.js) <sub><sup>`v1.0.0` *(Updated: 06/05/20)*</sup></sub>
+### [BetterVolume](/v1/BetterVolume.plugin.js) <sub><sup>`v1.0.0` *(Updated: 06/05/21)*</sup></sub>
 Set user volume values manually instead of using a limited slider.
 
 <br>
