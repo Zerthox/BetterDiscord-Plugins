@@ -4,25 +4,31 @@
  */
 
 const path = require("path");
-const sass = require("node-sass");
+const sass = require("sass");
 
-module.exports = function(babel) {
+module.exports = () => {
     return {
         name: "sass-importer",
         visitor: {
             CallExpression(nodePath, state) {
                 const callee = nodePath.get("callee");
                 const args = nodePath.get("arguments");
+
+                // find calls to $include
                 if (callee.isIdentifier() && callee.equals("name", "$include") && args.length === 1) {
-                    const val = args[0].node.value;
-                    if (val.endsWith(".scss") || val.endsWith(".css")) {
+                    const file = args[0].node.value;
+
+                    // check file extension
+                    if (file.endsWith(".scss") || file.endsWith(".css")) {
                         try {
-                            const dir = path.dirname(state.file.opts.filename);
+                            // compile sass
                             const css = sass.renderSync({
-                                file: path.resolve(dir, val),
+                                file: path.resolve(path.dirname(state.file.opts.filename), file),
                                 outputStyle: "expanded",
-                                includePaths: ["./lib"]
+                                indentWidth: 4
                             }).css.toString("utf8");
+
+                            // prepend plugin info
                             const {plugin} = state.opts;
                             nodePath.replaceWithSourceString(`\`${plugin ? `/*! ${plugin.name} v${plugin.version} styles */\n` : ""}${css.trim()}\``);
                         } catch (err) {
