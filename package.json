@@ -6,6 +6,7 @@
 	"scripts": {
 		"build": "node scripts/build.js",
 		"build-all": "node scripts/build.js --plugins=*",
+		"dev": "node scripts/build.js --dev",
 		"lint": "eslint src --ext .js,.jsx -f node_modules/eslint-friendly-formatter",
 		"lint-fix": "eslint src --fix --ext .js,.jsx -f node_modules/eslint-friendly-formatter"
 	},
