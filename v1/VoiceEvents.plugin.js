@@ -1,13 +1,13 @@
 /**
  * @name VoiceEvents
  * @author Zerthox
- * @version 1.4.1
+ * @version 1.5.0
  * @description Add TTS Event Notifications to your selected Voice Channel. TeamSpeak feeling.
  * @authorLink https://github.com/Zerthox
  * @donate https://paypal.me/zerthox
  * @website https://github.com/Zerthox/BetterDiscord-Plugins
- * @source https://github.com/Zerthox/BetterDiscord-Plugins/tree/master/v1/voiceevents.plugin.js
- * @updateUrl https://raw.githubusercontent.com/Zerthox/BetterDiscord-Plugins/master/v1/voiceevents.plugin.js
+ * @source https://github.com/Zerthox/BetterDiscord-Plugins/tree/master/v1/VoiceEvents.plugin.js
+ * @updateUrl https://raw.githubusercontent.com/Zerthox/BetterDiscord-Plugins/master/v1/VoiceEvents.plugin.js
  */
 
 /* @cc_on
@@ -74,7 +74,11 @@ const Component = {
     SwitchItem: BdApi.findModuleByDisplayName("SwitchItem"),
     TextInput: BdApi.findModuleByDisplayName("TextInput"),
     SelectTempWrapper: BdApi.findModuleByDisplayName("SelectTempWrapper"),
-    Slider: BdApi.findModuleByDisplayName("Slider")
+    Slider: BdApi.findModuleByDisplayName("Slider"),
+    Menu: BdApi.findModuleByProps("MenuGroup", "MenuItem", "MenuSeparator"),
+    VoiceContextMenu: BdApi.findModule(
+        (m) => m.default && m.default.displayName === "ChannelListVoiceChannelContextMenu"
+    )
 };
 const Selector = {
     margins: BdApi.findModuleByProps("marginLarge")
@@ -87,8 +91,9 @@ class Plugin {
             voice: null,
             volume: 100,
             speed: 1,
-            filterBots: false,
             filterNames: true,
+            filterBots: false,
+            filterStages: true,
             join: "$user joined $channel",
             leave: "$user left $channel",
             joinSelf: "You joined $channel",
@@ -212,6 +217,22 @@ class Plugin {
                         React.createElement(
                             SwitchItem,
                             {
+                                value: this.props.filterNames,
+                                onChange: (checked) =>
+                                    this.props.update({
+                                        filterNames: checked
+                                    }),
+                                note: "Limit user & channel names to alphanumeric characters."
+                            },
+                            "Enable Name Filter"
+                        )
+                    ),
+                    React.createElement(
+                        FormItem,
+                        null,
+                        React.createElement(
+                            SwitchItem,
+                            {
                                 value: this.props.filterBots,
                                 onChange: (checked) =>
                                     this.props.update({
@@ -228,14 +249,14 @@ class Plugin {
                         React.createElement(
                             SwitchItem,
                             {
-                                value: this.props.filterNames,
+                                value: this.props.filterStages,
                                 onChange: (checked) =>
                                     this.props.update({
-                                        filterNames: checked
+                                        filterStages: checked
                                     }),
-                                note: "Limit user & channel names to alphanumeric characters."
+                                note: "Disable notifications for stage voice channels."
                             },
-                            "Enable Name Filter"
+                            "Enable Stage Filter"
                         )
                     ),
                     React.createElement(
@@ -344,6 +365,32 @@ class Plugin {
     start() {
         this.cloneStates();
         Module.Events.subscribe("VOICE_STATE_UPDATE", this.callback);
+        const {MenuGroup, MenuItem} = Component.Menu;
+        this.createPatch(Component.VoiceContextMenu, "default", {
+            after: ({returnValue}) => {
+                const {children} = returnValue.props;
+                const index = children.findIndex(
+                    (node) =>
+                        node &&
+                        [node.props.children].flat().find((child) => child && child.props.id === "delete-channel")
+                );
+                children.splice(
+                    index,
+                    0,
+                    React.createElement(
+                        MenuGroup,
+                        null,
+                        React.createElement(MenuItem, {
+                            isFocused: false,
+                            id: "voiceevents-clear",
+                            label: "Clear Notification queue",
+                            action: () => speechSynthesis.cancel()
+                        })
+                    )
+                );
+                return returnValue;
+            }
+        });
     }
 
     stop() {
@@ -357,11 +404,11 @@ class Plugin {
     }
 
     onChange(event) {
-        const {Users, SelectedChannel, VoiceStates} = Module;
-        const {userId, channelId} = event;
-        const prev = this.states[userId];
-
         try {
+            const {Users, SelectedChannel, VoiceStates} = Module;
+            const {userId, channelId} = event;
+            const prev = this.states[userId];
+
             if (userId === Users.getCurrentUser().id) {
                 if (!channelId) {
                     this.notify({
@@ -431,6 +478,10 @@ class Plugin {
             return;
         }
 
+        if (this.settings.filterStages && channel.isGuildStageVoice()) {
+            return;
+        }
+
         const nick = (!isDM && Members.getMember(channel.getGuildId(), userId).nick) || user.username;
         const channelName = isDM ? this.settings.privateCall : channel.name;
         const msg = this.settings[type]
@@ -473,7 +524,7 @@ module.exports = class Wrapper extends Plugin {
     }
 
     getVersion() {
-        return "1.4.1";
+        return "1.5.0";
     }
 
     getAuthor() {

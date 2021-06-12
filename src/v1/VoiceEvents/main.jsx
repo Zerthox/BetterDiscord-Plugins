@@ -23,7 +23,9 @@ const Component = {
     SwitchItem: BdApi.findModuleByDisplayName("SwitchItem"),
     TextInput: BdApi.findModuleByDisplayName("TextInput"),
     SelectTempWrapper: BdApi.findModuleByDisplayName("SelectTempWrapper"),
-    Slider: BdApi.findModuleByDisplayName("Slider")
+    Slider: BdApi.findModuleByDisplayName("Slider"),
+    Menu: BdApi.findModuleByProps("MenuGroup", "MenuItem", "MenuSeparator"),
+    VoiceContextMenu: BdApi.findModule((m) => m.default && m.default.displayName === "ChannelListVoiceChannelContextMenu")
 };
 
 /** Selector storage */
@@ -39,8 +41,9 @@ class Plugin {
             voice: null,
             volume: 100,
             speed: 1,
-            filterBots: false,
             filterNames: true,
+            filterBots: false,
+            filterStages: true,
             join: "$user joined $channel",
             leave: "$user left $channel",
             joinSelf: "You joined $channel",
@@ -117,6 +120,13 @@ class Plugin {
                         <FormDivider className={[Selector.margins.marginTop20, Selector.margins.marginBottom20].join(" ")}/>
                         <FormItem>
                             <SwitchItem
+                                value={this.props.filterNames}
+                                onChange={(checked) => this.props.update({filterNames: checked})}
+                                note="Limit user & channel names to alphanumeric characters."
+                            >Enable Name Filter</SwitchItem>
+                        </FormItem>
+                        <FormItem>
+                            <SwitchItem
                                 value={this.props.filterBots}
                                 onChange={(checked) => this.props.update({filterBots: checked})}
                                 note="Disable notifications for bot users in voice."
@@ -124,10 +134,10 @@ class Plugin {
                         </FormItem>
                         <FormItem>
                             <SwitchItem
-                                value={this.props.filterNames}
-                                onChange={(checked) => this.props.update({filterNames: checked})}
-                                note="Limit user & channel names to alphanumeric characters."
-                            >Enable Name Filter</SwitchItem>
+                                value={this.props.filterStages}
+                                onChange={(checked) => this.props.update({filterStages: checked})}
+                                note="Disable notifications for stage voice channels."
+                            >Enable Stage Filter</SwitchItem>
                         </FormItem>
                         <FormSection>
                             <FormTitle tag="h3">Messages</FormTitle>
@@ -170,10 +180,7 @@ class Plugin {
                     <FormItem key={i} className={Selector.margins.marginBottom20}>
                         <FormTitle>{title}</FormTitle>
                         <Flex align={Flex.Align.CENTER}>
-                            <div style={{
-                                flexGrow: 1,
-                                marginRight: 20
-                            }}>
+                            <div style={{flexGrow: 1, marginRight: 20}}>
                                 <TextInput
                                     onChange={(e) => this.props.update({[setting]: e})}
                                     value={this.props[setting]}
@@ -200,6 +207,30 @@ class Plugin {
     start() {
         this.cloneStates();
         Module.Events.subscribe("VOICE_STATE_UPDATE", this.callback);
+
+        // add queue clear item to context menu
+        const {MenuGroup, MenuItem} = Component.Menu;
+        this.createPatch(Component.VoiceContextMenu, "default", {after: ({returnValue}) => {
+            const {children} = returnValue.props;
+
+            // find delete channel index
+            const index = children.findIndex((node) => node && [node.props.children].flat().find((child) => child && child.props.id === "delete-channel"));
+
+            // insert new item
+            children.splice(index, 0,
+                <MenuGroup>
+                    <MenuItem
+                        isFocused={false}
+                        id="voiceevents-clear"
+                        label="Clear Notification queue"
+                        action={() => speechSynthesis.cancel()}
+                    />
+                </MenuGroup>
+            );
+
+            // return modified return value
+            return returnValue;
+        }});
     }
 
     stop() {
@@ -213,11 +244,11 @@ class Plugin {
     }
 
     onChange(event) {
-        const {Users, SelectedChannel, VoiceStates} = Module;
-        const {userId, channelId} = event;
-        const prev = this.states[userId];
-
         try {
+            const {Users, SelectedChannel, VoiceStates} = Module;
+            const {userId, channelId} = event;
+            const prev = this.states[userId];
+
             // check for self
             if (userId === Users.getCurrentUser().id) {
                 if (!channelId) {
@@ -265,6 +296,11 @@ class Plugin {
 
         // check for bot filter
         if (this.settings.filterBots && user.bot) {
+            return;
+        }
+
+        // check for stage filter
+        if (this.settings.filterStages && channel.isGuildStageVoice()) {
             return;
         }
 
