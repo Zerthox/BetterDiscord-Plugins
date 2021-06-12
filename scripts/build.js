@@ -73,13 +73,6 @@ async function build(data) {
         // load plugin config
         const info = require(path.join(dir, "config.json"));
 
-        // add additional plugin information
-        info.authorLink = authorLinks[info.author];
-        info.donate = donateLink;
-        info.website = `https://github.com/${repo}`;
-        info.source = `https://github.com/${repo}/tree/master/${data.version}/${data.name}.plugin.js`;
-        info.updateUrl = `https://raw.githubusercontent.com/${repo}/master/${data.version}/${data.name}.plugin.js`;
-
         // find main file
         const main = path.join(dir, "main.jsx");
 
@@ -92,7 +85,7 @@ async function build(data) {
         }).code;
 
         // prepend meta & base
-        const result = generateMeta(info) + "\n\n" + wrapWScript(generatePlugin(info, transformed));
+        const result = generateMeta(data, info) + "\n\n" + wrapWScript(generatePlugin(info, transformed));
 
         // load prettier config
         const cfg = await prettier.resolveConfig(path.join(dir));
@@ -113,12 +106,23 @@ async function build(data) {
     }
 }
 
-function generateMeta(info) {
-    let meta = "/**";
-    for (const [key, val] of Object.entries(info)) {
-        meta += `\n * @${key} ${val.replace(/\n/g, "\\n")}`;
+function generateMeta(data, info) {
+    // default meta info
+    const meta = {
+        ...info,
+        authorLink: authorLinks[info.author],
+        donate: donateLink,
+        website: `https://github.com/${repo}`,
+        source: `https://github.com/${repo}/tree/master/${data.version}/${data.name}.plugin.js`,
+        updateUrl: `https://raw.githubusercontent.com/${repo}/master/${data.version}/${data.name}.plugin.js`
+    };
+
+    // generate code
+    let code = "/**";
+    for (const [key, val] of Object.entries(meta)) {
+        code += `\n * @${key} ${val.replace(/\n/g, "\\n")}`;
     }
-    return meta + "\n */";
+    return code + "\n */";
 }
 
 function generatePlugin(info, contents) {
@@ -160,9 +164,6 @@ function dev(data) {
             // load plugin config
             const info = JSON.parse(fs.readFileSync(cfg, "utf8"));
 
-            // generate source link
-            info.source = "https://github.com/Zerthox/BetterDiscord-Plugins";
-
             // transform file
             const transformed = babel.transformFileSync(file, {
                 plugins: [
@@ -171,7 +172,7 @@ function dev(data) {
             }).code;
 
             // write to output file
-            fs.writeFileSync(out, generateMeta(info) + generatePlugin(info, transformed));
+            fs.writeFileSync(out, generateMeta(data, info) + generatePlugin(info, transformed));
 
             // console output
             console.log(chalk.green(`Compiled "${info.name}.plugin.js" to the BetterDiscord plugins folder [${Math.round(process.hrtime(time)[1] / 1000000)}ms]`));
