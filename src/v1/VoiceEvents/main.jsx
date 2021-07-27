@@ -310,8 +310,8 @@ class Plugin {
 
         // speak message
         const msg = this.settings[type]
-            .split("$user").join(this.processName(nick))
             .split("$username").join(this.processName(user.username))
+            .split("$user").join(this.processName(nick))
             .split("$channel").join(this.processName(channelName));
         this.speak(msg);
     }
