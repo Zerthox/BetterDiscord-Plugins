@@ -1,7 +1,7 @@
 /**
  * @name VoiceEvents
  * @author Zerthox
- * @version 1.5.0
+ * @version 1.5.1
  * @description Add TTS Event Notifications to your selected Voice Channel. TeamSpeak feeling.
  * @authorLink https://github.com/Zerthox
  * @donate https://paypal.me/zerthox
@@ -485,10 +485,10 @@ class Plugin {
         const nick = (!isDM && Members.getMember(channel.getGuildId(), userId).nick) || user.username;
         const channelName = isDM ? this.settings.privateCall : channel.name;
         const msg = this.settings[type]
-            .split("$user")
-            .join(this.processName(nick))
             .split("$username")
             .join(this.processName(user.username))
+            .split("$user")
+            .join(this.processName(nick))
             .split("$channel")
             .join(this.processName(channelName));
         this.speak(msg);
@@ -524,7 +524,7 @@ module.exports = class Wrapper extends Plugin {
     }
 
     getVersion() {
-        return "1.5.0";
+        return "1.5.1";
     }
 
     getAuthor() {
