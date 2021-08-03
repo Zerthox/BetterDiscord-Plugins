@@ -1,13 +1,13 @@
 /**
  * @name OnlineFriendCount
  * @author Zerthox
- * @version 1.4.1
+ * @version 1.4.2
  * @description Add the old online friend count back to guild list. Because nostalgia.
  * @authorLink https://github.com/Zerthox
  * @donate https://paypal.me/zerthox
  * @website https://github.com/Zerthox/BetterDiscord-Plugins
- * @source https://github.com/Zerthox/BetterDiscord-Plugins/tree/master/v1/onlinefriendcount.plugin.js
- * @updateUrl https://raw.githubusercontent.com/Zerthox/BetterDiscord-Plugins/master/v1/onlinefriendcount.plugin.js
+ * @source https://github.com/Zerthox/BetterDiscord-Plugins/tree/master/v1/OnlineFriendCount.plugin.js
+ * @updateUrl https://raw.githubusercontent.com/Zerthox/BetterDiscord-Plugins/master/v1/OnlineFriendCount.plugin.js
  */
 
 /* @cc_on
@@ -58,7 +58,8 @@ function qReact(node, query) {
 }
 
 const Module = {
-    Status: BdApi.findModuleByProps("getStatus", "getOnlineFriendCount")
+    Constants: BdApi.findModuleByProps("Permissions"),
+    RelationshipStates: BdApi.findModule((m) => m && m.Rows && m.default && m.default.getState).default
 };
 const Component = {
     Link: BdApi.findModuleByProps("NavLink").Link
@@ -68,7 +69,7 @@ const Selector = {
     list: BdApi.findModuleByProps("listItem"),
     friendsOnline: "friendsOnline-2JkivW"
 };
-const Styles = `/*! OnlineFriendCount v1.4.1 styles */
+const Styles = `/*! OnlineFriendCount v1.4.2 styles */
 .friendsOnline-2JkivW {
     color: rgba(255, 255, 255, 0.3);
     text-align: center;
@@ -110,8 +111,8 @@ function OnlineCount({online}) {
     );
 }
 
-const OnlineCountContainer = Flux.connectStores([Module.Status], () => ({
-    online: Module.Status.getOnlineFriendCount()
+const OnlineCountContainer = Flux.connectStores([Module.RelationshipStates], () => ({
+    online: Module.RelationshipStates.getState().rows.filter(Module.Constants.FriendsSections.ONLINE).length
 }))(OnlineCount);
 
 class Plugin {
@@ -198,7 +199,7 @@ module.exports = class Wrapper extends Plugin {
     }
 
     getVersion() {
-        return "1.4.1";
+        return "1.4.2";
     }
 
     getAuthor() {
