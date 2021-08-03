@@ -1,7 +1,7 @@
 /**
  * @name OnlineFriendCount
  * @author Zerthox
- * @version 1.4.2
+ * @version 1.4.3
  * @description Add the old online friend count back to guild list. Because nostalgia.
  * @authorLink https://github.com/Zerthox
  * @donate https://paypal.me/zerthox
@@ -59,7 +59,8 @@ function qReact(node, query) {
 
 const Module = {
     Constants: BdApi.findModuleByProps("Permissions"),
-    RelationshipStates: BdApi.findModule((m) => m && m.Rows && m.default && m.default.getState).default
+    Status: BdApi.findModuleByProps("getState", "getStatus"),
+    Relationships: BdApi.findModuleByProps("isFriend", "getRelationshipCount")
 };
 const Component = {
     Link: BdApi.findModuleByProps("NavLink").Link
@@ -69,7 +70,7 @@ const Selector = {
     list: BdApi.findModuleByProps("listItem"),
     friendsOnline: "friendsOnline-2JkivW"
 };
-const Styles = `/*! OnlineFriendCount v1.4.2 styles */
+const Styles = `/*! OnlineFriendCount v1.4.3 styles */
 .friendsOnline-2JkivW {
     color: rgba(255, 255, 255, 0.3);
     text-align: center;
@@ -111,9 +112,16 @@ function OnlineCount({online}) {
     );
 }
 
-const OnlineCountContainer = Flux.connectStores([Module.RelationshipStates], () => ({
-    online: Module.RelationshipStates.getState().rows.filter(Module.Constants.FriendsSections.ONLINE).length
-}))(OnlineCount);
+const OnlineCountContainer = Flux.connectStores([Module.Status, Module.Relationships], () => {
+    const {RelationshipTypes, StatusTypes} = Module.Constants;
+    const relationships = Module.Relationships.getRelationships();
+    const filtered = Object.entries(relationships).filter(
+        ([id, type]) => type === RelationshipTypes.FRIEND && Module.Status.getStatus(id) !== StatusTypes.OFFLINE
+    );
+    return {
+        online: filtered.length
+    };
+})(OnlineCount);
 
 class Plugin {
     start() {
@@ -199,7 +207,7 @@ module.exports = class Wrapper extends Plugin {
     }
 
     getVersion() {
-        return "1.4.2";
+        return "1.4.3";
     }
 
     getAuthor() {

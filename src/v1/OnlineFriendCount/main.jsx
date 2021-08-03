@@ -6,7 +6,8 @@
 /** Module storage */
 const Module = {
     Constants: BdApi.findModuleByProps("Permissions"),
-    RelationshipStates: BdApi.findModule((m) => m && m.Rows && m.default && m.default.getState).default
+    Status: BdApi.findModuleByProps("getState", "getStatus"),
+    Relationships: BdApi.findModuleByProps("isFriend", "getRelationshipCount")
 };
 
 /** Component storage */
@@ -37,8 +38,14 @@ function OnlineCount({online}) {
 
 // Flux container for OnlineCount component
 const OnlineCountContainer = Flux.connectStores(
-    [Module.RelationshipStates],
-    () => ({online: Module.RelationshipStates.getState().rows.filter(Module.Constants.FriendsSections.ONLINE).length})
+    [Module.Status, Module.Relationships],
+    () => {
+        const {RelationshipTypes, StatusTypes} = Module.Constants;
+        const relationships = Module.Relationships.getRelationships();
+        const filtered = Object.entries(relationships)
+            .filter(([id, type]) => type === RelationshipTypes.FRIEND && Module.Status.getStatus(id) !== StatusTypes.OFFLINE);
+        return {online: filtered.length};
+    }
 )(OnlineCount);
 
 // eslint-disable-next-line no-unused-vars
