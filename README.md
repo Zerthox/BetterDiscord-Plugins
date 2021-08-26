@@ -27,7 +27,7 @@ Set user volume values manually instead of using a limited slider.
 Reply to people using their ID with a button.
 Inspired by [Replyer](https://github.com/cosmicsalad/Discord-Themes-and-Plugins/blob/master/plugins/replyer.plugin.js) by [@Hammmock#3110](https://github.com/cosmicsalad), [@Natsulus#0001](https://github.com/Delivator) & [@Zerebos#7790](https://github.com/rauenzi).
 
-### [Emulator](/v1/Emulator.plugin.js) <sub><sup>`1.1.0` *(Updated: 17/02/20)*</sup></sub>
+### [Emulator](/v1/Emulator.plugin.js) <sub><sup>`v1.1.0` *(Updated: 17/02/20)*</sup></sub>
 Emulate Windows, MacOS, Linux or Browser on any platform.
 **WARNING:** Emulating a different platform may cause unwanted side effects. Use at own risk.
 
