@@ -206,7 +206,7 @@ class Plugin {
 
     start() {
         this.cloneStates();
-        Module.Events.subscribe("VOICE_STATE_UPDATE", this.callback);
+        Module.Events.subscribe("VOICE_STATE_UPDATES", this.callback);
 
         // add queue clear item to context menu
         const {MenuGroup, MenuItem} = Component.Menu;
@@ -235,7 +235,7 @@ class Plugin {
 
     stop() {
         this.states = {};
-        Module.Events.unsubscribe("VOICE_STATE_UPDATE", this.callback);
+        Module.Events.unsubscribe("VOICE_STATE_UPDATES", this.callback);
     }
 
     cloneStates() {
@@ -244,9 +244,15 @@ class Plugin {
     }
 
     onChange(event) {
+        for (const state of event.voiceStates) {
+            this.processStateUpdate(state);
+        }
+    }
+
+    processStateUpdate(state) {
         try {
             const {Users, SelectedChannel, VoiceStates} = Module;
-            const {userId, channelId} = event;
+            const {userId, channelId} = state;
             const prev = this.states[userId];
 
             // check for self

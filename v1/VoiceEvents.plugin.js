@@ -1,7 +1,7 @@
 /**
  * @name VoiceEvents
  * @author Zerthox
- * @version 1.5.1
+ * @version 1.5.2
  * @description Add TTS Event Notifications to your selected Voice Channel. TeamSpeak feeling.
  * @authorLink https://github.com/Zerthox
  * @donate https://paypal.me/zerthox
@@ -364,7 +364,7 @@ class Plugin {
 
     start() {
         this.cloneStates();
-        Module.Events.subscribe("VOICE_STATE_UPDATE", this.callback);
+        Module.Events.subscribe("VOICE_STATE_UPDATES", this.callback);
         const {MenuGroup, MenuItem} = Component.Menu;
         this.createPatch(Component.VoiceContextMenu, "default", {
             after: ({returnValue}) => {
@@ -395,7 +395,7 @@ class Plugin {
 
     stop() {
         this.states = {};
-        Module.Events.unsubscribe("VOICE_STATE_UPDATE", this.callback);
+        Module.Events.unsubscribe("VOICE_STATE_UPDATES", this.callback);
     }
 
     cloneStates() {
@@ -404,9 +404,15 @@ class Plugin {
     }
 
     onChange(event) {
+        for (const state of event.voiceStates) {
+            this.processStateUpdate(state);
+        }
+    }
+
+    processStateUpdate(state) {
         try {
             const {Users, SelectedChannel, VoiceStates} = Module;
-            const {userId, channelId} = event;
+            const {userId, channelId} = state;
             const prev = this.states[userId];
 
             if (userId === Users.getCurrentUser().id) {
@@ -524,7 +530,7 @@ module.exports = class Wrapper extends Plugin {
     }
 
     getVersion() {
-        return "1.5.1";
+        return "1.5.2";
     }
 
     getAuthor() {
