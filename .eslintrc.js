@@ -9,7 +9,7 @@ module.exports = {
     ],
     settings: {
         react: {
-            version: "16.12.0" // stable Discord
+            version: "17.0.2" // stable Discord
         }
     },
     extends: [
