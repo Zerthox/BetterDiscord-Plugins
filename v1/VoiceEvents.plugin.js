@@ -1,7 +1,7 @@
 /**
  * @name VoiceEvents
  * @author Zerthox
- * @version 1.5.2
+ * @version 1.6.0
  * @description Add TTS Event Notifications to your selected Voice Channel. TeamSpeak feeling.
  * @authorLink https://github.com/Zerthox
  * @donate https://paypal.me/zerthox
@@ -101,10 +101,15 @@ class Plugin {
             leaveSelf: "You left $channel",
             privateCall: "The call"
         };
+        const voice = this.findDefaultVoice();
+        this.defaults.voice = voice ? voice.voiceURI : null;
+    }
+
+    findDefaultVoice() {
         const voices = speechSynthesis.getVoices();
 
         if (voices.length === 0) {
-            this.error("Unable to find any speech synthesis voices");
+            this.error("No speech synthesis voices available");
             const {Text} = Component;
             BdApi.alert(
                 `${this.getName()}`,
@@ -118,15 +123,30 @@ class Plugin {
                     "The plugin will be unable to function properly."
                 )
             );
+            return null;
         } else {
-            this.defaults.voice = (voices.find((voice) => voice.lang === "en-US") || voices[0]).name;
+            return voices.find((voice) => voice.lang === "en-US") || voices[0];
         }
+    }
+
+    findCurrentVoice() {
+        let voice = speechSynthesis.getVoices().find((el) => el.voiceURI === this.settings.voice);
+
+        if (!voice) {
+            this.warn(`Voice "${this.settings.voice}" could not be found, reverting to default`);
+            voice = this.findDefaultVoice();
+            this.settings.voice = voice.voiceURI;
+            this.saveData("settings", this.settings);
+        }
+
+        return voice;
     }
 
     getSettings() {
         const self = this;
         const {Flex, Text, Button, SwitchItem, TextInput, SelectTempWrapper, Slider} = Component;
         const {FormSection, FormTitle, FormItem, FormText, FormDivider} = Component.Form;
+        const voice = this.findCurrentVoice().voiceURI;
         return class SettingsPanel extends React.Component {
             render() {
                 return React.createElement(
@@ -139,14 +159,14 @@ class Plugin {
                         },
                         React.createElement(FormTitle, null, "TTS Voice"),
                         React.createElement(SelectTempWrapper, {
-                            value: this.props.voice,
+                            value: voice,
                             searchable: false,
                             clearable: false,
-                            onChange: (e) =>
+                            onChange: (el) =>
                                 this.props.update({
-                                    voice: e.value
+                                    voice: el.value
                                 }),
-                            options: speechSynthesis.getVoices().map(({name, lang}) => ({
+                            options: speechSynthesis.getVoices().map(({name, lang, voiceURI}) => ({
                                 label: React.createElement(
                                     Flex,
                                     null,
@@ -169,7 +189,7 @@ class Plugin {
                                         "]"
                                     )
                                 ),
-                                value: name
+                                value: voiceURI
                             }))
                         })
                     ),
@@ -501,25 +521,10 @@ class Plugin {
     }
 
     speak(msg) {
-        const voices = speechSynthesis.getVoices();
-
-        if (voices.length === 0) {
-            this.error(`Message "${msg}" could not be played: No speech synthesis voices available`);
-            return;
-        }
-
         const utterance = new SpeechSynthesisUtterance(msg);
-        utterance.voice = voices.find((e) => e.name === this.settings.voice);
+        utterance.voice = this.findCurrentVoice();
         utterance.volume = this.settings.volume / 100;
         utterance.rate = this.settings.speed;
-
-        if (!utterance.voice) {
-            this.error(
-                `Message "${msg}" could not be played: Set speech synthesis voice "${this.settings.voice}" could not be found`
-            );
-            return;
-        }
-
         speechSynthesis.speak(utterance);
     }
 }
@@ -530,7 +535,7 @@ module.exports = class Wrapper extends Plugin {
     }
 
     getVersion() {
-        return "1.5.2";
+        return "1.6.0";
     }
 
     getAuthor() {

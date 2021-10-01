@@ -52,9 +52,14 @@ class Plugin {
             privateCall: "The call"
         };
 
+        const voice = this.findDefaultVoice();
+        this.defaults.voice = voice ? voice.voiceURI : null;
+    }
+
+    findDefaultVoice() {
         const voices = speechSynthesis.getVoices();
         if (voices.length === 0) {
-            this.error("Unable to find any speech synthesis voices");
+            this.error("No speech synthesis voices available");
             const {Text} = Component;
             BdApi.alert(
                 `${this.getName()}`,
@@ -64,15 +69,29 @@ class Plugin {
                     The plugin will be unable to function properly.
                 </Text>
             );
+            return null;
         } else {
-            this.defaults.voice = (voices.find((voice) => voice.lang === "en-US") || voices[0]).name;
+            return (voices.find((voice) => voice.lang === "en-US") || voices[0]);
         }
+    }
+
+    findCurrentVoice() {
+        let voice = speechSynthesis.getVoices().find((el) => el.voiceURI === this.settings.voice);
+        if (!voice) {
+            this.warn(`Voice "${this.settings.voice}" could not be found, reverting to default`);
+            voice = this.findDefaultVoice();
+            this.settings.voice = voice.voiceURI;
+            this.saveData("settings", this.settings);
+        }
+        return voice;
     }
 
     getSettings() {
         const self = this;
         const {Flex, Text, Button, SwitchItem, TextInput, SelectTempWrapper, Slider} = Component;
         const {FormSection, FormTitle, FormItem, FormText, FormDivider} = Component.Form;
+
+        const voice = this.findCurrentVoice().voiceURI;
 
         return class SettingsPanel extends React.Component {
             render() {
@@ -81,18 +100,18 @@ class Plugin {
                         <FormItem className={Selector.margins.marginBottom20}>
                             <FormTitle>TTS Voice</FormTitle>
                             <SelectTempWrapper
-                                value={this.props.voice}
+                                value={voice}
                                 searchable={false}
                                 clearable={false}
-                                onChange={(e) => this.props.update({voice: e.value})}
-                                options={speechSynthesis.getVoices().map(({name, lang}) => ({
+                                onChange={(el) => this.props.update({voice: el.value})}
+                                options={speechSynthesis.getVoices().map(({name, lang, voiceURI}) => ({
                                     label: (
                                         <Flex>
                                             <Text style={{marginRight: 4}}>{name}</Text>
                                             <Text color={Text.Colors.MUTED}>[{lang}]</Text>
                                         </Flex>
                                     ),
-                                    value: name
+                                    value: voiceURI
                                 }))}
                             />
                         </FormItem>
@@ -323,22 +342,13 @@ class Plugin {
     }
 
     speak(msg) {
-        const voices = speechSynthesis.getVoices();
-        if (voices.length === 0) {
-            this.error(`Message "${msg}" could not be played: No speech synthesis voices available`);
-            return;
-        }
-
         // create utterance
         const utterance = new SpeechSynthesisUtterance(msg);
-        utterance.voice = voices.find((e) => e.name === this.settings.voice);
+        utterance.voice = this.findCurrentVoice();
         utterance.volume = this.settings.volume / 100;
         utterance.rate = this.settings.speed;
 
-        if (!utterance.voice) {
-            this.error(`Message "${msg}" could not be played: Set speech synthesis voice "${this.settings.voice}" could not be found`);
-            return;
-        }
+        // speak utterance
         speechSynthesis.speak(utterance);
     }
 }
