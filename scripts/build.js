@@ -113,7 +113,7 @@ function generateMeta(data, info) {
         authorLink: authorLinks[info.author],
         donate: donateLink,
         website: `https://github.com/${repo}`,
-        source: `https://github.com/${repo}/tree/master/${data.version}/${data.name}.plugin.js`,
+        source: `https://github.com/${repo}/blob/master/${data.version}/${data.name}.plugin.js`,
         updateUrl: `https://raw.githubusercontent.com/${repo}/master/${data.version}/${data.name}.plugin.js`
     };
 
