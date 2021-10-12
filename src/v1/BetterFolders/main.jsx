@@ -7,14 +7,17 @@
 const Module = {
     Dispatcher: BdApi.findModuleByProps("Dispatcher").Dispatcher,
     ClientActions: BdApi.findModuleByProps("toggleGuildFolderExpand"),
-    FolderStore: BdApi.findModuleByProps("getExpandedFolders")
+    FolderStore: BdApi.findModuleByProps("getSortedGuilds"),
+    FolderState: BdApi.findModuleByProps("getExpandedFolders"),
+    UserSettings: BdApi.findModuleByProps("updateLocalSettings")
 };
 
 /** Component storage */
 const Component = {
     Flex: BdApi.findModuleByDisplayName("Flex"),
-    GuildFolder: BdApi.findModule((m) => m && m.type && m.type.render && m.type.render.toString().includes("defaultFolderName")),
+    GuildFolders: BdApi.findModuleByProps("GuildFolderComponent"),
     GuildFolderSettingsModal: BdApi.findModuleByDisplayName("GuildFolderSettingsModal"),
+    FolderIcon: null,
     Form: BdApi.findModuleByProps("FormSection", "FormText"),
     TextInput: BdApi.findModuleByDisplayName("TextInput"),
     RadioGroup: BdApi.findModuleByDisplayName("RadioGroup"),
@@ -81,13 +84,10 @@ const BetterFolderStore = (() => {
 
 /** BetterFolderIcon component */
 function BetterFolderIcon({icon, always, childProps}) {
-    const result = Component.FolderIcon.call(this, childProps);
-    if (icon) {
-        if (childProps.expanded) {
-            result.props.children[0] = <div className="betterFolders-customIcon" style={{backgroundImage: `url(${icon}`}}/>;
-        } else if (always) {
-            result.props.children[1] = <div className="betterFolders-customIcon" style={{backgroundImage: `url(${icon}`}}/>;
-        }
+    // eslint-disable-next-line new-cap
+    const result = Component.FolderIcon(childProps);
+    if (icon && (childProps.expanded || always)) {
+        result.props.children = <div className="betterFolders-customIcon" style={{backgroundImage: `url(${icon}`}}/>;
     }
     return result;
 }
@@ -157,7 +157,8 @@ class Plugin {
                 value={props.closeOnOpen}
                 onChange={(checked) => {
                     if (checked) {
-                        for (const id of Array.from(Module.FolderStore.getExpandedFolders()).slice(1)) {
+                        // close all folders except one
+                        for (const id of Array.from(Module.FolderState.getExpandedFolders()).slice(1)) {
                             Module.ClientActions.toggleGuildFolderExpand(id);
                         }
                     }
@@ -172,14 +173,16 @@ class Plugin {
         this.injectCSS(Styles);
 
         // patch guild folder render function
-        this.createPatch(Component.GuildFolder.type, "render", {name: "GuildFolder", type: "component", after: ({methodArguments: [props], returnValue}) => {
-            const container = qReact(returnValue, (e) => e.props.children.type.displayName === "FolderIcon");
+        this.createPatch(Component.GuildFolders.GuildFolderComponent.type, "render", {name: "GuildFolder", type: "component", after: ({methodArguments: [props], returnValue}) => {
+            const container = qReact(returnValue, (el) => el.props.children.type.displayName === "FolderIcon");
             if (container) {
                 const icon = container.props.children;
                 if (!Component.FolderIcon) {
                     Component.FolderIcon = icon.type;
                 }
                 container.props.children = <BetterFolderIconContainer folderId={props.folderId} childProps={icon.props}/>;
+            } else {
+                this.warn("Unable to find folder icon container");
             }
         }});
 
@@ -187,6 +190,8 @@ class Plugin {
         this.createPatch(Component.GuildFolderSettingsModal.prototype, "render", {after: ({thisObject, returnValue}) => {
             const {RadioGroup, Form: {FormItem}} = Component;
             const id = thisObject.props.folderId;
+
+            // add custom props
             if (!thisObject.state.iconType) {
                 const folder = BetterFolderStore.getFolder(id);
                 if (folder) {
@@ -203,6 +208,8 @@ class Plugin {
                     });
                 }
             }
+
+            // add icon select
             const children = qReact(returnValue, (e) => e.type === "form").props.children;
             const {className} = children[0].props;
             children.push(
@@ -222,6 +229,8 @@ class Plugin {
                     />
                 </FormItem>
             );
+
+            // patch submit click
             const button = qReact(returnValue, (e) => e.props.type === "submit");
             BdApi.monkeyPatch(button.props, "onClick", {silent: true, after: () => {
                 if (thisObject.state.iconType !== "default" && thisObject.state.icon) {
@@ -233,7 +242,9 @@ class Plugin {
                     BetterFolderStore.deleteFolder(id);
                 }
             }});
+
             if (thisObject.state.iconType !== "default") {
+                // render custom icon select
                 children.push(
                     <FormItem title="Custom Icon" className={className}>
                         <BetterFolderUploader
@@ -250,8 +261,10 @@ class Plugin {
         // patch client actions toggle guild folder expand function
         this.createPatch(Module.ClientActions, "toggleGuildFolderExpand", {name: "ClientActions", after: ({methodArguments: [folderId], originalMethod}) => {
             if (this.settings.closeOnOpen) {
-                for (const id of Module.FolderStore.getExpandedFolders()) {
-                    id !== folderId && originalMethod(id);
+                for (const id of Module.FolderState.getExpandedFolders()) {
+                    if (id !== folderId) {
+                        originalMethod(id);
+                    }
                 }
             }
         }});
@@ -265,49 +278,18 @@ class Plugin {
         this.triggerRerender();
     }
 
-    async triggerRerender() {
-        // find tree fiber
-        const tree = BdApi.getInternalInstance(document.getElementsByClassName(Selector.tree.tree)[0]);
-        if (!tree) {
-            this.error("Unable to trigger rerender: Cannot find tree element fiber");
-            return;
-        }
-
-        // trigger folder rerender during next tree render
-        BdApi.monkeyPatch(tree.return, "type", {silent: true, once: true, after: ({returnValue}) => {
-            const servers = qReact(returnValue, (e) => e.props.children.find((e) => e.props.folderId));
-            if (!servers) {
-                this.error("Unable to trigger rerender: Cannot find servers list");
+    triggerRerender() {
+        for (const node of document.getElementsByClassName(Selector.folder.wrapper)) {
+            const fiber = BdApi.getInternalInstance(node);
+            if (fiber && fiber.return.type && fiber.return.type === Component.GuildFolders.GuildFolderComponent.type) {
+                const {lastRenderedState, dispatch} = fiber.return.memoizedState.queue;
+                dispatch(!lastRenderedState);
+                setTimeout(() => dispatch(lastRenderedState), 0);
+            } else {
+                this.warn("Unable to force update folder fiber");
                 return;
             }
-            for (const {props} of servers.props.children) {
-                if (props.folderId) {
-                    props.draggable = !props.draggable;
-                }
-            }
-        }});
-
-        // find guilds fiber
-        let guilds = BdApi.getInternalInstance(document.getElementsByClassName(Selector.guilds.guilds)[0]);
-        if (!guilds) {
-            this.error("Unable to trigger rerender: Cannot find Guilds element fiber");
-            return;
         }
-        while (!guilds.type || guilds.type.displayName !== "Guilds") {
-            if (!guilds.return) {
-                this.error("Unable to trigger rerender: Cannot find Guilds Component");
-                return;
-            }
-            guilds = guilds.return;
-        }
-
-        function forceUpdate(stateNode) {
-            return new Promise((resolve) => stateNode.forceUpdate(() => resolve()));
-        }
-
-        // force update
-        await forceUpdate(guilds.stateNode);
-        await forceUpdate(guilds.stateNode);
-        this.log("Successfully triggered rerender");
+        this.log("Successfully triggered folder rerenders");
     }
 }

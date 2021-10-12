@@ -1,13 +1,13 @@
 /**
  * @name BetterFolders
  * @author Zerthox
- * @version 2.3.1
+ * @version 2.4.0
  * @description Add new functionality to server folders.
  * @authorLink https://github.com/Zerthox
  * @donate https://paypal.me/zerthox
  * @website https://github.com/Zerthox/BetterDiscord-Plugins
- * @source https://github.com/Zerthox/BetterDiscord-Plugins/tree/master/v1/betterfolders.plugin.js
- * @updateUrl https://raw.githubusercontent.com/Zerthox/BetterDiscord-Plugins/master/v1/betterfolders.plugin.js
+ * @source https://github.com/Zerthox/BetterDiscord-Plugins/tree/master/v1/BetterFolders.plugin.js
+ * @updateUrl https://raw.githubusercontent.com/Zerthox/BetterDiscord-Plugins/master/v1/BetterFolders.plugin.js
  */
 
 /* @cc_on
@@ -60,14 +60,15 @@ function qReact(node, query) {
 const Module = {
     Dispatcher: BdApi.findModuleByProps("Dispatcher").Dispatcher,
     ClientActions: BdApi.findModuleByProps("toggleGuildFolderExpand"),
-    FolderStore: BdApi.findModuleByProps("getExpandedFolders")
+    FolderStore: BdApi.findModuleByProps("getSortedGuilds"),
+    FolderState: BdApi.findModuleByProps("getExpandedFolders"),
+    UserSettings: BdApi.findModuleByProps("updateLocalSettings")
 };
 const Component = {
     Flex: BdApi.findModuleByDisplayName("Flex"),
-    GuildFolder: BdApi.findModule(
-        (m) => m && m.type && m.type.render && m.type.render.toString().includes("defaultFolderName")
-    ),
+    GuildFolders: BdApi.findModuleByProps("GuildFolderComponent"),
     GuildFolderSettingsModal: BdApi.findModuleByDisplayName("GuildFolderSettingsModal"),
+    FolderIcon: null,
     Form: BdApi.findModuleByProps("FormSection", "FormText"),
     TextInput: BdApi.findModuleByDisplayName("TextInput"),
     RadioGroup: BdApi.findModuleByDisplayName("RadioGroup"),
@@ -84,7 +85,7 @@ const Selector = {
     guilds: BdApi.findModuleByProps("guilds", "base"),
     tree: BdApi.findModuleByProps("scroller", "tree")
 };
-const Styles = `/*! BetterFolders v2.3.1 styles */
+const Styles = `/*! BetterFolders v2.4.0 styles */
 .betterFolders-customIcon {
     width: 100%;
     height: 100%;
@@ -143,24 +144,15 @@ const BetterFolderStore = (() => {
 })();
 
 function BetterFolderIcon({icon, always, childProps}) {
-    const result = Component.FolderIcon.call(this, childProps);
+    const result = Component.FolderIcon(childProps);
 
-    if (icon) {
-        if (childProps.expanded) {
-            result.props.children[0] = React.createElement("div", {
-                className: "betterFolders-customIcon",
-                style: {
-                    backgroundImage: `url(${icon}`
-                }
-            });
-        } else if (always) {
-            result.props.children[1] = React.createElement("div", {
-                className: "betterFolders-customIcon",
-                style: {
-                    backgroundImage: `url(${icon}`
-                }
-            });
-        }
+    if (icon && (childProps.expanded || always)) {
+        result.props.children = React.createElement("div", {
+            className: "betterFolders-customIcon",
+            style: {
+                backgroundImage: `url(${icon}`
+            }
+        });
     }
 
     return result;
@@ -266,7 +258,7 @@ class Plugin {
                     value: props.closeOnOpen,
                     onChange: (checked) => {
                         if (checked) {
-                            for (const id of Array.from(Module.FolderStore.getExpandedFolders()).slice(1)) {
+                            for (const id of Array.from(Module.FolderState.getExpandedFolders()).slice(1)) {
                                 Module.ClientActions.toggleGuildFolderExpand(id);
                             }
                         }
@@ -282,11 +274,11 @@ class Plugin {
 
     start() {
         this.injectCSS(Styles);
-        this.createPatch(Component.GuildFolder.type, "render", {
+        this.createPatch(Component.GuildFolders.GuildFolderComponent.type, "render", {
             name: "GuildFolder",
             type: "component",
             after: ({methodArguments: [props], returnValue}) => {
-                const container = qReact(returnValue, (e) => e.props.children.type.displayName === "FolderIcon");
+                const container = qReact(returnValue, (el) => el.props.children.type.displayName === "FolderIcon");
 
                 if (container) {
                     const icon = container.props.children;
@@ -299,6 +291,8 @@ class Plugin {
                         folderId: props.folderId,
                         childProps: icon.props
                     });
+                } else {
+                    this.warn("Unable to find folder icon container");
                 }
             }
         });
@@ -398,8 +392,10 @@ class Plugin {
             name: "ClientActions",
             after: ({methodArguments: [folderId], originalMethod}) => {
                 if (this.settings.closeOnOpen) {
-                    for (const id of Module.FolderStore.getExpandedFolders()) {
-                        id !== folderId && originalMethod(id);
+                    for (const id of Module.FolderState.getExpandedFolders()) {
+                        if (id !== folderId) {
+                            originalMethod(id);
+                        }
                     }
                 }
             }
@@ -411,55 +407,21 @@ class Plugin {
         this.triggerRerender();
     }
 
-    async triggerRerender() {
-        const tree = BdApi.getInternalInstance(document.getElementsByClassName(Selector.tree.tree)[0]);
+    triggerRerender() {
+        for (const node of document.getElementsByClassName(Selector.folder.wrapper)) {
+            const fiber = BdApi.getInternalInstance(node);
 
-        if (!tree) {
-            this.error("Unable to trigger rerender: Cannot find tree element fiber");
-            return;
-        }
-
-        BdApi.monkeyPatch(tree.return, "type", {
-            silent: true,
-            once: true,
-            after: ({returnValue}) => {
-                const servers = qReact(returnValue, (e) => e.props.children.find((e) => e.props.folderId));
-
-                if (!servers) {
-                    this.error("Unable to trigger rerender: Cannot find servers list");
-                    return;
-                }
-
-                for (const {props} of servers.props.children) {
-                    if (props.folderId) {
-                        props.draggable = !props.draggable;
-                    }
-                }
-            }
-        });
-        let guilds = BdApi.getInternalInstance(document.getElementsByClassName(Selector.guilds.guilds)[0]);
-
-        if (!guilds) {
-            this.error("Unable to trigger rerender: Cannot find Guilds element fiber");
-            return;
-        }
-
-        while (!guilds.type || guilds.type.displayName !== "Guilds") {
-            if (!guilds.return) {
-                this.error("Unable to trigger rerender: Cannot find Guilds Component");
+            if (fiber && fiber.return.type && fiber.return.type === Component.GuildFolders.GuildFolderComponent.type) {
+                const {lastRenderedState, dispatch} = fiber.return.memoizedState.queue;
+                dispatch(!lastRenderedState);
+                setTimeout(() => dispatch(lastRenderedState), 0);
+            } else {
+                this.warn("Unable to force update folder fiber");
                 return;
             }
-
-            guilds = guilds.return;
         }
 
-        function forceUpdate(stateNode) {
-            return new Promise((resolve) => stateNode.forceUpdate(() => resolve()));
-        }
-
-        await forceUpdate(guilds.stateNode);
-        await forceUpdate(guilds.stateNode);
-        this.log("Successfully triggered rerender");
+        this.log("Successfully triggered folder rerenders");
     }
 }
 
@@ -469,7 +431,7 @@ module.exports = class Wrapper extends Plugin {
     }
 
     getVersion() {
-        return "2.3.1";
+        return "2.4.0";
     }
 
     getAuthor() {

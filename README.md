@@ -1,6 +1,6 @@
 # BetterDiscord Plugins
 
-### [BetterFolders](/v1/BetterFolders.plugin.js) <sub><sup>`v2.3.1` *(Updated: 06/05/21)*</sup></sub>
+### [BetterFolders](/v1/BetterFolders.plugin.js) <sub><sup>`v2.4.0` *(Updated: 12/10/21)*</sup></sub>
 Add new functionality to server folders.
 Current Features:
 - Custom Folder Icons
