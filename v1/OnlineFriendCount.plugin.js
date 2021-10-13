@@ -1,12 +1,12 @@
 /**
  * @name OnlineFriendCount
  * @author Zerthox
- * @version 1.4.3
+ * @version 1.5.0
  * @description Add the old online friend count back to guild list. Because nostalgia.
  * @authorLink https://github.com/Zerthox
  * @donate https://paypal.me/zerthox
  * @website https://github.com/Zerthox/BetterDiscord-Plugins
- * @source https://github.com/Zerthox/BetterDiscord-Plugins/tree/master/v1/OnlineFriendCount.plugin.js
+ * @source https://github.com/Zerthox/BetterDiscord-Plugins/blob/master/v1/OnlineFriendCount.plugin.js
  * @updateUrl https://raw.githubusercontent.com/Zerthox/BetterDiscord-Plugins/master/v1/OnlineFriendCount.plugin.js
  */
 
@@ -63,6 +63,7 @@ const Module = {
     Relationships: BdApi.findModuleByProps("isFriend", "getRelationshipCount")
 };
 const Component = {
+    HomeButton: BdApi.findModule((m) => m.default && m.default.toString().includes("showDMsOnly")),
     Link: BdApi.findModuleByProps("NavLink").Link
 };
 const Selector = {
@@ -70,7 +71,7 @@ const Selector = {
     list: BdApi.findModuleByProps("listItem"),
     friendsOnline: "friendsOnline-2JkivW"
 };
-const Styles = `/*! OnlineFriendCount v1.4.3 styles */
+const Styles = `/*! OnlineFriendCount v1.5.0 styles */
 .friendsOnline-2JkivW {
     color: rgba(255, 255, 255, 0.3);
     text-align: center;
@@ -126,78 +127,51 @@ const OnlineCountContainer = Flux.connectStores([Module.Status, Module.Relations
 class Plugin {
     start() {
         this.injectCSS(Styles);
-        const guilds = this.findGuilds();
-
-        const findChildFunc = (el) => {
-            while (!(el.props.children instanceof Function)) {
-                if (!el.props.children) {
-                    this.log(`Unable to find children function for "${el.type.toString()}"`);
-                    return null;
-                }
-
-                el = el.props.children;
-            }
-
-            return el;
-        };
-
-        this.createPatch(guilds.type.prototype, "render", {
-            after: ({returnValue}) => {
-                BdApi.monkeyPatch(findChildFunc(returnValue).props, "children", {
-                    silent: true,
-                    after: ({returnValue}) => {
-                        BdApi.monkeyPatch(findChildFunc(returnValue).props, "children", {
-                            silent: true,
-                            after: ({returnValue}) => {
-                                const scroller = qReact(returnValue, (e) =>
-                                    e.props.children.find((e) => e.type.displayName === "ConnectedUnreadDMs")
-                                );
-
-                                if (!scroller) {
-                                    this.error("Error during render: Cannot find guilds scroller Component");
-                                    return;
-                                }
-
-                                const {children} = scroller.props;
-                                const index = children.indexOf(
-                                    qReact(scroller, (e) => e.type.displayName === "ConnectedUnreadDMs")
-                                );
-                                children.splice(
-                                    index > -1 ? index : 1,
-                                    0,
-                                    React.createElement(OnlineCountContainer, null)
-                                );
-                            }
-                        });
-                    }
-                });
+        this.createPatch(Component.HomeButton, "default", {
+            instead: ({methodArguments: [props], originalMethod}) => {
+                return React.createElement(
+                    React.Fragment,
+                    null,
+                    originalMethod(props),
+                    React.createElement(OnlineCountContainer, null)
+                );
             }
         });
-        guilds.stateNode.forceUpdate();
+        this.triggerRerender();
     }
 
     stop() {
-        this.findGuilds().stateNode.forceUpdate();
+        this.triggerRerender();
     }
 
-    findGuilds() {
-        let guilds = BdApi.getInternalInstance(document.getElementsByClassName(Selector.guilds.guilds)[0]);
+    findGuildsOwner() {
+        const node = document.getElementsByClassName(Selector.guilds.guilds)[0];
+        let fiber = BdApi.getInternalInstance(node);
 
-        if (!guilds) {
-            this.error("Cannot find Guilds element fiber");
-            return;
+        if (!fiber) {
+            return null;
         }
 
-        while (!guilds.type || guilds.type.displayName !== "Guilds") {
-            if (!guilds.return) {
-                this.error("Cannot find Guilds Component");
-                return;
+        while (fiber) {
+            if (fiber.stateNode instanceof React.Component) {
+                return fiber;
             }
 
-            guilds = guilds.return;
+            fiber = fiber.return;
         }
 
-        return guilds;
+        return null;
+    }
+
+    triggerRerender() {
+        const fiber = this.findGuildsOwner();
+
+        if (fiber) {
+            fiber.stateNode.forceUpdate();
+            this.log("Successfully triggered Guilds rerender");
+        } else {
+            this.warn("Unable to trigger Guilds rerender");
+        }
     }
 }
 
@@ -207,7 +181,7 @@ module.exports = class Wrapper extends Plugin {
     }
 
     getVersion() {
-        return "1.4.3";
+        return "1.5.0";
     }
 
     getAuthor() {

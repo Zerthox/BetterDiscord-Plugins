@@ -6,7 +6,7 @@ Current Features:
 - Custom Folder Icons
 - Close other folders on open
 
-### [OnlineFriendCount](/v1/OnlineFriendCount.plugin.js) <sub><sup>`v1.4.3` *(Updated: 04/08/21)*</sup></sub>
+### [OnlineFriendCount](/v1/OnlineFriendCount.plugin.js) <sub><sup>`v1.5.0 *(Updated: 13/10/21)*</sup></sub>
 Add the old online friend count back to guild list. Because nostalgia.
 
 ### [VoiceEvents](/v1/VoiceEvents.plugin.js) <sub><sup>`v1.6.0` *(Updated: 01/10/21)*</sup></sub>
