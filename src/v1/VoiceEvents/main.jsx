@@ -6,11 +6,11 @@
 /** Module storage */
 const Module = {
     Events: BdApi.findModuleByProps("dispatch", "subscribe"),
-    Channels: BdApi.findModuleByProps("getChannel"),
+    Channels: BdApi.findModuleByProps("getChannel", "hasChannel"),
     SelectedChannel: BdApi.findModuleByProps("getChannelId", "getVoiceChannelId"),
-    VoiceStates: BdApi.findModuleByProps("getVoiceStates"),
-    Users: BdApi.findModuleByProps("getUser"),
-    Members: BdApi.findModuleByProps("getMember")
+    VoiceStates: BdApi.findModuleByProps("getVoiceStates", "hasVideo"),
+    Users: BdApi.findModuleByProps("getUser", "getCurrentUser"),
+    Members: BdApi.findModuleByProps("getMember", "isMember")
 };
 
 /** Component storage */

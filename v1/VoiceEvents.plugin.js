@@ -1,12 +1,12 @@
 /**
  * @name VoiceEvents
  * @author Zerthox
- * @version 1.6.0
+ * @version 1.6.1
  * @description Add TTS Event Notifications to your selected Voice Channel. TeamSpeak feeling.
  * @authorLink https://github.com/Zerthox
  * @donate https://paypal.me/zerthox
  * @website https://github.com/Zerthox/BetterDiscord-Plugins
- * @source https://github.com/Zerthox/BetterDiscord-Plugins/tree/master/v1/VoiceEvents.plugin.js
+ * @source https://github.com/Zerthox/BetterDiscord-Plugins/blob/master/v1/VoiceEvents.plugin.js
  * @updateUrl https://raw.githubusercontent.com/Zerthox/BetterDiscord-Plugins/master/v1/VoiceEvents.plugin.js
  */
 
@@ -59,11 +59,11 @@ function qReact(node, query) {
 
 const Module = {
     Events: BdApi.findModuleByProps("dispatch", "subscribe"),
-    Channels: BdApi.findModuleByProps("getChannel"),
+    Channels: BdApi.findModuleByProps("getChannel", "hasChannel"),
     SelectedChannel: BdApi.findModuleByProps("getChannelId", "getVoiceChannelId"),
-    VoiceStates: BdApi.findModuleByProps("getVoiceStates"),
-    Users: BdApi.findModuleByProps("getUser"),
-    Members: BdApi.findModuleByProps("getMember")
+    VoiceStates: BdApi.findModuleByProps("getVoiceStates", "hasVideo"),
+    Users: BdApi.findModuleByProps("getUser", "getCurrentUser"),
+    Members: BdApi.findModuleByProps("getMember", "isMember")
 };
 const Component = {
     Flex: BdApi.findModuleByDisplayName("Flex"),
@@ -535,7 +535,7 @@ module.exports = class Wrapper extends Plugin {
     }
 
     getVersion() {
-        return "1.6.0";
+        return "1.6.1";
     }
 
     getAuthor() {
