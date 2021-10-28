@@ -5,8 +5,8 @@
 
 /** Module storage */
 const Module = {
-    Constants: BdApi.findModuleByProps("Permissions"),
-    Status: BdApi.findModuleByProps("getState", "getStatus"),
+    Constants: BdApi.findModuleByProps("Permissions", "RelationshipTypes"),
+    Status: BdApi.findModuleByProps("getState", "getStatus", "isMobileOnline"),
     Relationships: BdApi.findModuleByProps("isFriend", "getRelationshipCount")
 };
 

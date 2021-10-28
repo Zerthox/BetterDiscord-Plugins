@@ -1,7 +1,7 @@
 /**
  * @name OnlineFriendCount
  * @author Zerthox
- * @version 1.5.0
+ * @version 1.5.1
  * @description Add the old online friend count back to guild list. Because nostalgia.
  * @authorLink https://github.com/Zerthox
  * @donate https://paypal.me/zerthox
@@ -58,8 +58,8 @@ function qReact(node, query) {
 }
 
 const Module = {
-    Constants: BdApi.findModuleByProps("Permissions"),
-    Status: BdApi.findModuleByProps("getState", "getStatus"),
+    Constants: BdApi.findModuleByProps("Permissions", "RelationshipTypes"),
+    Status: BdApi.findModuleByProps("getState", "getStatus", "isMobileOnline"),
     Relationships: BdApi.findModuleByProps("isFriend", "getRelationshipCount")
 };
 const Component = {
@@ -71,9 +71,9 @@ const Selector = {
     list: BdApi.findModuleByProps("listItem"),
     friendsOnline: "friendsOnline-2JkivW"
 };
-const Styles = `/*! OnlineFriendCount v1.5.0 styles */
+const Styles = `/*! OnlineFriendCount v1.5.1 styles */
 .friendsOnline-2JkivW {
-    color: var(--interactive-normal);
+    color: var(--channels-default);
     text-align: center;
     text-transform: uppercase;
     font-size: 10px;
@@ -181,7 +181,7 @@ module.exports = class Wrapper extends Plugin {
     }
 
     getVersion() {
-        return "1.5.0";
+        return "1.5.1";
     }
 
     getAuthor() {

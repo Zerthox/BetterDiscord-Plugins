@@ -6,7 +6,7 @@ Current Features:
 - Custom Folder Icons
 - Close other folders on open
 
-### [OnlineFriendCount](/v1/OnlineFriendCount.plugin.js) <sub><sup>`v1.5.0 *(Updated: 13/10/21)*</sup></sub>
+### [OnlineFriendCount](/v1/OnlineFriendCount.plugin.js) <sub><sup>`v1.5.1 *(Updated: 28/10/21)*</sup></sub>
 Add the old online friend count back to guild list. Because nostalgia.
 
 ### [VoiceEvents](/v1/VoiceEvents.plugin.js) <sub><sup>`v1.6.0` *(Updated: 01/10/21)*</sup></sub>
@@ -36,3 +36,21 @@ Add a user count to all voice channels.
 
 ### [HypeSquadCheatsheet](/v1/HypeSquadCheatsheet.plugin.js) <sub><sup>`v0.1.0` *(Updated: 27/12/19)*</sup></sub>
 Display the resulting HypeSquad house next to the questions in the HypeSquad questions modal.
+
+<br>
+
+---
+
+<br>
+
+## Building from source
+```sh
+# build all plugins
+npm run build-all
+
+# build single plugin
+npm run build -- --plugin BetterFolders
+
+# build single plugin to BetterDiscord folder & watch for changes
+npm run dev -- --plugin BetterFolders
+```
