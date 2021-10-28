@@ -73,7 +73,7 @@ const Selector = {
 };
 const Styles = `/*! OnlineFriendCount v1.5.0 styles */
 .friendsOnline-2JkivW {
-    color: rgba(255, 255, 255, 0.3);
+    color: var(--interactive-normal);
     text-align: center;
     text-transform: uppercase;
     font-size: 10px;
@@ -85,7 +85,7 @@ const Styles = `/*! OnlineFriendCount v1.5.0 styles */
     cursor: pointer;
 }
 .friendsOnline-2JkivW:hover {
-    color: rgba(255, 255, 255, 0.5);
+    color: var(--interactive-hover);
 }`;
 
 function OnlineCount({online}) {
