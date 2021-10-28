@@ -1,6 +1,6 @@
 // OnlineFriendCount styles
 .friendsOnline-2JkivW {
-    color: hsla(0, 0%, 100%, .3);
+    color: var(--interactive-normal);
     text-align: center;
     text-transform: uppercase;
     font-size: 10px;
@@ -11,6 +11,6 @@
 	white-space: nowrap;
 	cursor: pointer;
 	&:hover {
-		color: hsla(0, 0%, 100%, .5);
+		color: var(--interactive-hover);
 	}
 }
