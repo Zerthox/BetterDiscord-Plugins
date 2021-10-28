@@ -6,7 +6,7 @@ Current Features:
 - Custom Folder Icons
 - Close other folders on open
 
-### [OnlineFriendCount](/v1/OnlineFriendCount.plugin.js) <sub><sup>`v1.5.1 *(Updated: 28/10/21)*</sup></sub>
+### [OnlineFriendCount](/v1/OnlineFriendCount.plugin.js) <sub><sup>`v1.5.1` *(Updated: 28/10/21)*</sup></sub>
 Add the old online friend count back to guild list. Because nostalgia.
 
 ### [VoiceEvents](/v1/VoiceEvents.plugin.js) <sub><sup>`v1.6.1` *(Updated: 28/10/21)*</sup></sub>
@@ -15,13 +15,7 @@ Add TTS Event Notifications to your selected Voice Channel. TeamSpeak feeling.
 ### [BetterVolume](/v1/BetterVolume.plugin.js) <sub><sup>`v1.0.0` *(Updated: 06/05/21)*</sup></sub>
 Set user volume values manually instead of using a limited slider.
 
-<br>
-
----
-
-<br>
-
-## *Old/WIP*
+## *Old Plugins*
 
 ### [BetterReplyer](/v1/BetterReplyer.plugin.js) <sub><sup>`v4.3.3` *(Updated: 06/08/20)*</sup></sub>
 Reply to people using their ID with a button.
@@ -45,6 +39,9 @@ Display the resulting HypeSquad house next to the questions in the HypeSquad que
 
 ## Building from source
 ```sh
+# install dependencies
+npm install
+
 # build all plugins
 npm run build-all
 
