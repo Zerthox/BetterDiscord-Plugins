@@ -17,18 +17,18 @@ Set user volume values manually instead of using a limited slider.
 
 ## *Old Plugins*
 
-### [BetterReplyer](/v1/BetterReplyer.plugin.js) <sub><sup>`v4.3.3` *(Updated: 06/08/20)*</sup></sub>
+### [BetterReplyer](/old/BetterReplyer.plugin.js) <sub><sup>`v4.3.3` *(Updated: 06/08/20)*</sup></sub>
 Reply to people using their ID with a button.
 Inspired by [Replyer](https://github.com/cosmicsalad/Discord-Themes-and-Plugins/blob/master/plugins/replyer.plugin.js) by [@Hammmock#3110](https://github.com/cosmicsalad), [@Natsulus#0001](https://github.com/Delivator) & [@Zerebos#7790](https://github.com/rauenzi).
 
-### [Emulator](/v1/Emulator.plugin.js) <sub><sup>`v1.1.0` *(Updated: 17/02/20)*</sup></sub>
+### [Emulator](/old/Emulator.plugin.js) <sub><sup>`v1.1.0` *(Updated: 17/02/20)*</sup></sub>
 Emulate Windows, MacOS, Linux or Browser on any platform.
 **WARNING:** Emulating a different platform may cause unwanted side effects. Use at own risk.
 
-### [VoiceCount](/v1/VoiceCount.plugin.js) <sub><sup>`v0.1.0` *(Updated: 18/04/20)*</sup></sub>
+### [VoiceCount](/old/VoiceCount.plugin.js) <sub><sup>`v0.1.0` *(Updated: 18/04/20)*</sup></sub>
 Add a user count to all voice channels.
 
-### [HypeSquadCheatsheet](/v1/HypeSquadCheatsheet.plugin.js) <sub><sup>`v0.1.0` *(Updated: 27/12/19)*</sup></sub>
+### [HypeSquadCheatsheet](/old/HypeSquadCheatsheet.plugin.js) <sub><sup>`v0.1.0` *(Updated: 27/12/19)*</sup></sub>
 Display the resulting HypeSquad house next to the questions in the HypeSquad questions modal.
 
 <br>

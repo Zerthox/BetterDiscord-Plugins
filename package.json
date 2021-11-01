@@ -1,57 +1,38 @@
 {
-	"name": "betterdiscord-plugins",
-	"version": "1.0.0",
-	"description": "Plugins for BetterDiscord (BandagedBD & BDV2).",
-	"main": "build.js",
-	"scripts": {
-		"build": "node scripts/build.js",
-		"build-all": "node scripts/build.js --plugins=*",
-		"dev": "node scripts/build.js --dev",
-		"lint": "eslint src --ext .js,.jsx -f node_modules/eslint-friendly-formatter",
-		"lint-fix": "eslint src --fix --ext .js,.jsx -f node_modules/eslint-friendly-formatter"
-	},
-	"repository": {
-		"type": "git",
-		"url": "https://github.com/Zerthox/BetterDiscord-Plugins.git"
-	},
-	"author": "Zerthox",
-	"license": "MIT",
-	"bugs": {
-		"url": "https://github.com/Zerthox/BetterDiscord-Plugins/issues"
-	},
-	"homepage": "https://github.com/Zerthox/BetterDiscord-Plugins#readme",
-	"devDependencies": {
-		"@babel/cli": "^7.12.1",
-		"@babel/core": "^7.12.3",
-		"@babel/eslint-parser": "^7.13.14",
-		"@babel/preset-react": "^7.12.1",
-		"chalk": "^4.1.1",
-		"eslint": "^7.25.0",
-		"eslint-config-google": "^0.14.0",
-		"eslint-friendly-formatter": "^4.0.1",
-		"eslint-plugin-node": "^11.1.0",
-		"eslint-plugin-react": "^7.23.2",
-		"minimist": "^1.2.5",
-		"prettier": "^2.2.1",
-		"sass": "^1.32.12"
-	},
-	"babel": {
-		"presets": [
-			[
-				"@babel/preset-react",
-				{
-					"useSpread": true
-				}
-			]
-		]
-	},
-	"prettier": {
-		"parser": "babel",
-		"endOfLine": "lf",
-		"tabWidth": 4,
-		"printWidth": 120,
-		"bracketSpacing": false,
-		"trailingComma": "none",
-		"arrowParens": "always"
-	}
+    "name": "betterdiscord-plugins",
+    "version": "1.0.0",
+    "description": "Plugins for BetterDiscord.",
+    "private": true,
+    "scripts": {},
+    "repository": {
+        "type": "git",
+        "url": "https://github.com/Zerthox/BetterDiscord-Plugins.git"
+    },
+    "author": "Zerthox",
+    "license": "MIT",
+    "bugs": {
+        "url": "https://github.com/Zerthox/BetterDiscord-Plugins/issues"
+    },
+    "homepage": "https://github.com/Zerthox/BetterDiscord-Plugins#readme",
+    "dependencies": {
+        "@types/node": "^16.11.6",
+        "@types/react": "^17.0.33",
+        "@types/react-dom": "^17.0.10",
+        "sass": "^1.43.4",
+        "ts-loader": "^9.2.6",
+        "typescript": "^4.4.4",
+        "webpack": "^5.61.0",
+        "webpack-cli": "^4.9.1"
+    },
+    "devDependencies": {
+        "@typescript-eslint/eslint-plugin": "^5.2.0",
+        "@typescript-eslint/parser": "^5.2.0",
+        "eslint": "^7.32.0",
+        "eslint-config-google": "^0.14.0",
+        "eslint-friendly-formatter": "^4.0.1",
+        "eslint-plugin-import": "^2.25.2",
+        "eslint-plugin-node": "^11.1.0",
+        "eslint-plugin-react": "^7.26.1",
+        "eslint-plugin-react-hooks": "^4.2.0"
+    }
 }

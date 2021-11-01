@@ -1,11 +1,14 @@
 module.exports = {
-    parser: "@babel/eslint-parser",
+    parser: "@typescript-eslint/parser",
     env: {
         node: true
     },
     plugins: [
+        "@typescript-eslint",
         "node",
-        "react"
+        "import",
+        "react",
+        "react-hooks"
     ],
     settings: {
         react: {
@@ -14,6 +17,7 @@ module.exports = {
     },
     extends: [
         "eslint:recommended",
+        "plugin:@typescript-eslint/recommended",
         "plugin:react/recommended",
         "google"
     ],
@@ -28,6 +32,8 @@ module.exports = {
         "valid-jsdoc": "off",
         "react/prop-types": "off",
         "react/react-in-jsx-scope": "off",
-        "react/display-name": "off"
+        "react/display-name": "off",
+        "@typescript-eslint/no-empty-function": "off",
+        "@typescript-eslint/no-explicit-any": "off"
     }
 };
