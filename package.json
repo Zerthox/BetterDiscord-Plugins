@@ -3,7 +3,9 @@
     "version": "1.0.0",
     "description": "Plugins for BetterDiscord.",
     "private": true,
-    "scripts": {},
+    "scripts": {
+        "build": "rollup -c"
+    },
     "repository": {
         "type": "git",
         "url": "https://github.com/Zerthox/BetterDiscord-Plugins.git"
@@ -15,14 +17,13 @@
     },
     "homepage": "https://github.com/Zerthox/BetterDiscord-Plugins#readme",
     "dependencies": {
+        "@rollup/plugin-typescript": "^8.3.0",
         "@types/node": "^16.11.6",
         "@types/react": "^17.0.33",
         "@types/react-dom": "^17.0.10",
+        "rollup": "^2.59.0",
         "sass": "^1.43.4",
-        "ts-loader": "^9.2.6",
-        "typescript": "^4.4.4",
-        "webpack": "^5.61.0",
-        "webpack-cli": "^4.9.1"
+        "typescript": "^4.4.4"
     },
     "devDependencies": {
         "@typescript-eslint/eslint-plugin": "^5.2.0",

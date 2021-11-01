@@ -6,7 +6,7 @@ export interface Config {
     name: string;
     version: string;
     author: string;
-    description?: string;
+    description: string;
 }
 
 export interface Plugin {
@@ -24,11 +24,23 @@ export const createPlugin = (config: Config, callback: (api: Api) => Plugin) => 
 
     // construct wrapper
     return class Wrapper {
+        getName() {
+            return config.name;
+        }
+        getVersion() {
+            return config.version;
+        }
+        getAuthor() {
+            return config.author;
+        }
+        getDescription() {
+            return config.description;
+        }
+
         async start() {
             await plugin.start();
             api.Logger.log("Enabled");
         }
-
         async stop() {
             await plugin.stop();
             api.Logger.log("Disabled");

@@ -26,6 +26,7 @@ module.exports = {
         quotes: ["error", "double"],
         "comma-dangle": ["error", "never"],
         "quote-props": ["error", "as-needed"],
+        "linebreak-style": "off",
         "max-len": "off",
         "no-undef": "off",
         "require-jsdoc": "off",

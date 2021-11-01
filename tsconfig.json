@@ -1,0 +1,7 @@
+{
+    "compilerOptions": {
+        "jsx": "react",
+        "target": "es2017",
+        "removeComments": true
+    }
+}
