@@ -18,32 +18,20 @@ export interface Plugin {
 export const createPlugin = (config: Config, callback: (api: Api) => Plugin) => {
     // create api
     const api = createInstance(config);
+    const {Logger} = api;
 
     // get plugin info
     const plugin = callback(api);
 
     // construct wrapper
     return class Wrapper {
-        getName() {
-            return config.name;
-        }
-        getVersion() {
-            return config.version;
-        }
-        getAuthor() {
-            return config.author;
-        }
-        getDescription() {
-            return config.description;
-        }
-
         async start() {
+            Logger.log("Enabled");
             await plugin.start();
-            api.Logger.log("Enabled");
         }
         async stop() {
             await plugin.stop();
-            api.Logger.log("Disabled");
+            Logger.log("Disabled");
         }
     };
 };
