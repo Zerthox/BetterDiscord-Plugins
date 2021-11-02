@@ -1,12 +1,12 @@
-import {createPlugin, Modules} from "../../lib";
+import {createPlugin, Finder} from "../../lib";
 import config from "./config.json";
 
-export default createPlugin(config, (Log) => {
-    const foo = Modules.byId(0);
+export default createPlugin(config, ({Logger}) => {
+    const foo = Finder.byId(0);
 
     return {
         start() {
-            Log.log("Found module", foo);
+            Logger.log("Found module", foo);
         },
         stop() {}
     };

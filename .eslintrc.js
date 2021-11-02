@@ -26,6 +26,7 @@ module.exports = {
         quotes: ["error", "double"],
         "comma-dangle": ["error", "never"],
         "quote-props": ["error", "as-needed"],
+        "operator-linebreak": ["error", "before"],
         "linebreak-style": "off",
         "max-len": "off",
         "no-undef": "off",
@@ -36,7 +37,6 @@ module.exports = {
         "react/display-name": "off",
         "no-unused-vars": "off",
         "@typescript-eslint/no-unused-vars": "error",
-        "@typescript-eslint/no-empty-function": "off",
-        "@typescript-eslint/no-explicit-any": "off"
+        "@typescript-eslint/no-empty-function": "off"
     }
 };

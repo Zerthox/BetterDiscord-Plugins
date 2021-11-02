@@ -1,22 +1,29 @@
-// grab webpack require then cleanup
-let webpackRequire;
-global.webpackJsonp.push([
-    [],
-    {
-        __temp__: (_module: any, _exports: any, require: any) => {
-            webpackRequire = require;
-        }
-    },
-    [["__temp__"]]
-]);
-delete webpackRequire.m.__temp__;
-delete webpackRequire.c.__temp__;
+import Finder from "./finder";
 
-const Modules = {
-    require: webpackRequire,
-    byId: (id: number) => webpackRequire.c[id] || null
-};
+export const EventEmitter: NodeJS.EventEmitter = Finder.byProps("subscribe", "emit");
 
-export default Modules;
+export const React = Finder.byProps("createElement", "Component", "Fragment");
 
-export type Modules = typeof Modules;
+export const ReactDOM = Finder.byProps("render", "findDOMNode", "createPortal");
+
+export const classNames = Finder.find((exports) => exports.default === exports && Object.keys(exports).length === 1);
+
+export const Flux = Finder.query({props: ["Store", "connectStores"], export: "default"});
+
+export const Dispatcher = Finder.query({props: ["Dispatcher"], export: "Dispatcher"});
+
+export const lodash = Finder.byProps("cloneDeep", "flattenDeep");
+
+export const semver = Finder.byProps("valid", "satifies");
+
+export const moment = Finder.byProps("utc", "months");
+
+export const SimpleMarkdown = Finder.byProps("parseBlock", "parseInline");
+
+export const hljs = Finder.byProps("highlight", "highlightBlock");
+
+export const Raven = Finder.byProps("captureBreadcrumb");
+
+export const joi = Finder.byProps("assert", "validate", "object");
+
+export const i18n = Finder.byProps("languages", "getLocale");

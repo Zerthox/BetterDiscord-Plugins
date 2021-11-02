@@ -1,13 +1,15 @@
+/* eslint-disable @typescript-eslint/no-explicit-any */
+
 type Output = (...data: any[]) => void;
 
-export interface Log {
-    print: (output: Output, ...data: any[]) => void;
+export interface Logger {
+    print(output: Output, ...data: any[]): void;
     log: Output;
     warn: Output;
     error: Output;
 }
 
-export const createLog = (name: string, color: string, version: string): Log => {
+export const createLogger = (name: string, color: string, version: string): Logger => {
     const print = (output: Output, ...data: any[]) => output(
         `%c[${name}] %c${version ? `(v${version})` : ""}`,
         `color: ${color}; font-weight: 700;`,
@@ -16,8 +18,8 @@ export const createLog = (name: string, color: string, version: string): Log => 
     );
     return {
         print,
-        log: (...data: any[]) => print(console.log, ...data),
-        warn: (...data: any[]) => print(console.warn, ...data),
-        error: (...data: any[]) => print(console.error, ...data)
+        log: (...data) => print(console.log, ...data),
+        warn: (...data) => print(console.warn, ...data),
+        error: (...data) => print(console.error, ...data)
     };
 };
