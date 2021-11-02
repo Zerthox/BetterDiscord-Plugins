@@ -13,7 +13,7 @@ const error = (msg: string) => console.error(chalk.red(`Error: ${msg}`));
 const sourceFolder = path.resolve(__dirname, "../src");
 const sourceEntries = (readdirSync(sourceFolder, {withFileTypes: true}))
     .filter((entry) => entry.isDirectory());
-const wscript = readFileSync(path.resolve(__dirname, "wscript.js"), "utf8").split("\n").slice(1).filter((line) => line.trim().length > 0).join("\n");
+const wscript = readFileSync(path.resolve(__dirname, "wscript.js"), "utf8").split("\n").filter((line) => line.trim().length > 0).join("\n");
 
 // parse args
 const args = minimist(process.argv.slice(2));

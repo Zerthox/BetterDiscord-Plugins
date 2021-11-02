@@ -1,13 +1,13 @@
 type Output = (...data: any[]) => void;
 
-export interface Logger {
+export interface Log {
     print: (output: Output, ...data: any[]) => void;
     log: Output;
     warn: Output;
     error: Output;
 }
 
-export const createLogger = (name: string, color: string, version: string): Logger => {
+export const createLog = (name: string, color: string, version: string): Log => {
     const print = (output: Output, ...data: any[]) => output(
         `%c[${name}] %c${version ? `(v${version})` : ""}`,
         `color: ${color}; font-weight: 700;`,

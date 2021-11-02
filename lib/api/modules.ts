@@ -12,12 +12,11 @@ global.webpackJsonp.push([
 delete webpackRequire.m.__temp__;
 delete webpackRequire.c.__temp__;
 
-export interface Finder {
-    require: (id: number) => any;
-    byId: (id: number) => any;
-}
-
-export default {
+const modules = {
     require: webpackRequire,
     byId: (id: number) => webpackRequire.c[id] || null
-} as Finder;
+};
+
+export default modules;
+
+export type Modules = typeof modules;

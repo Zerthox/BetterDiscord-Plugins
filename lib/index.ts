@@ -18,7 +18,7 @@ export interface Plugin {
 export const createPlugin = (config: Config, callback: (api: Api) => Plugin) => {
     // create api
     const api = createInstance(config);
-    const {Logger} = api;
+    const {Log} = api;
 
     // get plugin info
     const plugin = callback(api);
@@ -26,12 +26,12 @@ export const createPlugin = (config: Config, callback: (api: Api) => Plugin) => 
     // construct wrapper
     return class Wrapper {
         async start() {
-            Logger.log("Enabled");
+            Log.log("Enabled");
             await plugin.start();
         }
         async stop() {
             await plugin.stop();
-            Logger.log("Disabled");
+            Log.log("Disabled");
         }
     };
 };

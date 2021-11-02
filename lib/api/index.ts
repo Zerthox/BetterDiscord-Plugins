@@ -1,19 +1,22 @@
-import finder, {Finder} from "./finder";
-import {createLogger, Logger} from "./logger";
+import Modules from "./modules";
+import {createLog, Log} from "./log";
+import * as ReactUtils from "./react";
 import {Config} from "..";
 
 export interface Api {
     config?: Config;
-    Finder: Finder;
-    Logger?: Logger;
+    Log?: Log;
+    Modules: typeof Modules;
+    ReactUtils: typeof ReactUtils;
 }
 
-export default {Finder: finder} as Api;
+export default {Modules} as Api;
 
 export const createInstance = (config: Config): Api => {
     return {
         config,
-        Finder: finder,
-        Logger: createLogger(config.name, "#3a71c1", config.version)
+        Modules,
+        ReactUtils,
+        Log: createLog(config.name, "#3a71c1", config.version)
     };
 };
