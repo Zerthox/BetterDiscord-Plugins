@@ -41,6 +41,7 @@ export const createPlugin = (config: Config, callback: (api: Api) => Plugin) => 
             await plugin.start();
         }
         async stop() {
+            Patcher.unpatchAll();
             await plugin.stop();
             Logger.log("Disabled");
         }

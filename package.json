@@ -1,6 +1,6 @@
 {
     "name": "betterdiscord-plugins",
-    "version": "1.0.0",
+    "version": "2.0.0",
     "description": "Plugins for BetterDiscord.",
     "private": true,
     "scripts": {
