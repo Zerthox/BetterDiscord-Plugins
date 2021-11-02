@@ -23,27 +23,30 @@ delete webpackRequire.c.__temp__;
 export type Filter = (exports: any, module?: any) => boolean;
 
 const applyFilters = (filters: Filter[]) => {
-    return (module) => filters.every((filter) => (
-        filter(module.exports, module)
-        || (module.exports.__esModule && filter(exports.default, module))
-    ));
+    return (module: { exports: any; }) => {
+        const {exports} = module;
+        return filters.every((filter) => (
+            filter(exports, module)
+            || (exports.__esModule && exports.default && filter(exports.default, module))
+        ));
+    };
 };
 
 const filters = {
     byExports(exported: unknown): Filter {
-        return (target) => target === exported || Object.values(target).includes(exported);
+        return (target) => target === exported || (target instanceof Object && Object.values(target).includes(exported));
     },
     byName(name: string): Filter {
-        return (target) => Object.values(target).some(filters.byDisplayName(name));
+        return (target) => target instanceof Object && Object.values(target).some(filters.byDisplayName(name));
     },
     byDisplayName(name: string): Filter {
-        return (target) => target instanceof Object && (target?.displayName || target?.constructor?.displayName) === name;
+        return (target) => target?.displayName === name || target?.constructor?.displayName === name;
     },
     byProps(props: string[]): Filter {
         return (target) => target instanceof Object && props.every((prop) => prop in target);
     },
     byPrototypes(prototypes: string[]): Filter {
-        return (target) => target.prototype instanceof Object && prototypes.every((prototype) => prototype in target.prototype);
+        return (target) => target instanceof Object && target.prototype instanceof Object && prototypes.every((prototype) => prototype in target.prototype);
     },
     bySource(contents: string[]): Filter {
         return (target) => contents.every((content) => target?.toString().includes(content));
