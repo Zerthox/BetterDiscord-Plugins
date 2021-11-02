@@ -1,12 +1,12 @@
-import {createLogger, Logger} from "./log";
-import {createPatcher, Patcher} from "./patch";
+import {createLogger, Logger} from "./logger";
+import {createPatcher, Patcher} from "./patcher";
 
 export {default as Finder} from "./finder";
 export * as Modules from "./modules";
-export {React, ReactDOM, classNames, lodash} from "./modules";
+export {React, ReactDOM, classNames, lodash, Flux} from "./modules";
 export * as ReactUtils from "./react";
-export {Logger as Log} from "./log";
-export {Patcher as Patch} from "./patch";
+export {Logger as Log} from "./logger";
+export {Patcher as Patch} from "./patcher";
 
 export interface Api {
     Logger: Logger;
