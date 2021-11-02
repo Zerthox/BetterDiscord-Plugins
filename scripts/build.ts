@@ -47,17 +47,18 @@ for (const input of inputs) {
 async function build(input: string, output: string) {
     // parse config
     const config = await resolveConfig(input);
+    const {output: outputConfig, ...inputConfig} = rollupConfig;
 
     // resolve output file
     const outFile = path.resolve(output, `${config.name}.plugin.js`);
 
     // bundle plugin
     const bundle = await rollup({
-        input: path.resolve(input, "index.tsx"),
-        plugins: rollupConfig.plugins
+        ...inputConfig,
+        input: path.resolve(input, "index.tsx")
     });
     await bundle.write({
-        ...rollupConfig.output,
+        ...outputConfig,
         file: outFile,
         banner: toMeta(config) + `\n/*@cc_on @if (@_jscript)\n${wscript}\n@else @*/\n`,
         footer: "\n/*@end @*/"
