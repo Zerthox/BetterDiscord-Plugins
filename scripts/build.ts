@@ -3,7 +3,7 @@ import {promises as fs, readdirSync, readFileSync} from "fs";
 import minimist from "minimist";
 import chalk from "chalk";
 import {rollup} from "rollup";
-import rollupConfig from "./rollup.config";
+import rollupConfig from "../rollup.config";
 import {Config} from "../lib";
 
 const warn = (msg: string) => console.warn(chalk.yellow(`Warn: ${msg}`));
@@ -16,7 +16,7 @@ const sourceEntries = (readdirSync(sourceFolder, {withFileTypes: true}))
 const wscript = readFileSync(path.resolve(__dirname, "wscript.js"), "utf8").split("\n").filter((line) => line.trim().length > 0).join("\n");
 
 // parse args
-const args = minimist(process.argv.slice(2));
+const args = minimist(process.argv.slice(2), {boolean: "dev"});
 
 // resolve input paths
 let inputs: string[] = [];
@@ -39,9 +39,17 @@ if (inputs.length === 0) {
     process.exit(1);
 }
 
+const output = args.dev ? path.resolve(
+    process.platform === "win32" ? process.env.APPDATA
+        : process.platform === "darwin" ? path.resolve(process.env.HOME, "Library/Preferences")
+            : path.resolve(process.env.HOME, ".config"),
+    "BetterDiscord/plugins"
+) : path.resolve(__dirname, "../dist");
+
+
 // build each input
 for (const input of inputs) {
-    build(input, path.resolve(__dirname, "../dist"));
+    build(input, output);
 }
 
 async function build(input: string, output: string) {
