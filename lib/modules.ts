@@ -1,29 +1,44 @@
 import Finder from "./finder";
 
+// we import instances for the typing
+import ReactInstance from "react";
+import ReactDOMInstance from "react-dom";
+import classNamesInstance from "classnames";
+import lodashInstance from "lodash";
+import semverInstance from "semver";
+import momentInstance from "moment";
+import SimpleMarkdownInstance from "simple-markdown";
+import hljsInstance from "highlight.js";
+import joiInstance from "joi";
+import RavenInstance from "raven";
+
 export const EventEmitter: NodeJS.EventEmitter = Finder.byProps("subscribe", "emit");
 
-export const React = Finder.byProps("createElement", "Component", "Fragment");
+export const React: typeof ReactInstance = Finder.byProps("createElement", "Component", "Fragment");
 
-export const ReactDOM = Finder.byProps("render", "findDOMNode", "createPortal");
+export const ReactDOM: typeof ReactDOMInstance = Finder.byProps("render", "findDOMNode", "createPortal");
 
-export const classNames = Finder.find((exports) => exports.default === exports && Object.keys(exports).length === 1);
+export const classNames: typeof classNamesInstance = Finder.find((exports) => exports.default === exports && Object.keys(exports).length === 1);
 
+export const lodash: typeof lodashInstance = Finder.byProps("cloneDeep", "flattenDeep");
+
+export const semver: typeof semverInstance = Finder.byProps("valid", "satifies");
+
+export const moment: typeof momentInstance = Finder.byProps("utc", "months");
+
+export const SimpleMarkdown: typeof SimpleMarkdownInstance = Finder.byProps("parseBlock", "parseInline");
+
+export const hljs: typeof hljsInstance = Finder.byProps("highlight", "highlightBlock");
+
+export const Raven: typeof RavenInstance = Finder.byProps("captureBreadcrumb");
+
+export const joi: typeof joiInstance = Finder.byProps("assert", "validate", "object");
+
+/** Custom module from Discord. */
 export const Flux = Finder.query({props: ["Store", "connectStores"], export: "default"});
 
+/** Custom module from Discord. */
 export const Dispatcher = Finder.query({props: ["Dispatcher"], export: "Dispatcher"});
 
-export const lodash = Finder.byProps("cloneDeep", "flattenDeep");
-
-export const semver = Finder.byProps("valid", "satifies");
-
-export const moment = Finder.byProps("utc", "months");
-
-export const SimpleMarkdown = Finder.byProps("parseBlock", "parseInline");
-
-export const hljs = Finder.byProps("highlight", "highlightBlock");
-
-export const Raven = Finder.byProps("captureBreadcrumb");
-
-export const joi = Finder.byProps("assert", "validate", "object");
-
+/** Custom module from Discord. */
 export const i18n = Finder.byProps("languages", "getLocale");
