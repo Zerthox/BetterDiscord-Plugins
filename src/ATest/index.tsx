@@ -1,7 +1,7 @@
-import {createPlugin} from "../../lib";
+import {createPlugin, Modules} from "../../lib";
 import config from "./config.json";
 
-export default createPlugin(config, ({Modules, Log}) => {
+export default createPlugin(config, (Log) => {
     const foo = Modules.byId(0);
 
     return {

@@ -12,11 +12,11 @@ global.webpackJsonp.push([
 delete webpackRequire.m.__temp__;
 delete webpackRequire.c.__temp__;
 
-const modules = {
+const Modules = {
     require: webpackRequire,
     byId: (id: number) => webpackRequire.c[id] || null
 };
 
-export default modules;
+export default Modules;
 
-export type Modules = typeof modules;
+export type Modules = typeof Modules;

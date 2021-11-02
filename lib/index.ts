@@ -1,6 +1,6 @@
-import {createInstance, Api} from "./api";
-
-export {Api} from "./api";
+import {createLog, Log} from "./log";
+export {default as Modules} from "./modules";
+export * as ReactUtils from "./react";
 
 export interface Config {
     name: string;
@@ -15,23 +15,22 @@ export interface Plugin {
     settings?: () => JSX.Element;
 }
 
-export const createPlugin = (config: Config, callback: (api: Api) => Plugin) => {
-    // create api
-    const api = createInstance(config);
-    const {Log} = api;
+export const createPlugin = (config: Config, callback: (log: Log) => Plugin) => {
+    // create log
+    const log = createLog(config.name, "#3a71c1", config.version);
 
     // get plugin info
-    const plugin = callback(api);
+    const plugin = callback(log);
 
     // construct wrapper
     return class Wrapper {
         async start() {
-            Log.log("Enabled");
+            log.log("Enabled");
             await plugin.start();
         }
         async stop() {
             await plugin.stop();
-            Log.log("Disabled");
+            log.log("Disabled");
         }
     };
 };
