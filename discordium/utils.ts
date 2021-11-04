@@ -24,7 +24,7 @@ export const queryTree = (node: JSX.Element, predicate: Predicate<JSX.Element>):
 
 export type Direction = null | "up" | "down" | "both";
 
-export const queryFiber = (fiber: Fiber, predicate: Predicate<Fiber>, direction = "up", depth = 30, current = 0): Fiber | null => {
+export const queryFiber = (fiber: Fiber, predicate: Predicate<Fiber>, direction: Direction = "up", depth = 30, current = 0): Fiber | null => {
     // check depth
     if (current > depth) {
         return null;
