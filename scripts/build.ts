@@ -20,7 +20,7 @@ const args = minimist(process.argv.slice(2), {boolean: "dev"});
 
 // resolve input paths
 let inputs: string[] = [];
-if (args._.length === 1 && args._[0] === "*") {
+if (args._.length === 0) {
     inputs = sourceEntries.map((entry) => path.resolve(sourceFolder, entry.name));
 } else {
     for (const name of args._) {
@@ -57,7 +57,7 @@ async function build(input: string, output: string) {
     const {output: outputConfig, ...inputConfig} = rollupConfig;
 
     // resolve output file
-    const outFile = path.resolve(output, `${config.name}.plugin.js`);
+    const outFile = path.resolve(output, `${path.basename(input)}.plugin.js`);
 
     // bundle plugin
     const bundle = await rollup({

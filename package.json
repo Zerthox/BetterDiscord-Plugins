@@ -5,7 +5,6 @@
     "private": true,
     "scripts": {
         "build": "ts-node scripts/build.ts",
-        "build-all": "ts-node scripts/build.ts *",
         "dev": "ts-node scripts/build.ts --dev",
         "lint": "eslint . -f node_modules/eslint-friendly-formatter",
         "lint-fix": "eslint . -f node_modules/eslint-friendly-formatter --fix"
