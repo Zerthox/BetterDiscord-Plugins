@@ -1,5 +1,3 @@
-/* eslint-disable @typescript-eslint/no-explicit-any */
-
 interface Require {
     (id: number): any;
     m: Record<string, any>;

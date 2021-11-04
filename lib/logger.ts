@@ -1,5 +1,3 @@
-/* eslint-disable @typescript-eslint/no-explicit-any */
-
 type Output = (...data: any[]) => void;
 
 export interface Logger {
