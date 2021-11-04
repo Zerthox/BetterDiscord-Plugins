@@ -91,7 +91,7 @@ const raw = {
         byPrototypes: (...prototypes: string[]) => raw.all.find(filters.byPrototypes(prototypes)),
         bySource: (...contents: string[]) => raw.all.find(filters.bySource(contents))
     },
-    resolveExports: (module: any, filter: string | ((entry: any) => boolean) = null) => {
+    resolveExports: (module: any, filter: string | ((entry: any) => boolean) | null = null) => {
         if (module instanceof Object && "exports" in module) {
             const exported = module.exports;
             if (!exported) {
@@ -106,7 +106,7 @@ const raw = {
             }
 
             // check for default export
-            if (exported instanceof Object && exported.__esModule && "default" in exported && Object.keys(exported).length === 2) {
+            if (exported instanceof Object && exported.__esModule && "default" in exported && Object.keys(exported).length === 1) {
                 return exported.default;
             }
 
