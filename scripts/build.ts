@@ -4,7 +4,7 @@ import minimist from "minimist";
 import chalk from "chalk";
 import {rollup} from "rollup";
 import rollupConfig from "../rollup.config";
-import {Config} from "../lib";
+import {Config} from "discordium";
 
 const warn = (msg: string) => console.warn(chalk.yellow(`Warn: ${msg}`));
 const error = (msg: string) => console.error(chalk.red(`Error: ${msg}`));

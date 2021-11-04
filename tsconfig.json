@@ -1,10 +1,14 @@
 {
     "compilerOptions": {
         "jsx": "react",
-        "target": "es2017",
+        "target": "es2018",
         "removeComments": true,
         "moduleResolution": "node",
         "esModuleInterop": true,
-        "resolveJsonModule": true
+        "resolveJsonModule": true,
+        "baseUrl": ".",
+        "paths": {
+            "discordium/*": ["./discordium/*"]
+        }
     }
 }

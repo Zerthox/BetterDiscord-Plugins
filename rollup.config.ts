@@ -10,7 +10,10 @@ export default {
         preferConst: true
     },
     plugins: [
-        json({namedExports: false}),
+        json({
+            namedExports: true,
+            preferConst: true
+        }),
         scss({
             output: false
         }),

@@ -9,14 +9,14 @@ let webpackRequire: Require;
 global.webpackJsonp.push([
     [],
     {
-        __temp__: (_module: unknown, _exports: unknown, require: Require) => {
+        __discordium__: (_module: unknown, _exports: unknown, require: Require) => {
             webpackRequire = require;
         }
     },
-    [["__temp__"]]
+    [["__discordium__"]]
 ]);
-delete webpackRequire.m.__temp__;
-delete webpackRequire.c.__temp__;
+delete webpackRequire.m.__discordium__;
+delete webpackRequire.c.__discordium__;
 
 export type Filter = (exports: any, module?: any) => boolean;
 

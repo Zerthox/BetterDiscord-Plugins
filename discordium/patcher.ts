@@ -1,5 +1,5 @@
 import {React} from "./modules";
-import {Config, Log} from ".";
+import {Logger} from ".";
 
 export interface Options {
     silent?: boolean;
@@ -39,13 +39,13 @@ export interface Patcher {
     unpatchAll(): void;
 }
 
-export const createPatcher = (config: Config, log: Log): Patcher => {
+export const createPatcher = (id: string, Logger: Logger): Patcher => {
     // we assume bd env for now
 
     const forward = (patcher, object, method, callback, options) => {
         const original = object[method];
         patcher(
-            config.name,
+            id,
             object,
             method,
             (context, args, result) => callback({context, args, original, result}),
@@ -55,7 +55,7 @@ export const createPatcher = (config: Config, log: Log): Patcher => {
             const target = object[method];
             const name = options.name || target.displayName || target.name || target.constructor.displayName || target.constructor.name || "unknown";
             const type = options.type || (target instanceof React.Component ? "component" : "module");
-            log.log(`Patched ${method} of ${name} ${type}`);
+            Logger.log(`Patched ${method} of ${name} ${type}`);
         }
         return callback;
     };
@@ -83,6 +83,6 @@ export const createPatcher = (config: Config, log: Log): Patcher => {
             callback,
             options
         ),
-        unpatchAll: () => Patcher.unpatchAll(config.name)
+        unpatchAll: () => Patcher.unpatchAll(id)
     };
 };
