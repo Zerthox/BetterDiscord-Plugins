@@ -46,7 +46,6 @@ const output = args.dev ? path.resolve(
     "BetterDiscord/plugins"
 ) : path.resolve(__dirname, "../dist");
 
-
 // build each input
 for (const input of inputs) {
     build(input, output);

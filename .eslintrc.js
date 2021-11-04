@@ -27,6 +27,7 @@ module.exports = {
         "comma-dangle": ["error", "never"],
         "quote-props": ["error", "as-needed"],
         "operator-linebreak": ["error", "before"],
+        "no-multiple-empty-lines": ["error", {max: 1}],
         "linebreak-style": "off",
         "max-len": "off",
         "no-undef": "off",
