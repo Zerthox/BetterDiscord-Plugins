@@ -1,0 +1,6 @@
+{
+    "name": "Discordium Dev Tools",
+    "author": "Zerthox",
+    "version": "0.1.0",
+    "description": "Makes Discordium available as global for development."
+}
