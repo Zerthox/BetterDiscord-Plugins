@@ -1,0 +1,16 @@
+// BetterVolume styles
+.container-BetterVolume {
+	margin: 0px 8px;
+	padding: 3px 6px;
+	background: var(--background-primary);
+	border-radius: 3px;
+	display: flex;
+}
+.input-BetterVolume {
+	margin-right: 2px;
+	flex-grow: 1;
+	background: transparent;
+	border: none;
+	color: var(--interactive-normal);
+	font-weight: 500;
+}
