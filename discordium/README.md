@@ -27,7 +27,9 @@ import {
 const config = {
     name: "Example",
     version: "0.1.0",
-    styles: `.example-container {color: red;}`
+    styles: `.example-container {
+        color: red;
+    }`
     settings: {
         enabled: true
     }
