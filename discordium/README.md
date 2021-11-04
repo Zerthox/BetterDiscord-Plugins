@@ -29,7 +29,7 @@ const config = {
     version: "0.1.0",
     styles: `.example-container {
         color: red;
-    }`
+    }`,
     settings: {
         enabled: true
     }
