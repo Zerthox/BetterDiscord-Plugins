@@ -48,7 +48,7 @@ const outDir = args.dev ? path.resolve(
         : process.platform === "darwin" ? path.resolve(process.env.HOME, "Library/Preferences")
             : path.resolve(process.env.HOME, ".config"),
     "BetterDiscord/plugins"
-) : path.resolve(__dirname, "../dist");
+) : path.resolve(__dirname, "../dist/bd");
 
 const watchers: Record<string, rollup.RollupWatcher> = {};
 
@@ -149,7 +149,7 @@ async function readConfig(input: string): Promise<Meta> {
         authorLink: `https://github.com/${config.author}`,
         website: repo,
         source: `${repo}/tree/master/src/${path.basename(input)}`,
-        updateUrl: `${repo}/blob/master/dist/${path.basename(input)}.plugin.js`
+        updateUrl: `${repo}/blob/master/dist/bd/${path.basename(input)}.plugin.js`
     };
 }
 
