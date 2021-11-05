@@ -6,6 +6,7 @@
     "scripts": {
         "build": "ts-node scripts/build.ts",
         "dev": "ts-node scripts/build.ts --dev",
+        "watch": "ts-node scripts/build.ts --dev --watch",
         "lint": "eslint . -f node_modules/eslint-friendly-formatter",
         "lint-fix": "eslint . -f node_modules/eslint-friendly-formatter --fix"
     },
