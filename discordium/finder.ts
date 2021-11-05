@@ -47,7 +47,7 @@ const filters = {
         return (target) => target instanceof Object && target.prototype instanceof Object && prototypes.every((prototype) => prototype in target.prototype);
     },
     bySource(contents: string[]): Filter {
-        return (target) => contents.every((content) => target?.toString().includes(content));
+        return (target) => target instanceof Function && contents.every((content) => target.toString().includes(content));
     }
 };
 
