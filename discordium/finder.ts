@@ -25,7 +25,7 @@ const applyFilters = (filters: Filter[]) => {
         const {exports} = module;
         return filters.every((filter) => (
             filter(exports, module)
-            || (exports.__esModule && exports.default && filter(exports.default, module))
+            || (exports?.__esModule && filter(exports?.default, module))
         ));
     };
 };

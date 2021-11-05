@@ -10,7 +10,7 @@ export interface ReactInternals {
     assign: any;
 }
 
-export const ReactInternals: ReactInternals = (React as any).__SECRET_INTERNALS_DO_NOT_USE_OR_YOU_WILL_BE_FIRED;
+export const ReactInternals: ReactInternals = (React as any)?.__SECRET_INTERNALS_DO_NOT_USE_OR_YOU_WILL_BE_FIRED;
 
 const [
     getInstanceFromNode,
@@ -19,7 +19,7 @@ const [
     enqueueStateRestore,
     restoreStateIfNeeded,
     batchedUpdates
-] = (ReactDOM as any).__SECRET_INTERNALS_DO_NOT_USE_OR_YOU_WILL_BE_FIRED.Events;
+] = (ReactDOM as any)?.__SECRET_INTERNALS_DO_NOT_USE_OR_YOU_WILL_BE_FIRED?.Events;
 
 export interface ReactDOMInternals {
     getInstancefromNode(node: Node): Fiber;
