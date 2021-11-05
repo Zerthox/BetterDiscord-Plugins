@@ -23,10 +23,7 @@ export type Filter = (exports: any, module?: any) => boolean;
 const applyFilters = (filters: Filter[]) => {
     return (module: { exports: any; }) => {
         const {exports} = module;
-        return filters.every((filter) => (
-            filter(exports, module)
-            || (exports?.__esModule && filter(exports?.default, module))
-        ));
+        return filters.every((filter) => filter(exports, module) || (exports?.__esModule && filter(exports?.default, module)));
     };
 };
 
@@ -74,9 +71,9 @@ const genFilters = ({filter, name, props, prototypes, source}: FilterOptions): F
 const raw = {
     require: webpackRequire,
     getAll: () => Object.values(webpackRequire.c),
-    find: (...filters: Filter[]) => raw.getAll().find(applyFilters(filters)) || null,
+    find: (...filters: Filter[]) => raw.getAll().find(applyFilters(filters)) ?? null,
     query: (options: FilterOptions) => raw.find(...genFilters(options)),
-    byId: (id: number) => webpackRequire.c[id] || null,
+    byId: (id: number) => webpackRequire.c[id] ?? null,
     byExports: (exported: unknown) => raw.find(filters.byExports(exported)),
     byName: (name: string) => raw.find(filters.byName(name)),
     byProps: (...props: string[]) => raw.find(filters.byProps(props)),
@@ -102,7 +99,7 @@ const raw = {
             if (typeof filter === "string") {
                 return exported[filter];
             } else if (filter instanceof Function) {
-                return Object.values(exported).find((value) => filter(value)) || null;
+                return Object.values(exported).find((value) => filter(value)) ?? null;
             }
 
             // check for default export

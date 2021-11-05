@@ -4,6 +4,8 @@ import {Logger} from ".";
 export interface Options {
     silent?: boolean;
     once?: boolean;
+    name?: string;
+    type?: string;
 }
 
 export interface Data<Original extends () => any> {
@@ -42,9 +44,23 @@ export interface Patcher {
 export const createPatcher = (id: string, Logger: Logger): Patcher => {
     // we assume bd env for now
 
-    const forward = (patcher, object, method, callback, options) => {
+    type PatcherMethod<O extends Record<K, () => any>, K extends keyof O> = (
+        id: string,
+        object: O,
+        method: K,
+        callback: (context: any, args: any, result: any) => any,
+        options: Record<string, any>
+    ) => Cancel;
+
+    const forward = <O extends Record<K, () => any>, K extends keyof O>(
+        patcher: PatcherMethod<O, K>,
+        object: O,
+        method: K,
+        callback: Callback<O[K]>,
+        options: Options
+    ) => {
         const original = object[method];
-        patcher(
+        const cancel = patcher(
             id,
             object,
             method,
@@ -52,12 +68,13 @@ export const createPatcher = (id: string, Logger: Logger): Patcher => {
             {silent: true, once: options.once}
         );
         if (!options.silent) {
-            const target = object[method];
-            const name = options.name || target.displayName || target.name || target.constructor.displayName || target.constructor.name || "unknown";
-            const type = options.type || (target instanceof React.Component ? "component" : "module");
+            type Named = {displayName?: string, name?: string};
+            const target = object[method] as Named & {constructor?: Named};
+            const name = options.name ?? target.displayName ?? target.name ?? target.constructor.displayName ?? target.constructor.name ?? "unknown";
+            const type = options.type ?? (target instanceof React.Component ? "component" : "module");
             Logger.log(`Patched ${method} of ${name} ${type}`);
         }
-        return callback;
+        return cancel;
     };
 
     const {Patcher} = BdApi;
