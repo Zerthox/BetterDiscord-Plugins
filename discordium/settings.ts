@@ -34,7 +34,7 @@ export class Settings<
     }
 
     reset(): void {
-        this.current = {...this.defaults};
+        this.set({...this.defaults});
     }
 
     connect<Props>(component: React.ComponentType<SettingsType & Props>): React.ComponentClass<Props> {
