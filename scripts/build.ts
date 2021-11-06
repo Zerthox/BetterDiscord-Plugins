@@ -130,7 +130,7 @@ async function watch(input: string, output: string) {
     watchers[input] = watcher;
 }
 
-interface Meta extends Config {
+interface Meta extends Config<unknown> {
     authorLink?: string;
     updateUrl?: string;
     website?: string;
@@ -143,7 +143,7 @@ function resolveConfig(input: string): string {
 }
 
 async function readConfig(input: string): Promise<Meta> {
-    const config = JSON.parse(await fs.readFile(resolveConfig(input), "utf8")) as Config;
+    const config = JSON.parse(await fs.readFile(resolveConfig(input), "utf8")) as Config<unknown>;
     return {
         ...config,
         authorLink: `https://github.com/${config.author}`,
@@ -153,7 +153,7 @@ async function readConfig(input: string): Promise<Meta> {
     };
 }
 
-function toMeta(config: Config): string {
+function toMeta(config: Config<unknown>): string {
     let result = "/**";
     for (const [key, value] of Object.entries(config)) {
         result += `\n * @${key} ${value.replace(/\n/g, "\\n")}`;
@@ -161,7 +161,7 @@ function toMeta(config: Config): string {
     return result + "\n**/\n";
 }
 
-function genOutputOptions(config: Config, output: string) {
+function genOutputOptions(config: Config<unknown>, output: string) {
     return {
         file: output,
         banner: toMeta(config) + `\n/*@cc_on @if (@_jscript)\n${wscript}\n@else @*/\n`,
