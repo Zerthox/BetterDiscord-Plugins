@@ -18,39 +18,45 @@ export {Styles} from "./styles";
 export {Data} from "./data";
 export {Settings} from "./settings";
 
-export interface Api<S extends Record<string, any>, D extends {settings: S}> {
+export interface Api<
+    SettingsType extends Record<string, any>,
+    DataType extends {settings: SettingsType}
+> {
     Logger: Logger;
     Patcher: Patcher;
     Styles: Styles;
-    Data: Data<D>;
-    Settings: Settings<S, D>;
+    Data: Data<DataType>;
+    Settings: Settings<SettingsType, DataType>;
 }
 
-export interface Config<S extends Record<string, any>> {
+export interface Config<Settings extends Record<string, any>> {
     name: string;
     version: string;
     author: string;
     description?: string;
     styles?: string;
-    settings?: S;
+    settings?: Settings;
 }
 
-export interface Plugin<S> {
-    start: () => void | Promise<void>;
-    stop: () => void | Promise<void>;
-    settingsPanel?: React.ComponentType<S>;
+export interface Plugin<Settings extends Record<string, any>> {
+    start(): void | Promise<void>;
+    stop(): void | Promise<void>;
+    settingsPanel?: React.ComponentType<Settings>;
 }
 
-export const createPlugin = <S extends Record<string, any>, D extends {settings: S}>(
-    {name, version, styles: css, settings}: Config<S>,
-    callback: (api: Api<S, D>) => Plugin<S>
+export const createPlugin = <
+    SettingsType extends Record<string, any>,
+    DataType extends {settings: SettingsType}
+>(
+    {name, version, styles: css, settings}: Config<SettingsType>,
+    callback: (api: Api<SettingsType, DataType>) => Plugin<SettingsType>
 ) => {
     // create log
     const Logger = createLogger(name, "#3a71c1", version);
     const Patcher = createPatcher(name, Logger);
     const Styles = createStyles(name);
-    const Data = createData<D>(name);
-    const Settings = createSettings(Data, settings ?? {} as S);
+    const Data = createData<DataType>(name);
+    const Settings = createSettings(Data, settings ?? {} as SettingsType);
 
     // get plugin info
     const plugin = callback({Logger, Patcher, Styles, Data, Settings});

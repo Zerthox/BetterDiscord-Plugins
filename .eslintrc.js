@@ -1,6 +1,7 @@
 module.exports = {
     parser: "@typescript-eslint/parser",
     env: {
+        browser: true,
         node: true
     },
     plugins: [
@@ -22,7 +23,7 @@ module.exports = {
         "google"
     ],
     rules: {
-        indent: ["error", 4],
+        indent: "off",
         quotes: ["error", "double"],
         "comma-dangle": ["error", "never"],
         "quote-props": ["error", "as-needed"],
@@ -37,6 +38,7 @@ module.exports = {
         "react/react-in-jsx-scope": "off",
         "react/display-name": "off",
         "no-unused-vars": "off",
+        "@typescript-eslint/indent": ["error", 4],
         "@typescript-eslint/no-unused-vars": "error",
         "@typescript-eslint/prefer-optional-chain": "error",
         "@typescript-eslint/no-empty-function": "off",

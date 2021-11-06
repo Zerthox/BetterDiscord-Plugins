@@ -20,43 +20,61 @@ export type Callback<Original extends () => any> = (data: Data<Original>) => unk
 export type Cancel = () => void;
 
 export interface Patcher {
-    instead<O extends Record<K, () => any>, K extends keyof O>(
-        object: O,
-        method: K,
-        callback: Callback<O[K]>,
+    instead<
+        Module extends Record<Key, () => any>,
+        Key extends keyof Module
+    >(
+        object: Module,
+        method: Key,
+        callback: Callback<Module[Key]>,
         options?: Options
     ): Cancel;
-    before<O extends Record<K, () => any>, K extends keyof O>(
-        object: O,
-        method: K,
-        callback: Callback<O[K]>,
+
+    before<
+        Module extends Record<Key, () => any>,
+        Key extends keyof Module
+    >(
+        object: Module,
+        method: Key,
+        callback: Callback<Module[Key]>,
         options?: Options
     ): Cancel;
-    after<O extends Record<K, () => any>, K extends keyof O>(
-        object: O,
-        method: K,
-        callback: Callback<O[K]>,
+
+    after<
+        Module extends Record<Key, () => any>,
+        Key extends keyof Module
+    >(
+        object: Module,
+        method: Key,
+        callback: Callback<Module[Key]>,
         options?: Options
     ): Cancel;
+
     unpatchAll(): void;
 }
 
 export const createPatcher = (id: string, Logger: Logger): Patcher => {
     // we assume bd env for now
 
-    type PatcherMethod<O extends Record<K, () => any>, K extends keyof O> = (
+    type PatcherMethod<
+        Module extends Record<Key, () => any>,
+        Key extends keyof Module
+    > = (
         id: string,
-        object: O,
-        method: K,
+        object: Module,
+        method: Key,
         callback: (context: any, args: any, result: any) => any,
         options: Record<string, any>
     ) => Cancel;
 
-    const forward = <O extends Record<K, () => any>, K extends keyof O>(
-        patcher: PatcherMethod<O, K>,
-        object: O,
-        method: K,
-        callback: Callback<O[K]>,
+    const forward = <
+        Module extends Record<Key, () => any>,
+        Key extends keyof Module
+    >(
+        patcher: PatcherMethod<Module, Key>,
+        object: Module,
+        method: Key,
+        callback: Callback<Module[Key]>,
         options: Options
     ) => {
         const original = object[method];

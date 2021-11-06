@@ -41,10 +41,13 @@ export interface Flux {
     PersistedStore: any;
     StoreListenerMixin(): any;
     LazyStoreListenerMixin(): any;
-    connectStores<I, P>(
+    connectStores<
+        OuterProps,
+        InnerProps
+    >(
         stores: any[],
-        mapping: (props: I) => P
-    ): (component: React.ComponentType<P & I>) => React.ComponentClass<I>;
+        mapping: (props: OuterProps) => InnerProps
+    ): (component: React.ComponentType<InnerProps & OuterProps>) => React.ComponentClass<OuterProps>;
     destroy(): any;
     initialize(): any;
     initialized: boolean;

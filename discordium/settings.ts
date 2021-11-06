@@ -3,12 +3,15 @@ import {Data} from "./data";
 
 export type Listener<D> = (data: D) => void;
 
-export class Settings<S extends Record<string, any>, D extends {settings: S}> extends Flux.Store {
-    defaults: S;
-    protected listeners: Set<Listener<S>>;
-    protected current: S;
+export class Settings<
+    SettingsType extends Record<string, any>,
+    DataType extends {settings: SettingsType}
+> extends Flux.Store {
+    defaults: SettingsType;
+    protected listeners: Set<Listener<SettingsType>>;
+    protected current: SettingsType;
 
-    constructor(Data: Data<D>, defaults: S) {
+    constructor(Data: Data<DataType>, defaults: SettingsType) {
         super(new Dispatcher(), {
             update: ({current}) => Data.save("settings", current)
         });
@@ -18,11 +21,11 @@ export class Settings<S extends Record<string, any>, D extends {settings: S}> ex
         this.current = {...defaults};
     }
 
-    get(): S {
+    get(): SettingsType {
         return {...this.current};
     }
 
-    set(settings: Partial<S> | ((current: S) => Partial<S>)): void {
+    set(settings: Partial<SettingsType> | ((current: SettingsType) => Partial<SettingsType>)): void {
         Object.assign(
             this.current,
             settings instanceof Function ? settings(this.get()) : settings
@@ -34,20 +37,20 @@ export class Settings<S extends Record<string, any>, D extends {settings: S}> ex
         this.current = {...this.defaults};
     }
 
-    connect<P>(component: React.ComponentType<S & P>): React.ComponentClass<P> {
-        return Flux.connectStores<P, S>(
+    connect<P>(component: React.ComponentType<SettingsType & P>): React.ComponentClass<P> {
+        return Flux.connectStores<P, SettingsType>(
             [this],
             () => this.get()
         )(component);
     }
 
-    addListener(listener: Listener<S>): Listener<S> {
+    addListener(listener: Listener<SettingsType>): Listener<SettingsType> {
         this.listeners.add(listener);
         this._dispatcher.subscribe("update", listener);
         return listener;
     }
 
-    removeListener(listener: Listener<S>): void {
+    removeListener(listener: Listener<SettingsType>): void {
         if (this.listeners.has(listener)) {
             this._dispatcher.unsubscribe("update", listener);
             this.listeners.delete(listener);
