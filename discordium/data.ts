@@ -9,7 +9,7 @@ export interface Data<
 }
 
 export const createData = <Content>(id: string): Data<Content> => ({
-    load: (key) => BdApi.loadData(id, key),
+    load: (key) => BdApi.loadData(id, key) ?? null,
     save: (key, value) => BdApi.saveData(id, key, value),
     delete: (key) => BdApi.deleteData(id, key)
 });
