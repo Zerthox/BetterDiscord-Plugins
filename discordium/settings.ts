@@ -1,7 +1,7 @@
 import {Flux, Dispatcher} from "./modules";
 import {Data} from "./data";
 
-export type Listener<D> = (data: D) => void;
+export type Listener<Data> = (data: Data) => void;
 
 export class Settings<
     SettingsType extends Record<string, any>,
@@ -37,8 +37,8 @@ export class Settings<
         this.current = {...this.defaults};
     }
 
-    connect<P>(component: React.ComponentType<SettingsType & P>): React.ComponentClass<P> {
-        return Flux.connectStores<P, SettingsType>(
+    connect<Props>(component: React.ComponentType<SettingsType & Props>): React.ComponentClass<Props> {
+        return Flux.connectStores<Props, SettingsType>(
             [this],
             () => this.get()
         )(component);
@@ -65,4 +65,7 @@ export class Settings<
     }
 }
 
-export const createSettings = <S, D extends {settings: S}>(Data: Data<D>, defaults: S): Settings<S, D> => new Settings(Data, defaults);
+export const createSettings = <
+    SettingsType extends Record<string, any>,
+    DataType extends {settings: SettingsType}
+>(Data: Data<DataType>, defaults: SettingsType): Settings<SettingsType, DataType> => new Settings(Data, defaults);
