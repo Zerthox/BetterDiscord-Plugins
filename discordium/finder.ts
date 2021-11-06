@@ -40,8 +40,8 @@ const filters = {
     byProps(props: string[]): Filter {
         return (target) => target instanceof Object && props.every((prop) => prop in target);
     },
-    byPrototypes(prototypes: string[]): Filter {
-        return (target) => target instanceof Object && target.prototype instanceof Object && prototypes.every((prototype) => prototype in target.prototype);
+    byProtos(protos: string[]): Filter {
+        return (target) => target instanceof Object && target.prototype instanceof Object && protos.every((proto) => proto in target.prototype);
     },
     bySource(contents: string[]): Filter {
         return (target) => target instanceof Function && contents.every((content) => target.toString().includes(content));
@@ -52,7 +52,7 @@ export interface FilterOptions {
     filter?: Filter | Filter[];
     name?: string;
     props?: string[];
-    prototypes?: string[];
+    protos?: string[];
     source?: string[];
 }
 
@@ -60,11 +60,11 @@ export interface Options extends FilterOptions {
     export?: string;
 }
 
-const genFilters = ({filter, name, props, prototypes, source}: FilterOptions): Filter[] => [
+const genFilters = ({filter, name, props, protos, source}: FilterOptions): Filter[] => [
     ...[filter].flat(),
     typeof name === "string" ? filters.byName(name) : null,
     props instanceof Array ? filters.byProps(props) : null,
-    prototypes instanceof Array ? filters.byPrototypes(prototypes) : null,
+    protos instanceof Array ? filters.byProtos(protos) : null,
     source instanceof Array ? filters.bySource(source) : null
 ].filter((entry) => entry instanceof Function);
 
@@ -77,7 +77,7 @@ const raw = {
     byExports: (exported: unknown) => raw.find(filters.byExports(exported)),
     byName: (name: string) => raw.find(filters.byName(name)),
     byProps: (...props: string[]) => raw.find(filters.byProps(props)),
-    byPrototypes: (...prototypes: string[]) => raw.find(filters.byPrototypes(prototypes)),
+    byProtos: (...protos: string[]) => raw.find(filters.byProtos(protos)),
     bySource: (...contents: string[]) => raw.find(filters.bySource(contents)),
     all: {
         find: (...filters: Filter[]) => raw.getAll().filter(applyFilters(filters)),
@@ -85,7 +85,7 @@ const raw = {
         byExports: (exported: unknown) => raw.all.find(filters.byExports(exported)),
         byName: (name: string) => raw.all.find(filters.byName(name)),
         byProps: (...props: string[]) => raw.all.find(filters.byProps(props)),
-        byPrototypes: (...prototypes: string[]) => raw.all.find(filters.byPrototypes(prototypes)),
+        byProtos: (...protos: string[]) => raw.all.find(filters.byProtos(protos)),
         bySource: (...contents: string[]) => raw.all.find(filters.bySource(contents))
     },
     resolveExports: (module: any, filter: string | ((entry: any) => boolean) | null = null) => {
@@ -123,7 +123,7 @@ const Finder = {
     byExports: (exported: unknown) => raw.resolveExports(raw.byExports(exported)),
     byName: (name: string) => raw.resolveExports(raw.byName(name), filters.byDisplayName(name)),
     byProps: (...props: string[]) => raw.resolveExports(raw.byProps(...props)),
-    byPrototypes: (...prototypes: string[]) => raw.resolveExports(raw.byPrototypes(...prototypes)),
+    byProtos: (...protos: string[]) => raw.resolveExports(raw.byProtos(...protos)),
     bySource: (...contents: string[]) => raw.resolveExports(raw.bySource(...contents), filters.bySource(contents)),
     all: {
         find: (...filters: Filter[]) => raw.all.find(...filters).map((entry) => raw.resolveExports(entry)),
@@ -131,7 +131,7 @@ const Finder = {
         byExports: (exported: unknown) => raw.all.byExports(exported).map((entry) => raw.resolveExports(entry)),
         byName: (name: string) => raw.all.byName(name).map((entry) => raw.resolveExports(entry, filters.byDisplayName(name))),
         byProps: (...props: string[]) => raw.all.byProps(...props).map((entry) => raw.resolveExports(entry)),
-        byPrototypes: (...prototypes: string[]) => raw.all.byPrototypes(...prototypes).map((entry) => raw.resolveExports(entry)),
+        byProtos: (...protos: string[]) => raw.all.byProtos(...protos).map((entry) => raw.resolveExports(entry)),
         bySource: (...contents: string[]) => raw.all.bySource(...contents).map((entry) => raw.resolveExports(entry, filters.bySource(contents)))
     }
 };

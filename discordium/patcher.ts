@@ -1,5 +1,5 @@
 import {React} from "./modules";
-import {Logger} from ".";
+import {Logger} from "./logger";
 
 export interface Options {
     silent?: boolean;

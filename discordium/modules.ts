@@ -41,10 +41,10 @@ export interface Flux {
     PersistedStore: any;
     StoreListenerMixin(): any;
     LazyStoreListenerMixin(): any;
-    connectStores<P extends Record<string, any>, I>(
+    connectStores<I, P>(
         stores: any[],
-        mapping: (props: I) => Partial<P>
-    ): (component: React.ComponentType<P>) => React.ComponentClass<I>;
+        mapping: (props: I) => P
+    ): (component: React.ComponentType<P & I>) => React.ComponentClass<I>;
     destroy(): any;
     initialize(): any;
     initialized: boolean;
@@ -54,6 +54,7 @@ export interface Flux {
 export const Flux: Flux = Finder.query({props: ["Store", "connectStores"], export: "default"});
 
 /** Custom module from Discord. */
+// TODO: typing
 export const Dispatcher = Finder.query({props: ["Dispatcher"], export: "Dispatcher"});
 
 /** Custom module from Discord. */

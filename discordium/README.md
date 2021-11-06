@@ -27,15 +27,16 @@ import {
 const config = {
     name: "Example",
     version: "0.1.0",
-    styles: `.example-container {
+    styles: `.example-clickable {
         color: red;
+        cursor: pointer;
     }`,
     settings: {
-        enabled: true
+        enabled: false
     }
 };
 
-export default createPlugin(config, ({Logger, Patcher, Styles}) => {
+export default createPlugin(config, ({Logger, Patcher, Styles, Data, Settings}) => {
     return {
         start: async () => {
             // do something on plugin start
@@ -43,11 +44,19 @@ export default createPlugin(config, ({Logger, Patcher, Styles}) => {
         stop: async () => {
             // do something on plugin stop
         },
-        settingsPanel: (settings) => {
+        settingsPanel: (currentSettings) => {
             // render settings
             return (
-                <div class="example-container">
-                    Setting is {settings.enabled ? "enabled" : "disabled"}
+                <div className="example-container">
+                    <div className="example-setting">
+                        Setting is {currentSettings.enabled ? "enabled" : "disabled"}
+                    </div>
+                    <div
+                        className="example-clickable"
+                        onClick={() => Settings.set({enabled: !currentSettings.enabled})}
+                    >
+                        Click to toggle
+                    </div>
                 </div>
             );
         }

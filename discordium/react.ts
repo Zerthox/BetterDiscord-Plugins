@@ -12,15 +12,6 @@ export interface ReactInternals {
 
 export const ReactInternals: ReactInternals = (React as any)?.__SECRET_INTERNALS_DO_NOT_USE_OR_YOU_WILL_BE_FIRED;
 
-const [
-    getInstanceFromNode,
-    getNodeFromInstance,
-    getFiberCurrentPropsFromNode,
-    enqueueStateRestore,
-    restoreStateIfNeeded,
-    batchedUpdates
-] = (ReactDOM as any)?.__SECRET_INTERNALS_DO_NOT_USE_OR_YOU_WILL_BE_FIRED?.Events;
-
 export interface ReactDOMInternals {
     getInstancefromNode(node: Node): Fiber;
     getNodeFromInstance(inst: Fiber): Node;
@@ -29,6 +20,15 @@ export interface ReactDOMInternals {
     restoreStateIfNeeded(): void;
     batchedUpdates<A, B, R>(fn: (a: A, b: B) => R, a: A, b: B): R;
 }
+
+const [
+    getInstanceFromNode,
+    getNodeFromInstance,
+    getFiberCurrentPropsFromNode,
+    enqueueStateRestore,
+    restoreStateIfNeeded,
+    batchedUpdates
+] = (ReactDOM as any)?.__SECRET_INTERNALS_DO_NOT_USE_OR_YOU_WILL_BE_FIRED?.Events;
 
 export const ReactDOMInternals: ReactDOMInternals = {
     getInstanceFromNode,

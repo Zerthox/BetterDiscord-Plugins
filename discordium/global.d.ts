@@ -5,6 +5,11 @@ declare module "*.scss" {
 
 declare namespace BdApi {
     const Patcher: any;
-    const injectCSS: (id: string, styles: string) => void;
-    const clearCSS: (id: string) => void;
+
+    function loadData(id: string, key: string): any;
+    function saveData(id: string, key: string, data: any): void;
+    function deleteData(id: string, key: string): void;
+
+    function injectCSS(id: string, styles: string): void;
+    function clearCSS(id: string): void;
 }
