@@ -63,16 +63,20 @@ export const createPlugin = <
 
     // construct wrapper
     function Wrapper() {}
-    Wrapper.prototype.start = async () => {
+    Wrapper.prototype.start = () => {
         Logger.log("Enabled");
         Styles.inject(css);
-        await plugin.start();
+        plugin.start();
     };
-    Wrapper.prototype.stop = async () => {
+    Wrapper.prototype.stop = () => {
         Patcher.unpatchAll();
         Styles.clear();
-        await plugin.stop();
-        Logger.log("Disabled");
+        const promise = plugin.stop();
+        if (promise) {
+            promise.then(() => Logger.log("Disabled"));
+        } else {
+            Logger.log("Disabled");
+        }
     };
 
     // add settings panel
