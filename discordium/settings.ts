@@ -37,6 +37,7 @@ export class Settings<
         this.set({...this.defaults});
     }
 
+    // TODO: expose defaults & update function to component
     connect<Props>(component: React.ComponentType<SettingsType & Props>): React.ComponentClass<Props> {
         return Flux.connectStores<Props, SettingsType>(
             [this],

@@ -1,17 +1,15 @@
-import {React} from "./modules";
 import {Logger} from "./logger";
 
 export interface Options {
     silent?: boolean;
     once?: boolean;
     name?: string;
-    type?: string;
 }
 
 export interface Data<Original extends () => any> {
-    context: any;
-    args: any[];
     original: Original;
+    context: any;
+    args: Parameters<Original>;
     result?: ReturnType<Original>;
 }
 
@@ -21,7 +19,7 @@ export type Cancel = () => void;
 
 export interface Patcher {
     instead<
-        Module extends Record<Key, () => any>,
+        Module extends Record<Key, (...args: any[]) => any>,
         Key extends keyof Module
     >(
         object: Module,
@@ -31,7 +29,7 @@ export interface Patcher {
     ): Cancel;
 
     before<
-        Module extends Record<Key, () => any>,
+        Module extends Record<Key, (...args: any[]) => any>,
         Key extends keyof Module
     >(
         object: Module,
@@ -41,7 +39,7 @@ export interface Patcher {
     ): Cancel;
 
     after<
-        Module extends Record<Key, () => any>,
+        Module extends Record<Key, (...args: any[]) => any>,
         Key extends keyof Module
     >(
         object: Module,
@@ -82,15 +80,14 @@ export const createPatcher = (id: string, Logger: Logger): Patcher => {
             id,
             object,
             method,
-            (context, args, result) => callback({context, args, original, result}),
+            (context, args, result) => callback({original, context, args, result}),
             {silent: true, once: options.once}
         );
         if (!options.silent) {
             type Named = {displayName?: string, name?: string};
             const target = object[method] as Named & {constructor?: Named};
             const name = options.name ?? target.displayName ?? target.name ?? target.constructor.displayName ?? target.constructor.name ?? "unknown";
-            const type = options.type ?? (target instanceof React.Component ? "component" : "module");
-            Logger.log(`Patched ${method} of ${name} ${type}`);
+            Logger.log(`Patched ${method} of ${name}`);
         }
         return cancel;
     };
@@ -101,14 +98,14 @@ export const createPatcher = (id: string, Logger: Logger): Patcher => {
             Patcher.instead,
             object,
             method,
-            ({context, args, original}) => callback({context, args, original}),
+            ({original, context, args}) => callback({original, context, args}),
             options
         ),
         before: (object, method, callback, options = {}) => forward(
             Patcher.before,
             object,
             method,
-            ({context, args, original}) => callback({context, args, original}),
+            ({original, context, args}) => callback({original, context, args}),
             options
         ),
         after: (object, method, callback, options = {}) => forward(

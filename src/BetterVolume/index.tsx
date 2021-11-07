@@ -26,7 +26,7 @@ const VolumeInput = ({value, min = 0, max = 999999, onChange}: VolumeInputProps)
     </div>
 );
 
-interface VolumeInputMappings {
+interface ConnectedVolumeInputProps {
     control: {
         props: {
             value: number;
@@ -37,7 +37,7 @@ interface VolumeInputMappings {
 
 const ConnectedVolumeInput = Flux.connectStores(
     [SettingsStore],
-    ({control: {props: {value, onChange}}}: VolumeInputMappings) => ({value, onChange})
+    ({control: {props: {value, onChange}}}: ConnectedVolumeInputProps) => ({value, onChange})
 )(VolumeInput);
 
 export default createPlugin({...config, styles}, ({Logger, Patcher}) => ({
