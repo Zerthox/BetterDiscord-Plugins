@@ -27,22 +27,22 @@ const VolumeInput = ({value, min = 0, max = 999999, onChange}: VolumeInputProps)
 );
 
 interface ConnectedVolumeInputProps {
+    min?: number;
+    max?: number;
     control: {
-        props: {
-            value: number;
-            onChange(value: number): void;
-        }
+        value: number;
+        onChange(value: number): void;
     }
 }
 
 const ConnectedVolumeInput = Flux.connectStores(
     [SettingsStore],
-    ({control: {props: {value, onChange}}}: ConnectedVolumeInputProps) => ({value, onChange})
+    ({control: {value, onChange}}: ConnectedVolumeInputProps) => ({value, onChange})
 )(VolumeInput);
 
 export default createPlugin({...config, styles}, ({Logger, Patcher}) => ({
     start() {
-        Patcher.after(ControlItem, "default", ({args: [props], result}) => {
+        Patcher.after(ControlItem as {default: (props: any) => JSX.Element}, "default", ({args: [props], result}) => {
             if (props.id === "user-volume") {
                 const slider = Utils.queryTree(result, (node) => node?.props?.maxValue === 200);
                 if (!slider) {
@@ -52,7 +52,7 @@ export default createPlugin({...config, styles}, ({Logger, Patcher}) => ({
 
                 const {props} = result;
                 props.children = [props.children].flat();
-                props.children.push(<ConnectedVolumeInput control={slider}/>);
+                props.children.push(<ConnectedVolumeInput control={slider.props}/>);
 
                 return result;
             }
