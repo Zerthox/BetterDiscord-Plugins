@@ -99,7 +99,10 @@ const raw = {
             if (typeof filter === "string") {
                 return exported[filter];
             } else if (filter instanceof Function) {
-                return Object.values(exported).find((value) => filter(value)) ?? null;
+                const result = Object.values(exported).find((value) => filter(value));
+                if (result !== undefined) {
+                    return result;
+                }
             }
 
             // check for default export
@@ -122,16 +125,16 @@ const Finder = {
     byId: (id: number) => raw.resolveExports(raw.byId(id)),
     byExports: (exported: unknown) => raw.resolveExports(raw.byExports(exported)),
     byName: (name: string) => raw.resolveExports(raw.byName(name), filters.byDisplayName(name)),
-    byProps: (...props: string[]) => raw.resolveExports(raw.byProps(...props)),
-    byProtos: (...protos: string[]) => raw.resolveExports(raw.byProtos(...protos)),
+    byProps: (...props: string[]) => raw.resolveExports(raw.byProps(...props), filters.byProps(props)),
+    byProtos: (...protos: string[]) => raw.resolveExports(raw.byProtos(...protos), filters.byProtos(protos)),
     bySource: (...contents: string[]) => raw.resolveExports(raw.bySource(...contents), filters.bySource(contents)),
     all: {
         find: (...filters: Filter[]) => raw.all.find(...filters).map((entry) => raw.resolveExports(entry)),
         query: (options: Options) => raw.all.query(options).map((entry) => raw.resolveExports(entry, options.export)),
         byExports: (exported: unknown) => raw.all.byExports(exported).map((entry) => raw.resolveExports(entry)),
         byName: (name: string) => raw.all.byName(name).map((entry) => raw.resolveExports(entry, filters.byDisplayName(name))),
-        byProps: (...props: string[]) => raw.all.byProps(...props).map((entry) => raw.resolveExports(entry)),
-        byProtos: (...protos: string[]) => raw.all.byProtos(...protos).map((entry) => raw.resolveExports(entry)),
+        byProps: (...props: string[]) => raw.all.byProps(...props).map((entry) => raw.resolveExports(entry, filters.byProps(props))),
+        byProtos: (...protos: string[]) => raw.all.byProtos(...protos).map((entry) => raw.resolveExports(entry, filters.byProtos(protos))),
         bySource: (...contents: string[]) => raw.all.bySource(...contents).map((entry) => raw.resolveExports(entry, filters.bySource(contents)))
     }
 };
