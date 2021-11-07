@@ -2,6 +2,8 @@ import {Fiber} from "react-reconciler";
 
 export const sleep = (duration: number): Promise<void> => new Promise((resolve) => setTimeout(resolve, duration));
 
+export const alert = (title: string, content: JSX.Element): void => BdApi.alert(title, content);
+
 export type Predicate<Arg> = (arg: Arg) => boolean;
 
 export const queryTree = (node: JSX.Element, predicate: Predicate<JSX.Element>): JSX.Element | null => {
