@@ -31,7 +31,7 @@ export const enum Direction {
     Both = "both"
 }
 
-export const queryFiber = (fiber: Fiber, predicate: Predicate<Fiber>, direction: Direction = Direction.Up, depth = 30, current = 0): Fiber | null => {
+export const queryFiber = (fiber: Fiber, predicate: Predicate<Fiber>, direction: Direction | null = Direction.Up, depth = 30, current = 0): Fiber | null => {
     // check depth
     if (current > depth) {
         return null;
