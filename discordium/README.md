@@ -15,6 +15,8 @@ import {
     createPlugin,
     Finder,
     Utils,
+    Modules,
+    Discord,
     React,
     ReactInternals,
     ReactDOM,
@@ -44,16 +46,16 @@ export default createPlugin(config, ({Logger, Patcher, Styles, Data, Settings}) 
         stop: async () => {
             // do something on plugin stop
         },
-        settingsPanel: (currentSettings) => {
+        settingsPanel: (props) => {
             // render settings
             return (
                 <div className="example-container">
                     <div className="example-setting">
-                        Setting is {currentSettings.enabled ? "enabled" : "disabled"}
+                        Setting is {props.enabled ? "enabled" : "disabled"}
                     </div>
                     <div
                         className="example-clickable"
-                        onClick={() => Settings.set({enabled: !currentSettings.enabled})}
+                        onClick={() => props.set({enabled: !props.enabled})}
                     >
                         Click to toggle
                     </div>
