@@ -3,6 +3,11 @@ import {Data} from "./data";
 
 export type Listener<Data> = (data: Data) => void;
 
+export type SettingsProps<SettingsType extends Record<string, any>> = SettingsType & {
+    defaults: SettingsType;
+    set(settings: Partial<SettingsType> | ((current: SettingsType) => Partial<SettingsType>)): void;
+};
+
 export class Settings<
     SettingsType extends Record<string, any>,
     DataType extends {settings: SettingsType}
@@ -37,11 +42,10 @@ export class Settings<
         this.set({...this.defaults});
     }
 
-    // TODO: expose defaults & update function to component
-    connect<Props>(component: React.ComponentType<SettingsType & Props>): React.ComponentClass<Props> {
-        return Flux.connectStores<Props, SettingsType>(
+    connect<Props>(component: React.ComponentType<SettingsProps<SettingsType> & Props>): React.ComponentClass<Props> {
+        return Flux.connectStores<Props, SettingsProps<SettingsType>>(
             [this],
-            () => this.get()
+            () => ({...this.get(), set: this.set, defaults: this.defaults})
         )(component);
     }
 

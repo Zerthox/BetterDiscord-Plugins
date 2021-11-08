@@ -1,18 +1,18 @@
 # BetterDiscord Plugins
 
-### [BetterFolders](/v1/BetterFolders.plugin.js) <sub><sup>`v2.4.0` *(Updated: 12/10/21)*</sup></sub>
+### [BetterFolders](/dist/bd/BetterFolders.plugin.js) <sub><sup>`v2.4.0` *(Updated: 12/10/21)*</sup></sub>
 Add new functionality to server folders.
 Current Features:
 - Custom Folder Icons
 - Close other folders on open
 
-### [OnlineFriendCount](/v1/OnlineFriendCount.plugin.js) <sub><sup>`v1.5.1` *(Updated: 28/10/21)*</sup></sub>
+### [OnlineFriendCount](/dist/bd/OnlineFriendCount.plugin.js) <sub><sup>`v2.0.0` *(Updated: 07/11/21)*</sup></sub>
 Add the old online friend count back to guild list. Because nostalgia.
 
-### [VoiceEvents](/v1/VoiceEvents.plugin.js) <sub><sup>`v1.6.1` *(Updated: 28/10/21)*</sup></sub>
+### [VoiceEvents](/dist/bd/VoiceEvents.plugin.js) <sub><sup>`v2.0.0` *(Updated: 07/11/21)*</sup></sub>
 Add TTS Event Notifications to your selected Voice Channel. TeamSpeak feeling.
 
-### [BetterVolume](/v1/BetterVolume.plugin.js) <sub><sup>`v1.0.0` *(Updated: 06/05/21)*</sup></sub>
+### [BetterVolume](/dist/bd/BetterVolume.plugin.js) <sub><sup>`v2.0.0` *(Updated: 07/11/21)*</sup></sub>
 Set user volume values manually instead of using a limited slider.
 
 ## *Old Plugins*
@@ -43,11 +43,11 @@ Display the resulting HypeSquad house next to the questions in the HypeSquad que
 npm install
 
 # build all plugins
-npm run build-all
+npm run build
 
 # build single plugin
-npm run build -- --plugin BetterFolders
+npm run build -- BetterFolders
 
 # build single plugin to BetterDiscord folder & watch for changes
-npm run dev -- --plugin BetterFolders
+npm run dev -- BetterFolders
 ```

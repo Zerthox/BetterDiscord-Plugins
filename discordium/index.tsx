@@ -2,7 +2,7 @@ import {createLogger, Logger} from "./logger";
 import {createPatcher, Patcher} from "./patcher";
 import {createStyles, Styles} from "./styles";
 import {createData, Data} from "./data";
-import {createSettings, Settings} from "./settings";
+import {createSettings, Settings, SettingsProps} from "./settings";
 import {React} from "./modules";
 
 export * as Utils from "./utils";
@@ -16,7 +16,7 @@ export {Logger} from "./logger";
 export {Patcher} from "./patcher";
 export {Styles} from "./styles";
 export {Data} from "./data";
-export {Settings} from "./settings";
+export {Settings, SettingsProps} from "./settings";
 
 export interface Api<
     SettingsType extends Record<string, any>,
@@ -41,12 +41,12 @@ export interface Config<Settings extends Record<string, any>> {
 export interface Plugin<Settings extends Record<string, any>> {
     start(): void | Promise<void>;
     stop(): void | Promise<void>;
-    settingsPanel?: React.ComponentType<Settings>;
+    settingsPanel?: React.ComponentType<SettingsProps<Settings>>;
 }
 
 export const createPlugin = <
     SettingsType extends Record<string, any>,
-    DataType extends {settings: SettingsType}
+    DataType extends {settings: SettingsType} = {settings: SettingsType}
 >(
     {name, version, styles: css, settings}: Config<SettingsType>,
     callback: (api: Api<SettingsType, DataType>) => Plugin<SettingsType>
@@ -81,7 +81,7 @@ export const createPlugin = <
 
     // add settings panel
     if (plugin.settingsPanel) {
-        const ConnectedSettings = Settings.connect(plugin.settingsPanel);
+        const ConnectedSettings = Settings.connect<unknown>(plugin.settingsPanel);
         Wrapper.prototype.getSettingsPanel = () => <ConnectedSettings/>;
     }
 
