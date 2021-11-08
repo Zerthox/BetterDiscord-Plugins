@@ -11,6 +11,7 @@ export const queryTree = (node: JSX.Element, predicate: Predicate<JSX.Element>):
     if (predicate(node)) {
         return node;
     }
+
     // check children
     if (node?.props?.children) {
         for (const child of [node.props.children].flat()) {

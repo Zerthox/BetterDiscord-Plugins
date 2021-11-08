@@ -147,7 +147,8 @@ export type Permissions = number;
 
 /**
  * A Channel.
- * Includes Text Channels, Voice Channels
+ *
+ * Includes all kinds of channels.
  */
 export interface Channel {
     id: Snowflake;
@@ -218,6 +219,7 @@ export interface Channel {
     isVocal(): boolean;
 }
 
+/** Types of Channels. */
 export const enum ChannelType {
     GuildText = 0,
     DM = 1,
@@ -234,6 +236,7 @@ export const enum ChannelType {
     GuildForum = 15
 }
 
+/** A Member of a Guild. */
 export interface Member {
     guildId: Snowflake;
     userId: Snowflake;
