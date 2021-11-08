@@ -34,6 +34,8 @@ export const Raven: typeof RavenInstance = Finder.byProps("captureBreadcrumb");
 
 export const joi: typeof joiInstance = Finder.byProps("assert", "validate", "object");
 
+// Platform.js
+
 // TODO: full typing
 export interface Flux {
     Store: any;

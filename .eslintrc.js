@@ -24,6 +24,7 @@ module.exports = {
     ],
     rules: {
         indent: "off",
+        semi: "off",
         quotes: ["error", "double"],
         "comma-dangle": ["error", "never"],
         "quote-props": ["error", "as-needed"],
@@ -38,7 +39,10 @@ module.exports = {
         "react/react-in-jsx-scope": "off",
         "react/display-name": "off",
         "no-unused-vars": "off",
+        "new-cap": "off",
         "@typescript-eslint/indent": ["error", 4],
+        "@typescript-eslint/semi": "error",
+        "@typescript-eslint/member-delimiter-style": ["error"],
         "@typescript-eslint/no-unused-vars": "error",
         "@typescript-eslint/prefer-optional-chain": "error",
         "@typescript-eslint/no-empty-function": "off",

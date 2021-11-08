@@ -17,6 +17,7 @@ export {Patcher} from "./patcher";
 export {Styles} from "./styles";
 export {Data} from "./data";
 export {Settings, SettingsProps} from "./settings";
+export * as Discord from "./discord";
 
 export interface Api<
     SettingsType extends Record<string, any>,

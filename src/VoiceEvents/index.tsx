@@ -1,4 +1,4 @@
-import {createPlugin, Finder, Utils, React} from "discordium";
+import {createPlugin, Finder, Utils, React, Discord} from "discordium";
 import {settings, SettingsPanel} from "./settings";
 import config from "./config.json";
 
@@ -16,8 +16,8 @@ const VoiceContextMenu = Finder.query({name: "ChannelListVoiceChannelContextMenu
 type NotificationType = "join" | "leave" | "joinSelf" | "moveSelf" | "leaveSelf";
 
 interface VoiceState {
-    channelId: string;
-    userId: string;
+    channelId: Discord.Snowflake;
+    userId: Discord.Snowflake;
     sessionId: string;
     deaf: boolean;
     mute: boolean;
@@ -89,8 +89,8 @@ export default createPlugin({...config, settings}, ({Logger, Patcher, Settings})
 
     const notify = (type: NotificationType, userId: string, channelId: string) => {
         const settings = Settings.get();
-        const user = Users.getUser(userId);
-        const channel = Channels.getChannel(channelId);
+        const user = Users.getUser(userId) as Discord.User;
+        const channel = Channels.getChannel(channelId) as Discord.Channel;
         const isDM = channel.isDM() || channel.isGroupDM();
 
         // check for filters
