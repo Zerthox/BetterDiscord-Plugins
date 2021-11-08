@@ -24,9 +24,14 @@ export const queryTree = (node: JSX.Element, predicate: Predicate<JSX.Element>):
     return null;
 };
 
-export type Direction = null | "up" | "down" | "both";
+export const enum Direction {
+    None = "",
+    Up = "up",
+    Down = "down",
+    Both = "both"
+}
 
-export const queryFiber = (fiber: Fiber, predicate: Predicate<Fiber>, direction: Direction = "up", depth = 30, current = 0): Fiber | null => {
+export const queryFiber = (fiber: Fiber, predicate: Predicate<Fiber>, direction: Direction = Direction.Up, depth = 30, current = 0): Fiber | null => {
     // check depth
     if (current > depth) {
         return null;
@@ -38,18 +43,18 @@ export const queryFiber = (fiber: Fiber, predicate: Predicate<Fiber>, direction:
     }
 
     // check parent (upwards)
-    if ((direction === "up" || direction === "both") && fiber.return) {
-        const result = queryFiber(fiber.return, predicate, "up", depth, current + 1);
+    if ((direction === Direction.Up || direction === Direction.Both) && fiber.return) {
+        const result = queryFiber(fiber.return, predicate, Direction.Up, depth, current + 1);
         if (result) {
             return result;
         }
     }
 
     // check children (downwards)
-    if ((direction === "down" || direction === "both") && fiber.child) {
+    if ((direction === Direction.Down || direction === Direction.Both) && fiber.child) {
         let child = fiber.child;
         while (child) {
-            const result = queryFiber(child, predicate, "down", depth, current + 1);
+            const result = queryFiber(child, predicate, Direction.Down, depth, current + 1);
             if (result) {
                 return result;
             }
