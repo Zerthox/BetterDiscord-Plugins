@@ -91,9 +91,8 @@ export const createPatcher = (id: string, Logger: Logger): Patcher => {
             {silent: true}
         );
         if (!options.silent) {
-            type Named = {displayName?: string; name?: string};
-            const target = object[method] as Named & {constructor?: Named};
-            const name = options.name ?? target.displayName ?? target.name ?? target.constructor.displayName ?? target.constructor.name ?? "unknown";
+            const target: any = method === "default" ? object[method] : {};
+            const name = options.name ?? (object as any).displayName ?? (object as any).constructor?.displayName ?? target.displayName ?? "unknown";
             Logger.log(`Patched ${method} of ${name}`);
         }
         return cancel;
