@@ -42,6 +42,7 @@ export class Settings<
         this.set({...this.defaults});
     }
 
+    // TODO: allow custom mapping
     connect<Props>(component: React.ComponentType<SettingsProps<SettingsType> & Props>): React.ComponentClass<Props> {
         return Flux.connectStores<Props, SettingsProps<SettingsType>>(
             [this],

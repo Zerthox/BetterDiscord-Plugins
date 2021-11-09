@@ -6,7 +6,10 @@ export interface Options {
     name?: string;
 }
 
+export type Cancel = () => void;
+
 export interface Data<Original extends () => any> {
+    cancel: Cancel;
     original: Original;
     context: any;
     args: Parameters<Original>;
@@ -14,8 +17,6 @@ export interface Data<Original extends () => any> {
 }
 
 export type Callback<Original extends () => any> = (data: Data<Original>) => unknown;
-
-export type Cancel = () => void;
 
 export interface Patcher {
     instead<
@@ -80,11 +81,17 @@ export const createPatcher = (id: string, Logger: Logger): Patcher => {
             id,
             object,
             method,
-            (context, args, result) => callback({original, context, args, result}),
-            {silent: true, once: options.once}
+            (context, args, result) => {
+                const temp = callback({cancel, original, context, args, result});
+                if (options.once) {
+                    cancel();
+                }
+                return temp;
+            },
+            {silent: true}
         );
         if (!options.silent) {
-            type Named = {displayName?: string, name?: string};
+            type Named = {displayName?: string; name?: string};
             const target = object[method] as Named & {constructor?: Named};
             const name = options.name ?? target.displayName ?? target.name ?? target.constructor.displayName ?? target.constructor.name ?? "unknown";
             Logger.log(`Patched ${method} of ${name}`);
@@ -98,14 +105,14 @@ export const createPatcher = (id: string, Logger: Logger): Patcher => {
             Patcher.instead,
             object,
             method,
-            ({original, context, args}) => callback({original, context, args}),
+            ({result: _, ...data}) => callback(data),
             options
         ),
         before: (object, method, callback, options = {}) => forward(
             Patcher.before,
             object,
             method,
-            ({original, context, args}) => callback({original, context, args}),
+            ({result: _, ...data}) => callback(data),
             options
         ),
         after: (object, method, callback, options = {}) => forward(

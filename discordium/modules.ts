@@ -38,7 +38,7 @@ export const joi: typeof joiInstance = Finder.byProps("assert", "validate", "obj
 
 // TODO: full typing
 export interface Flux {
-    Store: any;
+    Store: Store;
     CachedStore: any;
     PersistedStore: any;
     StoreListenerMixin(): any;
@@ -47,13 +47,15 @@ export interface Flux {
         OuterProps,
         InnerProps
     >(
-        stores: any[],
+        stores: Store[],
         mapping: (props: OuterProps) => InnerProps
     ): (component: React.ComponentType<InnerProps & OuterProps>) => React.ComponentClass<OuterProps>;
     destroy(): any;
     initialize(): any;
     initialized: boolean;
 }
+
+export type Store = any;
 
 /** Custom module from Discord. */
 export const Flux: Flux = Finder.query({props: ["Store", "connectStores"], export: "default"});

@@ -18,9 +18,9 @@ module.exports = {
     },
     extends: [
         "eslint:recommended",
-        "plugin:@typescript-eslint/recommended",
         "plugin:react/recommended",
-        "google"
+        "google",
+        "plugin:@typescript-eslint/recommended"
     ],
     rules: {
         indent: "off",
@@ -32,18 +32,18 @@ module.exports = {
         "no-multiple-empty-lines": ["error", {max: 1}],
         "linebreak-style": "off",
         "max-len": "off",
-        "no-undef": "off",
         "require-jsdoc": "off",
         "valid-jsdoc": "off",
-        "react/prop-types": "off",
-        "react/react-in-jsx-scope": "off",
         "react/display-name": "off",
-        "no-unused-vars": "off",
         "new-cap": "off",
         "@typescript-eslint/indent": ["error", 4],
         "@typescript-eslint/semi": "error",
         "@typescript-eslint/member-delimiter-style": ["error"],
-        "@typescript-eslint/no-unused-vars": "error",
+        "@typescript-eslint/no-unused-vars": ["error", {
+            argsIgnorePattern: "^_",
+            varsIgnorePattern: "^_",
+            caughtErrorsIgnorePattern: "^_"
+        }],
         "@typescript-eslint/prefer-optional-chain": "error",
         "@typescript-eslint/no-empty-function": "off",
         "@typescript-eslint/no-explicit-any": "off"
