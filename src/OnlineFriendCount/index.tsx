@@ -55,15 +55,12 @@ export default createPlugin({...config, styles}, ({Logger, Patcher}) => {
 
     return {
         start() {
-            Patcher.instead(HomeButton, "HomeButton", ({original: HomeButton, args: [props]}) => {
-                Logger.log("render");
-                return (
-                    <>
-                        <HomeButton {...props}/>
-                        <ConnectedOnlineCount/>
-                    </>
-                );
-            });
+            Patcher.instead(HomeButton, "HomeButton", ({original: HomeButton, args: [props]}) => (
+                <>
+                    <HomeButton {...props}/>
+                    <ConnectedOnlineCount/>
+                </>
+            ));
 
             triggerRerender();
         },

@@ -397,12 +397,9 @@ const index = createPlugin({ ...config, styles }, ({ Logger, Patcher }) => {
     };
     return {
         start() {
-            Patcher.instead(HomeButton, "HomeButton", ({ original: HomeButton, args: [props] }) => {
-                Logger.log("render");
-                return (React.createElement(React.Fragment, null,
-                    React.createElement(HomeButton, { ...props }),
-                    React.createElement(ConnectedOnlineCount, null)));
-            });
+            Patcher.instead(HomeButton, "HomeButton", ({ original: HomeButton, args: [props] }) => (React.createElement(React.Fragment, null,
+                React.createElement(HomeButton, { ...props }),
+                React.createElement(ConnectedOnlineCount, null))));
             triggerRerender();
         },
         stop() {

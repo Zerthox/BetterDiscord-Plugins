@@ -1,6 +1,7 @@
 import Finder from "./finder";
 
 // we import instances for the typing
+// FIXME: mirror versions!
 import ReactInstance from "react";
 import ReactDOMInstance from "react-dom";
 import classNamesInstance from "classnames";
