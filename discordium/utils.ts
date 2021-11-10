@@ -1,3 +1,5 @@
+import {React} from "./modules";
+import {ReactDOMInternals} from "./react";
 import {Fiber} from "react-reconciler";
 
 export const sleep = (duration: number): Promise<void> => new Promise((resolve) => setTimeout(resolve, duration));
@@ -24,6 +26,8 @@ export const queryTree = (node: JSX.Element, predicate: Predicate<JSX.Element>):
 
     return null;
 };
+
+export const getFiber = (node: Node): Fiber => ReactDOMInternals.getInstanceFromNode(node ?? {} as Node);
 
 export const enum Direction {
     None = "",
@@ -64,4 +68,12 @@ export const queryFiber = (fiber: Fiber, predicate: Predicate<Fiber>, direction:
     }
 
     return null;
+};
+
+export interface OwnerFiber extends Fiber {
+    stateNode: React.Component;
+}
+
+export const findOwner = (fiber: Fiber): OwnerFiber | null => {
+    return queryFiber(fiber, (node) => node?.stateNode instanceof React.Component, Direction.Up, 50);
 };
