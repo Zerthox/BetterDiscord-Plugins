@@ -20,8 +20,9 @@ delete webpackRequire.c.__discordium__;
 
 export type Filter = (exports: any, module?: any) => boolean;
 
+// TODO: option to check filter on props?
 const applyFilters = (filters: Filter[]) => {
-    return (module: { exports: any; }) => {
+    return (module: {exports: any}) => {
         const {exports} = module;
         return filters.every((filter) => filter(exports, module) || (exports?.__esModule && filter(exports?.default, module)));
     };

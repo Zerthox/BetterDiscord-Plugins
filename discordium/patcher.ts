@@ -121,6 +121,9 @@ export const createPatcher = (id: string, Logger: Logger): Patcher => {
             callback,
             options
         ),
-        unpatchAll: () => Patcher.unpatchAll(id)
+        unpatchAll: () => {
+            Patcher.unpatchAll(id);
+            Logger.log("Unpatched all");
+        }
     };
 };
