@@ -1,15 +1,18 @@
+import {confirm} from "./utils";
 import {createLogger, Logger} from "./logger";
 import {createPatcher, Patcher} from "./patcher";
 import {createStyles, Styles} from "./styles";
 import {createData, Data} from "./data";
 import {createSettings, Settings, SettingsProps} from "./settings";
-import {React} from "./modules";
+import {React, classNames} from "./modules";
+import {Flex, Button, Form, margins} from "./discord";
 
 export * as Utils from "./utils";
 export {default as Finder} from "./finder";
 export * as Modules from "./modules";
 export {React, ReactDOM, classNames, lodash, Flux} from "./modules";
 export {ReactInternals, ReactDOMInternals} from "./react";
+export * as Discord from "./discord";
 export {version} from "../package.json";
 
 export {Logger} from "./logger";
@@ -17,7 +20,6 @@ export {Patcher} from "./patcher";
 export {Styles} from "./styles";
 export {Data} from "./data";
 export {Settings, SettingsProps} from "./settings";
-export * as Discord from "./discord";
 
 export interface Api<
     SettingsType extends Record<string, any>,
@@ -83,7 +85,20 @@ export const createPlugin = <
     // add settings panel
     if (plugin.settingsPanel) {
         const ConnectedSettings = Settings.connect<unknown>(plugin.settingsPanel);
-        Wrapper.prototype.getSettingsPanel = () => <ConnectedSettings/>;
+        Wrapper.prototype.getSettingsPanel = () => (
+            <Form.FormSection>
+                <ConnectedSettings/>
+                <Form.FormDivider className={classNames(margins.marginTop20, margins.marginBottom20)}/>
+                <Flex justify={Flex.Justify.END}>
+                    <Button
+                        size={Button.Sizes.SMALL}
+                        onClick={() => confirm(name, "Reset all settings?", {
+                            onConfirm: () => Settings.reset()
+                        })}
+                    >Reset</Button>
+                </Flex>
+            </Form.FormSection>
+        );
     }
 
     return Wrapper;

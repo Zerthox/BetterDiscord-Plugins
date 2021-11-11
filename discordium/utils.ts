@@ -3,7 +3,12 @@ import {ReactDOMInternals, Fiber} from "./react";
 
 export const sleep = (duration: number): Promise<void> => new Promise((resolve) => setTimeout(resolve, duration));
 
-export const alert = (title: string, content: JSX.Element): void => BdApi.alert(title, content);
+export const alert = (title: string, content: string | JSX.Element): void => BdApi.alert(title, content);
+
+export type ConfirmOptions = BdApi.ConfirmationModalOptions;
+
+// TODO: change to promise<boolean>?
+export const confirm = (title: string, content: string | JSX.Element, options: ConfirmOptions = {}) => BdApi.showConfirmationModal(title, content, options);
 
 export type Predicate<Arg> = (arg: Arg) => boolean;
 
