@@ -1,4 +1,6 @@
 import {Logger} from "./logger";
+import {findOwner} from "./utils";
+import {Fiber} from "./react";
 
 export interface Options {
     silent?: boolean;
@@ -50,6 +52,8 @@ export interface Patcher {
     ): Cancel;
 
     unpatchAll(): void;
+
+    forceRerender(fiber: Fiber): Promise<boolean>;
 }
 
 export const createPatcher = (id: string, Logger: Logger): Patcher => {
@@ -99,31 +103,49 @@ export const createPatcher = (id: string, Logger: Logger): Patcher => {
     };
 
     const {Patcher} = BdApi;
+    const instead: Patcher["instead"] = (object, method, callback, options = {}) => forward(
+        Patcher.instead,
+        object,
+        method,
+        ({result: _, ...data}) => callback(data),
+        options
+    );
+    const before: Patcher["before"] = (object, method, callback, options = {}) => forward(
+        Patcher.before,
+        object,
+        method,
+        ({result: _, ...data}) => callback(data),
+        options
+    );
+    const after: Patcher["after"] = (object, method, callback, options = {}) => forward(
+        Patcher.after,
+        object,
+        method,
+        callback,
+        options
+    );
+
     return {
-        instead: (object, method, callback, options = {}) => forward(
-            Patcher.instead,
-            object,
-            method,
-            ({result: _, ...data}) => callback(data),
-            options
-        ),
-        before: (object, method, callback, options = {}) => forward(
-            Patcher.before,
-            object,
-            method,
-            ({result: _, ...data}) => callback(data),
-            options
-        ),
-        after: (object, method, callback, options = {}) => forward(
-            Patcher.after,
-            object,
-            method,
-            callback,
-            options
-        ),
+        instead,
+        before,
+        after,
         unpatchAll: () => {
             Patcher.unpatchAll(id);
             Logger.log("Unpatched all");
-        }
+        },
+        forceRerender: (fiber: Fiber) => new Promise((resolve) => {
+            // find owner
+            const owner = findOwner(fiber);
+            if (owner) {
+                // render no elements in next render
+                const {stateNode} = owner;
+                after(stateNode, "render", () => null, {once: true});
+
+                // force update twice
+                stateNode.forceUpdate(() => stateNode.forceUpdate(() => resolve(true)));
+            } else {
+                resolve(false);
+            }
+        })
     };
 };

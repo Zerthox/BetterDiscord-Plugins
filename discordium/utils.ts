@@ -1,6 +1,5 @@
 import {React} from "./modules";
-import {ReactDOMInternals} from "./react";
-import {Fiber} from "react-reconciler";
+import {ReactDOMInternals, Fiber} from "./react";
 
 export const sleep = (duration: number): Promise<void> => new Promise((resolve) => setTimeout(resolve, duration));
 

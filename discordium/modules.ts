@@ -59,6 +59,7 @@ export interface Flux {
 export type Store = any;
 
 /** Custom module from Discord. */
+// TODO: flux hooks
 export const Flux: Flux = Finder.query({props: ["Store", "connectStores"], export: "default"});
 
 /** Custom module from Discord. */
