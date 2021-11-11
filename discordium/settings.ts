@@ -46,7 +46,7 @@ export class Settings<
     connect<Props>(component: React.ComponentType<SettingsProps<SettingsType> & Props>): React.ComponentClass<Props> {
         return Flux.connectStores<Props, SettingsProps<SettingsType>>(
             [this],
-            () => ({...this.get(), set: this.set, defaults: this.defaults})
+            () => ({...this.get(), defaults: this.defaults, set: (settings) => this.set(settings)})
         )(component);
     }
 
