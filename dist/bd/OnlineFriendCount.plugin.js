@@ -63,52 +63,6 @@ const createLogger = (name, color, version) => {
     };
 };
 
-const createPatcher = (id, Logger) => {
-    const forward = (patcher, object, method, callback, options) => {
-        const original = object[method];
-        const cancel = patcher(id, object, method, (context, args, result) => {
-            const temp = callback({ cancel, original, context, args, result });
-            if (options.once) {
-                cancel();
-            }
-            return temp;
-        }, { silent: true });
-        if (!options.silent) {
-            const target = method === "default" ? object[method] : {};
-            const name = options.name ?? object.displayName ?? object.constructor?.displayName ?? target.displayName ?? "unknown";
-            Logger.log(`Patched ${method} of ${name}`);
-        }
-        return cancel;
-    };
-    const { Patcher } = BdApi;
-    return {
-        instead: (object, method, callback, options = {}) => forward(Patcher.instead, object, method, ({ result: _, ...data }) => callback(data), options),
-        before: (object, method, callback, options = {}) => forward(Patcher.before, object, method, ({ result: _, ...data }) => callback(data), options),
-        after: (object, method, callback, options = {}) => forward(Patcher.after, object, method, callback, options),
-        unpatchAll: () => {
-            Patcher.unpatchAll(id);
-            Logger.log("Unpatched all");
-        }
-    };
-};
-
-const createStyles = (id) => {
-    return {
-        inject(styles) {
-            if (typeof styles === "string") {
-                BdApi.injectCSS(id, styles);
-            }
-        },
-        clear: () => BdApi.clearCSS(id)
-    };
-};
-
-const createData = (id) => ({
-    load: (key) => BdApi.loadData(id, key) ?? null,
-    save: (key, value) => BdApi.saveData(id, key, value),
-    delete: (key) => BdApi.deleteData(id, key)
-});
-
 let webpackRequire;
 global.webpackJsonp.push([
     [],
@@ -234,6 +188,107 @@ const Flux = Finder.query({ props: ["Store", "connectStores"], export: "default"
 const Dispatcher = Finder.query({ props: ["Dispatcher"], export: "Dispatcher" });
 Finder.byProps("languages", "getLocale");
 
+React?.__SECRET_INTERNALS_DO_NOT_USE_OR_YOU_WILL_BE_FIRED;
+const [getInstanceFromNode, getNodeFromInstance, getFiberCurrentPropsFromNode, enqueueStateRestore, restoreStateIfNeeded, batchedUpdates] = ReactDOM?.__SECRET_INTERNALS_DO_NOT_USE_OR_YOU_WILL_BE_FIRED?.Events;
+const ReactDOMInternals = {
+    getInstanceFromNode,
+    getNodeFromInstance,
+    getFiberCurrentPropsFromNode,
+    enqueueStateRestore,
+    restoreStateIfNeeded,
+    batchedUpdates
+};
+
+const getFiber = (node) => ReactDOMInternals.getInstanceFromNode(node ?? {});
+const queryFiber = (fiber, predicate, direction = "up", depth = 30, current = 0) => {
+    if (current > depth) {
+        return null;
+    }
+    if (predicate(fiber)) {
+        return fiber;
+    }
+    if ((direction === "up" || direction === "both") && fiber.return) {
+        const result = queryFiber(fiber.return, predicate, "up", depth, current + 1);
+        if (result) {
+            return result;
+        }
+    }
+    if ((direction === "down" || direction === "both") && fiber.child) {
+        let child = fiber.child;
+        while (child) {
+            const result = queryFiber(child, predicate, "down", depth, current + 1);
+            if (result) {
+                return result;
+            }
+            child = child.sibling;
+        }
+    }
+    return null;
+};
+const findOwner = (fiber) => {
+    return queryFiber(fiber, (node) => node?.stateNode instanceof React.Component, "up", 50);
+};
+
+const createPatcher = (id, Logger) => {
+    const forward = (patcher, object, method, callback, options) => {
+        const original = object[method];
+        const cancel = patcher(id, object, method, (context, args, result) => {
+            const temp = callback({ cancel, original, context, args, result });
+            if (options.once) {
+                cancel();
+            }
+            return temp;
+        }, { silent: true });
+        if (!options.silent) {
+            const target = method === "default" ? object[method] : {};
+            const name = options.name ?? object.displayName ?? object.constructor?.displayName ?? target.displayName ?? "unknown";
+            Logger.log(`Patched ${method} of ${name}`);
+        }
+        return cancel;
+    };
+    const { Patcher } = BdApi;
+    const instead = (object, method, callback, options = {}) => forward(Patcher.instead, object, method, ({ result: _, ...data }) => callback(data), options);
+    const before = (object, method, callback, options = {}) => forward(Patcher.before, object, method, ({ result: _, ...data }) => callback(data), options);
+    const after = (object, method, callback, options = {}) => forward(Patcher.after, object, method, callback, options);
+    return {
+        instead,
+        before,
+        after,
+        unpatchAll: () => {
+            Patcher.unpatchAll(id);
+            Logger.log("Unpatched all");
+        },
+        forceRerender: (fiber) => new Promise((resolve) => {
+            const owner = findOwner(fiber);
+            if (owner) {
+                const { stateNode } = owner;
+                after(stateNode, "render", () => null, { once: true });
+                stateNode.forceUpdate(() => stateNode.forceUpdate(() => resolve(true)));
+            }
+            else {
+                resolve(false);
+            }
+        })
+    };
+};
+
+const createStyles = (id) => {
+    return {
+        inject(styles) {
+            if (typeof styles === "string") {
+                BdApi.injectCSS(id, styles);
+            }
+        },
+        clear: () => BdApi.clearCSS(id)
+    };
+};
+
+const createData = (id) => ({
+    load: (key) => BdApi.loadData(id, key) ?? null,
+    save: (key, value) => BdApi.saveData(id, key, value),
+    delete: (key) => BdApi.deleteData(id, key)
+});
+
 class Settings extends Flux.Store {
     constructor(Data, defaults) {
         super(new Dispatcher(), {
@@ -275,47 +330,6 @@ class Settings extends Flux.Store {
     }
 }
 const createSettings = (Data, defaults) => new Settings(Data, defaults);
-
-React?.__SECRET_INTERNALS_DO_NOT_USE_OR_YOU_WILL_BE_FIRED;
-const [getInstanceFromNode, getNodeFromInstance, getFiberCurrentPropsFromNode, enqueueStateRestore, restoreStateIfNeeded, batchedUpdates] = ReactDOM?.__SECRET_INTERNALS_DO_NOT_USE_OR_YOU_WILL_BE_FIRED?.Events;
-const ReactDOMInternals = {
-    getInstanceFromNode,
-    getNodeFromInstance,
-    getFiberCurrentPropsFromNode,
-    enqueueStateRestore,
-    restoreStateIfNeeded,
-    batchedUpdates
-};
-
-const getFiber = (node) => ReactDOMInternals.getInstanceFromNode(node ?? {});
-const queryFiber = (fiber, predicate, direction = "up", depth = 30, current = 0) => {
-    if (current > depth) {
-        return null;
-    }
-    if (predicate(fiber)) {
-        return fiber;
-    }
-    if ((direction === "up" || direction === "both") && fiber.return) {
-        const result = queryFiber(fiber.return, predicate, "up", depth, current + 1);
-        if (result) {
-            return result;
-        }
-    }
-    if ((direction === "down" || direction === "both") && fiber.child) {
-        let child = fiber.child;
-        while (child) {
-            const result = queryFiber(child, predicate, "down", depth, current + 1);
-            if (result) {
-                return result;
-            }
-            child = child.sibling;
-        }
-    }
-    return null;
-};
-const findOwner = (fiber) => {
-    return queryFiber(fiber, (node) => node?.stateNode instanceof React.Component, "up", 50);
-};
 
 const createPlugin = ({ name, version, styles: css, settings }, callback) => {
     const Logger = createLogger(name, "#3a71c1", version);
@@ -381,18 +395,14 @@ const ConnectedOnlineCount = Flux.connectStores([Status, Relationships], () => {
     return { online: filtered.length };
 })(OnlineCount);
 const index = createPlugin({ ...config, styles }, ({ Logger, Patcher }) => {
-    const triggerRerender = () => {
+    const triggerRerender = async () => {
         const node = document.getElementsByClassName(guildStyles.guilds)?.[0];
         const fiber = getFiber(node);
-        const owner = findOwner(fiber);
-        if (owner) {
-            const { stateNode } = owner;
-            Patcher.after(stateNode, "render", () => null, { once: true });
-            stateNode.forceUpdate(() => stateNode.forceUpdate());
-            Logger.log("Triggered guilds rerender");
+        if (await Patcher.forceRerender(fiber)) {
+            Logger.log("Rerendered guilds");
         }
         else {
-            Logger.warn("Unable to find guilds owner");
+            Logger.warn("Unable to rerender guilds");
         }
     };
     return {

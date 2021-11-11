@@ -63,52 +63,6 @@ const createLogger = (name, color, version) => {
     };
 };
 
-const createPatcher = (id, Logger) => {
-    const forward = (patcher, object, method, callback, options) => {
-        const original = object[method];
-        const cancel = patcher(id, object, method, (context, args, result) => {
-            const temp = callback({ cancel, original, context, args, result });
-            if (options.once) {
-                cancel();
-            }
-            return temp;
-        }, { silent: true });
-        if (!options.silent) {
-            const target = method === "default" ? object[method] : {};
-            const name = options.name ?? object.displayName ?? object.constructor?.displayName ?? target.displayName ?? "unknown";
-            Logger.log(`Patched ${method} of ${name}`);
-        }
-        return cancel;
-    };
-    const { Patcher } = BdApi;
-    return {
-        instead: (object, method, callback, options = {}) => forward(Patcher.instead, object, method, ({ result: _, ...data }) => callback(data), options),
-        before: (object, method, callback, options = {}) => forward(Patcher.before, object, method, ({ result: _, ...data }) => callback(data), options),
-        after: (object, method, callback, options = {}) => forward(Patcher.after, object, method, callback, options),
-        unpatchAll: () => {
-            Patcher.unpatchAll(id);
-            Logger.log("Unpatched all");
-        }
-    };
-};
-
-const createStyles = (id) => {
-    return {
-        inject(styles) {
-            if (typeof styles === "string") {
-                BdApi.injectCSS(id, styles);
-            }
-        },
-        clear: () => BdApi.clearCSS(id)
-    };
-};
-
-const createData = (id) => ({
-    load: (key) => BdApi.loadData(id, key) ?? null,
-    save: (key, value) => BdApi.saveData(id, key, value),
-    delete: (key) => BdApi.deleteData(id, key)
-});
-
 let webpackRequire;
 global.webpackJsonp.push([
     [],
@@ -252,48 +206,6 @@ const modules = /*#__PURE__*/Object.freeze({
     i18n: i18n
 });
 
-class Settings extends Flux.Store {
-    constructor(Data, defaults) {
-        super(new Dispatcher(), {
-            update: ({ current }) => Data.save("settings", current)
-        });
-        this.listeners = new Set();
-        this.defaults = defaults;
-        this.current = Data.load("settings") ?? { ...defaults };
-    }
-    get() {
-        return { ...this.current };
-    }
-    set(settings) {
-        Object.assign(this.current, settings instanceof Function ? settings(this.get()) : settings);
-        this._dispatcher.dispatch({ type: "update", current: this.current });
-    }
-    reset() {
-        this.set({ ...this.defaults });
-    }
-    connect(component) {
-        return Flux.connectStores([this], () => ({ ...this.get(), set: this.set, defaults: this.defaults }))(component);
-    }
-    addListener(listener) {
-        this.listeners.add(listener);
-        this._dispatcher.subscribe("update", listener);
-        return listener;
-    }
-    removeListener(listener) {
-        if (this.listeners.has(listener)) {
-            this._dispatcher.unsubscribe("update", listener);
-            this.listeners.delete(listener);
-        }
-    }
-    removeAllListeners() {
-        for (const listener of this.listeners) {
-            this._dispatcher.unsubscribe("update", listener);
-        }
-        this.listeners.clear();
-    }
-}
-const createSettings = (Data, defaults) => new Settings(Data, defaults);
-
 const ReactInternals = React?.__SECRET_INTERNALS_DO_NOT_USE_OR_YOU_WILL_BE_FIRED;
 const [getInstanceFromNode, getNodeFromInstance, getFiberCurrentPropsFromNode, enqueueStateRestore, restoreStateIfNeeded, batchedUpdates] = ReactDOM?.__SECRET_INTERNALS_DO_NOT_USE_OR_YOU_WILL_BE_FIRED?.Events;
 const ReactDOMInternals = {
@@ -360,6 +272,108 @@ const utils = /*#__PURE__*/Object.freeze({
     queryFiber: queryFiber,
     findOwner: findOwner
 });
+
+const createPatcher = (id, Logger) => {
+    const forward = (patcher, object, method, callback, options) => {
+        const original = object[method];
+        const cancel = patcher(id, object, method, (context, args, result) => {
+            const temp = callback({ cancel, original, context, args, result });
+            if (options.once) {
+                cancel();
+            }
+            return temp;
+        }, { silent: true });
+        if (!options.silent) {
+            const target = method === "default" ? object[method] : {};
+            const name = options.name ?? object.displayName ?? object.constructor?.displayName ?? target.displayName ?? "unknown";
+            Logger.log(`Patched ${method} of ${name}`);
+        }
+        return cancel;
+    };
+    const { Patcher } = BdApi;
+    const instead = (object, method, callback, options = {}) => forward(Patcher.instead, object, method, ({ result: _, ...data }) => callback(data), options);
+    const before = (object, method, callback, options = {}) => forward(Patcher.before, object, method, ({ result: _, ...data }) => callback(data), options);
+    const after = (object, method, callback, options = {}) => forward(Patcher.after, object, method, callback, options);
+    return {
+        instead,
+        before,
+        after,
+        unpatchAll: () => {
+            Patcher.unpatchAll(id);
+            Logger.log("Unpatched all");
+        },
+        forceRerender: (fiber) => new Promise((resolve) => {
+            const owner = findOwner(fiber);
+            if (owner) {
+                const { stateNode } = owner;
+                after(stateNode, "render", () => null, { once: true });
+                stateNode.forceUpdate(() => stateNode.forceUpdate(() => resolve(true)));
+            }
+            else {
+                resolve(false);
+            }
+        })
+    };
+};
+
+const createStyles = (id) => {
+    return {
+        inject(styles) {
+            if (typeof styles === "string") {
+                BdApi.injectCSS(id, styles);
+            }
+        },
+        clear: () => BdApi.clearCSS(id)
+    };
+};
+
+const createData = (id) => ({
+    load: (key) => BdApi.loadData(id, key) ?? null,
+    save: (key, value) => BdApi.saveData(id, key, value),
+    delete: (key) => BdApi.deleteData(id, key)
+});
+
+class Settings extends Flux.Store {
+    constructor(Data, defaults) {
+        super(new Dispatcher(), {
+            update: ({ current }) => Data.save("settings", current)
+        });
+        this.listeners = new Set();
+        this.defaults = defaults;
+        this.current = Data.load("settings") ?? { ...defaults };
+    }
+    get() {
+        return { ...this.current };
+    }
+    set(settings) {
+        Object.assign(this.current, settings instanceof Function ? settings(this.get()) : settings);
+        this._dispatcher.dispatch({ type: "update", current: this.current });
+    }
+    reset() {
+        this.set({ ...this.defaults });
+    }
+    connect(component) {
+        return Flux.connectStores([this], () => ({ ...this.get(), set: this.set, defaults: this.defaults }))(component);
+    }
+    addListener(listener) {
+        this.listeners.add(listener);
+        this._dispatcher.subscribe("update", listener);
+        return listener;
+    }
+    removeListener(listener) {
+        if (this.listeners.has(listener)) {
+            this._dispatcher.unsubscribe("update", listener);
+            this.listeners.delete(listener);
+        }
+    }
+    removeAllListeners() {
+        for (const listener of this.listeners) {
+            this._dispatcher.unsubscribe("update", listener);
+        }
+        this.listeners.clear();
+    }
+}
+const createSettings = (Data, defaults) => new Settings(Data, defaults);
 
 const version$1 = "0.1.0";
 
