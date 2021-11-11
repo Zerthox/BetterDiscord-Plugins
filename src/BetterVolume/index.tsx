@@ -32,7 +32,7 @@ interface ConnectedVolumeInputProps {
     control: {
         value: number;
         onChange(value: number): void;
-    }
+    };
 }
 
 const ConnectedVolumeInput = Flux.connectStores(
