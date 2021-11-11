@@ -53,16 +53,6 @@ WScript.Quit();
 
 'use strict';
 
-const createLogger = (name, color, version) => {
-    const print = (output, ...data) => output(`%c[${name}] %c${version ? `(v${version})` : ""}`, `color: ${color}; font-weight: 700;`, "color: #666; font-size: .8em;", ...data);
-    return {
-        print,
-        log: (...data) => print(console.log, ...data),
-        warn: (...data) => print(console.warn, ...data),
-        error: (...data) => print(console.error, ...data)
-    };
-};
-
 let webpackRequire;
 global.webpackJsonp.push([
     [],
@@ -219,6 +209,7 @@ const ReactDOMInternals = {
 
 const sleep = (duration) => new Promise((resolve) => setTimeout(resolve, duration));
 const alert = (title, content) => BdApi.alert(title, content);
+const confirm = (title, content, options = {}) => BdApi.showConfirmationModal(title, content, options);
 const queryTree = (node, predicate) => {
     if (predicate(node)) {
         return node;
@@ -267,11 +258,22 @@ const utils = /*#__PURE__*/Object.freeze({
     __proto__: null,
     sleep: sleep,
     alert: alert,
+    confirm: confirm,
     queryTree: queryTree,
     getFiber: getFiber,
     queryFiber: queryFiber,
     findOwner: findOwner
 });
+
+const createLogger = (name, color, version) => {
+    const print = (output, ...data) => output(`%c[${name}] %c${version ? `(v${version})` : ""}`, `color: ${color}; font-weight: 700;`, "color: #666; font-size: .8em;", ...data);
+    return {
+        print,
+        log: (...data) => print(console.log, ...data),
+        warn: (...data) => print(console.warn, ...data),
+        error: (...data) => print(console.error, ...data)
+    };
+};
 
 const createPatcher = (id, Logger) => {
     const forward = (patcher, object, method, callback, options) => {
@@ -353,7 +355,7 @@ class Settings extends Flux.Store {
         this.set({ ...this.defaults });
     }
     connect(component) {
-        return Flux.connectStores([this], () => ({ ...this.get(), set: this.set, defaults: this.defaults }))(component);
+        return Flux.connectStores([this], () => ({ ...this.get(), defaults: this.defaults, set: (settings) => this.set(settings) }))(component);
     }
     addListener(listener) {
         this.listeners.add(listener);
@@ -375,11 +377,20 @@ class Settings extends Flux.Store {
 }
 const createSettings = (Data, defaults) => new Settings(Data, defaults);
 
-const version$1 = "0.1.0";
+const Flex = Finder.byName("Flex");
+const Button = Finder.byProps("Link", "Hovers");
+const Form = Finder.byProps("FormItem", "FormSection", "FormDivider");
+const margins = Finder.byProps("marginLarge");
 
 const discord = /*#__PURE__*/Object.freeze({
-    __proto__: null
+    __proto__: null,
+    Flex: Flex,
+    Button: Button,
+    Form: Form,
+    margins: margins
 });
+
+const version$1 = "0.1.0";
 
 const createPlugin = ({ name, version, styles: css, settings }, callback) => {
     const Logger = createLogger(name, "#3a71c1", version);
@@ -407,7 +418,13 @@ const createPlugin = ({ name, version, styles: css, settings }, callback) => {
     };
     if (plugin.settingsPanel) {
         const ConnectedSettings = Settings.connect(plugin.settingsPanel);
-        Wrapper.prototype.getSettingsPanel = () => React.createElement(ConnectedSettings, null);
+        Wrapper.prototype.getSettingsPanel = () => (React.createElement(Form.FormSection, null,
+            React.createElement(ConnectedSettings, null),
+            React.createElement(Form.FormDivider, { className: classNames(margins.marginTop20, margins.marginBottom20) }),
+            React.createElement(Flex, { justify: Flex.Justify.END },
+                React.createElement(Button, { size: Button.Sizes.SMALL, onClick: () => confirm(name, "Reset all settings?", {
+                        onConfirm: () => Settings.reset()
+                    }) }, "Reset"))));
     }
     return Wrapper;
 };
@@ -425,9 +442,9 @@ const Discordium = /*#__PURE__*/Object.freeze({
     Flux: Flux,
     ReactInternals: ReactInternals,
     ReactDOMInternals: ReactDOMInternals,
+    Discord: discord,
     version: version$1,
-    Settings: Settings,
-    Discord: discord
+    Settings: Settings
 });
 
 const name = "DiscordiumDevTools";

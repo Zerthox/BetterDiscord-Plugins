@@ -53,16 +53,6 @@ WScript.Quit();
 
 'use strict';
 
-const createLogger = (name, color, version) => {
-    const print = (output, ...data) => output(`%c[${name}] %c${version ? `(v${version})` : ""}`, `color: ${color}; font-weight: 700;`, "color: #666; font-size: .8em;", ...data);
-    return {
-        print,
-        log: (...data) => print(console.log, ...data),
-        warn: (...data) => print(console.warn, ...data),
-        error: (...data) => print(console.error, ...data)
-    };
-};
-
 let webpackRequire;
 global.webpackJsonp.push([
     [],
@@ -192,6 +182,7 @@ React?.__SECRET_INTERNALS_DO_NOT_USE_OR_YOU_WILL_BE_FIRED;
 ReactDOM?.__SECRET_INTERNALS_DO_NOT_USE_OR_YOU_WILL_BE_FIRED?.Events;
 
 const alert = (title, content) => BdApi.alert(title, content);
+const confirm = (title, content, options = {}) => BdApi.showConfirmationModal(title, content, options);
 const queryFiber = (fiber, predicate, direction = "up", depth = 30, current = 0) => {
     if (current > depth) {
         return null;
@@ -219,6 +210,16 @@ const queryFiber = (fiber, predicate, direction = "up", depth = 30, current = 0)
 };
 const findOwner = (fiber) => {
     return queryFiber(fiber, (node) => node?.stateNode instanceof React.Component, "up", 50);
+};
+
+const createLogger = (name, color, version) => {
+    const print = (output, ...data) => output(`%c[${name}] %c${version ? `(v${version})` : ""}`, `color: ${color}; font-weight: 700;`, "color: #666; font-size: .8em;", ...data);
+    return {
+        print,
+        log: (...data) => print(console.log, ...data),
+        warn: (...data) => print(console.warn, ...data),
+        error: (...data) => print(console.error, ...data)
+    };
 };
 
 const createPatcher = (id, Logger) => {
@@ -301,7 +302,7 @@ class Settings extends Flux.Store {
         this.set({ ...this.defaults });
     }
     connect(component) {
-        return Flux.connectStores([this], () => ({ ...this.get(), set: this.set, defaults: this.defaults }))(component);
+        return Flux.connectStores([this], () => ({ ...this.get(), defaults: this.defaults, set: (settings) => this.set(settings) }))(component);
     }
     addListener(listener) {
         this.listeners.add(listener);
@@ -322,6 +323,11 @@ class Settings extends Flux.Store {
     }
 }
 const createSettings = (Data, defaults) => new Settings(Data, defaults);
+
+const Flex$1 = Finder.byName("Flex");
+const Button$1 = Finder.byProps("Link", "Hovers");
+const Form = Finder.byProps("FormItem", "FormSection", "FormDivider");
+const margins$1 = Finder.byProps("marginLarge");
 
 const createPlugin = ({ name, version, styles: css, settings }, callback) => {
     const Logger = createLogger(name, "#3a71c1", version);
@@ -349,7 +355,13 @@ const createPlugin = ({ name, version, styles: css, settings }, callback) => {
     };
     if (plugin.settingsPanel) {
         const ConnectedSettings = Settings.connect(plugin.settingsPanel);
-        Wrapper.prototype.getSettingsPanel = () => React.createElement(ConnectedSettings, null);
+        Wrapper.prototype.getSettingsPanel = () => (React.createElement(Form.FormSection, null,
+            React.createElement(ConnectedSettings, null),
+            React.createElement(Form.FormDivider, { className: classNames(margins$1.marginTop20, margins$1.marginBottom20) }),
+            React.createElement(Flex$1, { justify: Flex$1.Justify.END },
+                React.createElement(Button$1, { size: Button$1.Sizes.SMALL, onClick: () => confirm(name, "Reset all settings?", {
+                        onConfirm: () => Settings.reset()
+                    }) }, "Reset"))));
     }
     return Wrapper;
 };
