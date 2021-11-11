@@ -36,20 +36,13 @@ const ConnectedOnlineCount = Flux.connectStores(
 )(OnlineCount);
 
 export default createPlugin({...config, styles}, ({Logger, Patcher}) => {
-    const triggerRerender = () => {
+    const triggerRerender = async () => {
         const node = document.getElementsByClassName(guildStyles.guilds)?.[0];
         const fiber = Utils.getFiber(node);
-        const owner = Utils.findOwner(fiber);
-        if (owner) {
-            // nuke rendered elements in next render
-            const {stateNode} = owner;
-            Patcher.after(stateNode, "render", () => null, {once: true});
-
-            // trigger rerender twice
-            stateNode.forceUpdate(() => stateNode.forceUpdate());
-            Logger.log("Triggered guilds rerender");
+        if (await Patcher.forceRerender(fiber)) {
+            Logger.log("Rerendered guilds");
         } else {
-            Logger.warn("Unable to find guilds owner");
+            Logger.warn("Unable to rerender guilds");
         }
     };
 
