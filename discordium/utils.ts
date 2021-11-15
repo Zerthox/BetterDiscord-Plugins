@@ -10,6 +10,22 @@ export type ConfirmOptions = BdApi.ConfirmationModalOptions;
 // TODO: change to promise<boolean>?
 export const confirm = (title: string, content: string | JSX.Element, options: ConfirmOptions = {}) => BdApi.showConfirmationModal(title, content, options);
 
+export const enum ToastType {
+    Default = "",
+    Info = "info",
+    Success = "success",
+    Warn = "warn",
+    Warning = "warning",
+    Danger = "danger",
+    Error = "error"
+}
+
+export interface ToastOptions extends BdApi.ToastOptions {
+    type?: ToastType;
+}
+
+export const toast = (content: string, options: ToastOptions) => BdApi.showToast(content, options);
+
 export type Predicate<Arg> = (arg: Arg) => boolean;
 
 export const queryTree = (node: JSX.Element, predicate: Predicate<JSX.Element>): JSX.Element | null => {
