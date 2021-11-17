@@ -151,7 +151,7 @@ export default createPlugin({...config, styles, settings}, ({Logger, Patcher, Da
             });
 
             // patch folder expand
-            Patcher.after(ClientActions, "toogleGuildFolderExpand", ({original, args: [folderId]}) => {
+            Patcher.after(ClientActions, "toggleGuildFolderExpand", ({original, args: [folderId]}) => {
                 if (Settings.get().closeOnOpen) {
                     for (const id of FolderState.getExpandedFolders()) {
                         if (id !== folderId) {
@@ -171,10 +171,10 @@ export default createPlugin({...config, styles, settings}, ({Logger, Patcher, Da
                 note="Close other folders when opening a new folder"
                 hideBorder
                 value={closeOnOpen}
-                onChange={({checked}: {checked: boolean}) => {
+                onChange={(checked: boolean) => {
                     if (checked) {
                         // close all folders except one
-                        for (const id of FolderState.getExpandedFolders().slice(1)) {
+                        for (const id of Array.from(FolderState.getExpandedFolders()).slice(1)) {
                             ClientActions.toggleGuildFolderExpand(id);
                         }
                     }
