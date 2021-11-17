@@ -19,7 +19,7 @@ export const React: typeof ReactInstance = Finder.byProps("createElement", "Comp
 
 export const ReactDOM: typeof ReactDOMInstance = Finder.byProps("render", "findDOMNode", "createPortal");
 
-export const classNames: typeof classNamesInstance = Finder.find((exports) => exports instanceof Object && exports.default === exports && Object.keys(exports).length === 1);
+export const classNames: typeof classNamesInstance = Finder.find((exports: any) => exports instanceof Object && exports.default === exports && Object.keys(exports).length === 1);
 
 export const lodash: typeof lodashInstance = Finder.byProps("cloneDeep", "flattenDeep");
 

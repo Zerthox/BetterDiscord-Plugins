@@ -101,6 +101,8 @@ const genFilters = ({ filter, name, props, protos, source }) => [
 const raw = {
     require: webpackRequire,
     getAll: () => Object.values(webpackRequire.c),
+    getSources: () => Object.values(webpackRequire.m),
+    getSource: (id) => webpackRequire.m[id] ?? null,
     find: (...filters) => raw.getAll().find(joinFilters(filters)) ?? null,
     query: (options) => raw.find(...genFilters(options)),
     byId: (id) => webpackRequire.c[id] ?? null,
@@ -142,22 +144,24 @@ const raw = {
         }
         return null;
     },
-    resolveImports(module) {
+    resolveImportIds(module) {
         const source = webpackRequire.m[module.id].toString();
         const match = source.match(/^(?:function)?\s*\(\w+,\w+,(\w+)\)\s*(?:=>)?\s*{/);
         if (match) {
             const requireName = match[1];
             const calls = Array.from(source.matchAll(new RegExp(`\\W${requireName}\\((\\d+)\\)`, "g")));
-            return calls.map((call) => raw.byId(call[1]));
+            return calls.map((call) => parseInt(call[1]));
         }
         else {
             return [];
         }
     },
+    resolveImports: (module) => raw.resolveImportIds(module).map((id) => raw.byId(id)),
     resolveStyles: (module) => raw.resolveImports(module).filter((imported) => (imported instanceof Object
         && "exports" in imported
         && Object.values(imported.exports).every((value) => typeof value === "string")
-        && Object.entries(imported.exports).find(([key, value]) => (new RegExp(`^${key}-([a-zA-Z0-9-_]){6}(\\s.+)$`)).test(value))))
+        && Object.entries(imported.exports).find(([key, value]) => (new RegExp(`^${key}-([a-zA-Z0-9-_]){6}(\\s.+)$`)).test(value)))),
+    resolveUsers: (module) => raw.all.find((_, user) => raw.resolveImportIds(user).includes(module.id))
 };
 const Finder = {
     raw,
@@ -170,8 +174,10 @@ const Finder = {
     byProps: (...props) => raw.resolveExports(raw.byProps(...props), filters.byProps(props)),
     byProtos: (...protos) => raw.resolveExports(raw.byProtos(...protos), filters.byProtos(protos)),
     bySource: (...contents) => raw.resolveExports(raw.bySource(...contents), filters.bySource(contents)),
+    resolveImportIds: (exported) => raw.resolveImportIds(raw.byExports(exported)),
     resolveImports: (exported) => raw.resolveImports(raw.byExports(exported)).map((entry) => raw.resolveExports(entry)),
     resolveStyles: (exported) => raw.resolveStyles(raw.byExports(exported)).map((entry) => raw.resolveExports(entry)),
+    resolveUsers: (exported) => raw.resolveUsers(raw.byExports(exported)).map((entry) => raw.resolveExports(entry)),
     all: {
         find: (...filters) => raw.all.find(...filters).map((entry) => raw.resolveExports(entry)),
         query: (options) => raw.all.query(options).map((entry) => raw.resolveExports(entry, options.export)),
