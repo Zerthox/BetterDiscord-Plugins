@@ -6,7 +6,7 @@ import * as rollup from "rollup";
 import rollupConfig from "../rollup.config";
 import {Config} from "discordium";
 
-const repo = "https://github.com/Zerthox/BetterDiscord-Plugins";
+const repo = "Zerthox/BetterDiscord-Plugins";
 
 const success = (msg: string) => console.log(chalk.green(msg));
 const warn = (msg: string) => console.warn(chalk.yellow(`Warn: ${msg}`));
@@ -147,9 +147,9 @@ async function readConfig(input: string): Promise<Meta> {
     return {
         ...config,
         authorLink: `https://github.com/${config.author}`,
-        website: repo,
-        source: `${repo}/tree/master/src/${path.basename(input)}`,
-        updateUrl: `${repo}/blob/master/dist/bd/${path.basename(input)}.plugin.js`
+        website: `https://github.com${repo}`,
+        source: `https://github.com/${repo}/tree/master/src/${path.basename(input)}`,
+        updateUrl: `https://raw.githubusercontent.com/${repo}/master/dist/bd/${path.basename(input)}.plugin.js`
     };
 }
 

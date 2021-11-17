@@ -4,9 +4,9 @@
  * @version 0.1.0
  * @description Makes Discordium available as global for development.
  * @authorLink https://github.com/Zerthox
- * @website https://github.com/Zerthox/BetterDiscord-Plugins
+ * @website https://github.comZerthox/BetterDiscord-Plugins
  * @source https://github.com/Zerthox/BetterDiscord-Plugins/tree/master/src/DevTools
- * @updateUrl https://github.com/Zerthox/BetterDiscord-Plugins/blob/master/dist/bd/DevTools.plugin.js
+ * @updateUrl https://raw.githubusercontent.com/Zerthox/BetterDiscord-Plugins/master/dist/bd/DevTools.plugin.js
 **/
 
 /*@cc_on @if (@_jscript)

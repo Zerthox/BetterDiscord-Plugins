@@ -4,9 +4,9 @@
  * @version 2.0.0
  * @description Add TTS Event Notifications to your selected Voice Channel. TeamSpeak feeling.
  * @authorLink https://github.com/Zerthox
- * @website https://github.com/Zerthox/BetterDiscord-Plugins
+ * @website https://github.comZerthox/BetterDiscord-Plugins
  * @source https://github.com/Zerthox/BetterDiscord-Plugins/tree/master/src/VoiceEvents
- * @updateUrl https://github.com/Zerthox/BetterDiscord-Plugins/blob/master/dist/bd/VoiceEvents.plugin.js
+ * @updateUrl https://raw.githubusercontent.com/Zerthox/BetterDiscord-Plugins/master/dist/bd/VoiceEvents.plugin.js
 **/
 
 /*@cc_on @if (@_jscript)
