@@ -4,7 +4,7 @@
  * @version 2.0.0
  * @description Add the old online friend count back to guild list. Because nostalgia.
  * @authorLink https://github.com/Zerthox
- * @website https://github.comZerthox/BetterDiscord-Plugins
+ * @website https://github.com/Zerthox/BetterDiscord-Plugins
  * @source https://github.com/Zerthox/BetterDiscord-Plugins/tree/master/src/OnlineFriendCount
  * @updateUrl https://raw.githubusercontent.com/Zerthox/BetterDiscord-Plugins/master/dist/bd/OnlineFriendCount.plugin.js
 **/

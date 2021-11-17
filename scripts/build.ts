@@ -147,7 +147,7 @@ async function readConfig(input: string): Promise<Meta> {
     return {
         ...config,
         authorLink: `https://github.com/${config.author}`,
-        website: `https://github.com${repo}`,
+        website: `https://github.com/${repo}`,
         source: `https://github.com/${repo}/tree/master/src/${path.basename(input)}`,
         updateUrl: `https://raw.githubusercontent.com/${repo}/master/dist/bd/${path.basename(input)}.plugin.js`
     };

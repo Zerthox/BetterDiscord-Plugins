@@ -4,7 +4,7 @@
  * @version 2.0.0
  * @description Set user volume values manually instead of using a limited slider.
  * @authorLink https://github.com/Zerthox
- * @website https://github.comZerthox/BetterDiscord-Plugins
+ * @website https://github.com/Zerthox/BetterDiscord-Plugins
  * @source https://github.com/Zerthox/BetterDiscord-Plugins/tree/master/src/BetterVolume
  * @updateUrl https://raw.githubusercontent.com/Zerthox/BetterDiscord-Plugins/master/dist/bd/BetterVolume.plugin.js
 **/
