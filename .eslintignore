@@ -1,4 +1,4 @@
 node_modules/
 dist/
 scripts/*.js
-old/
+v1/

@@ -65,7 +65,7 @@ global.webpackJsonp.push([
 ]);
 delete webpackRequire.m.__discordium__;
 delete webpackRequire.c.__discordium__;
-const applyFilters = (filters) => {
+const joinFilters = (filters) => {
     return (module) => {
         const { exports } = module;
         return filters.every((filter) => filter(exports, module) || (exports?.__esModule && filter(exports?.default, module)));
@@ -101,7 +101,7 @@ const genFilters = ({ filter, name, props, protos, source }) => [
 const raw = {
     require: webpackRequire,
     getAll: () => Object.values(webpackRequire.c),
-    find: (...filters) => raw.getAll().find(applyFilters(filters)) ?? null,
+    find: (...filters) => raw.getAll().find(joinFilters(filters)) ?? null,
     query: (options) => raw.find(...genFilters(options)),
     byId: (id) => webpackRequire.c[id] ?? null,
     byExports: (exported) => raw.find(filters.byExports(exported)),
@@ -110,7 +110,7 @@ const raw = {
     byProtos: (...protos) => raw.find(filters.byProtos(protos)),
     bySource: (...contents) => raw.find(filters.bySource(contents)),
     all: {
-        find: (...filters) => raw.getAll().filter(applyFilters(filters)),
+        find: (...filters) => raw.getAll().filter(joinFilters(filters)),
         query: (options) => raw.all.find(...genFilters(options)),
         byExports: (exported) => raw.all.find(filters.byExports(exported)),
         byName: (name) => raw.all.find(filters.byName(name)),
@@ -118,7 +118,7 @@ const raw = {
         byProtos: (...protos) => raw.all.find(filters.byProtos(protos)),
         bySource: (...contents) => raw.all.find(filters.bySource(contents))
     },
-    resolveExports: (module, filter = null) => {
+    resolveExports(module, filter = null) {
         if (module instanceof Object && "exports" in module) {
             const exported = module.exports;
             if (!exported) {
@@ -133,13 +133,31 @@ const raw = {
                     return result;
                 }
             }
-            if (exported instanceof Object && exported.__esModule && "default" in exported && Object.keys(exported).length === 1) {
+            if (exported.__esModule && "default" in exported && Object.keys(exported).length === 1) {
                 return exported.default;
             }
-            return exported;
+            else {
+                return exported;
+            }
         }
         return null;
-    }
+    },
+    resolveImports(module) {
+        const source = webpackRequire.m[module.id].toString();
+        const match = source.match(/^(?:function)?\s*\(\w+,\w+,(\w+)\)\s*(?:=>)?\s*{/);
+        if (match) {
+            const requireName = match[1];
+            const calls = Array.from(source.matchAll(new RegExp(`\\W${requireName}\\((\\d+)\\)`, "g")));
+            return calls.map((call) => raw.byId(call[1]));
+        }
+        else {
+            return [];
+        }
+    },
+    resolveStyles: (module) => raw.resolveImports(module).filter((imported) => (imported instanceof Object
+        && "exports" in imported
+        && Object.values(imported.exports).every((value) => typeof value === "string")
+        && Object.entries(imported.exports).find(([key, value]) => (new RegExp(`^${key}-([a-zA-Z0-9-_]){6}(\\s.+)$`)).test(value))))
 };
 const Finder = {
     raw,
@@ -152,6 +170,8 @@ const Finder = {
     byProps: (...props) => raw.resolveExports(raw.byProps(...props), filters.byProps(props)),
     byProtos: (...protos) => raw.resolveExports(raw.byProtos(...protos), filters.byProtos(protos)),
     bySource: (...contents) => raw.resolveExports(raw.bySource(...contents), filters.bySource(contents)),
+    resolveImports: (exported) => raw.resolveImports(raw.byExports(exported)).map((entry) => raw.resolveExports(entry)),
+    resolveStyles: (exported) => raw.resolveStyles(raw.byExports(exported)).map((entry) => raw.resolveExports(entry)),
     all: {
         find: (...filters) => raw.all.find(...filters).map((entry) => raw.resolveExports(entry)),
         query: (options) => raw.all.query(options).map((entry) => raw.resolveExports(entry, options.export)),
