@@ -8,7 +8,7 @@ import {React, classNames} from "./modules";
 import {Flex, Button, Form, margins} from "./discord";
 
 export * as Utils from "./utils";
-export {default as Finder} from "./finder";
+export * as Finder from "./finder";
 export * as Modules from "./modules";
 export {React, ReactDOM, classNames, lodash, Flux} from "./modules";
 export {ReactInternals, ReactDOMInternals} from "./react";

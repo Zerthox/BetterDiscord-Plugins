@@ -83,7 +83,7 @@ const genFilters = ({filter, name, props, protos, source}: FilterOptions): Filte
     source instanceof Array ? filters.bySource(source) : null
 ].filter((entry) => entry instanceof Function);
 
-const raw = {
+export const raw = {
     require: webpackRequire,
     getAll: () => Object.values(webpackRequire.c),
     getSources: () => Object.values(webpackRequire.m),
@@ -157,32 +157,26 @@ const raw = {
     resolveUsers: (module: Module) => raw.all.find((_, user) => raw.resolveImportIds(user).includes(module.id))
 };
 
-const Finder = {
-    raw,
-    getAll: () => raw.getAll().map((entry) => raw.resolveExports(entry)),
-    find: (...filters: Filter[]) => raw.resolveExports(raw.find(...filters)),
-    query: (options: Options) => raw.resolveExports(raw.query(options), options.export),
-    byId: (id: number | string) => raw.resolveExports(raw.byId(id)),
-    byExports: (exported: Exports) => raw.resolveExports(raw.byExports(exported)),
-    byName: (name: string) => raw.resolveExports(raw.byName(name), filters.byDisplayName(name)),
-    byProps: (...props: string[]) => raw.resolveExports(raw.byProps(...props), filters.byProps(props)),
-    byProtos: (...protos: string[]) => raw.resolveExports(raw.byProtos(...protos), filters.byProtos(protos)),
-    bySource: (...contents: string[]) => raw.resolveExports(raw.bySource(...contents), filters.bySource(contents)),
-    resolveImportIds: (exported: Exports) => raw.resolveImportIds(raw.byExports(exported)),
-    resolveImports: (exported: Exports) => raw.resolveImports(raw.byExports(exported)).map((entry) => raw.resolveExports(entry)),
-    resolveStyles: (exported: Exports) => raw.resolveStyles(raw.byExports(exported)).map((entry) => raw.resolveExports(entry)),
-    resolveUsers: (exported: Exports) => raw.resolveUsers(raw.byExports(exported)).map((entry) => raw.resolveExports(entry)),
-    all: {
-        find: (...filters: Filter[]) => raw.all.find(...filters).map((entry) => raw.resolveExports(entry)),
-        query: (options: Options) => raw.all.query(options).map((entry) => raw.resolveExports(entry, options.export)),
-        byExports: (exported: Exports) => raw.all.byExports(exported).map((entry) => raw.resolveExports(entry)),
-        byName: (name: string) => raw.all.byName(name).map((entry) => raw.resolveExports(entry, filters.byDisplayName(name))),
-        byProps: (...props: string[]) => raw.all.byProps(...props).map((entry) => raw.resolveExports(entry, filters.byProps(props))),
-        byProtos: (...protos: string[]) => raw.all.byProtos(...protos).map((entry) => raw.resolveExports(entry, filters.byProtos(protos))),
-        bySource: (...contents: string[]) => raw.all.bySource(...contents).map((entry) => raw.resolveExports(entry, filters.bySource(contents)))
-    }
+export const getAll = () => raw.getAll().map((entry) => raw.resolveExports(entry));
+export const find = (...filters: Filter[]) => raw.resolveExports(raw.find(...filters));
+export const query = (options: Options) => raw.resolveExports(raw.query(options), options.export);
+export const byId = (id: number | string) => raw.resolveExports(raw.byId(id));
+export const byExports = (exported: Exports) => raw.resolveExports(raw.byExports(exported));
+export const byName = (name: string) => raw.resolveExports(raw.byName(name), filters.byDisplayName(name));
+export const byProps = (...props: string[]) => raw.resolveExports(raw.byProps(...props), filters.byProps(props));
+export const byProtos = (...protos: string[]) => raw.resolveExports(raw.byProtos(...protos), filters.byProtos(protos));
+export const bySource = (...contents: string[]) => raw.resolveExports(raw.bySource(...contents), filters.bySource(contents));
+export const resolveImportIds = (exported: Exports) => raw.resolveImportIds(raw.byExports(exported));
+export const resolveImports = (exported: Exports) => raw.resolveImports(raw.byExports(exported)).map((entry) => raw.resolveExports(entry));
+export const resolveStyles = (exported: Exports) => raw.resolveStyles(raw.byExports(exported)).map((entry) => raw.resolveExports(entry));
+export const resolveUsers = (exported: Exports) => raw.resolveUsers(raw.byExports(exported)).map((entry) => raw.resolveExports(entry));
+
+export const all = {
+    find: (...filters: Filter[]) => raw.all.find(...filters).map((entry) => raw.resolveExports(entry)),
+    query: (options: Options) => raw.all.query(options).map((entry) => raw.resolveExports(entry, options.export)),
+    byExports: (exported: Exports) => raw.all.byExports(exported).map((entry) => raw.resolveExports(entry)),
+    byName: (name: string) => raw.all.byName(name).map((entry) => raw.resolveExports(entry, filters.byDisplayName(name))),
+    byProps: (...props: string[]) => raw.all.byProps(...props).map((entry) => raw.resolveExports(entry, filters.byProps(props))),
+    byProtos: (...protos: string[]) => raw.all.byProtos(...protos).map((entry) => raw.resolveExports(entry, filters.byProtos(protos))),
+    bySource: (...contents: string[]) => raw.all.bySource(...contents).map((entry) => raw.resolveExports(entry, filters.bySource(contents)))
 };
-
-export default Finder;
-
-export type Finder = typeof Finder;

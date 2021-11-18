@@ -1,4 +1,4 @@
-import Finder from "./finder";
+import * as Finder from "./finder";
 
 export const Flex = Finder.byName("Flex");
 export const Button = Finder.byProps("Link", "Hovers");

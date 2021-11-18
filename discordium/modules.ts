@@ -1,4 +1,4 @@
-import Finder from "./finder";
+import * as Finder from "./finder";
 
 // we import instances for the typing
 // FIXME: mirror versions!
