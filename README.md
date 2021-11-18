@@ -30,7 +30,7 @@ npm install
 # build all plugins
 npm run build
 
-# build specific plugins plugin
+# build specific plugins
 npm run build -- BetterFolders BetterVolume
 
 # build plugin to BetterDiscord folder & watch for changes
