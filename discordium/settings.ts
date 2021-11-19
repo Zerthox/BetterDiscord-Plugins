@@ -23,7 +23,7 @@ export class Settings<
         this.listeners = new Set();
 
         this.defaults = defaults;
-        this.current = Data.load("settings") ?? {...defaults};
+        this.current = {...defaults, ...Data.load("settings")};
     }
 
     get(): SettingsType {
