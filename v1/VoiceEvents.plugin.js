@@ -1,7 +1,7 @@
 /**
  * @name VoiceEvents
  * @author Zerthox
- * @version 2.0.0
+ * @version 2.0.1
  * @description Add TTS Event Notifications to your selected Voice Channel. TeamSpeak feeling.
  * @authorLink https://github.com/Zerthox
  * @website https://github.com/Zerthox/BetterDiscord-Plugins
@@ -101,6 +101,8 @@ const genFilters = ({ filter, name, props, protos, source }) => [
 const raw = {
     require: webpackRequire,
     getAll: () => Object.values(webpackRequire.c),
+    getSources: () => Object.values(webpackRequire.m),
+    getSource: (id) => webpackRequire.m[id] ?? null,
     find: (...filters) => raw.getAll().find(joinFilters(filters)) ?? null,
     query: (options) => raw.find(...genFilters(options)),
     byId: (id) => webpackRequire.c[id] ?? null,
@@ -142,61 +144,44 @@ const raw = {
         }
         return null;
     },
-    resolveImports(module) {
+    resolveImportIds(module) {
         const source = webpackRequire.m[module.id].toString();
         const match = source.match(/^(?:function)?\s*\(\w+,\w+,(\w+)\)\s*(?:=>)?\s*{/);
         if (match) {
             const requireName = match[1];
             const calls = Array.from(source.matchAll(new RegExp(`\\W${requireName}\\((\\d+)\\)`, "g")));
-            return calls.map((call) => raw.byId(call[1]));
+            return calls.map((call) => parseInt(call[1]));
         }
         else {
             return [];
         }
     },
+    resolveImports: (module) => raw.resolveImportIds(module).map((id) => raw.byId(id)),
     resolveStyles: (module) => raw.resolveImports(module).filter((imported) => (imported instanceof Object
         && "exports" in imported
         && Object.values(imported.exports).every((value) => typeof value === "string")
-        && Object.entries(imported.exports).find(([key, value]) => (new RegExp(`^${key}-([a-zA-Z0-9-_]){6}(\\s.+)$`)).test(value))))
+        && Object.entries(imported.exports).find(([key, value]) => (new RegExp(`^${key}-([a-zA-Z0-9-_]){6}(\\s.+)$`)).test(value)))),
+    resolveUsers: (module) => raw.all.find((_, user) => raw.resolveImportIds(user).includes(module.id))
 };
-const Finder = {
-    raw,
-    getAll: () => raw.getAll().map((entry) => raw.resolveExports(entry)),
-    find: (...filters) => raw.resolveExports(raw.find(...filters)),
-    query: (options) => raw.resolveExports(raw.query(options), options.export),
-    byId: (id) => raw.resolveExports(raw.byId(id)),
-    byExports: (exported) => raw.resolveExports(raw.byExports(exported)),
-    byName: (name) => raw.resolveExports(raw.byName(name), filters.byDisplayName(name)),
-    byProps: (...props) => raw.resolveExports(raw.byProps(...props), filters.byProps(props)),
-    byProtos: (...protos) => raw.resolveExports(raw.byProtos(...protos), filters.byProtos(protos)),
-    bySource: (...contents) => raw.resolveExports(raw.bySource(...contents), filters.bySource(contents)),
-    resolveImports: (exported) => raw.resolveImports(raw.byExports(exported)).map((entry) => raw.resolveExports(entry)),
-    resolveStyles: (exported) => raw.resolveStyles(raw.byExports(exported)).map((entry) => raw.resolveExports(entry)),
-    all: {
-        find: (...filters) => raw.all.find(...filters).map((entry) => raw.resolveExports(entry)),
-        query: (options) => raw.all.query(options).map((entry) => raw.resolveExports(entry, options.export)),
-        byExports: (exported) => raw.all.byExports(exported).map((entry) => raw.resolveExports(entry)),
-        byName: (name) => raw.all.byName(name).map((entry) => raw.resolveExports(entry, filters.byDisplayName(name))),
-        byProps: (...props) => raw.all.byProps(...props).map((entry) => raw.resolveExports(entry, filters.byProps(props))),
-        byProtos: (...protos) => raw.all.byProtos(...protos).map((entry) => raw.resolveExports(entry, filters.byProtos(protos))),
-        bySource: (...contents) => raw.all.bySource(...contents).map((entry) => raw.resolveExports(entry, filters.bySource(contents)))
-    }
-};
+const find = (...filters) => raw.resolveExports(raw.find(...filters));
+const query = (options) => raw.resolveExports(raw.query(options), options.export);
+const byName = (name) => raw.resolveExports(raw.byName(name), filters.byDisplayName(name));
+const byProps = (...props) => raw.resolveExports(raw.byProps(...props), filters.byProps(props));
 
-Finder.byProps("subscribe", "emit");
-const React = Finder.byProps("createElement", "Component", "Fragment");
-const ReactDOM = Finder.byProps("render", "findDOMNode", "createPortal");
-const classNames = Finder.find((exports) => exports instanceof Object && exports.default === exports && Object.keys(exports).length === 1);
-Finder.byProps("cloneDeep", "flattenDeep");
-Finder.byProps("valid", "satifies");
-Finder.byProps("utc", "months");
-Finder.byProps("parseBlock", "parseInline");
-Finder.byProps("highlight", "highlightBlock");
-Finder.byProps("captureBreadcrumb");
-Finder.byProps("assert", "validate", "object");
-const Flux = Finder.query({ props: ["Store", "connectStores"], export: "default" });
-const Dispatcher = Finder.query({ props: ["Dispatcher"], export: "Dispatcher" });
-Finder.byProps("languages", "getLocale");
+byProps("subscribe", "emit");
+const React = byProps("createElement", "Component", "Fragment");
+const ReactDOM = byProps("render", "findDOMNode", "createPortal");
+const classNames = find((exports) => exports instanceof Object && exports.default === exports && Object.keys(exports).length === 1);
+byProps("cloneDeep", "flattenDeep");
+byProps("valid", "satifies");
+byProps("utc", "months");
+byProps("parseBlock", "parseInline");
+byProps("highlight", "highlightBlock");
+byProps("captureBreadcrumb");
+byProps("assert", "validate", "object");
+const Flux = query({ props: ["Store", "connectStores"], export: "default" });
+const Dispatcher = query({ props: ["Dispatcher"], export: "Dispatcher" });
+byProps("languages", "getLocale");
 
 React?.__SECRET_INTERNALS_DO_NOT_USE_OR_YOU_WILL_BE_FIRED;
 ReactDOM?.__SECRET_INTERNALS_DO_NOT_USE_OR_YOU_WILL_BE_FIRED?.Events;
@@ -309,7 +294,7 @@ class Settings extends Flux.Store {
         });
         this.listeners = new Set();
         this.defaults = defaults;
-        this.current = Data.load("settings") ?? { ...defaults };
+        this.current = { ...defaults, ...Data.load("settings") };
     }
     get() {
         return { ...this.current };
@@ -344,10 +329,10 @@ class Settings extends Flux.Store {
 }
 const createSettings = (Data, defaults) => new Settings(Data, defaults);
 
-const Flex$1 = Finder.byName("Flex");
-const Button$1 = Finder.byProps("Link", "Hovers");
-const Form = Finder.byProps("FormItem", "FormSection", "FormDivider");
-const margins$1 = Finder.byProps("marginLarge");
+const Flex$1 = byName("Flex");
+const Button$1 = byProps("Link", "Hovers");
+const Form = byProps("FormItem", "FormSection", "FormDivider");
+const margins$1 = byProps("marginLarge");
 
 const createPlugin = ({ name, version, styles: css, settings }, callback) => {
     const Logger = createLogger(name, "#3a71c1", version);
@@ -386,15 +371,15 @@ const createPlugin = ({ name, version, styles: css, settings }, callback) => {
     return Wrapper;
 };
 
-const Flex = Finder.byName("Flex");
-const Text$1 = Finder.byName("Text");
-const Button = Finder.byProps("Link", "Hovers");
-const { FormSection, FormTitle, FormItem, FormText, FormDivider } = Finder.byProps("FormSection", "FormText") ?? {};
-const SwitchItem = Finder.byName("SwitchItem");
-const TextInput = Finder.byName("TextInput");
-const SelectTempWrapper = Finder.byName("SelectTempWrapper");
-const Slider = Finder.byName("Slider");
-const margins = Finder.byProps("marginLarge");
+const Flex = byName("Flex");
+const Text$1 = byName("Text");
+const Button = byProps("Link", "Hovers");
+const { FormSection, FormTitle, FormItem, FormText, FormDivider } = byProps("FormSection", "FormText") ?? {};
+const SwitchItem = byName("SwitchItem");
+const TextInput = byName("TextInput");
+const SelectTempWrapper = byName("SelectTempWrapper");
+const Slider = byName("Slider");
+const margins = byProps("marginLarge");
 const settings = {
     voice: null,
     volume: 100,
@@ -473,7 +458,7 @@ const SettingsPanel = ({ speak, defaults, set, voice, volume, speed, filterNames
 
 const name = "VoiceEvents";
 const author = "Zerthox";
-const version = "2.0.0";
+const version = "2.0.1";
 const description = "Add TTS Event Notifications to your selected Voice Channel. TeamSpeak feeling.";
 const config = {
 	name: name,
@@ -482,15 +467,15 @@ const config = {
 	description: description
 };
 
-const Events = Finder.byProps("dispatch", "subscribe");
-const Channels = Finder.byProps("getChannel", "hasChannel");
-const SelectedChannel = Finder.byProps("getChannelId", "getVoiceChannelId");
-const VoiceStates = Finder.byProps("getVoiceStates", "hasVideo");
-const Users = Finder.byProps("getUser", "getCurrentUser");
-const Members = Finder.byProps("getMember", "isMember");
-const Text = Finder.byName("Text");
-const { MenuGroup, MenuItem } = Finder.byProps("MenuGroup", "MenuItem", "MenuSeparator") ?? {};
-const VoiceContextMenu = Finder.query({ name: "ChannelListVoiceChannelContextMenu", source: ["isGuildStageVoice"] });
+const Events = byProps("dispatch", "subscribe");
+const Channels = byProps("getChannel", "hasChannel");
+const SelectedChannel = byProps("getChannelId", "getVoiceChannelId");
+const VoiceStates = byProps("getVoiceStates", "hasVideo");
+const Users = byProps("getUser", "getCurrentUser");
+const Members = byProps("getMember", "isMember");
+const Text = byName("Text");
+const { MenuGroup, MenuItem } = byProps("MenuGroup", "MenuItem", "MenuSeparator") ?? {};
+const VoiceContextMenu = query({ name: "ChannelListVoiceChannelContextMenu", source: ["isGuildStageVoice"] });
 let prevStates = {};
 const saveStates = () => {
     prevStates = { ...VoiceStates.getVoiceStatesForChannel(SelectedChannel.getVoiceChannelId()) };
