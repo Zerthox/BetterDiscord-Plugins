@@ -163,46 +163,62 @@ const raw = {
         && Object.entries(imported.exports).find(([key, value]) => (new RegExp(`^${key}-([a-zA-Z0-9-_]){6}(\\s.+)$`)).test(value)))),
     resolveUsers: (module) => raw.all.find((_, user) => raw.resolveImportIds(user).includes(module.id))
 };
-const Finder = {
-    raw,
-    getAll: () => raw.getAll().map((entry) => raw.resolveExports(entry)),
-    find: (...filters) => raw.resolveExports(raw.find(...filters)),
-    query: (options) => raw.resolveExports(raw.query(options), options.export),
-    byId: (id) => raw.resolveExports(raw.byId(id)),
-    byExports: (exported) => raw.resolveExports(raw.byExports(exported)),
-    byName: (name) => raw.resolveExports(raw.byName(name), filters.byDisplayName(name)),
-    byProps: (...props) => raw.resolveExports(raw.byProps(...props), filters.byProps(props)),
-    byProtos: (...protos) => raw.resolveExports(raw.byProtos(...protos), filters.byProtos(protos)),
-    bySource: (...contents) => raw.resolveExports(raw.bySource(...contents), filters.bySource(contents)),
-    resolveImportIds: (exported) => raw.resolveImportIds(raw.byExports(exported)),
-    resolveImports: (exported) => raw.resolveImports(raw.byExports(exported)).map((entry) => raw.resolveExports(entry)),
-    resolveStyles: (exported) => raw.resolveStyles(raw.byExports(exported)).map((entry) => raw.resolveExports(entry)),
-    resolveUsers: (exported) => raw.resolveUsers(raw.byExports(exported)).map((entry) => raw.resolveExports(entry)),
-    all: {
-        find: (...filters) => raw.all.find(...filters).map((entry) => raw.resolveExports(entry)),
-        query: (options) => raw.all.query(options).map((entry) => raw.resolveExports(entry, options.export)),
-        byExports: (exported) => raw.all.byExports(exported).map((entry) => raw.resolveExports(entry)),
-        byName: (name) => raw.all.byName(name).map((entry) => raw.resolveExports(entry, filters.byDisplayName(name))),
-        byProps: (...props) => raw.all.byProps(...props).map((entry) => raw.resolveExports(entry, filters.byProps(props))),
-        byProtos: (...protos) => raw.all.byProtos(...protos).map((entry) => raw.resolveExports(entry, filters.byProtos(protos))),
-        bySource: (...contents) => raw.all.bySource(...contents).map((entry) => raw.resolveExports(entry, filters.bySource(contents)))
-    }
+const getAll = () => raw.getAll().map((entry) => raw.resolveExports(entry));
+const find = (...filters) => raw.resolveExports(raw.find(...filters));
+const query = (options) => raw.resolveExports(raw.query(options), options.export);
+const byId = (id) => raw.resolveExports(raw.byId(id));
+const byExports = (exported) => raw.resolveExports(raw.byExports(exported));
+const byName = (name) => raw.resolveExports(raw.byName(name), filters.byDisplayName(name));
+const byProps = (...props) => raw.resolveExports(raw.byProps(...props), filters.byProps(props));
+const byProtos = (...protos) => raw.resolveExports(raw.byProtos(...protos), filters.byProtos(protos));
+const bySource = (...contents) => raw.resolveExports(raw.bySource(...contents), filters.bySource(contents));
+const resolveImportIds = (exported) => raw.resolveImportIds(raw.byExports(exported));
+const resolveImports = (exported) => raw.resolveImports(raw.byExports(exported)).map((entry) => raw.resolveExports(entry));
+const resolveStyles = (exported) => raw.resolveStyles(raw.byExports(exported)).map((entry) => raw.resolveExports(entry));
+const resolveUsers = (exported) => raw.resolveUsers(raw.byExports(exported)).map((entry) => raw.resolveExports(entry));
+const all = {
+    find: (...filters) => raw.all.find(...filters).map((entry) => raw.resolveExports(entry)),
+    query: (options) => raw.all.query(options).map((entry) => raw.resolveExports(entry, options.export)),
+    byExports: (exported) => raw.all.byExports(exported).map((entry) => raw.resolveExports(entry)),
+    byName: (name) => raw.all.byName(name).map((entry) => raw.resolveExports(entry, filters.byDisplayName(name))),
+    byProps: (...props) => raw.all.byProps(...props).map((entry) => raw.resolveExports(entry, filters.byProps(props))),
+    byProtos: (...protos) => raw.all.byProtos(...protos).map((entry) => raw.resolveExports(entry, filters.byProtos(protos))),
+    bySource: (...contents) => raw.all.bySource(...contents).map((entry) => raw.resolveExports(entry, filters.bySource(contents)))
 };
 
-const EventEmitter = Finder.byProps("subscribe", "emit");
-const React = Finder.byProps("createElement", "Component", "Fragment");
-const ReactDOM = Finder.byProps("render", "findDOMNode", "createPortal");
-const classNames = Finder.find((exports) => exports instanceof Object && exports.default === exports && Object.keys(exports).length === 1);
-const lodash = Finder.byProps("cloneDeep", "flattenDeep");
-const semver = Finder.byProps("valid", "satifies");
-const moment = Finder.byProps("utc", "months");
-const SimpleMarkdown = Finder.byProps("parseBlock", "parseInline");
-const hljs = Finder.byProps("highlight", "highlightBlock");
-const Raven = Finder.byProps("captureBreadcrumb");
-const joi = Finder.byProps("assert", "validate", "object");
-const Flux = Finder.query({ props: ["Store", "connectStores"], export: "default" });
-const Dispatcher = Finder.query({ props: ["Dispatcher"], export: "Dispatcher" });
-const i18n = Finder.byProps("languages", "getLocale");
+const finder = /*#__PURE__*/Object.freeze({
+    __proto__: null,
+    raw: raw,
+    getAll: getAll,
+    find: find,
+    query: query,
+    byId: byId,
+    byExports: byExports,
+    byName: byName,
+    byProps: byProps,
+    byProtos: byProtos,
+    bySource: bySource,
+    resolveImportIds: resolveImportIds,
+    resolveImports: resolveImports,
+    resolveStyles: resolveStyles,
+    resolveUsers: resolveUsers,
+    all: all
+});
+
+const EventEmitter = byProps("subscribe", "emit");
+const React = byProps("createElement", "Component", "Fragment");
+const ReactDOM = byProps("render", "findDOMNode", "createPortal");
+const classNames = find((exports) => exports instanceof Object && exports.default === exports && Object.keys(exports).length === 1);
+const lodash = byProps("cloneDeep", "flattenDeep");
+const semver = byProps("valid", "satifies");
+const moment = byProps("utc", "months");
+const SimpleMarkdown = byProps("parseBlock", "parseInline");
+const hljs = byProps("highlight", "highlightBlock");
+const Raven = byProps("captureBreadcrumb");
+const joi = byProps("assert", "validate", "object");
+const Flux = query({ props: ["Store", "connectStores"], export: "default" });
+const Dispatcher = query({ props: ["Dispatcher"], export: "Dispatcher" });
+const i18n = byProps("languages", "getLocale");
 
 const modules = /*#__PURE__*/Object.freeze({
     __proto__: null,
@@ -370,7 +386,7 @@ class Settings extends Flux.Store {
         });
         this.listeners = new Set();
         this.defaults = defaults;
-        this.current = Data.load("settings") ?? { ...defaults };
+        this.current = { ...defaults, ...Data.load("settings") };
     }
     get() {
         return { ...this.current };
@@ -405,10 +421,10 @@ class Settings extends Flux.Store {
 }
 const createSettings = (Data, defaults) => new Settings(Data, defaults);
 
-const Flex = Finder.byName("Flex");
-const Button = Finder.byProps("Link", "Hovers");
-const Form = Finder.byProps("FormItem", "FormSection", "FormDivider");
-const margins = Finder.byProps("marginLarge");
+const Flex = byName("Flex");
+const Button = byProps("Link", "Hovers");
+const Form = byProps("FormItem", "FormSection", "FormDivider");
+const margins = byProps("marginLarge");
 
 const discord = /*#__PURE__*/Object.freeze({
     __proto__: null,
@@ -461,7 +477,7 @@ const Discordium = /*#__PURE__*/Object.freeze({
     __proto__: null,
     createPlugin: createPlugin,
     Utils: utils,
-    Finder: Finder,
+    Finder: finder,
     Modules: modules,
     React: React,
     ReactDOM: ReactDOM,

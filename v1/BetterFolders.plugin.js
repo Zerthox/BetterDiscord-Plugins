@@ -1,7 +1,7 @@
 /**
  * @name BetterFolders
  * @author Zerthox
- * @version 3.0.1
+ * @version 3.0.2
  * @description Add new functionality to server folders. Custom Folder Icons. Close other folders on open.
  * @authorLink https://github.com/Zerthox
  * @website https://github.com/Zerthox/BetterDiscord-Plugins
@@ -163,46 +163,25 @@ const raw = {
         && Object.entries(imported.exports).find(([key, value]) => (new RegExp(`^${key}-([a-zA-Z0-9-_]){6}(\\s.+)$`)).test(value)))),
     resolveUsers: (module) => raw.all.find((_, user) => raw.resolveImportIds(user).includes(module.id))
 };
-const Finder = {
-    raw,
-    getAll: () => raw.getAll().map((entry) => raw.resolveExports(entry)),
-    find: (...filters) => raw.resolveExports(raw.find(...filters)),
-    query: (options) => raw.resolveExports(raw.query(options), options.export),
-    byId: (id) => raw.resolveExports(raw.byId(id)),
-    byExports: (exported) => raw.resolveExports(raw.byExports(exported)),
-    byName: (name) => raw.resolveExports(raw.byName(name), filters.byDisplayName(name)),
-    byProps: (...props) => raw.resolveExports(raw.byProps(...props), filters.byProps(props)),
-    byProtos: (...protos) => raw.resolveExports(raw.byProtos(...protos), filters.byProtos(protos)),
-    bySource: (...contents) => raw.resolveExports(raw.bySource(...contents), filters.bySource(contents)),
-    resolveImportIds: (exported) => raw.resolveImportIds(raw.byExports(exported)),
-    resolveImports: (exported) => raw.resolveImports(raw.byExports(exported)).map((entry) => raw.resolveExports(entry)),
-    resolveStyles: (exported) => raw.resolveStyles(raw.byExports(exported)).map((entry) => raw.resolveExports(entry)),
-    resolveUsers: (exported) => raw.resolveUsers(raw.byExports(exported)).map((entry) => raw.resolveExports(entry)),
-    all: {
-        find: (...filters) => raw.all.find(...filters).map((entry) => raw.resolveExports(entry)),
-        query: (options) => raw.all.query(options).map((entry) => raw.resolveExports(entry, options.export)),
-        byExports: (exported) => raw.all.byExports(exported).map((entry) => raw.resolveExports(entry)),
-        byName: (name) => raw.all.byName(name).map((entry) => raw.resolveExports(entry, filters.byDisplayName(name))),
-        byProps: (...props) => raw.all.byProps(...props).map((entry) => raw.resolveExports(entry, filters.byProps(props))),
-        byProtos: (...protos) => raw.all.byProtos(...protos).map((entry) => raw.resolveExports(entry, filters.byProtos(protos))),
-        bySource: (...contents) => raw.all.bySource(...contents).map((entry) => raw.resolveExports(entry, filters.bySource(contents)))
-    }
-};
+const find = (...filters) => raw.resolveExports(raw.find(...filters));
+const query = (options) => raw.resolveExports(raw.query(options), options.export);
+const byName = (name) => raw.resolveExports(raw.byName(name), filters.byDisplayName(name));
+const byProps = (...props) => raw.resolveExports(raw.byProps(...props), filters.byProps(props));
 
-Finder.byProps("subscribe", "emit");
-const React = Finder.byProps("createElement", "Component", "Fragment");
-const ReactDOM = Finder.byProps("render", "findDOMNode", "createPortal");
-const classNames = Finder.find((exports) => exports instanceof Object && exports.default === exports && Object.keys(exports).length === 1);
-Finder.byProps("cloneDeep", "flattenDeep");
-Finder.byProps("valid", "satifies");
-Finder.byProps("utc", "months");
-Finder.byProps("parseBlock", "parseInline");
-Finder.byProps("highlight", "highlightBlock");
-Finder.byProps("captureBreadcrumb");
-Finder.byProps("assert", "validate", "object");
-const Flux = Finder.query({ props: ["Store", "connectStores"], export: "default" });
-const Dispatcher = Finder.query({ props: ["Dispatcher"], export: "Dispatcher" });
-Finder.byProps("languages", "getLocale");
+byProps("subscribe", "emit");
+const React = byProps("createElement", "Component", "Fragment");
+const ReactDOM = byProps("render", "findDOMNode", "createPortal");
+const classNames = find((exports) => exports instanceof Object && exports.default === exports && Object.keys(exports).length === 1);
+byProps("cloneDeep", "flattenDeep");
+byProps("valid", "satifies");
+byProps("utc", "months");
+byProps("parseBlock", "parseInline");
+byProps("highlight", "highlightBlock");
+byProps("captureBreadcrumb");
+byProps("assert", "validate", "object");
+const Flux = query({ props: ["Store", "connectStores"], export: "default" });
+const Dispatcher = query({ props: ["Dispatcher"], export: "Dispatcher" });
+byProps("languages", "getLocale");
 
 React?.__SECRET_INTERNALS_DO_NOT_USE_OR_YOU_WILL_BE_FIRED;
 const [getInstanceFromNode, getNodeFromInstance, getFiberCurrentPropsFromNode, enqueueStateRestore, restoreStateIfNeeded, batchedUpdates] = ReactDOM?.__SECRET_INTERNALS_DO_NOT_USE_OR_YOU_WILL_BE_FIRED?.Events;
@@ -337,7 +316,7 @@ class Settings extends Flux.Store {
         });
         this.listeners = new Set();
         this.defaults = defaults;
-        this.current = Data.load("settings") ?? { ...defaults };
+        this.current = { ...defaults, ...Data.load("settings") };
     }
     get() {
         return { ...this.current };
@@ -372,10 +351,10 @@ class Settings extends Flux.Store {
 }
 const createSettings = (Data, defaults) => new Settings(Data, defaults);
 
-const Flex$1 = Finder.byName("Flex");
-const Button$1 = Finder.byProps("Link", "Hovers");
-const Form = Finder.byProps("FormItem", "FormSection", "FormDivider");
-const margins$1 = Finder.byProps("marginLarge");
+const Flex$1 = byName("Flex");
+const Button$1 = byProps("Link", "Hovers");
+const Form = byProps("FormItem", "FormSection", "FormDivider");
+const margins$1 = byProps("marginLarge");
 
 const createPlugin = ({ name, version, styles: css, settings }, callback) => {
     const Logger = createLogger(name, "#3a71c1", version);
@@ -414,12 +393,12 @@ const createPlugin = ({ name, version, styles: css, settings }, callback) => {
     return Wrapper;
 };
 
-const Flex = Finder.byName("Flex");
-const Button = Finder.byProps("Link", "Hovers");
-const SwitchItem$1 = Finder.byName("SwitchItem");
-const { FormText } = Finder.byProps("FormSection", "FormText") ?? {};
-const ImageInput = Finder.byName("ImageInput");
-const margins = Finder.byProps("marginLarge");
+const Flex = byName("Flex");
+const Button = byProps("Link", "Hovers");
+const SwitchItem$1 = byName("SwitchItem");
+const { FormText } = byProps("FormSection", "FormText") ?? {};
+const ImageInput = byName("ImageInput");
+const margins = byProps("marginLarge");
 const BetterFolderIcon = ({ icon, always, childProps, FolderIcon }) => {
     const result = FolderIcon(childProps);
     if (icon && (childProps.expanded || always)) {
@@ -438,7 +417,7 @@ const BetterFolderUploader = ({ icon, always, folderNode, onChange, FolderIcon }
 
 const name = "BetterFolders";
 const author = "Zerthox";
-const version = "3.0.1";
+const version = "3.0.2";
 const description = "Add new functionality to server folders. Custom Folder Icons. Close other folders on open.";
 const config = {
 	name: name,
@@ -449,16 +428,16 @@ const config = {
 
 const styles = ".betterFolders-customIcon {\n  width: 100%;\n  height: 100%;\n  background-size: contain;\n  background-position: center;\n  background-repeat: no-repeat;\n}\n\n.betterFolders-preview {\n  margin: 0 10px;\n  background-size: contain;\n  background-position: center;\n  background-repeat: no-repeat;\n  border-radius: 16px;\n  cursor: default;\n}";
 
-const ClientActions = Finder.byProps("toggleGuildFolderExpand");
-const GuildsTree = Finder.byProps("getGuildsTree");
-const FolderState = Finder.byProps("getExpandedFolders");
-const { FormItem } = Finder.byProps("FormSection", "FormText") ?? {};
-const RadioGroup = Finder.byName("RadioGroup");
-const SwitchItem = Finder.byName("SwitchItem");
-const FolderHeader = Finder.raw.byName("FolderHeader")?.exports;
-const GuildFolderSettingsModal = Finder.byName("GuildFolderSettingsModal");
+const ClientActions = byProps("toggleGuildFolderExpand");
+const GuildsTree = byProps("getGuildsTree");
+const FolderState = byProps("getExpandedFolders");
+const { FormItem } = byProps("FormSection", "FormText") ?? {};
+const RadioGroup = byName("RadioGroup");
+const SwitchItem = byName("SwitchItem");
+const FolderHeader = raw.byName("FolderHeader")?.exports;
+const GuildFolderSettingsModal = byName("GuildFolderSettingsModal");
 let FolderIcon = null;
-const guildStyles = Finder.byProps("guilds", "base");
+const guildStyles = byProps("guilds", "base");
 const settings = {
     closeOnOpen: false,
     folders: {}
