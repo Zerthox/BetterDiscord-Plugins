@@ -47,6 +47,24 @@ export const queryTree = (node: JSX.Element, predicate: Predicate<JSX.Element>):
     return null;
 };
 
+export const queryTreeAll = (node: JSX.Element, predicate: Predicate<JSX.Element>): JSX.Element[] => {
+    const result = [];
+
+    // check current node
+    if (predicate(node)) {
+        result.push(node);
+    }
+
+    // check children
+    if (node?.props?.children) {
+        for (const child of [node.props.children].flat()) {
+            result.push(...queryTreeAll(child, predicate));
+        }
+    }
+
+    return result;
+};
+
 export const getFiber = (node: Node): Fiber => ReactDOMInternals.getInstanceFromNode(node ?? {} as Node);
 
 export const enum Direction {
