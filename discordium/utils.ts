@@ -119,3 +119,35 @@ export interface OwnerFiber extends Fiber {
 export const findOwner = (fiber: Fiber): OwnerFiber | null => {
     return queryFiber(fiber, (node) => node?.stateNode instanceof React.Component, Direction.Up, 50);
 };
+
+export const forceUpdateOwner = (fiber: Fiber): Promise<boolean> => new Promise((resolve) => {
+    // find owner
+    const owner = findOwner(fiber);
+    if (owner) {
+        // force update
+        owner.stateNode.forceUpdate(() => resolve(true));
+    } else {
+        resolve(false);
+    }
+});
+
+export const forceFullRerender = (fiber: Fiber): Promise<boolean> => new Promise((resolve) => {
+    // find owner
+    const owner = findOwner(fiber);
+    if (owner) {
+        const {stateNode} = owner;
+
+        // render no elements in next render
+        const original = stateNode.render;
+        stateNode.render = function forceRerender() {
+            original.call(this);
+            stateNode.render = original;
+            return null;
+        };
+
+        // force update twice
+        stateNode.forceUpdate(() => stateNode.forceUpdate(() => resolve(true)));
+    } else {
+        resolve(false);
+    }
+});

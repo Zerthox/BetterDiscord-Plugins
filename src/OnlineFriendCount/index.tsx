@@ -39,7 +39,7 @@ export default createPlugin({...config, styles}, ({Logger, Patcher}) => {
     const triggerRerender = async () => {
         const node = document.getElementsByClassName(guildStyles.guilds)?.[0];
         const fiber = Utils.getFiber(node);
-        if (await Patcher.forceRerender(fiber)) {
+        if (await Utils.forceFullRerender(fiber)) {
             Logger.log("Rerendered guilds");
         } else {
             Logger.warn("Unable to rerender guilds");
