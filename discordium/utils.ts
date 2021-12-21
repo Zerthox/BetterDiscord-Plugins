@@ -29,18 +29,19 @@ export const toast = (content: string, options: ToastOptions) => BdApi.showToast
 export type Predicate<Arg> = (arg: Arg) => boolean;
 
 export const queryTree = (node: JSX.Element, predicate: Predicate<JSX.Element>): JSX.Element | null => {
-    // check current node
-    if (predicate(node)) {
-        return node;
-    }
+    const worklist = [node];
 
-    // check children
-    if (node?.props?.children) {
-        for (const child of [node.props.children].flat()) {
-            const result = queryTree(child, predicate);
-            if (result) {
-                return result;
-            }
+    while (worklist.length !== 0) {
+        const node = worklist.shift();
+
+        // check current node
+        if (predicate(node)) {
+            return node;
+        }
+
+        // add children to worklist
+        if (node?.props?.children) {
+            worklist.push(...[node.props.children].flat());
         }
     }
 
@@ -49,16 +50,19 @@ export const queryTree = (node: JSX.Element, predicate: Predicate<JSX.Element>):
 
 export const queryTreeAll = (node: JSX.Element, predicate: Predicate<JSX.Element>): JSX.Element[] => {
     const result = [];
+    const worklist = [node];
 
-    // check current node
-    if (predicate(node)) {
-        result.push(node);
-    }
+    while (worklist.length !== 0) {
+        const node = worklist.shift();
 
-    // check children
-    if (node?.props?.children) {
-        for (const child of [node.props.children].flat()) {
-            result.push(...queryTreeAll(child, predicate));
+        // check current node
+        if (predicate(node)) {
+            result.push(node);
+        }
+
+        // add children to worklist
+        if (node?.props?.children) {
+            worklist.push(...[node.props.children].flat());
         }
     }
 
