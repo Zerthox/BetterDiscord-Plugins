@@ -1,26 +1,16 @@
-name: Check
+name: Lint
 
 on:
   push:
     branches:
       - master
-    paths:
-      - discordium/**
-      - tests/**
-      - package.json
-      - package-lock.json
   pull_request:
     branches:
       - master
-    paths:
-      - discordium/**
-      - tests/**
-      - package.json
-      - package-lock.json
 
 jobs:
-  tests:
-    name: Tests
+  lint:
+    name: Lint
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v2
@@ -28,4 +18,4 @@ jobs:
         with:
           node-version: 14
       - run: npm ci
-      - run: npm run test
+      - run: npm run lint
