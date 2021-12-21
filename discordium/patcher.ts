@@ -19,6 +19,7 @@ export interface Data<Original extends () => any> {
 export type Callback<Original extends () => any> = (data: Data<Original>) => unknown;
 
 export interface Patcher {
+    /** Patches the method, executing a callback **instead** of the original. */
     instead<
         Module extends Record<Key, (...args: any[]) => any>,
         Key extends keyof Module
@@ -29,6 +30,11 @@ export interface Patcher {
         options?: Options
     ): Cancel;
 
+    /**
+     * Patches the method, executing a callback **before** the original.
+     *
+     * Typically used to modify arguments passed to the original.
+     */
     before<
         Module extends Record<Key, (...args: any[]) => any>,
         Key extends keyof Module
@@ -39,6 +45,13 @@ export interface Patcher {
         options?: Options
     ): Cancel;
 
+    /**
+     * Patches the method, executing a callback **after** the original.
+     *
+     * Typically used to modify the return value of the original.
+     *
+     * Has access to the original method's return value via `result`.
+     */
     after<
         Module extends Record<Key, (...args: any[]) => any>,
         Key extends keyof Module
@@ -49,6 +62,7 @@ export interface Patcher {
         options?: Options
     ): Cancel;
 
+    /** Reverts all patches done by this patcher. */
     unpatchAll(): void;
 }
 

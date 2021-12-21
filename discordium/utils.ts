@@ -7,6 +7,7 @@ export const alert = (title: string, content: string | JSX.Element): void => BdA
 
 export type ConfirmOptions = BdApi.ConfirmationModalOptions;
 
+/** Shows a confirmation modal. */
 // TODO: change to promise<boolean>?
 export const confirm = (title: string, content: string | JSX.Element, options: ConfirmOptions = {}) => BdApi.showConfirmationModal(title, content, options);
 
@@ -24,10 +25,16 @@ export interface ToastOptions extends BdApi.ToastOptions {
     type?: ToastType;
 }
 
+/** Shows a toast notification. */
 export const toast = (content: string, options: ToastOptions) => BdApi.showToast(content, options);
 
 export type Predicate<Arg> = (arg: Arg) => boolean;
 
+/**
+ * Searches a React element tree for the first element matching the predicate.
+ *
+ * This uses a breadth first search (BFS).
+ */
 export const queryTree = (node: JSX.Element, predicate: Predicate<JSX.Element>): JSX.Element | null => {
     const worklist = [node];
 
@@ -48,6 +55,11 @@ export const queryTree = (node: JSX.Element, predicate: Predicate<JSX.Element>):
     return null;
 };
 
+/**
+ * Searches a React element tree for all element matching the predicate.
+ *
+ * This uses a breadth first search (BFS).
+ */
 export const queryTreeAll = (node: JSX.Element, predicate: Predicate<JSX.Element>): JSX.Element[] => {
     const result = [];
     const worklist = [node];
@@ -69,6 +81,7 @@ export const queryTreeAll = (node: JSX.Element, predicate: Predicate<JSX.Element
     return result;
 };
 
+/** Returns the React fiber node corresponding to a DOM node. */
 export const getFiber = (node: Node): Fiber => ReactDOMInternals.getInstanceFromNode(node ?? {} as Node);
 
 export const enum Direction {
@@ -78,6 +91,12 @@ export const enum Direction {
     Both = "both"
 }
 
+/**
+ * Searches a React fiber tree for the first fiber node matching the predicate.
+ *
+ * This uses a depth first search (DFS) with a maxiumum depth.
+ * Parent nodes are searched first when searching both directions.
+ */
 export const queryFiber = (fiber: Fiber, predicate: Predicate<Fiber>, direction: Direction | null = Direction.Up, depth = 30, current = 0): Fiber | null => {
     // check depth
     if (current > depth) {
@@ -112,14 +131,17 @@ export const queryFiber = (fiber: Fiber, predicate: Predicate<Fiber>, direction:
     return null;
 };
 
+/** A fiber node with React component as state node. */
 export interface OwnerFiber extends Fiber {
     stateNode: React.Component;
 }
 
+/** Finds the owner in the parents of a fiber node. */
 export const findOwner = (fiber: Fiber): OwnerFiber | null => {
     return queryFiber(fiber, (node) => node?.stateNode instanceof React.Component, Direction.Up, 50);
 };
 
+/** Triggers a force update on the fiber node's owner. */
 export const forceUpdateOwner = (fiber: Fiber): Promise<boolean> => new Promise((resolve) => {
     // find owner
     const owner = findOwner(fiber);
@@ -131,6 +153,11 @@ export const forceUpdateOwner = (fiber: Fiber): Promise<boolean> => new Promise(
     }
 });
 
+/**
+ * Forces a complete rerender on the fiber node's owner.
+ *
+ * This removes all child nodes currently rendered by the owner.
+ */
 export const forceFullRerender = (fiber: Fiber): Promise<boolean> => new Promise((resolve) => {
     // find owner
     const owner = findOwner(fiber);
