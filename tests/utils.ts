@@ -1,5 +1,5 @@
 import {describe, it} from "mocha";
-import assert from "assert/strict";
+import {strict as assert} from "assert";
 import "./mock";
 
 import {queryTree, queryTreeAll} from "discordium/utils";
