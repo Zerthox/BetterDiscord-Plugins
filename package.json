@@ -10,7 +10,7 @@
         "dev": "ts-node scripts/build.ts --dev --watch",
         "lint": "eslint . -f node_modules/eslint-friendly-formatter",
         "lint-fix": "eslint . -f node_modules/eslint-friendly-formatter --fix",
-        "test": "mocha -r ts-node/register test/**/*.ts"
+        "test": "mocha -r ts-node/register tests/**/*.ts"
     },
     "repository": {
         "type": "git",
