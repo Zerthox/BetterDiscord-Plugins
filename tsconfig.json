@@ -12,6 +12,7 @@
         }
     },
     "ts-node": {
-        "files": true
+        "files": true,
+        "require": ["tsconfig-paths/register"]
     }
 }

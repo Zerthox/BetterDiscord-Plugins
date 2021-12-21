@@ -56,6 +56,7 @@
         "rollup-plugin-scss": "^3.0.0",
         "sass": "^1.43.4",
         "ts-node": "^10.4.0",
+        "tsconfig-paths": "^3.12.0",
         "typescript": "^4.4.4"
     }
 }

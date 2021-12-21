@@ -1,7 +1,8 @@
 import {describe, it} from "mocha";
 import assert from "assert/strict";
 import "./mock";
-import {queryTree, queryTreeAll} from "../discordium/utils";
+
+import {queryTree, queryTreeAll} from "discordium/utils";
 
 describe("React element tree", () => {
     const tree = {
