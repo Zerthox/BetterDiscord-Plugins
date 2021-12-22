@@ -59,6 +59,7 @@ const filters = {
         return (target: any) => target instanceof Object && target.prototype instanceof Object && protos.every((proto) => proto in target.prototype);
     },
     bySource(contents: string[]): Filter {
+        // TODO: allow regex?
         return (target) => target instanceof Function && contents.every((content) => target.toString().includes(content));
     }
 };

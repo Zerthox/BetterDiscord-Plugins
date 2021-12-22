@@ -35,7 +35,7 @@ interface ConnectedVolumeInputProps {
     };
 }
 
-const ConnectedVolumeInput = Flux.connectStores(
+const ConnectedVolumeInput = Flux.default.connectStores(
     [SettingsStore],
     ({control: {value, onChange}}: ConnectedVolumeInputProps) => ({value, onChange})
 )(VolumeInput);

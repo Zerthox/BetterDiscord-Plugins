@@ -1,4 +1,5 @@
-import {createPlugin, Finder, Utils, React, Discord} from "discordium";
+import {createPlugin, Finder, Utils, React} from "discordium";
+import {Discord} from "discordium/types";
 import {settings, SettingsPanel} from "./settings";
 import config from "./config.json";
 

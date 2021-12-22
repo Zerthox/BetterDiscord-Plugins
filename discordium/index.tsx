@@ -13,6 +13,7 @@ export * as Modules from "./modules";
 export {React, ReactDOM, classNames, lodash, Flux} from "./modules";
 export {ReactInternals, ReactDOMInternals} from "./react";
 export * as Discord from "./discord";
+export * as Types from "./types";
 export {version} from "../package.json";
 
 export {Logger} from "./logger";

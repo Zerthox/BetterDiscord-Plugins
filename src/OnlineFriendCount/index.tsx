@@ -25,7 +25,7 @@ const OnlineCount = ({online}: OnlineCountProps) => (
     </div>
 );
 
-const ConnectedOnlineCount = Flux.connectStores(
+const ConnectedOnlineCount = Flux.default.connectStores(
     [Status, Relationships],
     () => {
         const {RelationshipTypes, StatusTypes} = Constants;

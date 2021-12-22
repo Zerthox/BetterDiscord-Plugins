@@ -38,7 +38,7 @@ export default createPlugin({...config, styles, settings}, ({Logger, Patcher, Da
         FolderIcon: (props: any) => JSX.Element;
     }
 
-    const ConnectedBetterFolderIcon = Flux.connectStores(
+    const ConnectedBetterFolderIcon = Flux.default.connectStores(
         [Settings],
         ({folderId}: OuterIconProps) => ({...getFolder(folderId)})
     )(BetterFolderIcon);

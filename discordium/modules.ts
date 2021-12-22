@@ -1,4 +1,5 @@
 import * as Finder from "./finder";
+import {Flux as FluxTypes, Dispatch as DispatchTypes} from "./types";
 
 // we import instances for the typing
 // FIXME: mirror versions!
@@ -35,36 +36,14 @@ export const Raven: typeof RavenInstance = Finder.byProps("captureBreadcrumb");
 
 export const joi: typeof joiInstance = Finder.byProps("assert", "validate", "object");
 
-// Platform.js
+// TODO: Platform.js
 
-// TODO: full typing
-export interface Flux {
-    Store: Store;
-    CachedStore: any;
-    PersistedStore: any;
-    StoreListenerMixin(): any;
-    LazyStoreListenerMixin(): any;
-    connectStores<
-        OuterProps,
-        InnerProps
-    >(
-        stores: Store[],
-        mapping: (props: OuterProps) => InnerProps
-    ): (component: React.ComponentType<InnerProps & OuterProps>) => React.ComponentClass<OuterProps>;
-    destroy(): any;
-    initialize(): any;
-    initialized: boolean;
-}
+/** Discord's Flux with Hooks. */
+export const Flux: FluxTypes.HookModule = Finder.byProps("Store", "useStateFromStores");
 
-export type Store = any;
-
-/** Custom module from Discord. */
-// TODO: flux hooks
-export const Flux: Flux = Finder.query({props: ["Store", "connectStores"], export: "default"});
-
-/** Custom module from Discord. */
+/** Discord's Dispatcher. */
 // TODO: typing
-export const Dispatcher = Finder.query({props: ["Dispatcher"], export: "Dispatcher"});
+export const Dispatch: DispatchTypes.Module = Finder.byProps("default", "Dispatcher");
 
-/** Custom module from Discord. */
+/** Discord's i18n. */
 export const i18n = Finder.byProps("languages", "getLocale");
