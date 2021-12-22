@@ -4,9 +4,13 @@ import {Dispatch as DispatchTypes} from "./types";
 
 export type Listener<Data> = (data: Data) => void;
 
+export type Update<Data> = Partial<Data> | ((current: Data) => Partial<Data>);
+
+export type Setter<Data> = (update: Update<Data>) => void;
+
 export type SettingsProps<SettingsType extends Record<string, any>> = SettingsType & {
     defaults: SettingsType;
-    set(settings: Partial<SettingsType> | ((current: SettingsType) => Partial<SettingsType>)): void;
+    set(settings: Update<SettingsType>): void;
 };
 
 interface SettingsEvent<SettingsType> extends DispatchTypes.Event {
@@ -32,11 +36,17 @@ export class Settings<
         this.current = {...defaults, ...Data.load("settings")};
     }
 
+    /** Returns current settings state. */
     get(): SettingsType {
         return {...this.current};
     }
 
-    set(settings: Partial<SettingsType> | ((current: SettingsType) => Partial<SettingsType>)): void {
+    /**
+     * Updates settings state partially.
+     *
+     * Similar interface to React's `setState()`.
+     */
+    set(settings: Update<SettingsType>): void {
         Object.assign(
             this.current,
             settings instanceof Function ? settings(this.get()) : settings
@@ -44,11 +54,12 @@ export class Settings<
         this._dispatcher.dispatch({type: "update", current: this.current});
     }
 
+    /** Resets all settings to their defaults. */
     reset(): void {
         this.set({...this.defaults});
     }
 
-    // TODO: allow custom mapping?
+    /** Connects a React Component to receive settings updates as props. */
     connect<Props>(component: React.ComponentType<SettingsProps<SettingsType> & Props>): React.ComponentClass<Props> {
         return Flux.default.connectStores<Props, SettingsProps<SettingsType>>(
             [this],
@@ -56,13 +67,49 @@ export class Settings<
         )(component);
     }
 
-    useSettings(): SettingsProps<SettingsType> {
+    /**
+     * Returns the current settings state.
+     *
+     * ```js
+     * const current = Settings.useCurrent();
+     * ```
+     */
+    useCurrent(): SettingsType {
         return Flux.useStateFromStores(
             [this],
-            () => ({...this.get(), defaults: this.defaults, set: (settings) => this.set(settings)})
+            () => this.get()
         );
     }
 
+    /**
+     * Returns the current settings state & a setter function.
+     *
+     * ```js
+     * const [current, set] = Settings.useState();
+     * ```
+     */
+    useState(): [SettingsType, Setter<SettingsType>] {
+        return Flux.useStateFromStores(
+            [this],
+            () => [this.get(), (settings) => this.set(settings)]
+        );
+    }
+
+    /**
+     * Returns the current settings state, defaults & a setter function.
+     *
+     * ```js
+     * const [current, defaults, set] = Settings.useStateWithDefaults();
+     * ```
+     */
+    useStateWithDefaults(): [SettingsType, SettingsType, Setter<SettingsType>] {
+        return Flux.useStateFromStores(
+            [this],
+            () => [this.get(), this.defaults, (settings) => this.set(settings)]
+        );
+    }
+
+    /** Registers a new listener to be called on settings state changes. */
     addListener(listener: Listener<SettingsType>): Listener<SettingsType> {
         const wrapper = ({current}: SettingsEvent<SettingsType>) => listener(current);
         this.listeners.set(listener, wrapper);
@@ -70,6 +117,7 @@ export class Settings<
         return listener;
     }
 
+    /** Removes a previously added settings change listener. */
     removeListener(listener: Listener<SettingsType>): void {
         const wrapper = this.listeners.get(listener);
         if (wrapper) {
@@ -78,6 +126,7 @@ export class Settings<
         }
     }
 
+    /** Removes all current settings change listeners. */
     removeAllListeners(): void {
         for (const wrapper of this.listeners.values()) {
             this._dispatcher.unsubscribe("update", wrapper);
