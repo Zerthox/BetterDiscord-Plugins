@@ -13,27 +13,22 @@ const guildStyles = Finder.byProps("guilds", "base");
 const listStyles = Finder.byProps("listItem");
 const friendsOnline = "friendsOnline-2JkivW";
 
-interface OnlineCountProps {
-    online: number;
-}
+const OnlineCount = () => {
+    const {RelationshipTypes, StatusTypes} = Constants;
+    const online = Flux.useStateFromStores([Status, Relationships], () => (
+        Object.entries(Relationships.getRelationships())
+            .filter(([id, type]) => type === RelationshipTypes.FRIEND && Status.getStatus(id) !== StatusTypes.OFFLINE)
+            .length
+    ));
 
-const OnlineCount = ({online}: OnlineCountProps) => (
-    <div className={listStyles.listItem}>
-        <Link to={{pathname: "/channels/@me"}}>
-            <div className={friendsOnline}>{online} Online</div>
-        </Link>
-    </div>
-);
-
-const ConnectedOnlineCount = Flux.default.connectStores(
-    [Status, Relationships],
-    () => {
-        const {RelationshipTypes, StatusTypes} = Constants;
-        const filtered = Object.entries(Relationships.getRelationships())
-            .filter(([id, type]) => type === RelationshipTypes.FRIEND && Status.getStatus(id) !== StatusTypes.OFFLINE);
-        return {online: filtered.length};
-    }
-)(OnlineCount);
+    return (
+        <div className={listStyles.listItem}>
+            <Link to={{pathname: "/channels/@me"}}>
+                <div className={friendsOnline}>{online} Online</div>
+            </Link>
+        </div>
+    );
+};
 
 export default createPlugin({...config, styles}, ({Logger, Patcher}) => {
     const triggerRerender = async () => {
@@ -51,7 +46,7 @@ export default createPlugin({...config, styles}, ({Logger, Patcher}) => {
             Patcher.instead(HomeButton, "HomeButton", ({original: HomeButton, args: [props]}) => (
                 <>
                     <HomeButton {...props}/>
-                    <ConnectedOnlineCount/>
+                    <OnlineCount/>
                 </>
             ));
 
