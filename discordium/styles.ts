@@ -1,5 +1,8 @@
 export interface Styles {
+    /** Inject CSS. */
     inject(styles?: string): void;
+
+    /** Clear previously injected CSS. */
     clear(): void;
 }
 

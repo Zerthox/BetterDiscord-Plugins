@@ -3,8 +3,13 @@
 export interface Data<
     Content extends Record<string, any>
 > {
+    /** Loads a data from a key. */
     load<K extends string>(key: K): Content[K];
+
+    /** Saves data to a key. */
     save<K extends string>(key: K, value: Content[K]): void;
+
+    /** Deletes data stored under a key. */
     delete<K extends string>(key: K): void;
 }
 

@@ -1,9 +1,16 @@
-type Output = (...data: any[]) => void;
+export type Output = (...data: any[]) => void;
 
 export interface Logger {
+    /** Prints data to a custom output. */
     print(output: Output, ...data: any[]): void;
+
+    /** Logs a message to the console. */
     log: Output;
+
+    /** Logs a warning to the console. */
     warn: Output;
+
+    /** Logs an error to the console. */
     error: Output;
 }
 

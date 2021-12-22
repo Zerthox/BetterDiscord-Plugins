@@ -48,6 +48,7 @@ export interface Plugin<Settings extends Record<string, any>> {
     settingsPanel?: React.ComponentType<SettingsProps<Settings>>;
 }
 
+/** Creates a BetterDiscord plugin. */
 export const createPlugin = <
     SettingsType extends Record<string, any>,
     DataType extends {settings: SettingsType} = {settings: SettingsType}
@@ -85,7 +86,7 @@ export const createPlugin = <
 
     // add settings panel
     if (plugin.settingsPanel) {
-        const ConnectedSettings = Settings.connect<unknown>(plugin.settingsPanel);
+        const ConnectedSettings = Settings.connect(plugin.settingsPanel);
         Wrapper.prototype.getSettingsPanel = () => (
             <Form.FormSection>
                 <ConnectedSettings/>
