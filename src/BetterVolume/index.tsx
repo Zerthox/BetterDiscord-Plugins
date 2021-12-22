@@ -1,18 +1,22 @@
-import {createPlugin, React, Finder, Flux, Utils} from "discordium";
+import {createPlugin, React, Finder, Flux} from "discordium";
+import {Discord} from "discordium/types";
 import config from "./config.json";
 import styles from "./styles.scss";
 
+const {MenuItem} = Finder.byProps("MenuGroup", "MenuItem", "MenuSeparator") ?? {};
 const SettingsStore = Finder.byProps("getLocalVolume");
-const ControlItem = Finder.raw.byName("MenuControlItem")?.exports;
+const SettingsActions = Finder.byProps("setLocalVolume");
+const AudioConvert = Finder.byProps("perceptualToAmplitude");
+const useUserVolumeItem = Finder.raw.byName("useUserVolumeItem")?.exports as {default: (userId: Discord.Snowflake, mediaEngine: any) => JSX.Element};
 
-interface VolumeInputProps {
+interface NumberInputProps {
     value: number;
-    min?: number;
-    max?: number;
+    min: number;
+    max: number;
     onChange(value: number): void;
 }
 
-const VolumeInput = ({value, min = 0, max = 999999, onChange}: VolumeInputProps): JSX.Element => (
+const NumberInput = ({value, min, max, onChange}: NumberInputProps): JSX.Element => (
     <div className="container-BetterVolume">
         <input
             type="number"
@@ -22,39 +26,40 @@ const VolumeInput = ({value, min = 0, max = 999999, onChange}: VolumeInputProps)
             onChange={({target}) => onChange(Math.min(Math.max(parseFloat(target.value), min), max))}
             className="input-BetterVolume"
         />
-        <span>%</span>
+        <span className="unit-BetterVolume">%</span>
     </div>
 );
 
-interface ConnectedVolumeInputProps {
-    min?: number;
-    max?: number;
-    control: {
-        value: number;
-        onChange(value: number): void;
-    };
-}
-
-const ConnectedVolumeInput = Flux.default.connectStores(
-    [SettingsStore],
-    ({control: {value, onChange}}: ConnectedVolumeInputProps) => ({value, onChange})
-)(VolumeInput);
-
-export default createPlugin({...config, styles}, ({Logger, Patcher}) => ({
+export default createPlugin({...config, styles}, ({Patcher}) => ({
     start() {
-        Patcher.after(ControlItem as {default: (props: any) => JSX.Element}, "default", ({args: [props], result}) => {
-            if (props.id === "user-volume") {
-                const slider = Utils.queryTree(result, (node) => node?.props?.maxValue === 200);
-                if (!slider) {
-                    Logger.error("Unable to find slider");
-                    return;
-                }
+        Patcher.after(useUserVolumeItem, "default", ({args: [userId, mediaEngine], result}) => {
+            // check for original render
+            if (result) {
+                const volume = Flux.useStateFromStores(
+                    [SettingsStore],
+                    () => SettingsStore.getLocalVolume(userId, mediaEngine),
+                    [userId, mediaEngine]
+                );
 
-                const {props} = result;
-                props.children = [props.children].flat();
-                props.children.push(<ConnectedVolumeInput control={slider.props}/>);
-
-                return result;
+                return (
+                    <>
+                        {result}
+                        <MenuItem
+                            id="user-volume-input"
+                            render={() => (
+                                <NumberInput
+                                    min={0}
+                                    max={999999}
+                                    value={AudioConvert.amplitudeToPerceptual(volume)}
+                                    onChange={(value) => SettingsActions.setLocalVolume(
+                                        userId,
+                                        AudioConvert.perceptualToAmplitude(value)
+                                    )}
+                                />
+                            )}
+                        />
+                    </>
+                );
             }
         });
     },
