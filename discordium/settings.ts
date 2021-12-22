@@ -1,5 +1,6 @@
-import {Flux, Dispatcher} from "./modules";
+import {Flux, Dispatch} from "./modules";
 import {Data} from "./data";
+import {Dispatch as DispatchTypes} from "./types";
 
 export type Listener<Data> = (data: Data) => void;
 
@@ -8,19 +9,24 @@ export type SettingsProps<SettingsType extends Record<string, any>> = SettingsTy
     set(settings: Partial<SettingsType> | ((current: SettingsType) => Partial<SettingsType>)): void;
 };
 
+interface SettingsEvent<SettingsType> extends DispatchTypes.Event {
+    type: "update";
+    current: SettingsType;
+}
+
 export class Settings<
     SettingsType extends Record<string, any>,
     DataType extends {settings: SettingsType}
 > extends Flux.Store {
     defaults: SettingsType;
-    protected listeners: Set<Listener<SettingsType>>;
+    protected listeners: Map<Listener<SettingsType>, DispatchTypes.Listener>;
     protected current: SettingsType;
 
     constructor(Data: Data<DataType>, defaults: SettingsType) {
-        super(new Dispatcher(), {
+        super(new Dispatch.Dispatcher(), {
             update: ({current}) => Data.save("settings", current)
         });
-        this.listeners = new Set();
+        this.listeners = new Map();
 
         this.defaults = defaults;
         this.current = {...defaults, ...Data.load("settings")};
@@ -42,30 +48,39 @@ export class Settings<
         this.set({...this.defaults});
     }
 
-    // TODO: allow custom mapping
+    // TODO: allow custom mapping?
     connect<Props>(component: React.ComponentType<SettingsProps<SettingsType> & Props>): React.ComponentClass<Props> {
-        return Flux.connectStores<Props, SettingsProps<SettingsType>>(
+        return Flux.default.connectStores<Props, SettingsProps<SettingsType>>(
             [this],
             () => ({...this.get(), defaults: this.defaults, set: (settings) => this.set(settings)})
         )(component);
     }
 
+    useSettings(): SettingsProps<SettingsType> {
+        return Flux.useStateFromStores(
+            [this],
+            () => ({...this.get(), defaults: this.defaults, set: (settings) => this.set(settings)})
+        );
+    }
+
     addListener(listener: Listener<SettingsType>): Listener<SettingsType> {
-        this.listeners.add(listener);
-        this._dispatcher.subscribe("update", listener);
+        const wrapper = ({current}: SettingsEvent<SettingsType>) => listener(current);
+        this.listeners.set(listener, wrapper);
+        this._dispatcher.subscribe("update", wrapper);
         return listener;
     }
 
     removeListener(listener: Listener<SettingsType>): void {
-        if (this.listeners.has(listener)) {
-            this._dispatcher.unsubscribe("update", listener);
+        const wrapper = this.listeners.get(listener);
+        if (wrapper) {
+            this._dispatcher.unsubscribe("update", wrapper);
             this.listeners.delete(listener);
         }
     }
 
     removeAllListeners(): void {
-        for (const listener of this.listeners) {
-            this._dispatcher.unsubscribe("update", listener);
+        for (const wrapper of this.listeners.values()) {
+            this._dispatcher.unsubscribe("update", wrapper);
         }
         this.listeners.clear();
     }
