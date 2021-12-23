@@ -7,7 +7,7 @@ const {MenuItem} = Finder.byProps("MenuGroup", "MenuItem", "MenuSeparator") ?? {
 const SettingsStore = Finder.byProps("getLocalVolume");
 const SettingsActions = Finder.byProps("setLocalVolume");
 const AudioConvert = Finder.byProps("perceptualToAmplitude");
-const useUserVolumeItem = Finder.raw.byName("useUserVolumeItem")?.exports as {default: (userId: Discord.Snowflake, mediaEngine: any) => JSX.Element};
+const useUserVolumeItem = Finder.raw.byName("useUserVolumeItem")?.exports as {default: (userId: Discord.Snowflake, mediaContext: any) => JSX.Element};
 
 interface NumberInputProps {
     value: number;
@@ -32,13 +32,13 @@ const NumberInput = ({value, min, max, onChange}: NumberInputProps): JSX.Element
 
 export default createPlugin({...config, styles}, ({Patcher}) => ({
     start() {
-        Patcher.after(useUserVolumeItem, "default", ({args: [userId, mediaEngine], result}) => {
+        Patcher.after(useUserVolumeItem, "default", ({args: [userId, mediaContext], result}) => {
             // check for original render
             if (result) {
                 const volume = Flux.useStateFromStores(
                     [SettingsStore],
-                    () => SettingsStore.getLocalVolume(userId, mediaEngine),
-                    [userId, mediaEngine]
+                    () => SettingsStore.getLocalVolume(userId, mediaContext),
+                    [userId, mediaContext]
                 );
 
                 return (
@@ -53,7 +53,8 @@ export default createPlugin({...config, styles}, ({Patcher}) => ({
                                     value={AudioConvert.amplitudeToPerceptual(volume)}
                                     onChange={(value) => SettingsActions.setLocalVolume(
                                         userId,
-                                        AudioConvert.perceptualToAmplitude(value)
+                                        AudioConvert.perceptualToAmplitude(value),
+                                        mediaContext
                                     )}
                                 />
                             )}
