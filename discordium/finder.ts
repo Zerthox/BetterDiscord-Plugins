@@ -135,7 +135,7 @@ export const raw = {
     },
     resolveImportIds(module: Module) {
         // get module as source code
-        const source = webpackRequire.m[module.id].toString();
+        const source = raw.getSource(module.id).toString();
 
         // find require parameter name
         const match = source.match(/^(?:function)?\s*\(\w+,\w+,(\w+)\)\s*(?:=>)?\s*{/);
