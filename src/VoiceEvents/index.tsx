@@ -12,7 +12,7 @@ const Members = Finder.byProps("getMember", "isMember");
 
 const Text = Finder.byName("Text");
 const {MenuGroup, MenuItem} = Finder.byProps("MenuGroup", "MenuItem", "MenuSeparator") ?? {};
-const VoiceContextMenu = Finder.query({name: "ChannelListVoiceChannelContextMenu", source: ["isGuildStageVoice"]});
+const VoiceContextMenu = Finder.query({name: "ChannelListVoiceChannelContextMenu", source: ["isGuildStageVoice"]}) as {default: (props: any) => JSX.Element};
 
 type NotificationType = "join" | "leave" | "joinSelf" | "moveSelf" | "leaveSelf";
 
@@ -168,25 +168,18 @@ export default createPlugin({...config, settings}, ({Logger, Patcher, Settings})
             Events.subscribe("VOICE_STATE_UPDATES", listener);
 
             // add queue clear item to context menu
-            Patcher.after(VoiceContextMenu as {default: (props: any) => JSX.Element}, "default", ({result}) => {
-                const {children} = result.props;
-
-                // insert after delete channel
-                const index = children.findIndex((node) => [node?.props.children].flat()
-                    .find((child) => child?.props.id === "delete-channel")
-                );
-                children.splice(index, 0,
+            Patcher.after(VoiceContextMenu, "default", ({result}) => {
+                // insert at end
+                result.props.children.push(
                     <MenuGroup>
                         <MenuItem
                             isFocused={false}
                             id="voiceevents-clear"
-                            label="Clear Notification queue"
+                            label="Clear notification queue"
                             action={() => speechSynthesis.cancel()}
                         />
                     </MenuGroup>
                 );
-
-                return result;
             });
         },
         stop() {
