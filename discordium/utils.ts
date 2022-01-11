@@ -56,7 +56,7 @@ export const queryTree = (node: JSX.Element, predicate: Predicate<JSX.Element>):
 };
 
 /**
- * Searches a React element tree for all element matching the predicate.
+ * Searches a React element tree for all elements matching the predicate.
  *
  * This uses a breadth first search (BFS).
  */

@@ -23,7 +23,7 @@ export class Settings<
     DataType extends {settings: SettingsType}
 > extends Flux.Store {
     defaults: SettingsType;
-    protected listeners: Map<Listener<SettingsType>, DispatchTypes.Listener>;
+    protected listeners: Map<Listener<SettingsType>, DispatchTypes.Listener<SettingsEvent<SettingsType>>>;
     protected current: SettingsType;
 
     constructor(Data: Data<DataType>, defaults: SettingsType) {

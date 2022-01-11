@@ -190,9 +190,9 @@ export interface Channel {
     threadMetadata?: any;
     videoQualityMode?: any;
 
-    get accessPermission(): any;
-    get lastActiveTimestamp(): any;
-    get viewPermission(): any;
+    accessPermission: any;
+    lastActiveTimestamp: any;
+    viewPermission: any;
 
     computeLurkerPermissionsAllowList(): any;
     getApplicationId(): any;

@@ -1,4 +1,4 @@
-import {Dispatcher, Listener, Token} from "./dispatch";
+import {Dispatcher, Listener, Event, Token} from "./dispatch";
 
 export declare class Store {
     constructor(dispatcher: Dispatcher, events: any);
@@ -10,9 +10,9 @@ export declare class Store {
 
     getDispatchToken(): Token;
 
-    addChangeListener(listener: Listener): void;
-    addConditionalChangeListener(listener: Listener, condition: any): void;
-    removeChangeListener(listener: Listener): void;
+    addChangeListener(listener: Listener<Event>): void;
+    addConditionalChangeListener(listener: Listener<Event>, condition: any): void;
+    removeChangeListener(listener: Listener<Event>): void;
     hasChangeCallbacks(): boolean;
 
     emitChange(): void;

@@ -2,7 +2,7 @@ export interface Event extends Record<string, any> {
     type: string;
 }
 
-export type Listener = (event: Event) => void;
+export type Listener<E extends Event> = (event: E) => void;
 
 export type Token = string;
 
@@ -18,8 +18,8 @@ export declare class Dispatcher {
     addDependencies(arg1: any, arg2: any): void;
     setInterceptor(interceptor: any): void;
 
-    subscribe<E extends Event>(event: E["type"], listener: Listener): void;
-    unsubscribe<E extends Event>(event: E["type"], listener: Listener): void;
+    subscribe<E extends Event>(event: E["type"], listener: Listener<E>): void;
+    unsubscribe<E extends Event>(event: E["type"], listener: Listener<E>): void;
 
     wait<T>(callback: () => T): T | void;
 }
