@@ -31,7 +31,7 @@ export const joi: typeof joiInstance = Finder.byProps("assert", "validate", "obj
 // DISCORD GENERAL
 export const Flux: FluxTypes.HookModule = Finder.byProps("Store", "useStateFromStores");
 export const Dispatch: DispatchTypes.Module = Finder.query({props: ["default", "Dispatcher"], filter: (exports) => exports instanceof Object && !("ActionBase" in exports)});
-export const Events: DispatchTypes.Dispatcher = Dispatch.default;
+export const Events: DispatchTypes.Dispatcher = Dispatch?.default;
 export const i18n = Finder.byProps("languages", "getLocale");
 export const Constants = Finder.byProps("Permissions", "RelationshipTypes");
 
