@@ -1,18 +1,14 @@
-import {createPlugin, Finder, Utils, React} from "discordium";
+import {createPlugin, Finder, Utils, React, Modules} from "discordium";
 import {Discord} from "discordium/types";
 import {settings, SettingsPanel} from "./settings";
 import config from "./config.json";
 
-const Events = Finder.byProps("dispatch", "subscribe");
-const Channels = Finder.byProps("getChannel", "hasChannel");
-const SelectedChannel = Finder.byProps("getChannelId", "getVoiceChannelId");
+const {Events, Channels, SelectedChannel, Users, Members, ContextMenuActions} = Modules;
+const {ActionTypes} = Modules.Constants;
 const VoiceStates = Finder.byProps("getVoiceStates", "hasVideo");
-const Users = Finder.byProps("getUser", "getCurrentUser");
-const Members = Finder.byProps("getMember", "isMember");
 
 const Text = Finder.byName("Text");
-const {MenuGroup, MenuItem} = Finder.byProps("MenuGroup", "MenuItem", "MenuSeparator") ?? {};
-const VoiceContextMenu = Finder.query({name: "ChannelListVoiceChannelContextMenu", source: ["isGuildStageVoice"]}) as {default: (props: any) => JSX.Element};
+const {MenuItem} = Modules.Menu;
 
 type NotificationType = "join" | "leave" | "joinSelf" | "moveSelf" | "leaveSelf";
 
@@ -36,6 +32,8 @@ const saveStates = () => {
 };
 
 export default createPlugin({...config, settings}, ({Logger, Patcher, Settings}) => {
+    const findUseChannelHideNamesItem = () => Finder.raw.byName("useChannelHideNamesItem")?.exports as {default: (channel: Discord.Channel) => JSX.Element};
+
     const findDefaultVoice = () => {
         const voices = speechSynthesis.getVoices();
         if (voices.length === 0) {
@@ -165,27 +163,49 @@ export default createPlugin({...config, settings}, ({Logger, Patcher, Settings})
             saveStates();
 
             // listen for updates
-            Events.subscribe("VOICE_STATE_UPDATES", listener);
+            Events.subscribe(ActionTypes.VOICE_STATE_UPDATES, listener);
+            Logger.log("Subscribed to voice state updates");
 
-            // add queue clear item to context menu
-            Patcher.after(VoiceContextMenu, "default", ({result}) => {
-                // insert at end
-                result.props.children.push(
-                    <MenuGroup>
-                        <MenuItem
-                            isFocused={false}
-                            id="voiceevents-clear"
-                            label="Clear notification queue"
-                            action={() => speechSynthesis.cancel()}
-                        />
-                    </MenuGroup>
-                );
+            // listen for lazy context menus
+            Patcher.before(ContextMenuActions, "openContextMenuLazy", ({args, cancel}) => {
+                const original = args[1] as (...args: any[]) => Promise<any>;
+                args[1] = async (...args) => {
+                    const result = await original(...args);
+
+                    // check if our hook has been loaded
+                    const useChannelHideNamesItem = findUseChannelHideNamesItem();
+                    if (useChannelHideNamesItem) {
+                        // we dont need the patch anymore
+                        cancel();
+
+                        // add queue clear item
+                        Patcher.after(useChannelHideNamesItem, "default", ({result}) => {
+                            if (result) {
+                                return (
+                                    <>
+                                        {result}
+                                        <MenuItem
+                                            isFocused={false}
+                                            id="voiceevents-clear"
+                                            label="Clear notification queue"
+                                            action={() => speechSynthesis.cancel()}
+                                        />
+                                    </>
+                                );
+                            }
+                        });
+                    }
+
+                    return result;
+                };
             });
         },
         stop() {
             // reset
             prevStates = {};
-            Events.unsubscribe("VOICE_STATE_UPDATES", listener);
+
+            Events.unsubscribe(ActionTypes.VOICE_STATE_UPDATES, listener);
+            Logger.log("Unsubscribed from voice state updates");
         },
         settingsPanel: (props) => <SettingsPanel speak={speak} {...props}/>
     };
