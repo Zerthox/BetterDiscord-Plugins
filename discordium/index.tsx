@@ -4,15 +4,13 @@ import {createPatcher, Patcher} from "./patcher";
 import {createStyles, Styles} from "./styles";
 import {createData, Data} from "./data";
 import {createSettings, Settings, SettingsProps} from "./settings";
-import {React, classNames} from "./modules";
-import {Flex, Button, Form, margins} from "./discord";
+import {React, classNames, Flex, Button, Form, margins} from "./modules";
 
 export * as Utils from "./utils";
 export * as Finder from "./finder";
 export * as Modules from "./modules";
 export {React, ReactDOM, classNames, lodash, Flux} from "./modules";
 export {ReactInternals, ReactDOMInternals} from "./react";
-export * as Discord from "./discord";
 export * as Types from "./types";
 export {version} from "../package.json";
 
