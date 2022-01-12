@@ -1,8 +1,8 @@
-import {createPlugin, Finder, Utils, React, Flux} from "discordium";
+import {createPlugin, Finder, Utils, React, Flux, Modules} from "discordium";
 import config from "./config.json";
 import styles from "./styles.scss";
 
-const Constants = Finder.byProps("Permissions", "RelationshipTypes");
+const {RelationshipTypes, StatusTypes} = Modules.Constants;
 const Status = Finder.byProps("getState", "getStatus", "isMobileOnline");
 const Relationships = Finder.byProps("isFriend", "getRelationshipCount");
 
@@ -14,7 +14,6 @@ const listStyles = Finder.byProps("listItem");
 const friendsOnline = "friendsOnline-2JkivW";
 
 const OnlineCount = () => {
-    const {RelationshipTypes, StatusTypes} = Constants;
     const online = Flux.useStateFromStores([Status, Relationships], () => (
         Object.entries(Relationships.getRelationships())
             .filter(([id, type]) => type === RelationshipTypes.FRIEND && Status.getStatus(id) !== StatusTypes.OFFLINE)
