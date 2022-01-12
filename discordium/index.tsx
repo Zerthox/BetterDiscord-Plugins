@@ -11,7 +11,7 @@ export * as Finder from "./finder";
 export * as Modules from "./modules";
 export {React, ReactDOM, classNames, lodash, Flux} from "./modules";
 export {ReactInternals, ReactDOMInternals} from "./react";
-export * as Types from "./types";
+export * as Discord from "./discord";
 export {version} from "../package.json";
 
 export {Logger} from "./logger";
@@ -41,8 +41,17 @@ export interface Config<Settings extends Record<string, any>> {
 }
 
 export interface Plugin<Settings extends Record<string, any>> {
+    /** Called on plugin start. */
     start(): void | Promise<void>;
-    stop(): void | Promise<void>;
+
+    /**
+     * Called on plugin stop.
+     *
+     * Be cautious when  doing async work here.
+     */
+    stop(): void;
+
+    /** Settings UI as React component. */
     settingsPanel?: React.ComponentType<SettingsProps<Settings>>;
 }
 
@@ -74,12 +83,8 @@ export const createPlugin = <
     Wrapper.prototype.stop = () => {
         Patcher.unpatchAll();
         Styles.clear();
-        const promise = plugin.stop();
-        if (promise) {
-            promise.then(() => Logger.log("Disabled"));
-        } else {
-            Logger.log("Disabled");
-        }
+        plugin.stop();
+        Logger.log("Disabled");
     };
 
     // add settings panel

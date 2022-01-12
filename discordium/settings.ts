@@ -1,6 +1,6 @@
 import {Flux, Dispatch} from "./modules";
 import {Data} from "./data";
-import {Dispatch as DispatchTypes} from "./types";
+import {Event as DispatchEvent, Listener as DispatchListener} from "./modules/dispatch";
 
 export type Listener<Data> = (data: Data) => void;
 
@@ -13,7 +13,7 @@ export type SettingsProps<SettingsType extends Record<string, any>> = SettingsTy
     set(settings: Update<SettingsType>): void;
 };
 
-interface SettingsEvent<SettingsType> extends DispatchTypes.Event {
+interface SettingsEvent<SettingsType> extends DispatchEvent {
     type: "update";
     current: SettingsType;
 }
@@ -23,7 +23,7 @@ export class Settings<
     DataType extends {settings: SettingsType}
 > extends Flux.Store {
     defaults: SettingsType;
-    protected listeners: Map<Listener<SettingsType>, DispatchTypes.Listener<SettingsEvent<SettingsType>>>;
+    protected listeners: Map<Listener<SettingsType>, DispatchListener<SettingsEvent<SettingsType>>>;
     protected current: SettingsType;
 
     constructor(Data: Data<DataType>, defaults: SettingsType) {

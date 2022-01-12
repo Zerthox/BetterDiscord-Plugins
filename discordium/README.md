@@ -8,7 +8,7 @@ Eventually, this might be moved to its own repository.
  * @name Example
  * @version 0.1.0
  * @author Zerthox
- * @description Example plugin using discordium
+ * @description Example plugin using Discordium.
  */
 
 import {
@@ -43,7 +43,7 @@ export default createPlugin(config, ({Logger, Patcher, Styles, Data, Settings}) 
         start: async () => {
             // do something on plugin start
         },
-        stop: async () => {
+        stop: () => {
             // do something on plugin stop
         },
         settingsPanel: (props) => {

@@ -1,3 +1,4 @@
+import * as Finder from "../finder";
 import {Dispatcher, Listener, Event, Token} from "./dispatch";
 
 export declare class Store {
@@ -21,7 +22,7 @@ export declare class Store {
     waitFor(...stores: Store[]): void;
 }
 
-export interface Module {
+export interface Flux {
     Store: typeof Store;
     CachedStore: any;
     PersistedStore: any;
@@ -32,10 +33,7 @@ export interface Module {
     initialize(): any;
     initialized: boolean;
 
-    connectStores<
-        OuterProps,
-        InnerProps
-    >(
+    connectStores<OuterProps, InnerProps>(
         stores: Store[],
         callback: (props: OuterProps) => InnerProps
     ): (component: React.ComponentType<InnerProps & OuterProps>) => React.ComponentClass<OuterProps>;
@@ -43,8 +41,8 @@ export interface Module {
 
 export type Comparator<T> = (a: T, B: T) => boolean;
 
-export interface HookModule {
-    default: Module;
+export interface FluxHooks {
+    default: Flux;
 
     Store: typeof Store;
     Dispatcher: any;
@@ -56,3 +54,5 @@ export interface HookModule {
     useStateFromStoresObject<T>(stores: Store[], callback: () => T, deps?: any[]): T;
     statesWillNeverBeEqual(a: any, b: any): boolean;
 }
+
+export const Flux: FluxHooks = Finder.byProps("Store", "useStateFromStores");
