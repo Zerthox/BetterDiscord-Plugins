@@ -97,6 +97,11 @@ export interface Patcher {
     waitForModal<T>(callback: () => T): Promise<T>;
 }
 
+const resolveName = <Module, Key extends keyof Module>(object: Module, method: Key) => {
+    const target: any = method === "default" ? object[method] : {};
+    return (object as any).displayName ?? (object as any).constructor?.displayName ?? target.displayName ?? "unknown";
+};
+
 export const createPatcher = (id: string, Logger: Logger): Patcher => {
     // we assume bd env for now
 
@@ -134,9 +139,7 @@ export const createPatcher = (id: string, Logger: Logger): Patcher => {
             {silent: true}
         );
         if (!options.silent) {
-            const target: any = method === "default" ? object[method] : {};
-            const name = options.name ?? (object as any).displayName ?? (object as any).constructor?.displayName ?? target.displayName ?? "unknown";
-            Logger.log(`Patched ${method} of ${name}`);
+            Logger.log(`Patched ${method} of ${options.name ?? resolveName(object, method)}`);
         }
         return cancel;
     };
@@ -176,6 +179,7 @@ export const createPatcher = (id: string, Logger: Logger): Patcher => {
                 resolve(found);
             } else {
                 // patch lazy load method
+                Logger.log(`Waiting for lazy load in "${method}" of "${resolveName(object, method)}"`);
                 patcher.before(object, method, ({args, cancel}) => {
                     // replace resolver function
                     const original = args[arg];
@@ -193,7 +197,7 @@ export const createPatcher = (id: string, Logger: Logger): Patcher => {
 
                         return result;
                     };
-                });
+                }, {silent: true});
             }
         }),
         waitForContextMenu: (callback) => patcher.waitForLazy(ContextMenuActions, "openContextMenuLazy", 1, callback),
