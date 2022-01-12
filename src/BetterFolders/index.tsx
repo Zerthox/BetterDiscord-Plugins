@@ -77,6 +77,17 @@ export default createPlugin({...config, styles, settings}, ({Logger, Patcher, Da
                 />;
             });
 
+            // patch folder expand
+            Patcher.after(ClientActions, "toggleGuildFolderExpand", ({original, args: [folderId]}) => {
+                if (Settings.get().closeOnOpen) {
+                    for (const id of FolderState.getExpandedFolders()) {
+                        if (id !== folderId) {
+                            original(id);
+                        }
+                    }
+                }
+            });
+
             triggerRerender();
 
             // wait for modal lazy load
@@ -152,17 +163,6 @@ export default createPlugin({...config, styles, settings}, ({Logger, Patcher, Da
                         Settings.set({folders});
                     }
                 };
-            });
-
-            // patch folder expand
-            Patcher.after(ClientActions, "toggleGuildFolderExpand", ({original, args: [folderId]}) => {
-                if (Settings.get().closeOnOpen) {
-                    for (const id of FolderState.getExpandedFolders()) {
-                        if (id !== folderId) {
-                            original(id);
-                        }
-                    }
-                }
             });
         },
         stop() {
