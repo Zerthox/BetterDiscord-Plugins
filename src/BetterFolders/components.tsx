@@ -1,12 +1,9 @@
-import {Finder, React} from "discordium";
+import {Finder, React, Modules} from "discordium";
 
-const Flex = Finder.byName("Flex");
-const Button = Finder.byProps("Link", "Hovers");
+const {Flex, Button, margins} = Modules;
+const {FormText} = Modules.Form;
 const SwitchItem = Finder.byName("SwitchItem");
-const {FormText} = Finder.byProps("FormSection", "FormText") ?? {};
 const ImageInput = Finder.byName("ImageInput");
-
-const margins = Finder.byProps("marginLarge");
 
 export interface FolderData {
     icon: string;

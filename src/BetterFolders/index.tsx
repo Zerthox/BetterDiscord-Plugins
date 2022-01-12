@@ -1,4 +1,4 @@
-import {createPlugin, Finder, Utils, React, Flux} from "discordium";
+import {createPlugin, Finder, Utils, React, Flux, Modules} from "discordium";
 import {BetterFolderIcon, BetterFolderUploader, FolderData} from "./components";
 import config from "./config.json";
 import styles from "./styles.scss";
@@ -7,11 +7,10 @@ const ClientActions = Finder.byProps("toggleGuildFolderExpand");
 const GuildsTree = Finder.byProps("getGuildsTree");
 const FolderState = Finder.byProps("getExpandedFolders");
 
-const {FormItem} = Finder.byProps("FormSection", "FormText") ?? {};
+const {FormItem} = Modules.Form;
 const RadioGroup = Finder.byName("RadioGroup");
 const SwitchItem = Finder.byName("SwitchItem");
 const FolderHeader = Finder.raw.byName("FolderHeader")?.exports;
-const GuildFolderSettingsModal = Finder.byName("GuildFolderSettingsModal");
 
 let FolderIcon = null;
 
@@ -54,7 +53,7 @@ export default createPlugin({...config, styles, settings}, ({Logger, Patcher, Da
     };
 
     return {
-        start() {
+        async start() {
             // patch folder icon render
             Patcher.after(FolderHeader as {default: (props: any) => JSX.Element}, "default", ({args: [props], result}) => {
                 // find icon container
@@ -77,6 +76,11 @@ export default createPlugin({...config, styles, settings}, ({Logger, Patcher, Da
                     FolderIcon={FolderIcon}
                 />;
             });
+
+            triggerRerender();
+
+            // wait for modal lazy load
+            const GuildFolderSettingsModal = await Patcher.waitForModal(() => Finder.byName("GuildFolderSettingsModal"));
 
             // patch folder settings render
             Patcher.after(GuildFolderSettingsModal.prototype, "render", ({context, result}) => {
@@ -160,8 +164,6 @@ export default createPlugin({...config, styles, settings}, ({Logger, Patcher, Da
                     }
                 }
             });
-
-            triggerRerender();
         },
         stop() {
             triggerRerender();
