@@ -118,7 +118,7 @@ export const raw = {
         byProtos: (...protos: string[]) => raw.all.find(filters.byProtos(protos)),
         bySource: (...contents: string[]) => raw.all.find(filters.bySource(contents))
     },
-    resolveExports(module: Module, options: ResolveOptions = {}) {
+    resolveExports(module: Module | null, options: ResolveOptions = {}) {
         if (module instanceof Object && "exports" in module) {
             const exported = module.exports;
             if (!exported) {
