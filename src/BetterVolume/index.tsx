@@ -1,9 +1,7 @@
-import {createPlugin, React, Finder, Modules} from "discordium";
-import {Discord} from "discordium/types";
+import {createPlugin, React, Finder, Modules, Discord} from "discordium";
 import config from "./config.json";
 import styles from "./styles.scss";
 
-const {ContextMenuActions} = Modules;
 const {MenuItem} = Modules.Menu;
 const SettingsStore = Finder.byProps("getLocalVolume");
 const SettingsActions = Finder.byProps("setLocalVolume");
@@ -31,56 +29,41 @@ const NumberInput = ({value, min, max, onChange}: NumberInputProps): JSX.Element
 );
 
 export default createPlugin({...config, styles}, ({Patcher}) => {
-    const findUseUserVolumeItem = () => Finder.raw.byName("useUserVolumeItem")?.exports as {default: (userId: Discord.Snowflake, mediaContext: any) => JSX.Element};
-
     return {
-        start() {
-            // listen for lazy context menus
-            // TODO: move to framework
-            Patcher.before(ContextMenuActions, "openContextMenuLazy", ({args, cancel}) => {
-                const original = args[1] as (...args: any[]) => Promise<any>;
-                args[1] = async (...args) => {
-                    const result = await original(...args);
+        async start() {
+            // wait for context menu lazy load
+            const useUserVolumeItem = await Patcher.waitForContextMenu(
+                () => Finder.raw.byName("useUserVolumeItem")?.exports as {default: (userId: Discord.Snowflake, mediaContext: any) => JSX.Element}
+            );
 
-                    // check if our hook has been loaded
-                    const useUserVolumeItem = findUseUserVolumeItem();
-                    if (useUserVolumeItem) {
-                        // we dont need the patch anymore
-                        cancel();
+            // add number input
+            Patcher.after(useUserVolumeItem, "default", ({args: [userId, mediaContext], result}) => {
+                // check for original render
+                if (result) {
+                    // we can read this directly, the original has a hook to ensure updates
+                    const volume = SettingsStore.getLocalVolume(userId, mediaContext);
 
-                        // add number input
-                        Patcher.after(useUserVolumeItem, "default", ({args: [userId, mediaContext], result}) => {
-                            // check for original render
-                            if (result) {
-                                // we can read this directly, the original has a hook to ensure updates
-                                const volume = SettingsStore.getLocalVolume(userId, mediaContext);
-
-                                return (
-                                    <>
-                                        {result}
-                                        <MenuItem
-                                            id="user-volume-input"
-                                            render={() => (
-                                                <NumberInput
-                                                    min={0}
-                                                    max={999999}
-                                                    value={AudioConvert.amplitudeToPerceptual(volume)}
-                                                    onChange={(value) => SettingsActions.setLocalVolume(
-                                                        userId,
-                                                        AudioConvert.perceptualToAmplitude(value),
-                                                        mediaContext
-                                                    )}
-                                                />
-                                            )}
-                                        />
-                                    </>
-                                );
-                            }
-                        });
-                    }
-
-                    return result;
-                };
+                    return (
+                        <>
+                            {result}
+                            <MenuItem
+                                id="user-volume-input"
+                                render={() => (
+                                    <NumberInput
+                                        min={0}
+                                        max={999999}
+                                        value={AudioConvert.amplitudeToPerceptual(volume)}
+                                        onChange={(value) => SettingsActions.setLocalVolume(
+                                            userId,
+                                            AudioConvert.perceptualToAmplitude(value),
+                                            mediaContext
+                                        )}
+                                    />
+                                )}
+                            />
+                        </>
+                    );
+                }
             });
         },
         stop() {}

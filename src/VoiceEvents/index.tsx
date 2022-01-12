@@ -1,9 +1,8 @@
-import {createPlugin, Finder, Utils, React, Modules} from "discordium";
-import {Discord} from "discordium/types";
+import {createPlugin, Finder, Utils, React, Modules, Discord} from "discordium";
 import {settings, SettingsPanel} from "./settings";
 import config from "./config.json";
 
-const {Events, Channels, SelectedChannel, Users, Members, ContextMenuActions} = Modules;
+const {Events, Channels, SelectedChannel, Users, Members} = Modules;
 const {ActionTypes} = Modules.Constants;
 const VoiceStates = Finder.byProps("getVoiceStates", "hasVideo");
 
@@ -32,8 +31,6 @@ const saveStates = () => {
 };
 
 export default createPlugin({...config, settings}, ({Logger, Patcher, Settings}) => {
-    const findUseChannelHideNamesItem = () => Finder.raw.byName("useChannelHideNamesItem")?.exports as {default: (channel: Discord.Channel) => JSX.Element};
-
     const findDefaultVoice = () => {
         const voices = speechSynthesis.getVoices();
         if (voices.length === 0) {
@@ -158,7 +155,7 @@ export default createPlugin({...config, settings}, ({Logger, Patcher, Settings})
     };
 
     return {
-        start() {
+        async start() {
             // save initial voice states
             saveStates();
 
@@ -166,38 +163,26 @@ export default createPlugin({...config, settings}, ({Logger, Patcher, Settings})
             Events.subscribe(ActionTypes.VOICE_STATE_UPDATES, listener);
             Logger.log("Subscribed to voice state updates");
 
-            // listen for lazy context menus
-            Patcher.before(ContextMenuActions, "openContextMenuLazy", ({args, cancel}) => {
-                const original = args[1] as (...args: any[]) => Promise<any>;
-                args[1] = async (...args) => {
-                    const result = await original(...args);
+            // wait for context menu lazy load
+            const useChannelHideNamesItem = await Patcher.waitForContextMenu(
+                () => Finder.raw.byName("useChannelHideNamesItem")?.exports as {default: (channel: Discord.Channel) => JSX.Element}
+            );
 
-                    // check if our hook has been loaded
-                    const useChannelHideNamesItem = findUseChannelHideNamesItem();
-                    if (useChannelHideNamesItem) {
-                        // we dont need the patch anymore
-                        cancel();
-
-                        // add queue clear item
-                        Patcher.after(useChannelHideNamesItem, "default", ({result}) => {
-                            if (result) {
-                                return (
-                                    <>
-                                        {result}
-                                        <MenuItem
-                                            isFocused={false}
-                                            id="voiceevents-clear"
-                                            label="Clear notification queue"
-                                            action={() => speechSynthesis.cancel()}
-                                        />
-                                    </>
-                                );
-                            }
-                        });
-                    }
-
-                    return result;
-                };
+            // add queue clear item
+            Patcher.after(useChannelHideNamesItem, "default", ({result}) => {
+                if (result) {
+                    return (
+                        <>
+                            {result}
+                            <MenuItem
+                                isFocused={false}
+                                id="voiceevents-clear"
+                                label="Clear notification queue"
+                                action={() => speechSynthesis.cancel()}
+                            />
+                        </>
+                    );
+                }
             });
         },
         stop() {

@@ -1,4 +1,5 @@
 import {Logger} from "./logger";
+import {ContextMenuActions, ModalActions} from "./modules";
 
 export interface Options {
     silent?: boolean;
@@ -64,6 +65,36 @@ export interface Patcher {
 
     /** Reverts all patches done by this patcher. */
     unpatchAll(): void;
+
+    /**
+     * Patches the lazy load method, executing a callback every time it loads something.
+     *
+     * The patch is cancelled automatically once the callback returns something.
+     */
+    waitForLazy<
+        T,
+        Module extends Record<Key, (...args: any[]) => Promise<any>>,
+        Key extends keyof Module
+    >(
+        object: Module,
+        method: Key,
+        arg: number,
+        callback: () => T
+    ): Promise<T>;
+
+    /**
+     * Listen for context menu related lazy loads.
+     *
+     * The patch is cancelled automatically once the callback returns something.
+     */
+    waitForContextMenu<T>(callback: () => T): Promise<T>;
+
+    /**
+     * Listen for modal related lazy loads.
+     *
+     * The patch is cancelled automatically once the callback returns something.
+     */
+    waitForModal<T>(callback: () => T): Promise<T>;
 }
 
 export const createPatcher = (id: string, Logger: Logger): Patcher => {
@@ -110,33 +141,64 @@ export const createPatcher = (id: string, Logger: Logger): Patcher => {
         return cancel;
     };
 
-    const {Patcher} = BdApi;
+    const rawPatcher = BdApi.Patcher;
 
-    return {
+    const patcher: Patcher = {
         instead: (object, method, callback, options = {}) => forward(
-            Patcher.instead,
+            rawPatcher.instead,
             object,
             method,
             ({result: _, ...data}) => callback(data),
             options
         ),
         before: (object, method, callback, options = {}) => forward(
-            Patcher.before,
+            rawPatcher.before,
             object,
             method,
             ({result: _, ...data}) => callback(data),
             options
         ),
         after: (object, method, callback, options = {}) => forward(
-            Patcher.after,
+            rawPatcher.after,
             object,
             method,
             callback,
             options
         ),
         unpatchAll: () => {
-            Patcher.unpatchAll(id);
+            rawPatcher.unpatchAll(id);
             Logger.log("Unpatched all");
-        }
+        },
+        waitForLazy: (object, method, arg, callback) => new Promise<any>((resolve) => {
+            // check load once before we patch
+            const found = callback();
+            if (found) {
+                resolve(found);
+            } else {
+                // patch lazy load method
+                patcher.before(object, method, ({args, cancel}) => {
+                    // replace resolver function
+                    const original = args[arg];
+                    args[arg] = async (...args: any[]) => {
+                        const result = await original(...args);
+
+                        // check if loaded
+                        const found = callback();
+                        if (found) {
+                            resolve(found);
+
+                            // we dont need the patch anymore
+                            cancel();
+                        }
+
+                        return result;
+                    };
+                });
+            }
+        }),
+        waitForContextMenu: (callback) => patcher.waitForLazy(ContextMenuActions, "openContextMenuLazy", 1, callback),
+        waitForModal: (callback) => patcher.waitForLazy(ModalActions, "openModalLazy", 0, callback)
     };
+
+    return patcher;
 };
