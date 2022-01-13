@@ -1,7 +1,7 @@
 /**
  * @name VoiceEvents
  * @author Zerthox
- * @version 2.0.1
+ * @version 2.1.0
  * @description Add TTS Event Notifications to your selected Voice Channel. TeamSpeak feeling.
  * @authorLink https://github.com/Zerthox
  * @website https://github.com/Zerthox/BetterDiscord-Plugins
@@ -53,170 +53,6 @@ WScript.Quit();
 
 'use strict';
 
-let webpackRequire;
-global.webpackJsonp.push([
-    [],
-    {
-        __discordium__: (_module, _exports, require) => {
-            webpackRequire = require;
-        }
-    },
-    [["__discordium__"]]
-]);
-delete webpackRequire.m.__discordium__;
-delete webpackRequire.c.__discordium__;
-const joinFilters = (filters) => {
-    return (module) => {
-        const { exports } = module;
-        return filters.every((filter) => filter(exports, module) || (exports?.__esModule && filter(exports?.default, module)));
-    };
-};
-const filters = {
-    byExports(exported) {
-        return (target) => target === exported || (target instanceof Object && Object.values(target).includes(exported));
-    },
-    byName(name) {
-        return (target) => target instanceof Object && Object.values(target).some(filters.byDisplayName(name));
-    },
-    byDisplayName(name) {
-        return (target) => target?.displayName === name || target?.constructor?.displayName === name;
-    },
-    byProps(props) {
-        return (target) => target instanceof Object && props.every((prop) => prop in target);
-    },
-    byProtos(protos) {
-        return (target) => target instanceof Object && target.prototype instanceof Object && protos.every((proto) => proto in target.prototype);
-    },
-    bySource(contents) {
-        return (target) => target instanceof Function && contents.every((content) => target.toString().includes(content));
-    }
-};
-const genFilters = ({ filter, name, props, protos, source }) => [
-    ...[filter].flat(),
-    typeof name === "string" ? filters.byName(name) : null,
-    props instanceof Array ? filters.byProps(props) : null,
-    protos instanceof Array ? filters.byProtos(protos) : null,
-    source instanceof Array ? filters.bySource(source) : null
-].filter((entry) => entry instanceof Function);
-const raw = {
-    require: webpackRequire,
-    getAll: () => Object.values(webpackRequire.c),
-    getSources: () => Object.values(webpackRequire.m),
-    getSource: (id) => webpackRequire.m[id] ?? null,
-    find: (...filters) => raw.getAll().find(joinFilters(filters)) ?? null,
-    query: (options) => raw.find(...genFilters(options)),
-    byId: (id) => webpackRequire.c[id] ?? null,
-    byExports: (exported) => raw.find(filters.byExports(exported)),
-    byName: (name) => raw.find(filters.byName(name)),
-    byProps: (...props) => raw.find(filters.byProps(props)),
-    byProtos: (...protos) => raw.find(filters.byProtos(protos)),
-    bySource: (...contents) => raw.find(filters.bySource(contents)),
-    all: {
-        find: (...filters) => raw.getAll().filter(joinFilters(filters)),
-        query: (options) => raw.all.find(...genFilters(options)),
-        byExports: (exported) => raw.all.find(filters.byExports(exported)),
-        byName: (name) => raw.all.find(filters.byName(name)),
-        byProps: (...props) => raw.all.find(filters.byProps(props)),
-        byProtos: (...protos) => raw.all.find(filters.byProtos(protos)),
-        bySource: (...contents) => raw.all.find(filters.bySource(contents))
-    },
-    resolveExports(module, filter = null) {
-        if (module instanceof Object && "exports" in module) {
-            const exported = module.exports;
-            if (!exported) {
-                return exported;
-            }
-            if (typeof filter === "string") {
-                return exported[filter];
-            }
-            else if (filter instanceof Function) {
-                const result = Object.values(exported).find((value) => filter(value));
-                if (result !== undefined) {
-                    return result;
-                }
-            }
-            if (exported.__esModule && "default" in exported && Object.keys(exported).length === 1) {
-                return exported.default;
-            }
-            else {
-                return exported;
-            }
-        }
-        return null;
-    },
-    resolveImportIds(module) {
-        const source = webpackRequire.m[module.id].toString();
-        const match = source.match(/^(?:function)?\s*\(\w+,\w+,(\w+)\)\s*(?:=>)?\s*{/);
-        if (match) {
-            const requireName = match[1];
-            const calls = Array.from(source.matchAll(new RegExp(`\\W${requireName}\\((\\d+)\\)`, "g")));
-            return calls.map((call) => parseInt(call[1]));
-        }
-        else {
-            return [];
-        }
-    },
-    resolveImports: (module) => raw.resolveImportIds(module).map((id) => raw.byId(id)),
-    resolveStyles: (module) => raw.resolveImports(module).filter((imported) => (imported instanceof Object
-        && "exports" in imported
-        && Object.values(imported.exports).every((value) => typeof value === "string")
-        && Object.entries(imported.exports).find(([key, value]) => (new RegExp(`^${key}-([a-zA-Z0-9-_]){6}(\\s.+)$`)).test(value)))),
-    resolveUsers: (module) => raw.all.find((_, user) => raw.resolveImportIds(user).includes(module.id))
-};
-const find = (...filters) => raw.resolveExports(raw.find(...filters));
-const query = (options) => raw.resolveExports(raw.query(options), options.export);
-const byName = (name) => raw.resolveExports(raw.byName(name), filters.byDisplayName(name));
-const byProps = (...props) => raw.resolveExports(raw.byProps(...props), filters.byProps(props));
-
-byProps("subscribe", "emit");
-const React = byProps("createElement", "Component", "Fragment");
-const ReactDOM = byProps("render", "findDOMNode", "createPortal");
-const classNames = find((exports) => exports instanceof Object && exports.default === exports && Object.keys(exports).length === 1);
-byProps("cloneDeep", "flattenDeep");
-byProps("valid", "satifies");
-byProps("utc", "months");
-byProps("parseBlock", "parseInline");
-byProps("highlight", "highlightBlock");
-byProps("captureBreadcrumb");
-byProps("assert", "validate", "object");
-const Flux = query({ props: ["Store", "connectStores"], export: "default" });
-const Dispatcher = query({ props: ["Dispatcher"], export: "Dispatcher" });
-byProps("languages", "getLocale");
-
-React?.__SECRET_INTERNALS_DO_NOT_USE_OR_YOU_WILL_BE_FIRED;
-ReactDOM?.__SECRET_INTERNALS_DO_NOT_USE_OR_YOU_WILL_BE_FIRED?.Events;
-
-const alert = (title, content) => BdApi.alert(title, content);
-const confirm = (title, content, options = {}) => BdApi.showConfirmationModal(title, content, options);
-const queryFiber = (fiber, predicate, direction = "up", depth = 30, current = 0) => {
-    if (current > depth) {
-        return null;
-    }
-    if (predicate(fiber)) {
-        return fiber;
-    }
-    if ((direction === "up" || direction === "both") && fiber.return) {
-        const result = queryFiber(fiber.return, predicate, "up", depth, current + 1);
-        if (result) {
-            return result;
-        }
-    }
-    if ((direction === "down" || direction === "both") && fiber.child) {
-        let child = fiber.child;
-        while (child) {
-            const result = queryFiber(child, predicate, "down", depth, current + 1);
-            if (result) {
-                return result;
-            }
-            child = child.sibling;
-        }
-    }
-    return null;
-};
-const findOwner = (fiber) => {
-    return queryFiber(fiber, (node) => node?.stateNode instanceof React.Component, "up", 50);
-};
-
 const createLogger = (name, color, version) => {
     const print = (output, ...data) => output(`%c[${name}] %c${version ? `(v${version})` : ""}`, `color: ${color}; font-weight: 700;`, "color: #666; font-size: .8em;", ...data);
     return {
@@ -227,47 +63,198 @@ const createLogger = (name, color, version) => {
     };
 };
 
+const byName$2 = (name) => {
+    return (target) => target instanceof Object && Object.values(target).some(byDisplayName(name));
+};
+const byDisplayName = (name) => {
+    return (target) => target?.displayName === name || target?.constructor?.displayName === name;
+};
+const byProps$2 = (props) => {
+    return (target) => target instanceof Object && props.every((prop) => prop in target);
+};
+const byProtos = (protos) => {
+    return (target) => target instanceof Object && target.prototype instanceof Object && protos.every((proto) => proto in target.prototype);
+};
+const bySource = (contents) => {
+    return (target) => target instanceof Function && contents.every((content) => target.toString().includes(content));
+};
+
+const getWebpackRequire = () => {
+    const moduleId = "discordium";
+    let webpackRequire;
+    global.webpackJsonp.push([[], {
+            [moduleId]: (_module, _exports, require) => {
+                webpackRequire = require;
+            }
+        }, [[moduleId]]]);
+    delete webpackRequire.m[moduleId];
+    delete webpackRequire.c[moduleId];
+    return webpackRequire;
+};
+const joinFilters = (filters) => {
+    return (module) => {
+        const { exports } = module;
+        return (filters.every((filter) => filter(exports, module))
+            || exports?.__esModule && "default" in exports && filters.every((filter) => filter(exports.default, module)));
+    };
+};
+const genFilters = ({ filter, name, props, protos, source }) => [
+    ...[filter].flat(),
+    typeof name === "string" ? byName$2(name) : null,
+    props instanceof Array ? byProps$2(props) : null,
+    protos instanceof Array ? byProtos(protos) : null,
+    source instanceof Array ? bySource(source) : null
+].filter((entry) => entry instanceof Function);
+const webpackRequire = getWebpackRequire();
+const getAll = () => Object.values(webpackRequire.c);
+const find$1 = (...filters) => /*@__PURE__*/ getAll().find(joinFilters(filters)) ?? null;
+const query$1 = (options) => /*@__PURE__*/ find$1(...genFilters(options));
+const byName$1 = (name) => /*@__PURE__*/ find$1(byName$2(name));
+const byProps$1 = (...props) => /*@__PURE__*/ find$1(byProps$2(props));
+const resolveExports = (module, options = {}) => {
+    if (module instanceof Object && "exports" in module) {
+        const exported = module.exports;
+        if (!exported) {
+            return exported;
+        }
+        const hasDefault = exported.__esModule && "default" in exported;
+        if (options.export) {
+            return exported[options.export];
+        }
+        else if (options.name) {
+            return Object.values(exported).find(byDisplayName(options.name));
+        }
+        else if (options.filter && hasDefault && options.filter(exported.default)) {
+            return exported.default;
+        }
+        if (hasDefault && Object.keys(exported).length === 1) {
+            return exported.default;
+        }
+        else {
+            return exported;
+        }
+    }
+    return null;
+};
+
+const find = (...filters) => resolveExports(/*@__PURE__*/ find$1(...filters));
+const query = (options) => resolveExports(/*@__PURE__*/ query$1(options), { export: options.export });
+const byName = (name) => resolveExports(/*@__PURE__*/ byName$1(name), { name });
+const byProps = (...props) => resolveExports(/*@__PURE__*/ byProps$1(...props), { filter: byProps$2(props) });
+
+const EventEmitter = /*@__PURE__*/ byProps("subscribe", "emit");
+const React = /*@__PURE__*/ byProps("createElement", "Component", "Fragment");
+const ReactDOM = /*@__PURE__*/ byProps("render", "findDOMNode", "createPortal");
+const classNames = /*@__PURE__*/ find((exports) => exports instanceof Object && exports.default === exports && Object.keys(exports).length === 1);
+const lodash = /*@__PURE__*/ byProps("cloneDeep", "flattenDeep");
+const semver = /*@__PURE__*/ byProps("valid", "satifies");
+const moment = /*@__PURE__*/ byProps("utc", "months");
+const SimpleMarkdown = /*@__PURE__*/ byProps("parseBlock", "parseInline");
+const hljs = /*@__PURE__*/ byProps("highlight", "highlightBlock");
+const Raven = /*@__PURE__*/ byProps("captureBreadcrumb");
+const joi = /*@__PURE__*/ byProps("assert", "validate", "object");
+
+const Dispatch = /*@__PURE__*/ query({ props: ["default", "Dispatcher"], filter: (exports) => exports instanceof Object && !("ActionBase" in exports) });
+const Events$1 = Dispatch?.default;
+
+const Flux = /*@__PURE__*/ byProps("Store", "useStateFromStores");
+
+const Constants = /*@__PURE__*/ byProps("Permissions", "RelationshipTypes");
+const i18n = /*@__PURE__*/ byProps("languages", "getLocale");
+const Channels$1 = /*@__PURE__*/ byProps("getChannel", "hasChannel");
+const SelectedChannel$1 = /*@__PURE__*/ query({ props: ["getChannelId", "getVoiceChannelId"], export: "default" });
+const Users$1 = /*@__PURE__*/ byProps("getUser", "getCurrentUser");
+const Members$1 = /*@__PURE__*/ byProps("getMember", "isMember");
+const ContextMenuActions = /*@__PURE__*/ byProps("openContextMenuLazy");
+const ModalActions = /*@__PURE__*/ byProps("openModalLazy");
+const Flex$1 = /*@__PURE__*/ byName("Flex");
+const Button$1 = /*@__PURE__*/ byProps("Link", "Hovers");
+const Menu = /*@__PURE__*/ byProps("MenuGroup", "MenuItem", "MenuSeparator");
+const Form = /*@__PURE__*/ byProps("FormItem", "FormSection", "FormDivider");
+const margins$1 = /*@__PURE__*/ byProps("marginLarge");
+
+const Modules = /*#__PURE__*/Object.freeze({
+    __proto__: null,
+    Constants: Constants,
+    i18n: i18n,
+    Channels: Channels$1,
+    SelectedChannel: SelectedChannel$1,
+    Users: Users$1,
+    Members: Members$1,
+    ContextMenuActions: ContextMenuActions,
+    ModalActions: ModalActions,
+    Flex: Flex$1,
+    Button: Button$1,
+    Menu: Menu,
+    Form: Form,
+    margins: margins$1,
+    Dispatch: Dispatch,
+    Events: Events$1,
+    Flux: Flux,
+    EventEmitter: EventEmitter,
+    React: React,
+    ReactDOM: ReactDOM,
+    classNames: classNames,
+    lodash: lodash,
+    semver: semver,
+    moment: moment,
+    SimpleMarkdown: SimpleMarkdown,
+    hljs: hljs,
+    Raven: Raven,
+    joi: joi
+});
+
+const resolveName = (object, method) => {
+    const target = method === "default" ? object[method] : {};
+    return object.displayName ?? object.constructor?.displayName ?? target.displayName ?? "unknown";
+};
 const createPatcher = (id, Logger) => {
     const forward = (patcher, object, method, callback, options) => {
         const original = object[method];
-        const cancel = patcher(id, object, method, (context, args, result) => {
+        const cancel = patcher(id, object, method, options.once ? (context, args, result) => {
             const temp = callback({ cancel, original, context, args, result });
-            if (options.once) {
-                cancel();
-            }
+            cancel();
             return temp;
-        }, { silent: true });
+        } : (context, args, result) => callback({ cancel, original, context, args, result }), { silent: true });
         if (!options.silent) {
-            const target = method === "default" ? object[method] : {};
-            const name = options.name ?? object.displayName ?? object.constructor?.displayName ?? target.displayName ?? "unknown";
-            Logger.log(`Patched ${method} of ${name}`);
+            Logger.log(`Patched ${method} of ${options.name ?? resolveName(object, method)}`);
         }
         return cancel;
     };
-    const { Patcher } = BdApi;
-    const instead = (object, method, callback, options = {}) => forward(Patcher.instead, object, method, ({ result: _, ...data }) => callback(data), options);
-    const before = (object, method, callback, options = {}) => forward(Patcher.before, object, method, ({ result: _, ...data }) => callback(data), options);
-    const after = (object, method, callback, options = {}) => forward(Patcher.after, object, method, callback, options);
-    return {
-        instead,
-        before,
-        after,
+    const rawPatcher = BdApi.Patcher;
+    const patcher = {
+        instead: (object, method, callback, options = {}) => forward(rawPatcher.instead, object, method, ({ result: _, ...data }) => callback(data), options),
+        before: (object, method, callback, options = {}) => forward(rawPatcher.before, object, method, ({ result: _, ...data }) => callback(data), options),
+        after: (object, method, callback, options = {}) => forward(rawPatcher.after, object, method, callback, options),
         unpatchAll: () => {
-            Patcher.unpatchAll(id);
+            rawPatcher.unpatchAll(id);
             Logger.log("Unpatched all");
         },
-        forceRerender: (fiber) => new Promise((resolve) => {
-            const owner = findOwner(fiber);
-            if (owner) {
-                const { stateNode } = owner;
-                after(stateNode, "render", () => null, { once: true });
-                stateNode.forceUpdate(() => stateNode.forceUpdate(() => resolve(true)));
+        waitForLazy: (object, method, arg, callback) => new Promise((resolve) => {
+            const found = callback();
+            if (found) {
+                resolve(found);
             }
             else {
-                resolve(false);
+                Logger.log(`Waiting for lazy load in ${method} of ${resolveName(object, method)}`);
+                patcher.before(object, method, ({ args, cancel }) => {
+                    const original = args[arg];
+                    args[arg] = async (...args) => {
+                        const result = await original(...args);
+                        const found = callback();
+                        if (found) {
+                            resolve(found);
+                            cancel();
+                        }
+                        return result;
+                    };
+                }, { silent: true });
             }
-        })
+        }),
+        waitForContextMenu: (callback) => patcher.waitForLazy(ContextMenuActions, "openContextMenuLazy", 1, callback),
+        waitForModal: (callback) => patcher.waitForLazy(ModalActions, "openModalLazy", 0, callback)
     };
+    return patcher;
 };
 
 const createStyles = (id) => {
@@ -289,10 +276,10 @@ const createData = (id) => ({
 
 class Settings extends Flux.Store {
     constructor(Data, defaults) {
-        super(new Dispatcher(), {
+        super(new Dispatch.Dispatcher(), {
             update: ({ current }) => Data.save("settings", current)
         });
-        this.listeners = new Set();
+        this.listeners = new Map();
         this.defaults = defaults;
         this.current = { ...defaults, ...Data.load("settings") };
     }
@@ -307,32 +294,49 @@ class Settings extends Flux.Store {
         this.set({ ...this.defaults });
     }
     connect(component) {
-        return Flux.connectStores([this], () => ({ ...this.get(), defaults: this.defaults, set: (settings) => this.set(settings) }))(component);
+        return Flux.default.connectStores([this], () => ({ ...this.get(), defaults: this.defaults, set: (settings) => this.set(settings) }))(component);
+    }
+    useCurrent() {
+        return Flux.useStateFromStores([this], () => this.get());
+    }
+    useState() {
+        return Flux.useStateFromStores([this], () => [this.get(), (settings) => this.set(settings)]);
+    }
+    useStateWithDefaults() {
+        return Flux.useStateFromStores([this], () => [this.get(), this.defaults, (settings) => this.set(settings)]);
     }
     addListener(listener) {
-        this.listeners.add(listener);
-        this._dispatcher.subscribe("update", listener);
+        const wrapper = ({ current }) => listener(current);
+        this.listeners.set(listener, wrapper);
+        this._dispatcher.subscribe("update", wrapper);
         return listener;
     }
     removeListener(listener) {
-        if (this.listeners.has(listener)) {
-            this._dispatcher.unsubscribe("update", listener);
+        const wrapper = this.listeners.get(listener);
+        if (wrapper) {
+            this._dispatcher.unsubscribe("update", wrapper);
             this.listeners.delete(listener);
         }
     }
     removeAllListeners() {
-        for (const listener of this.listeners) {
-            this._dispatcher.unsubscribe("update", listener);
+        for (const wrapper of this.listeners.values()) {
+            this._dispatcher.unsubscribe("update", wrapper);
         }
         this.listeners.clear();
     }
 }
 const createSettings = (Data, defaults) => new Settings(Data, defaults);
 
-const Flex$1 = byName("Flex");
-const Button$1 = byProps("Link", "Hovers");
-const Form = byProps("FormItem", "FormSection", "FormDivider");
-const margins$1 = byProps("marginLarge");
+const alert = (title, content) => BdApi.alert(title, content);
+const confirm = (title, content, options = {}) => BdApi.showConfirmationModal(title, content, options);
+
+const SettingsContainer = ({ name, children, onReset }) => (React.createElement(Form.FormSection, null,
+    children,
+    React.createElement(Form.FormDivider, { className: classNames(margins$1.marginTop20, margins$1.marginBottom20) }),
+    React.createElement(Flex$1, { justify: Flex$1.Justify.END },
+        React.createElement(Button$1, { size: Button$1.Sizes.SMALL, onClick: () => confirm(name, "Reset all settings?", {
+                onConfirm: () => onReset()
+            }) }, "Reset"))));
 
 const createPlugin = ({ name, version, styles: css, settings }, callback) => {
     const Logger = createLogger(name, "#3a71c1", version);
@@ -350,36 +354,26 @@ const createPlugin = ({ name, version, styles: css, settings }, callback) => {
     Wrapper.prototype.stop = () => {
         Patcher.unpatchAll();
         Styles.clear();
-        const promise = plugin.stop();
-        if (promise) {
-            promise.then(() => Logger.log("Disabled"));
-        }
-        else {
-            Logger.log("Disabled");
-        }
+        plugin.stop();
+        Logger.log("Disabled");
     };
     if (plugin.settingsPanel) {
         const ConnectedSettings = Settings.connect(plugin.settingsPanel);
-        Wrapper.prototype.getSettingsPanel = () => (React.createElement(Form.FormSection, null,
-            React.createElement(ConnectedSettings, null),
-            React.createElement(Form.FormDivider, { className: classNames(margins$1.marginTop20, margins$1.marginBottom20) }),
-            React.createElement(Flex$1, { justify: Flex$1.Justify.END },
-                React.createElement(Button$1, { size: Button$1.Sizes.SMALL, onClick: () => confirm(name, "Reset all settings?", {
-                        onConfirm: () => Settings.reset()
-                    }) }, "Reset"))));
+        Wrapper.prototype.getSettingsPanel = () => (React.createElement(SettingsContainer, { name: name, onReset: () => Settings.reset() },
+            React.createElement(ConnectedSettings, null)));
     }
     return Wrapper;
 };
 
-const Flex = byName("Flex");
-const Text$1 = byName("Text");
-const Button = byProps("Link", "Hovers");
-const { FormSection, FormTitle, FormItem, FormText, FormDivider } = byProps("FormSection", "FormText") ?? {};
-const SwitchItem = byName("SwitchItem");
-const TextInput = byName("TextInput");
-const SelectTempWrapper = byName("SelectTempWrapper");
-const Slider = byName("Slider");
-const margins = byProps("marginLarge");
+const Flex = /*@__PURE__*/ byName("Flex");
+const Text$1 = /*@__PURE__*/ byName("Text");
+const Button = /*@__PURE__*/ byProps("Link", "Hovers");
+const { FormSection, FormTitle, FormItem, FormText, FormDivider } = /*@__PURE__*/ byProps("FormSection", "FormText") ?? {};
+const SwitchItem = /*@__PURE__*/ byName("SwitchItem");
+const TextInput = /*@__PURE__*/ byName("TextInput");
+const SelectTempWrapper = /*@__PURE__*/ byName("SelectTempWrapper");
+const Slider = /*@__PURE__*/ byName("Slider");
+const margins = /*@__PURE__*/ byProps("marginLarge");
 const settings = {
     voice: null,
     volume: 100,
@@ -458,7 +452,7 @@ const SettingsPanel = ({ speak, defaults, set, voice, volume, speed, filterNames
 
 const name = "VoiceEvents";
 const author = "Zerthox";
-const version = "2.0.1";
+const version = "2.1.0";
 const description = "Add TTS Event Notifications to your selected Voice Channel. TeamSpeak feeling.";
 const config = {
 	name: name,
@@ -467,15 +461,11 @@ const config = {
 	description: description
 };
 
-const Events = byProps("dispatch", "subscribe");
-const Channels = byProps("getChannel", "hasChannel");
-const SelectedChannel = byProps("getChannelId", "getVoiceChannelId");
-const VoiceStates = byProps("getVoiceStates", "hasVideo");
-const Users = byProps("getUser", "getCurrentUser");
-const Members = byProps("getMember", "isMember");
-const Text = byName("Text");
-const { MenuGroup, MenuItem } = byProps("MenuGroup", "MenuItem", "MenuSeparator") ?? {};
-const VoiceContextMenu = query({ name: "ChannelListVoiceChannelContextMenu", source: ["isGuildStageVoice"] });
+const { Events, Channels, SelectedChannel, Users, Members } = Modules;
+const { ActionTypes } = Constants;
+const VoiceStates = /*@__PURE__*/ byProps("getVoiceStates", "hasVideo");
+const Text = /*@__PURE__*/ byName("Text");
+const { MenuItem } = Menu;
 let prevStates = {};
 const saveStates = () => {
     prevStates = { ...VoiceStates.getVoiceStatesForChannel(SelectedChannel.getVoiceChannelId()) };
@@ -579,21 +569,23 @@ const index = createPlugin({ ...config, settings }, ({ Logger, Patcher, Settings
         }
     };
     return {
-        start() {
+        async start() {
             saveStates();
-            Events.subscribe("VOICE_STATE_UPDATES", listener);
-            Patcher.after(VoiceContextMenu, "default", ({ result }) => {
-                const { children } = result.props;
-                const index = children.findIndex((node) => [node?.props.children].flat()
-                    .find((child) => child?.props.id === "delete-channel"));
-                children.splice(index, 0, React.createElement(MenuGroup, null,
-                    React.createElement(MenuItem, { isFocused: false, id: "voiceevents-clear", label: "Clear Notification queue", action: () => speechSynthesis.cancel() })));
-                return result;
+            Events.subscribe(ActionTypes.VOICE_STATE_UPDATES, listener);
+            Logger.log("Subscribed to voice state updates");
+            const useChannelHideNamesItem = await Patcher.waitForContextMenu(() =>  byName$1("useChannelHideNamesItem")?.exports);
+            Patcher.after(useChannelHideNamesItem, "default", ({ result }) => {
+                if (result) {
+                    return (React.createElement(React.Fragment, null,
+                        result,
+                        React.createElement(MenuItem, { isFocused: false, id: "voiceevents-clear", label: "Clear notification queue", action: () => speechSynthesis.cancel() })));
+                }
             });
         },
         stop() {
             prevStates = {};
-            Events.unsubscribe("VOICE_STATE_UPDATES", listener);
+            Events.unsubscribe(ActionTypes.VOICE_STATE_UPDATES, listener);
+            Logger.log("Unsubscribed from voice state updates");
         },
         settingsPanel: (props) => React.createElement(SettingsPanel, { speak: speak, ...props })
     };
