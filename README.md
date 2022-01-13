@@ -1,6 +1,6 @@
 # BetterDiscord Plugins
 
-### [BetterFolders](/dist/bd/BetterFolders.plugin.js) <sub><sup>`v3.0.2` *(Updated: 19/11/2021)*</sup></sub>
+### [BetterFolders](/dist/bd/BetterFolders.plugin.js) <sub><sup>`v3.1.0` *(Updated: 13/01/2022)*</sup></sub>
 Add new functionality to server folders. Custom Folder Icons. Close other folders on open.
 
 ### [BetterVolume](/dist/bd/BetterVolume.plugin.js) <sub><sup>`v2.2.0` *(Updated: 13/01/2022)*</sup></sub>
