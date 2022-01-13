@@ -1,5 +1,5 @@
 import React from "react";
-import * as Finder from "../finder";
+import * as Finder from "../api/finder";
 
 export * from "./npm";
 export {Dispatch, Events} from "./dispatch";

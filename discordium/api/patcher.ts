@@ -1,5 +1,5 @@
 import {Logger} from "./logger";
-import {ContextMenuActions, ModalActions} from "./modules";
+import {ContextMenuActions, ModalActions} from "../modules";
 
 export interface Options {
     silent?: boolean;
@@ -179,7 +179,7 @@ export const createPatcher = (id: string, Logger: Logger): Patcher => {
                 resolve(found);
             } else {
                 // patch lazy load method
-                Logger.log(`Waiting for lazy load in "${method}" of "${resolveName(object, method)}"`);
+                Logger.log(`Waiting for lazy load in ${method} of ${resolveName(object, method)}`);
                 patcher.before(object, method, ({args, cancel}) => {
                     // replace resolver function
                     const original = args[arg];

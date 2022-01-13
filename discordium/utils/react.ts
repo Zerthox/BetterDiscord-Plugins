@@ -1,5 +1,5 @@
 import {React} from "../modules";
-import {ReactDOMInternals, Fiber} from "../react";
+import {ReactDOMInternals, Fiber} from "../api/react";
 
 export type Predicate<Arg> = (arg: Arg) => boolean;
 

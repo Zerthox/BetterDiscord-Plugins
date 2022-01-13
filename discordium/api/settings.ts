@@ -1,6 +1,6 @@
-import {Flux, Dispatch} from "./modules";
+import {Flux, Dispatch} from "../modules";
 import {Data} from "./data";
-import {Event as DispatchEvent, Listener as DispatchListener} from "./modules/dispatch";
+import {Event as DispatchEvent, Listener as DispatchListener} from "../modules/dispatch";
 
 export type Listener<Data> = (data: Data) => void;
 

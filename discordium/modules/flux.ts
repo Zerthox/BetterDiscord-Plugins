@@ -1,4 +1,4 @@
-import * as Finder from "../finder";
+import * as Finder from "../api/finder";
 import {Dispatcher, Listener, Event, Token} from "./dispatch";
 
 export declare class Store {

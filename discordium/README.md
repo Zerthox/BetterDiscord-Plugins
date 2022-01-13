@@ -56,9 +56,7 @@ export default createPlugin(config, ({Logger, Patcher, Styles, Data, Settings}) 
                     <div
                         className="example-clickable"
                         onClick={() => props.set({enabled: !props.enabled})}
-                    >
-                        Click to toggle
-                    </div>
+                    >Click to toggle</div>
                 </div>
             );
         }

@@ -1,4 +1,4 @@
-import * as Finder from "../finder";
+import * as Finder from "../api/finder";
 
 export interface Event extends Record<string, any> {
     type: string;
@@ -32,4 +32,5 @@ export interface Module {
 }
 
 export const Dispatch: Module = Finder.query({props: ["default", "Dispatcher"], filter: (exports) => exports instanceof Object && !("ActionBase" in exports)});
+
 export const Events: Dispatcher = Dispatch?.default;

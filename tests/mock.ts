@@ -1,4 +1,4 @@
-import {Require} from "discordium/finder";
+import {Require} from "discordium/api/finder";
 
 global.TESTING = true;
 

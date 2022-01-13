@@ -1,24 +1,26 @@
-import {confirm} from "./utils";
-import {createLogger, Logger} from "./logger";
-import {createPatcher, Patcher} from "./patcher";
-import {createStyles, Styles} from "./styles";
-import {createData, Data} from "./data";
-import {createSettings, Settings, SettingsProps} from "./settings";
-import {React, classNames, Flex, Button, Form, margins} from "./modules";
+import {
+    createLogger,
+    Logger,
+    createPatcher,
+    Patcher,
+    createStyles,
+    Styles,
+    createData,
+    Data,
+    createSettings,
+    Settings,
+    SettingsProps
+} from "./api";
+import {React} from "./modules";
+import {SettingsContainer} from "./components";
 
+export {Finder, Discord, ReactInternals, ReactDOMInternals} from "./api";
 export * as Utils from "./utils";
-export * as Finder from "./finder";
 export * as Modules from "./modules";
 export {React, ReactDOM, classNames, lodash, Flux} from "./modules";
-export {ReactInternals, ReactDOMInternals} from "./react";
-export * as Discord from "./discord";
 export {version} from "../package.json";
 
-export {Logger} from "./logger";
-export {Patcher} from "./patcher";
-export {Styles} from "./styles";
-export {Data} from "./data";
-export {Settings, SettingsProps} from "./settings";
+export {Logger, Patcher, Styles, Data, Settings, SettingsProps} from "./api";
 
 export interface Api<
     SettingsType extends Record<string, any>,
@@ -91,18 +93,9 @@ export const createPlugin = <
     if (plugin.settingsPanel) {
         const ConnectedSettings = Settings.connect(plugin.settingsPanel);
         Wrapper.prototype.getSettingsPanel = () => (
-            <Form.FormSection>
+            <SettingsContainer name={name} onReset={() => Settings.reset()}>
                 <ConnectedSettings/>
-                <Form.FormDivider className={classNames(margins.marginTop20, margins.marginBottom20)}/>
-                <Flex justify={Flex.Justify.END}>
-                    <Button
-                        size={Button.Sizes.SMALL}
-                        onClick={() => confirm(name, "Reset all settings?", {
-                            onConfirm: () => Settings.reset()
-                        })}
-                    >Reset</Button>
-                </Flex>
-            </Form.FormSection>
+            </SettingsContainer>
         );
     }
 

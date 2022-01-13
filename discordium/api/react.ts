@@ -1,4 +1,4 @@
-import {React, ReactDOM} from "./modules";
+import {React, ReactDOM} from "../modules";
 import {Fiber} from "react-reconciler";
 
 export {Fiber} from "react-reconciler";
