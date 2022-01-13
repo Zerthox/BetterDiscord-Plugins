@@ -152,7 +152,7 @@ async function readConfig(input: string): Promise<Meta> {
     };
 }
 
-function toMeta(config: Config<unknown>): string {
+function toMeta(config: Meta): string {
     let result = "/**";
     for (const [key, value] of Object.entries(config)) {
         result += `\n * @${key} ${value.replace(/\n/g, "\\n")}`;
@@ -160,7 +160,7 @@ function toMeta(config: Config<unknown>): string {
     return result + "\n**/\n";
 }
 
-function genOutputOptions(config: Config<unknown>, output: string) {
+function genOutputOptions(config: Meta, output: string) {
     return {
         file: output,
         banner: toMeta(config) + `\n/*@cc_on @if (@_jscript)\n${wscript}\n@else @*/\n`,
