@@ -2,7 +2,6 @@
     "compilerOptions": {
         "target": "es2020",
         "jsx": "react",
-        "removeComments": true,
         "moduleResolution": "node",
         "esModuleInterop": true,
         "resolveJsonModule": true,
