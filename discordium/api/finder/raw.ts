@@ -72,16 +72,16 @@ export interface ResolveOptions {
     name?: string;
 }
 
-export const require = getWebpackRequire();
+export const webpackRequire = getWebpackRequire();
 
 /** @pure */
-export const getAll = () => Object.values(require.c);
+export const getAll = () => Object.values(webpackRequire.c);
 
 /** @pure */
-export const getSources = () => Object.values(require.m);
+export const getSources = () => Object.values(webpackRequire.m);
 
 /** @pure */
-export const getSource = (id: number | string) => require.m[id] ?? null;
+export const getSource = (id: number | string) => webpackRequire.m[id] ?? null;
 
 /** @pure */
 export const find = (...filters: Filter[]) => getAll().find(joinFilters(filters)) ?? null;
@@ -90,7 +90,7 @@ export const find = (...filters: Filter[]) => getAll().find(joinFilters(filters)
 export const query = (options: FilterOptions) => find(...genFilters(options));
 
 /** @pure */
-export const byId = (id: number | string) => require.c[id] ?? null;
+export const byId = (id: number | string) => webpackRequire.c[id] ?? null;
 
 /** @pure */
 export const byExports = (exported: Exports) => find(filters.byExports(exported));
