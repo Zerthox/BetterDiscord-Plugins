@@ -72,7 +72,9 @@ export interface ResolveOptions {
     name?: string;
 }
 
-export const webpackRequire = getWebpackRequire();
+const webpackRequire = getWebpackRequire();
+
+export {webpackRequire as require};
 
 /** @pure */
 export const getAll = () => Object.values(webpackRequire.c);
