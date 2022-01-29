@@ -2,8 +2,7 @@ import React from "react";
 import * as Finder from "../api/finder";
 
 export * from "./npm";
-export {Dispatch, Events} from "./dispatch";
-export {Flux} from "./flux";
+export {Flux, Events} from "./flux";
 
 // DISCORD GENERAL
 

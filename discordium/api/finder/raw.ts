@@ -1,9 +1,11 @@
 import * as filters from "./filters";
 
+export type ModuleId = number;
+
 export type Exports = Record<string, any>;
 
 export interface Module {
-    id: number;
+    id: ModuleId;
     loaded: boolean;
     exports: Exports;
 }
@@ -11,7 +13,7 @@ export interface Module {
 export type ModuleFunction = (this: Exports, module: Module, exports: Exports, require: Require) => void;
 
 export interface Require {
-    (id: number): any;
+    (id: ModuleId): any;
 
     /** module register */
     m: Record<string, ModuleFunction>;
@@ -77,62 +79,62 @@ const webpackRequire = getWebpackRequire();
 export {webpackRequire as require};
 
 /** @pure */
-export const getAll = () => Object.values(webpackRequire.c);
+export const getAll = (): Module[] => Object.values(webpackRequire.c);
 
 /** @pure */
-export const getSources = () => Object.values(webpackRequire.m);
+export const getSources = (): ModuleFunction[] => Object.values(webpackRequire.m);
 
 /** @pure */
-export const getSource = (id: number | string) => webpackRequire.m[id] ?? null;
+export const getSource = (id: ModuleId | string): ModuleFunction => webpackRequire.m[id] ?? null;
 
 /** @pure */
-export const find = (...filters: Filter[]) => getAll().find(joinFilters(filters)) ?? null;
+export const find = (...filters: Filter[]): Module => getAll().find(joinFilters(filters)) ?? null;
 
 /** @pure */
-export const query = (options: FilterOptions) => find(...genFilters(options));
+export const query = (options: FilterOptions): Module => find(...genFilters(options));
 
 /** @pure */
-export const byId = (id: number | string) => webpackRequire.c[id] ?? null;
+export const byId = (id: ModuleId | string): Module => webpackRequire.c[id] ?? null;
 
 /** @pure */
-export const byExports = (exported: Exports) => find(filters.byExports(exported));
+export const byExports = (exported: Exports): Module => find(filters.byExports(exported));
 
 /** @pure */
-export const byName = (name: string) => find(filters.byName(name));
+export const byName = (name: string): Module => find(filters.byName(name));
 
 /** @pure */
-export const byProps = (...props: string[]) => find(filters.byProps(props));
+export const byProps = (...props: string[]): Module => find(filters.byProps(props));
 
 /** @pure */
-export const byProtos = (...protos: string[]) => find(filters.byProtos(protos));
+export const byProtos = (...protos: string[]): Module => find(filters.byProtos(protos));
 
 /** @pure */
-export const bySource = (...contents: string[]) => find(filters.bySource(contents));
+export const bySource = (...contents: string[]): Module => find(filters.bySource(contents));
 
 export const all = {
     /** @pure */
-    find: (...filters: Filter[]) => getAll().filter(joinFilters(filters)),
+    find: (...filters: Filter[]): Module[] => getAll().filter(joinFilters(filters)),
 
     /** @pure */
-    query: (options: FilterOptions) => all.find(...genFilters(options)),
+    query: (options: FilterOptions): Module[] => all.find(...genFilters(options)),
 
     /** @pure */
-    byExports: (exported: Exports) => all.find(filters.byExports(exported)),
+    byExports: (exported: Exports): Module[] => all.find(filters.byExports(exported)),
 
     /** @pure */
-    byName: (name: string) => all.find(filters.byName(name)),
+    byName: (name: string): Module[] => all.find(filters.byName(name)),
 
     /** @pure */
-    byProps: (...props: string[]) => all.find(filters.byProps(props)),
+    byProps: (...props: string[]): Module[] => all.find(filters.byProps(props)),
 
     /** @pure */
-    byProtos: (...protos: string[]) => all.find(filters.byProtos(protos)),
+    byProtos: (...protos: string[]): Module[] => all.find(filters.byProtos(protos)),
 
     /** @pure */
-    bySource: (...contents: string[]) => all.find(filters.bySource(contents))
+    bySource: (...contents: string[]): Module[] => all.find(filters.bySource(contents))
 };
 
-export const resolveExports = (module: Module | null, options: ResolveOptions = {}) => {
+export const resolveExports = (module: Module | null, options: ResolveOptions = {}): any => {
     if (module instanceof Object && "exports" in module) {
         const exported = module.exports;
         if (!exported) {
@@ -161,7 +163,7 @@ export const resolveExports = (module: Module | null, options: ResolveOptions = 
     return null;
 };
 
-export const resolveImportIds = (module: Module) => {
+export const resolveImportIds = (module: Module): ModuleId[] => {
     // get module as source code
     const source = getSource(module.id).toString();
 
@@ -177,13 +179,15 @@ export const resolveImportIds = (module: Module) => {
     }
 };
 
-export const resolveImports = (module: Module) => resolveImportIds(module).map((id) => byId(id));
+export const resolveImports = (module: Module): Module[] => resolveImportIds(module).map((id) => byId(id));
 
-export const resolveStyles = (module: Module) => resolveImports(module).filter((imported) => (
+export const resolveStyles = (module: Module): Module[] => resolveImports(module).filter((imported) => (
     imported instanceof Object
     && "exports" in imported
     && Object.values(imported.exports).every((value) => typeof value === "string")
     && Object.entries(imported.exports).find(([key, value]: [string, string]) => (new RegExp(`^${key}-([a-zA-Z0-9-_]){6}(\\s.+)$`)).test(value))
 ));
 
-export const resolveUsers = (module: Module) => all.find((_, user) => resolveImportIds(user).includes(module.id));
+export const resolveUsersById = (id: ModuleId): Module[] => all.find((_, user) => resolveImportIds(user).includes(id));
+
+export const resolveUsers = (module: Module): Module[] => resolveUsersById(module.id);

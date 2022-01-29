@@ -1,10 +1,35 @@
 import * as Finder from "../api/finder";
-import {Dispatcher, Listener, Event, Token} from "./dispatch";
+
+export interface Event extends Record<string, any> {
+    type: string;
+}
+
+export type Listener<E extends Event> = (event: E) => void;
+
+export type Token = string;
+
+export declare class Dispatcher {
+    constructor();
+
+    dispatch<E extends Event>(event: E): void;
+    dirtyDispatch<E extends Event>(event: E): void;
+    maybeDispatch<E extends Event>(event: E): any;
+    isDispatching(): boolean;
+
+    register(name: any, actionHandler: any, storeDidChange: any): Token;
+    addDependencies(arg1: any, arg2: any): void;
+    setInterceptor(interceptor: any): void;
+
+    subscribe<E extends Event>(event: E["type"], listener: Listener<E>): void;
+    unsubscribe<E extends Event>(event: E["type"], listener: Listener<E>): void;
+
+    wait<T>(callback: () => T): T | void;
+}
 
 export declare class Store {
     constructor(dispatcher: Dispatcher, events: any);
 
-    protected _dispatcher: Dispatcher;
+    _dispatcher: Dispatcher;
 
     initialize(): void;
     initializeIfNeeded(): void;
@@ -20,6 +45,13 @@ export declare class Store {
     mustEmitChanges(arg: any): void;
     syncWith(arg1: any, arg2: any, arg3: any): any;
     waitFor(...stores: Store[]): void;
+}
+
+export declare class BatchedStoreListener {
+    constructor(e: any, t: any);
+
+    attach(e: any): any;
+    detach(): any;
 }
 
 export interface Flux {
@@ -45,8 +77,8 @@ export interface FluxHooks {
     default: Flux;
 
     Store: typeof Store;
-    Dispatcher: any;
-    BatchedStoreListener: any;
+    Dispatcher: typeof Dispatcher;
+    BatchedStoreListener: typeof BatchedStoreListener;
     ActionBase: any;
 
     useStateFromStores<T>(stores: Store[], callback: () => T, deps?: any[], compare?: Comparator<any>): T;
@@ -56,3 +88,5 @@ export interface FluxHooks {
 }
 
 export const Flux: FluxHooks = Finder.byProps("Store", "useStateFromStores");
+
+export const Events: Dispatcher = Finder.byProps("dirtyDispatch");

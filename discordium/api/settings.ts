@@ -1,6 +1,6 @@
-import {Flux, Dispatch} from "../modules";
 import {Data} from "./data";
-import {Event as DispatchEvent, Listener as DispatchListener} from "../modules/dispatch";
+import {Flux} from "../modules";
+import {Event as DispatchEvent, Listener as DispatchListener} from "../modules/flux";
 
 export type Listener<Data> = (data: Data) => void;
 
@@ -27,7 +27,7 @@ export class Settings<
     protected current: SettingsType;
 
     constructor(Data: Data<DataType>, defaults: SettingsType) {
-        super(new Dispatch.Dispatcher(), {
+        super(new Flux.Dispatcher(), {
             update: ({current}) => Data.save("settings", current)
         });
         this.listeners = new Map();
