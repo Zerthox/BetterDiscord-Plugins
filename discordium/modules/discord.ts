@@ -6,7 +6,7 @@ export const i18n = () => Finder.byProps("languages", "getLocale");
 
 // STORES/ACTIONS
 export const Channels = () => Finder.byProps("getChannel", "hasChannel");
-export const SelectedChannel = () => Finder.query({props: ["getChannelId", "getVoiceChannelId"], export: "default"});
+export const SelectedChannel = () => Finder.byProps("getChannelId", "getVoiceChannelId");
 export const Users = () => Finder.byProps("getUser", "getCurrentUser");
 export const Members = () => Finder.byProps("getMember", "isMember");
 

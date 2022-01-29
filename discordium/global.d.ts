@@ -30,4 +30,10 @@ declare namespace BdApi {
 
     function injectCSS(id: string, styles: string): void;
     function clearCSS(id: string): void;
+
+    function findModule(filter: (module: any) => boolean): any;
+    function findAllModules(filter: (module: any) => boolean): any[];
+    function findModuleByProps(...props: string[]): any;
+    function findModuleByPrototypes(...protos: string[]): any;
+    function findModuleByDisplayName(name: string): any;
 }
