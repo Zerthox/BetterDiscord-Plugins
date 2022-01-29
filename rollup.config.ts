@@ -8,7 +8,8 @@ export default {
     output: {
         format: "cjs",
         exports: "default",
-        preferConst: true
+        preferConst: true,
+        freeze: false
     },
     plugins: [
         json({
