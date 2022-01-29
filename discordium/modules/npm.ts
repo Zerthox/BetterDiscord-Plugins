@@ -13,26 +13,26 @@ import hljsInstance from "highlight.js";
 import joiInstance from "joi";
 import RavenInstance from "raven";
 
-export const EventEmitter: NodeJS.EventEmitter = Finder.byProps("subscribe", "emit");
+export const EventEmitter = (): NodeJS.EventEmitter => Finder.byProps("subscribe", "emit");
 
-export const React: typeof ReactInstance = Finder.byProps("createElement", "Component", "Fragment");
+export const React = (): typeof ReactInstance => Finder.byProps("createElement", "Component", "Fragment");
 
-export const ReactDOM: typeof ReactDOMInstance = Finder.byProps("render", "findDOMNode", "createPortal");
+export const ReactDOM = (): typeof ReactDOMInstance => Finder.byProps("render", "findDOMNode", "createPortal");
 
-export const classNames: typeof classNamesInstance = Finder.find((exports: any) => exports instanceof Object && exports.default === exports && Object.keys(exports).length === 1);
+export const classNames = (): typeof classNamesInstance => Finder.find((exports: any) => exports instanceof Object && exports.default === exports && Object.keys(exports).length === 1);
 
-export const lodash: typeof lodashInstance = Finder.byProps("cloneDeep", "flattenDeep");
+export const lodash = (): typeof lodashInstance => Finder.byProps("cloneDeep", "flattenDeep");
 
-export const semver: typeof semverInstance = Finder.byProps("valid", "satifies");
+export const semver = (): typeof semverInstance => Finder.byProps("valid", "satifies");
 
-export const moment: typeof momentInstance = Finder.byProps("utc", "months");
+export const moment = (): typeof momentInstance => Finder.byProps("utc", "months");
 
-export const SimpleMarkdown: typeof SimpleMarkdownInstance = Finder.byProps("parseBlock", "parseInline");
+export const SimpleMarkdown = (): typeof SimpleMarkdownInstance => Finder.byProps("parseBlock", "parseInline");
 
-export const hljs: typeof hljsInstance = Finder.byProps("highlight", "highlightBlock");
+export const hljs = (): typeof hljsInstance => Finder.byProps("highlight", "highlightBlock");
 
-export const Raven: typeof RavenInstance = Finder.byProps("captureBreadcrumb");
+export const Raven = (): typeof RavenInstance => Finder.byProps("captureBreadcrumb");
 
-export const joi: typeof joiInstance = Finder.byProps("assert", "validate", "object");
+export const joi = (): typeof joiInstance => Finder.byProps("assert", "validate", "object");
 
 // TODO: Platform.js

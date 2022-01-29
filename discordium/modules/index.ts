@@ -1,58 +1,35 @@
-import React from "react";
-import * as Finder from "../api/finder";
+import * as npm from "./npm";
+import * as flux from "./flux";
+import * as discord from "./discord";
 
-export * from "./npm";
-export {Flux, Events} from "./flux";
+type ModuleProxy<T extends Record<string, () => any>> = {
+    [P in keyof T]: ReturnType<T[P]>;
+};
 
-// DISCORD GENERAL
+const createProxy = <T extends Record<string, () => any>>(
+    entries: T
+): ModuleProxy<T> => {
+    const result = {};
+    for (const [key, value] of Object.entries(entries)) {
+        Object.defineProperty(result, key, {
+            enumerable: true,
+            configurable: true,
+            get() {
+                delete this[key];
+                this[key] = value();
+                return this[key];
+            }
+        });
+    }
+    return result as ModuleProxy<T>;
+};
 
-export const Constants = Finder.byProps("Permissions", "RelationshipTypes");
+const Modules = createProxy({
+    ...npm,
+    ...flux,
+    ...discord
+});
 
-export const i18n = Finder.byProps("languages", "getLocale");
+export default Modules;
 
-// DISCORD STORES/ACTIONS
-
-export const Channels = Finder.byProps("getChannel", "hasChannel");
-
-export const SelectedChannel = Finder.query({props: ["getChannelId", "getVoiceChannelId"], export: "default"});
-
-export const Users = Finder.byProps("getUser", "getCurrentUser");
-
-export const Members = Finder.byProps("getMember", "isMember");
-
-export interface ContextMenuActions {
-    openContextMenu(e, t, n, r);
-    openContextMenuLazy(event: React.MouseEvent, resolver: (...args: any[]) => Promise<any>, unknown: any);
-    closeContextMenu();
-}
-
-export const ContextMenuActions: ContextMenuActions = Finder.byProps("openContextMenuLazy");
-
-export interface ModalActions {
-    openModal(e, t, n);
-    openModalLazy(resolver: (...args: any[]) => Promise<any>, unknown: any);
-    updateModal(e, t, n, r, i);
-    closeAllModals();
-    closeModal(e, t);
-    hasAnyModalOpen();
-    hasAnyModalOpenSelector(e);
-    hasModalOpen(e, t);
-    hasModalOpenSelector(e, t, n);
-    useModalsStore(e, n);
-}
-
-export const ModalActions: ModalActions = Finder.byProps("openModalLazy");
-
-// DISCORD COMPONENTS
-
-export const Flex = Finder.byName("Flex");
-
-export const Button = Finder.byProps("Link", "Hovers");
-
-export const Menu = Finder.byProps("MenuGroup", "MenuItem", "MenuSeparator");
-
-export const Form = Finder.byProps("FormItem", "FormSection", "FormDivider");
-
-// DISCORD STYLE MODULES
-
-export const margins = Finder.byProps("marginLarge");
+export const {React, ReactDOM, classNames, lodash, Flux} = Modules;

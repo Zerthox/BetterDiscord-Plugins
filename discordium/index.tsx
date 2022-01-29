@@ -16,8 +16,8 @@ import {SettingsContainer} from "./components";
 
 export {Finder, Discord, ReactInternals, ReactDOMInternals} from "./api";
 export * as Utils from "./utils";
-export * as Modules from "./modules";
-export {React, ReactDOM, classNames, lodash, Flux} from "./modules";
+export {default as Modules} from "./modules";
+export * from "./modules";
 export {version} from "../package.json";
 
 export {Logger, Patcher, Styles, Data, Settings, SettingsProps} from "./api";

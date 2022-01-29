@@ -1,7 +1,6 @@
 import json from "@rollup/plugin-json";
 import scss from "rollup-plugin-scss";
 import typescript from "@rollup/plugin-typescript";
-import tsTransformPure from "./ts-transform-pure";
 import cleanup from "rollup-plugin-cleanup";
 import {RollupOptions} from "rollup";
 
@@ -19,13 +18,9 @@ export default {
         scss({
             output: false
         }),
-        typescript({
-            transformers: {
-                before: [tsTransformPure]
-            }
-        }),
+        typescript(),
         cleanup({
-            comments: [/^\*[@#]__PURE__$/],
+            comments: "none",
             maxEmptyLines: 0,
             extensions: ["js", "ts", "tsx"]
         })

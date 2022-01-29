@@ -78,59 +78,35 @@ const webpackRequire = getWebpackRequire();
 
 export {webpackRequire as require};
 
-/** @pure */
 export const getAll = (): Module[] => Object.values(webpackRequire.c);
 
-/** @pure */
 export const getSources = (): ModuleFunction[] => Object.values(webpackRequire.m);
 
-/** @pure */
 export const getSource = (id: ModuleId | string): ModuleFunction => webpackRequire.m[id] ?? null;
 
-/** @pure */
 export const find = (...filters: Filter[]): Module => getAll().find(joinFilters(filters)) ?? null;
 
-/** @pure */
 export const query = (options: FilterOptions): Module => find(...genFilters(options));
 
-/** @pure */
 export const byId = (id: ModuleId | string): Module => webpackRequire.c[id] ?? null;
 
-/** @pure */
 export const byExports = (exported: Exports): Module => find(filters.byExports(exported));
 
-/** @pure */
 export const byName = (name: string): Module => find(filters.byName(name));
 
-/** @pure */
 export const byProps = (...props: string[]): Module => find(filters.byProps(props));
 
-/** @pure */
 export const byProtos = (...protos: string[]): Module => find(filters.byProtos(protos));
 
-/** @pure */
 export const bySource = (...contents: string[]): Module => find(filters.bySource(contents));
 
 export const all = {
-    /** @pure */
     find: (...filters: Filter[]): Module[] => getAll().filter(joinFilters(filters)),
-
-    /** @pure */
     query: (options: FilterOptions): Module[] => all.find(...genFilters(options)),
-
-    /** @pure */
     byExports: (exported: Exports): Module[] => all.find(filters.byExports(exported)),
-
-    /** @pure */
     byName: (name: string): Module[] => all.find(filters.byName(name)),
-
-    /** @pure */
     byProps: (...props: string[]): Module[] => all.find(filters.byProps(props)),
-
-    /** @pure */
     byProtos: (...protos: string[]): Module[] => all.find(filters.byProtos(protos)),
-
-    /** @pure */
     bySource: (...contents: string[]): Module[] => all.find(filters.bySource(contents))
 };
 

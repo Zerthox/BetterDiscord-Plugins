@@ -8,7 +8,7 @@ export type Listener<E extends Event> = (event: E) => void;
 
 export type Token = string;
 
-export declare class Dispatcher {
+declare class Dispatcher {
     constructor();
 
     dispatch<E extends Event>(event: E): void;
@@ -26,7 +26,7 @@ export declare class Dispatcher {
     wait<T>(callback: () => T): T | void;
 }
 
-export declare class Store {
+declare class Store {
     constructor(dispatcher: Dispatcher, events: any);
 
     _dispatcher: Dispatcher;
@@ -47,7 +47,7 @@ export declare class Store {
     waitFor(...stores: Store[]): void;
 }
 
-export declare class BatchedStoreListener {
+declare class BatchedStoreListener {
     constructor(e: any, t: any);
 
     attach(e: any): any;
@@ -87,6 +87,6 @@ export interface FluxHooks {
     statesWillNeverBeEqual(a: any, b: any): boolean;
 }
 
-export const Flux: FluxHooks = Finder.byProps("Store", "useStateFromStores");
+export const Flux = (): FluxHooks => Finder.byProps("Store", "useStateFromStores");
 
-export const Events: Dispatcher = Finder.byProps("dirtyDispatch");
+export const Events = (): Dispatcher => Finder.byProps("dirtyDispatch");
