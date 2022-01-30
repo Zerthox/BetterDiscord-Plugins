@@ -1,7 +1,7 @@
 /**
  * @name BetterVolume
  * @author Zerthox
- * @version 2.2.0
+ * @version 2.2.1
  * @description Set user volume values manually instead of using a limited slider.
  * @authorLink https://github.com/Zerthox
  * @website https://github.com/Zerthox/BetterDiscord-Plugins
@@ -63,13 +63,24 @@ const createLogger = (name, color, version) => {
     };
 };
 
-const byName$2 = (name) => {
-    return (target) => target instanceof Object && Object.values(target).some(byDisplayName(name));
+const join = (filters) => {
+    const apply = filters.filter((filter) => filter instanceof Function);
+    return (exports) => apply.every((filter) => filter(exports));
 };
-const byDisplayName = (name) => {
+const generate = ({ filter, name, props, protos, source }) => [
+    ...[filter].flat(),
+    typeof name === "string" ? byName$1(name) : null,
+    props instanceof Array ? byProps$1(props) : null,
+    protos instanceof Array ? byProtos(protos) : null,
+    source instanceof Array ? bySource(source) : null
+];
+const byName$1 = (name) => {
+    return (target) => target instanceof Object && Object.values(target).some(byOwnName(name));
+};
+const byOwnName = (name) => {
     return (target) => target?.displayName === name || target?.constructor?.displayName === name;
 };
-const byProps$2 = (props) => {
+const byProps$1 = (props) => {
     return (target) => target instanceof Object && props.every((prop) => prop in target);
 };
 const byProtos = (protos) => {
@@ -79,83 +90,114 @@ const bySource = (contents) => {
     return (target) => target instanceof Function && contents.every((content) => target.toString().includes(content));
 };
 
-const getWebpackRequire = () => {
-    const moduleId = "discordium";
-    let webpackRequire;
-    global.webpackJsonp.push([[], {
-            [moduleId]: (_module, _exports, require) => {
-                webpackRequire = require;
-            }
-        }, [[moduleId]]]);
-    delete webpackRequire.m[moduleId];
-    delete webpackRequire.c[moduleId];
-    return webpackRequire;
+const raw = {
+    single: (filter) => BdApi.findModule(filter),
+    all: (filter) => BdApi.findAllModules(filter)
 };
-const joinFilters = (filters) => {
-    return (module) => {
-        const { exports } = module;
-        return (filters.every((filter) => filter(exports, module))
-            || exports?.__esModule && "default" in exports && filters.every((filter) => filter(exports.default, module)));
-    };
-};
-const genFilters = ({ filter, name, props, protos, source }) => [
-    ...[filter].flat(),
-    typeof name === "string" ? byName$2(name) : null,
-    props instanceof Array ? byProps$2(props) : null,
-    protos instanceof Array ? byProtos(protos) : null,
-    source instanceof Array ? bySource(source) : null
-].filter((entry) => entry instanceof Function);
-const webpackRequire = getWebpackRequire();
-const getAll = () => Object.values(webpackRequire.c);
-const find$1 = (...filters) => /*@__PURE__*/ getAll().find(joinFilters(filters)) ?? null;
-const query$1 = (options) => /*@__PURE__*/ find$1(...genFilters(options));
-const byName$1 = (name) => /*@__PURE__*/ find$1(byName$2(name));
-const byProps$1 = (...props) => /*@__PURE__*/ find$1(byProps$2(props));
-const resolveExports = (module, options = {}) => {
-    if (module instanceof Object && "exports" in module) {
-        const exported = module.exports;
-        if (!exported) {
-            return exported;
+const resolveExports = (target, filter) => {
+    if (target) {
+        if (typeof filter === "string") {
+            return target[filter];
         }
-        const hasDefault = exported.__esModule && "default" in exported;
-        if (options.export) {
-            return exported[options.export];
-        }
-        else if (options.name) {
-            return Object.values(exported).find(byDisplayName(options.name));
-        }
-        else if (options.filter && hasDefault && options.filter(exported.default)) {
-            return exported.default;
-        }
-        if (hasDefault && Object.keys(exported).length === 1) {
-            return exported.default;
-        }
-        else {
-            return exported;
+        else if (filter instanceof Function) {
+            return filter(target) ? target : Object.values(target).find((entry) => filter(entry));
         }
     }
-    return null;
+    return target;
+};
+const find = (...filters) => raw.single(join(filters));
+const query = (options) => resolveExports(find(...generate(options)), options.export);
+const byName = (name) => resolveExports(find(byName$1(name)), byOwnName(name));
+const byProps = (...props) => find(byProps$1(props));
+
+const EventEmitter = () => byProps("subscribe", "emit");
+const React$1 = () => byProps("createElement", "Component", "Fragment");
+const ReactDOM$1 = () => byProps("render", "findDOMNode", "createPortal");
+const classNames$1 = () => find((exports) => exports instanceof Object && exports.default === exports && Object.keys(exports).length === 1);
+const lodash$1 = () => byProps("cloneDeep", "flattenDeep");
+const semver = () => byProps("valid", "satifies");
+const moment = () => byProps("utc", "months");
+const SimpleMarkdown = () => byProps("parseBlock", "parseInline");
+const hljs = () => byProps("highlight", "highlightBlock");
+const Raven = () => byProps("captureBreadcrumb");
+const joi = () => byProps("assert", "validate", "object");
+
+const npm = {
+    __proto__: null,
+    EventEmitter: EventEmitter,
+    React: React$1,
+    ReactDOM: ReactDOM$1,
+    classNames: classNames$1,
+    lodash: lodash$1,
+    semver: semver,
+    moment: moment,
+    SimpleMarkdown: SimpleMarkdown,
+    hljs: hljs,
+    Raven: Raven,
+    joi: joi
 };
 
-const find = (...filters) => resolveExports(/*@__PURE__*/ find$1(...filters));
-const query = (options) => resolveExports(/*@__PURE__*/ query$1(options), { export: options.export });
-const byName = (name) => resolveExports(/*@__PURE__*/ byName$1(name), { name });
-const byProps = (...props) => resolveExports(/*@__PURE__*/ byProps$1(...props), { filter: byProps$2(props) });
+const Flux$1 = () => byProps("Store", "useStateFromStores");
+const Events = () => byProps("dirtyDispatch");
 
-const React = /*@__PURE__*/ byProps("createElement", "Component", "Fragment");
-const classNames = /*@__PURE__*/ find((exports) => exports instanceof Object && exports.default === exports && Object.keys(exports).length === 1);
+const flux = {
+    __proto__: null,
+    Flux: Flux$1,
+    Events: Events
+};
 
-const Dispatch = /*@__PURE__*/ query({ props: ["default", "Dispatcher"], filter: (exports) => exports instanceof Object && !("ActionBase" in exports) });
+const Constants = () => byProps("Permissions", "RelationshipTypes");
+const i18n = () => byProps("languages", "getLocale");
+const Channels = () => byProps("getChannel", "hasChannel");
+const SelectedChannel = () => byProps("getChannelId", "getVoiceChannelId");
+const Users = () => byProps("getUser", "getCurrentUser");
+const Members = () => byProps("getMember", "isMember");
+const ContextMenuActions = () => byProps("openContextMenuLazy");
+const ModalActions = () => byProps("openModalLazy");
+const Flex$1 = () => byName("Flex");
+const Button$1 = () => byProps("Link", "Hovers");
+const Menu = () => byProps("MenuGroup", "MenuItem", "MenuSeparator");
+const Form$1 = () => byProps("FormItem", "FormSection", "FormDivider");
+const margins$1 = () => byProps("marginLarge");
 
-const Flux = /*@__PURE__*/ byProps("Store", "useStateFromStores");
+const discord = {
+    __proto__: null,
+    Constants: Constants,
+    i18n: i18n,
+    Channels: Channels,
+    SelectedChannel: SelectedChannel,
+    Users: Users,
+    Members: Members,
+    ContextMenuActions: ContextMenuActions,
+    ModalActions: ModalActions,
+    Flex: Flex$1,
+    Button: Button$1,
+    Menu: Menu,
+    Form: Form$1,
+    margins: margins$1
+};
 
-const ContextMenuActions = /*@__PURE__*/ byProps("openContextMenuLazy");
-const ModalActions = /*@__PURE__*/ byProps("openModalLazy");
-const Flex = /*@__PURE__*/ byName("Flex");
-const Button = /*@__PURE__*/ byProps("Link", "Hovers");
-const Menu = /*@__PURE__*/ byProps("MenuGroup", "MenuItem", "MenuSeparator");
-const Form = /*@__PURE__*/ byProps("FormItem", "FormSection", "FormDivider");
-const margins = /*@__PURE__*/ byProps("marginLarge");
+const createProxy = (entries) => {
+    const result = {};
+    for (const [key, value] of Object.entries(entries)) {
+        Object.defineProperty(result, key, {
+            enumerable: true,
+            configurable: true,
+            get() {
+                delete this[key];
+                this[key] = value();
+                return this[key];
+            }
+        });
+    }
+    return result;
+};
+const Modules = createProxy({
+    ...npm,
+    ...flux,
+    ...discord
+});
+const { React, ReactDOM, classNames, lodash, Flux } = Modules;
 
 const resolveName = (object, method) => {
     const target = method === "default" ? object[method] : {};
@@ -204,8 +246,8 @@ const createPatcher = (id, Logger) => {
                 }, { silent: true });
             }
         }),
-        waitForContextMenu: (callback) => patcher.waitForLazy(ContextMenuActions, "openContextMenuLazy", 1, callback),
-        waitForModal: (callback) => patcher.waitForLazy(ModalActions, "openModalLazy", 0, callback)
+        waitForContextMenu: (callback) => patcher.waitForLazy(Modules.ContextMenuActions, "openContextMenuLazy", 1, callback),
+        waitForModal: (callback) => patcher.waitForLazy(Modules.ModalActions, "openModalLazy", 0, callback)
     };
     return patcher;
 };
@@ -229,7 +271,7 @@ const createData = (id) => ({
 
 class Settings extends Flux.Store {
     constructor(Data, defaults) {
-        super(new Dispatch.Dispatcher(), {
+        super(new Flux.Dispatcher(), {
             update: ({ current }) => Data.save("settings", current)
         });
         this.listeners = new Map();
@@ -282,6 +324,7 @@ const createSettings = (Data, defaults) => new Settings(Data, defaults);
 
 const confirm = (title, content, options = {}) => BdApi.showConfirmationModal(title, content, options);
 
+const { Flex, Button, Form, margins } = Modules;
 const SettingsContainer = ({ name, children, onReset }) => (React.createElement(Form.FormSection, null,
     children,
     React.createElement(Form.FormDivider, { className: classNames(margins.marginTop20, margins.marginBottom20) }),
@@ -319,7 +362,7 @@ const createPlugin = ({ name, version, styles: css, settings }, callback) => {
 
 const name = "BetterVolume";
 const author = "Zerthox";
-const version = "2.2.0";
+const version = "2.2.1";
 const description = "Set user volume values manually instead of using a limited slider.";
 const config = {
 	name: name,
@@ -330,23 +373,23 @@ const config = {
 
 const styles = ".container-BetterVolume {\n  margin: 0px 8px;\n  padding: 3px 6px;\n  background: var(--background-primary);\n  border-radius: 3px;\n  display: flex;\n}\n\n.input-BetterVolume {\n  margin-right: 2px;\n  flex-grow: 1;\n  background: transparent;\n  border: none;\n  color: var(--interactive-normal);\n  font-weight: 500;\n}";
 
-const { MenuItem } = Menu;
-const SettingsStore = /*@__PURE__*/ byProps("getLocalVolume");
-const SettingsActions = /*@__PURE__*/ byProps("setLocalVolume");
-const AudioConvert = /*@__PURE__*/ byProps("perceptualToAmplitude");
-const NumberInput = ({ value, min, max, onChange }) => (React.createElement("div", { className: "container-BetterVolume" },
-    React.createElement("input", { type: "number", min: min, max: max, value: Math.round((value + Number.EPSILON) * 100) / 100, onChange: ({ target }) => onChange(Math.min(Math.max(parseFloat(target.value), min), max)), className: "input-BetterVolume" }),
+const { MenuItem } = Modules.Menu;
+const SettingsStore = byProps("getLocalVolume");
+const SettingsActions = byProps("setLocalVolume");
+const AudioConvert = byProps("perceptualToAmplitude");
+const NumberInput = ({ value, min, max, fallback, onChange }) => (React.createElement("div", { className: "container-BetterVolume" },
+    React.createElement("input", { type: "number", min: min, max: max, value: Math.round((value + Number.EPSILON) * 100) / 100, onChange: ({ target }) => onChange(Math.min(Math.max(parseFloat(target.value) || fallback, min), max)), className: "input-BetterVolume" }),
     React.createElement("span", { className: "unit-BetterVolume" }, "%")));
 const index = createPlugin({ ...config, styles }, ({ Patcher }) => {
     return {
         async start() {
-            const useUserVolumeItem = await Patcher.waitForContextMenu(() =>  byName$1("useUserVolumeItem")?.exports);
+            const useUserVolumeItem = await Patcher.waitForContextMenu(() => query({ name: "useUserVolumeItem" }));
             Patcher.after(useUserVolumeItem, "default", ({ args: [userId, mediaContext], result }) => {
                 if (result) {
                     const volume = SettingsStore.getLocalVolume(userId, mediaContext);
                     return (React.createElement(React.Fragment, null,
                         result,
-                        React.createElement(MenuItem, { id: "user-volume-input", render: () => (React.createElement(NumberInput, { min: 0, max: 999999, value: AudioConvert.amplitudeToPerceptual(volume), onChange: (value) => SettingsActions.setLocalVolume(userId, AudioConvert.perceptualToAmplitude(value), mediaContext) })) })));
+                        React.createElement(MenuItem, { id: "user-volume-input", render: () => (React.createElement(NumberInput, { value: AudioConvert.amplitudeToPerceptual(volume), min: 0, max: 999999, fallback: 100, onChange: (value) => SettingsActions.setLocalVolume(userId, AudioConvert.perceptualToAmplitude(value), mediaContext) })) })));
                 }
             });
         },

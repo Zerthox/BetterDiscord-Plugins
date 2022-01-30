@@ -3,7 +3,7 @@
 ### [BetterFolders](/dist/bd/BetterFolders.plugin.js) <sub><sup>`v3.1.1` *(Updated: 30/01/2022)*</sup></sub>
 Add new functionality to server folders. Custom Folder Icons. Close other folders on open.
 
-### [BetterVolume](/dist/bd/BetterVolume.plugin.js) <sub><sup>`v2.2.0` *(Updated: 13/01/2022)*</sup></sub>
+### [BetterVolume](/dist/bd/BetterVolume.plugin.js) <sub><sup>`v2.2.1` *(Updated: 30/01/2022)*</sup></sub>
 Set user volume values manually instead of using a limited slider.
 
 ### [Emulator](/v1/Emulator.plugin.js) <sub><sup>`v1.1.0` *(Updated: 17/02/2020)*</sup></sub>
