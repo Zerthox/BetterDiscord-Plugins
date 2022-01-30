@@ -165,7 +165,7 @@ export default createPlugin({...config, settings}, ({Logger, Patcher, Settings})
 
             // wait for context menu lazy load
             const useChannelHideNamesItem = await Patcher.waitForContextMenu(
-                () => Finder.raw.byName("useChannelHideNamesItem")?.exports as {default: (channel: Discord.Channel) => JSX.Element}
+                () => Finder.query({name: "useChannelHideNamesItem"}) as {default: (channel: Discord.Channel) => JSX.Element}
             );
 
             // add queue clear item

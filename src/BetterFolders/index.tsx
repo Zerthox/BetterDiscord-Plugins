@@ -10,7 +10,7 @@ const FolderState = Finder.byProps("getExpandedFolders");
 const {FormItem} = Modules.Form;
 const RadioGroup = Finder.byName("RadioGroup");
 const SwitchItem = Finder.byName("SwitchItem");
-const FolderHeader = Finder.raw.byName("FolderHeader")?.exports;
+const FolderHeader = Finder.query({name: "FolderHeader"});
 
 let FolderIcon = null;
 
