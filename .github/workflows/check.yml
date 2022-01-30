@@ -6,11 +6,13 @@ on:
       - master
     paths:
       - "**/*.ts"
+      - "**/*.tsx"
   pull_request:
     branches:
       - master
     paths:
       - "**/*.ts"
+      - "**/*.tsx"
 
 jobs:
   check:
