@@ -1,20 +1,24 @@
-name: Check
+name: Tests
 
 on:
   push:
     branches:
       - master
     paths:
-      - "**/*.ts"
+      - discordium/**
+      - tests/**
+      - package.json
   pull_request:
     branches:
       - master
     paths:
-      - "**/*.ts"
+      - discordium/**
+      - tests/**
+      - package.json
 
 jobs:
-  check:
-    name: Check
+  tests:
+    name: Tests
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v2
@@ -22,4 +26,4 @@ jobs:
         with:
           node-version: 14
       - run: npm ci
-      - run: npm run check
+      - run: npm run test
