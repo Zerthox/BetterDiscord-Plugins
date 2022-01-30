@@ -10,7 +10,7 @@ Set user volume values manually instead of using a limited slider.
 Emulate Windows, MacOS, Linux or Browser on any platform.
 **WARNING:** Emulating a different platform may cause unwanted side effects. Use at own risk.
 
-### [OnlineFriendCount](/dist/bd/OnlineFriendCount.plugin.js) <sub><sup>`v2.1.1` *(Updated: 13/01/2022)*</sup></sub>
+### [OnlineFriendCount](/dist/bd/OnlineFriendCount.plugin.js) <sub><sup>`v2.1.2` *(Updated: 30/01/2022)*</sup></sub>
 Add the old online friend count back to guild list. Because nostalgia.
 
 ### [VoiceEvents](/dist/bd/VoiceEvents.plugin.js) <sub><sup>`v2.1.0` *(Updated: 13/01/2022)*</sup></sub>
