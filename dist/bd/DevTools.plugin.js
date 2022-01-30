@@ -1,7 +1,7 @@
 /**
  * @name DiscordiumDevTools
  * @author Zerthox
- * @version 0.1.0
+ * @version 0.2.0
  * @description Makes Discordium available as global for development.
  * @authorLink https://github.com/Zerthox
  * @website https://github.com/Zerthox/BetterDiscord-Plugins
@@ -63,13 +63,24 @@ const createLogger = (name, color, version) => {
     };
 };
 
+const join = (filters) => {
+    const apply = filters.filter((filter) => filter instanceof Function);
+    return (exports) => apply.every((filter) => filter(exports));
+};
+const generate = ({ filter, name, props, protos, source }) => [
+    ...[filter].flat(),
+    typeof name === "string" ? byName$2(name) : null,
+    props instanceof Array ? byProps$2(props) : null,
+    protos instanceof Array ? byProtos$2(protos) : null,
+    source instanceof Array ? bySource$2(source) : null
+];
 const byExports$2 = (exported) => {
     return (target) => target === exported || (target instanceof Object && Object.values(target).includes(exported));
 };
 const byName$2 = (name) => {
-    return (target) => target instanceof Object && Object.values(target).some(byDisplayName(name));
+    return (target) => target instanceof Object && Object.values(target).some(byOwnName(name));
 };
-const byDisplayName = (name) => {
+const byOwnName = (name) => {
     return (target) => target?.displayName === name || target?.constructor?.displayName === name;
 };
 const byProps$2 = (props) => {
@@ -82,204 +93,114 @@ const bySource$2 = (contents) => {
     return (target) => target instanceof Function && contents.every((content) => target.toString().includes(content));
 };
 
-const filters = /*#__PURE__*/Object.freeze({
+const Filters = {
     __proto__: null,
+    join: join,
+    generate: generate,
     byExports: byExports$2,
     byName: byName$2,
-    byDisplayName: byDisplayName,
+    byOwnName: byOwnName,
     byProps: byProps$2,
     byProtos: byProtos$2,
     bySource: bySource$2
-});
+};
 
-const getWebpackRequire = () => {
-    const moduleId = "discordium";
-    let webpackRequire;
-    global.webpackJsonp.push([[], {
-            [moduleId]: (_module, _exports, require) => {
-                webpackRequire = require;
-            }
-        }, [[moduleId]]]);
-    delete webpackRequire.m[moduleId];
-    delete webpackRequire.c[moduleId];
-    return webpackRequire;
+const raw = {
+    single: (filter) => BdApi.findModule(filter),
+    all: (filter) => BdApi.findAllModules(filter)
 };
-const joinFilters = (filters) => {
-    return (module) => {
-        const { exports } = module;
-        return (filters.every((filter) => filter(exports, module))
-            || exports?.__esModule && "default" in exports && filters.every((filter) => filter(exports.default, module)));
-    };
+const resolveExports = (target, filter) => {
+    if (target) {
+        if (typeof filter === "string") {
+            return target[filter];
+        }
+        else if (filter instanceof Function) {
+            return filter(target) ? target : Object.values(target).find((entry) => filter(entry));
+        }
+    }
+    return target;
 };
-const genFilters = ({ filter, name, props, protos, source }) => [
-    ...[filter].flat(),
-    typeof name === "string" ? byName$2(name) : null,
-    props instanceof Array ? byProps$2(props) : null,
-    protos instanceof Array ? byProtos$2(protos) : null,
-    source instanceof Array ? bySource$2(source) : null
-].filter((entry) => entry instanceof Function);
-const webpackRequire = getWebpackRequire();
-const getAll$1 = () => Object.values(webpackRequire.c);
-const getSources = () => Object.values(webpackRequire.m);
-const getSource = (id) => webpackRequire.m[id] ?? null;
-const find$1 = (...filters) => /*@__PURE__*/ getAll$1().find(joinFilters(filters)) ?? null;
-const query$1 = (options) => /*@__PURE__*/ find$1(...genFilters(options));
-const byId$1 = (id) => webpackRequire.c[id] ?? null;
-const byExports$1 = (exported) => /*@__PURE__*/ find$1(byExports$2(exported));
-const byName$1 = (name) => /*@__PURE__*/ find$1(byName$2(name));
-const byProps$1 = (...props) => /*@__PURE__*/ find$1(byProps$2(props));
-const byProtos$1 = (...protos) => /*@__PURE__*/ find$1(byProtos$2(protos));
-const bySource$1 = (...contents) => /*@__PURE__*/ find$1(bySource$2(contents));
+const find$1 = (...filters) => raw.single(join(filters));
+const query$1 = (options) => resolveExports(find$1(...generate(options)), options.export);
+const byExports$1 = (exported) => find$1(byExports$2(exported));
+const byName$1 = (name) => resolveExports(find$1(byName$2(name)), byOwnName(name));
+const byProps$1 = (...props) => find$1(byProps$2(props));
+const byProtos$1 = (...protos) => find$1(byProtos$2(protos));
+const bySource$1 = (...contents) => find$1(bySource$2(contents));
 const all$1 = {
-    find: (...filters) => /*@__PURE__*/ getAll$1().filter(joinFilters(filters)),
-    query: (options) => all$1.find(...genFilters(options)),
+    find: (...filters) => raw.all(join(filters)),
+    query: (options) => all$1.find(...generate(options)).map((entry) => resolveExports(entry, options.export)),
     byExports: (exported) => all$1.find(byExports$2(exported)),
-    byName: (name) => all$1.find(byName$2(name)),
+    byName: (name) => all$1.find(byName$2(name)).map((entry) => resolveExports(entry, byOwnName(name))),
     byProps: (...props) => all$1.find(byProps$2(props)),
     byProtos: (...protos) => all$1.find(byProtos$2(protos)),
     bySource: (...contents) => all$1.find(bySource$2(contents))
 };
-const resolveExports = (module, options = {}) => {
-    if (module instanceof Object && "exports" in module) {
-        const exported = module.exports;
-        if (!exported) {
-            return exported;
-        }
-        const hasDefault = exported.__esModule && "default" in exported;
-        if (options.export) {
-            return exported[options.export];
-        }
-        else if (options.name) {
-            return Object.values(exported).find(byDisplayName(options.name));
-        }
-        else if (options.filter && hasDefault && options.filter(exported.default)) {
-            return exported.default;
-        }
-        if (hasDefault && Object.keys(exported).length === 1) {
-            return exported.default;
-        }
-        else {
-            return exported;
-        }
-    }
-    return null;
-};
-const resolveImportIds$1 = (module) => {
-    const source = /*@__PURE__*/ getSource(module.id).toString();
-    const match = source.match(/^(?:function)?\s*\(\w+,\w+,(\w+)\)\s*(?:=>)?\s*{/);
-    if (match) {
-        const requireName = match[1];
-        const calls = Array.from(source.matchAll(new RegExp(`\\W${requireName}\\((\\d+)\\)`, "g")));
-        return calls.map((call) => parseInt(call[1]));
-    }
-    else {
-        return [];
-    }
-};
-const resolveImports$1 = (module) => resolveImportIds$1(module).map((id) => /*@__PURE__*/ byId$1(id));
-const resolveStyles$1 = (module) => resolveImports$1(module).filter((imported) => (imported instanceof Object
-    && "exports" in imported
-    && Object.values(imported.exports).every((value) => typeof value === "string")
-    && Object.entries(imported.exports).find(([key, value]) => (new RegExp(`^${key}-([a-zA-Z0-9-_]){6}(\\s.+)$`)).test(value))));
-const resolveUsers$1 = (module) => all$1.find((_, user) => resolveImportIds$1(user).includes(module.id));
 
-const raw = /*#__PURE__*/Object.freeze({
+const index$2 = {
     __proto__: null,
-    webpackRequire: webpackRequire,
-    getAll: getAll$1,
-    getSources: getSources,
-    getSource: getSource,
     find: find$1,
     query: query$1,
-    byId: byId$1,
     byExports: byExports$1,
     byName: byName$1,
     byProps: byProps$1,
     byProtos: byProtos$1,
     bySource: bySource$1,
     all: all$1,
-    resolveExports: resolveExports,
-    resolveImportIds: resolveImportIds$1,
-    resolveImports: resolveImports$1,
-    resolveStyles: resolveStyles$1,
-    resolveUsers: resolveUsers$1
-});
-
-const getAll = () => /*@__PURE__*/ getAll$1().map((entry) => resolveExports(entry));
-const find = (...filters) => resolveExports(/*@__PURE__*/ find$1(...filters));
-const query = (options) => resolveExports(/*@__PURE__*/ query$1(options), { export: options.export });
-const byId = (id) => resolveExports(/*@__PURE__*/ byId$1(id));
-const byExports = (exported) => resolveExports(/*@__PURE__*/ byExports$1(exported));
-const byName = (name) => resolveExports(/*@__PURE__*/ byName$1(name), { name });
-const byProps = (...props) => resolveExports(/*@__PURE__*/ byProps$1(...props), { filter: byProps$2(props) });
-const byProtos = (...protos) => resolveExports(/*@__PURE__*/ byProtos$1(...protos), { filter: byProtos$2(protos) });
-const bySource = (...contents) => resolveExports(/*@__PURE__*/ bySource$1(...contents), { filter: bySource$2(contents) });
-const resolveImportIds = (exported) => resolveImportIds$1(/*@__PURE__*/ byExports$1(exported));
-const resolveImports = (exported) => resolveImports$1(/*@__PURE__*/ byExports$1(exported)).map((entry) => resolveExports(entry));
-const resolveStyles = (exported) => resolveStyles$1(/*@__PURE__*/ byExports$1(exported)).map((entry) => resolveExports(entry));
-const resolveUsers = (exported) => resolveUsers$1(/*@__PURE__*/ byExports$1(exported)).map((entry) => resolveExports(entry));
-const all = {
-    find: (...filters) => all$1.find(...filters).map((entry) => resolveExports(entry)),
-    query: (options) => all$1.query(options).map((entry) => resolveExports(entry, { export: options.export })),
-    byExports: (exported) => all$1.byExports(exported).map((entry) => resolveExports(entry)),
-    byName: (name) => all$1.byName(name).map((entry) => resolveExports(entry, { name })),
-    byProps: (...props) => all$1.byProps(...props).map((entry) => resolveExports(entry, { filter: byProps$2(props) })),
-    byProtos: (...protos) => all$1.byProtos(...protos).map((entry) => resolveExports(entry, { filter: byProtos$2(protos) })),
-    bySource: (...contents) => all$1.bySource(...contents).map((entry) => resolveExports(entry, { filter: bySource$2(contents) }))
+    Filters: Filters
 };
 
-const index$3 = /*#__PURE__*/Object.freeze({
+const EventEmitter = () => byProps$1("subscribe", "emit");
+const React$1 = () => byProps$1("createElement", "Component", "Fragment");
+const ReactDOM$1 = () => byProps$1("render", "findDOMNode", "createPortal");
+const classNames$1 = () => find$1((exports) => exports instanceof Object && exports.default === exports && Object.keys(exports).length === 1);
+const lodash$1 = () => byProps$1("cloneDeep", "flattenDeep");
+const semver = () => byProps$1("valid", "satifies");
+const moment = () => byProps$1("utc", "months");
+const SimpleMarkdown = () => byProps$1("parseBlock", "parseInline");
+const hljs = () => byProps$1("highlight", "highlightBlock");
+const Raven = () => byProps$1("captureBreadcrumb");
+const joi = () => byProps$1("assert", "validate", "object");
+
+const npm = {
     __proto__: null,
-    getAll: getAll,
-    find: find,
-    query: query,
-    byId: byId,
-    byExports: byExports,
-    byName: byName,
-    byProps: byProps,
-    byProtos: byProtos,
-    bySource: bySource,
-    resolveImportIds: resolveImportIds,
-    resolveImports: resolveImports,
-    resolveStyles: resolveStyles,
-    resolveUsers: resolveUsers,
-    all: all,
-    raw: raw,
-    filters: filters
-});
+    EventEmitter: EventEmitter,
+    React: React$1,
+    ReactDOM: ReactDOM$1,
+    classNames: classNames$1,
+    lodash: lodash$1,
+    semver: semver,
+    moment: moment,
+    SimpleMarkdown: SimpleMarkdown,
+    hljs: hljs,
+    Raven: Raven,
+    joi: joi
+};
 
-const EventEmitter = /*@__PURE__*/ byProps("subscribe", "emit");
-const React = /*@__PURE__*/ byProps("createElement", "Component", "Fragment");
-const ReactDOM = /*@__PURE__*/ byProps("render", "findDOMNode", "createPortal");
-const classNames = /*@__PURE__*/ find((exports) => exports instanceof Object && exports.default === exports && Object.keys(exports).length === 1);
-const lodash = /*@__PURE__*/ byProps("cloneDeep", "flattenDeep");
-const semver = /*@__PURE__*/ byProps("valid", "satifies");
-const moment = /*@__PURE__*/ byProps("utc", "months");
-const SimpleMarkdown = /*@__PURE__*/ byProps("parseBlock", "parseInline");
-const hljs = /*@__PURE__*/ byProps("highlight", "highlightBlock");
-const Raven = /*@__PURE__*/ byProps("captureBreadcrumb");
-const joi = /*@__PURE__*/ byProps("assert", "validate", "object");
+const Flux$1 = () => byProps$1("Store", "useStateFromStores");
+const Events = () => byProps$1("dirtyDispatch");
 
-const Dispatch = /*@__PURE__*/ query({ props: ["default", "Dispatcher"], filter: (exports) => exports instanceof Object && !("ActionBase" in exports) });
-const Events = Dispatch?.default;
+const flux = {
+    __proto__: null,
+    Flux: Flux$1,
+    Events: Events
+};
 
-const Flux = /*@__PURE__*/ byProps("Store", "useStateFromStores");
+const Constants = () => byProps$1("Permissions", "RelationshipTypes");
+const i18n = () => byProps$1("languages", "getLocale");
+const Channels = () => byProps$1("getChannel", "hasChannel");
+const SelectedChannel = () => byProps$1("getChannelId", "getVoiceChannelId");
+const Users = () => byProps$1("getUser", "getCurrentUser");
+const Members = () => byProps$1("getMember", "isMember");
+const ContextMenuActions = () => byProps$1("openContextMenuLazy");
+const ModalActions = () => byProps$1("openModalLazy");
+const Flex$1 = () => byName$1("Flex");
+const Button$1 = () => byProps$1("Link", "Hovers");
+const Menu = () => byProps$1("MenuGroup", "MenuItem", "MenuSeparator");
+const Form$1 = () => byProps$1("FormItem", "FormSection", "FormDivider");
+const margins$1 = () => byProps$1("marginLarge");
 
-const Constants = /*@__PURE__*/ byProps("Permissions", "RelationshipTypes");
-const i18n = /*@__PURE__*/ byProps("languages", "getLocale");
-const Channels = /*@__PURE__*/ byProps("getChannel", "hasChannel");
-const SelectedChannel = /*@__PURE__*/ query({ props: ["getChannelId", "getVoiceChannelId"], export: "default" });
-const Users = /*@__PURE__*/ byProps("getUser", "getCurrentUser");
-const Members = /*@__PURE__*/ byProps("getMember", "isMember");
-const ContextMenuActions = /*@__PURE__*/ byProps("openContextMenuLazy");
-const ModalActions = /*@__PURE__*/ byProps("openModalLazy");
-const Flex = /*@__PURE__*/ byName("Flex");
-const Button = /*@__PURE__*/ byProps("Link", "Hovers");
-const Menu = /*@__PURE__*/ byProps("MenuGroup", "MenuItem", "MenuSeparator");
-const Form = /*@__PURE__*/ byProps("FormItem", "FormSection", "FormDivider");
-const margins = /*@__PURE__*/ byProps("marginLarge");
-
-const index$2 = /*#__PURE__*/Object.freeze({
+const discord$1 = {
     __proto__: null,
     Constants: Constants,
     i18n: i18n,
@@ -289,26 +210,35 @@ const index$2 = /*#__PURE__*/Object.freeze({
     Members: Members,
     ContextMenuActions: ContextMenuActions,
     ModalActions: ModalActions,
-    Flex: Flex,
-    Button: Button,
+    Flex: Flex$1,
+    Button: Button$1,
     Menu: Menu,
-    Form: Form,
-    margins: margins,
-    Dispatch: Dispatch,
-    Events: Events,
-    Flux: Flux,
-    EventEmitter: EventEmitter,
-    React: React,
-    ReactDOM: ReactDOM,
-    classNames: classNames,
-    lodash: lodash,
-    semver: semver,
-    moment: moment,
-    SimpleMarkdown: SimpleMarkdown,
-    hljs: hljs,
-    Raven: Raven,
-    joi: joi
+    Form: Form$1,
+    margins: margins$1
+};
+
+const createProxy = (entries) => {
+    const result = {};
+    for (const [key, value] of Object.entries(entries)) {
+        Object.defineProperty(result, key, {
+            enumerable: true,
+            configurable: true,
+            get() {
+                delete this[key];
+                this[key] = value();
+                return this[key];
+            }
+        });
+    }
+    return result;
+};
+const Modules = createProxy({
+    ...npm,
+    ...flux,
+    ...discord$1
 });
+const Modules$1 = Modules;
+const { React, ReactDOM, classNames, lodash, Flux } = Modules;
 
 const resolveName = (object, method) => {
     const target = method === "default" ? object[method] : {};
@@ -357,8 +287,8 @@ const createPatcher = (id, Logger) => {
                 }, { silent: true });
             }
         }),
-        waitForContextMenu: (callback) => patcher.waitForLazy(ContextMenuActions, "openContextMenuLazy", 1, callback),
-        waitForModal: (callback) => patcher.waitForLazy(ModalActions, "openModalLazy", 0, callback)
+        waitForContextMenu: (callback) => patcher.waitForLazy(Modules$1.ContextMenuActions, "openContextMenuLazy", 1, callback),
+        waitForModal: (callback) => patcher.waitForLazy(Modules$1.ModalActions, "openModalLazy", 0, callback)
     };
     return patcher;
 };
@@ -382,7 +312,7 @@ const createData = (id) => ({
 
 class Settings extends Flux.Store {
     constructor(Data, defaults) {
-        super(new Dispatch.Dispatcher(), {
+        super(new Flux.Dispatcher(), {
             update: ({ current }) => Data.save("settings", current)
         });
         this.listeners = new Map();
@@ -433,9 +363,9 @@ class Settings extends Flux.Store {
 }
 const createSettings = (Data, defaults) => new Settings(Data, defaults);
 
-const discord = /*#__PURE__*/Object.freeze({
+const discord = {
     __proto__: null
-});
+};
 
 const ReactInternals = React?.__SECRET_INTERNALS_DO_NOT_USE_OR_YOU_WILL_BE_FIRED;
 const [getInstanceFromNode, getNodeFromInstance, getFiberCurrentPropsFromNode, enqueueStateRestore, restoreStateIfNeeded, batchedUpdates] = ReactDOM?.__SECRET_INTERNALS_DO_NOT_USE_OR_YOU_WILL_BE_FIRED?.Events ?? [];
@@ -535,7 +465,7 @@ const forceFullRerender = (fiber) => new Promise((resolve) => {
     }
 });
 
-const index$1 = /*#__PURE__*/Object.freeze({
+const index$1 = {
     __proto__: null,
     sleep: sleep,
     alert: alert,
@@ -548,8 +478,9 @@ const index$1 = /*#__PURE__*/Object.freeze({
     findOwner: findOwner,
     forceUpdateOwner: forceUpdateOwner,
     forceFullRerender: forceFullRerender
-});
+};
 
+const { Flex, Button, Form, margins } = Modules$1;
 const SettingsContainer = ({ name, children, onReset }) => (React.createElement(Form.FormSection, null,
     children,
     React.createElement(Form.FormDivider, { className: classNames(margins.marginTop20, margins.marginBottom20) }),
@@ -558,7 +489,7 @@ const SettingsContainer = ({ name, children, onReset }) => (React.createElement(
                 onConfirm: () => onReset()
             }) }, "Reset"))));
 
-const version$1 = "0.2.2";
+const version$1 = "0.2.3";
 
 const createPlugin = ({ name, version, styles: css, settings }, callback) => {
     const Logger = createLogger(name, "#3a71c1", version);
@@ -587,27 +518,107 @@ const createPlugin = ({ name, version, styles: css, settings }, callback) => {
     return Wrapper;
 };
 
-const Discordium = /*#__PURE__*/Object.freeze({
+const Discordium = {
     __proto__: null,
     createPlugin: createPlugin,
-    Finder: index$3,
+    Finder: index$2,
     Discord: discord,
     ReactInternals: ReactInternals,
     ReactDOMInternals: ReactDOMInternals,
     Utils: index$1,
-    Modules: index$2,
+    Modules: Modules$1,
+    version: version$1,
+    Settings: Settings,
     React: React,
     ReactDOM: ReactDOM,
     classNames: classNames,
     lodash: lodash,
-    Flux: Flux,
-    version: version$1,
-    Settings: Settings
-});
+    Flux: Flux
+};
+
+const getWebpackRequire = () => {
+    const moduleId = "discordium";
+    let webpackRequire;
+    global.webpackJsonp.push([[], {
+            [moduleId]: (_module, _exports, require) => {
+                webpackRequire = require;
+            }
+        }, [[moduleId]]]);
+    delete webpackRequire.m[moduleId];
+    delete webpackRequire.c[moduleId];
+    return webpackRequire;
+};
+const webpackRequire = getWebpackRequire();
+const applyFilters = (filters) => (module) => {
+    const { exports } = module;
+    return (filters.every((filter) => filter(exports, module))
+        || exports?.__esModule && "default" in exports && filters.every((filter) => filter(exports.default, module)));
+};
+const modules = () => Object.values(webpackRequire.c);
+const sources = () => Object.values(webpackRequire.m);
+const sourceOf = (id) => webpackRequire.m[id] ?? null;
+const find = (...filters) => modules().find(applyFilters(filters)) ?? null;
+const query = (options) => find(...generate(options));
+const byId = (id) => webpackRequire.c[id] ?? null;
+const byExports = (exported) => find(byExports$2(exported));
+const byName = (name) => find(byName$2(name));
+const byProps = (...props) => find(byProps$2(props));
+const byProtos = (...protos) => find(byProtos$2(protos));
+const bySource = (...contents) => find(bySource$2(contents));
+const all = {
+    find: (...filters) => modules().filter(applyFilters(filters)),
+    query: (options) => all.find(...generate(options)),
+    byExports: (exported) => all.find(byExports$2(exported)),
+    byName: (name) => all.find(byName$2(name)),
+    byProps: (...props) => all.find(byProps$2(props)),
+    byProtos: (...protos) => all.find(byProtos$2(protos)),
+    bySource: (...contents) => all.find(bySource$2(contents))
+};
+const resolveImportIds = (module) => {
+    const source = sourceOf(module.id).toString();
+    const match = source.match(/^(?:function)?\s*\(\w+,\w+,(\w+)\)\s*(?:=>)?\s*{/);
+    if (match) {
+        const requireName = match[1];
+        const calls = Array.from(source.matchAll(new RegExp(`\\W${requireName}\\((\\d+)\\)`, "g")));
+        return calls.map((call) => parseInt(call[1]));
+    }
+    else {
+        return [];
+    }
+};
+const resolveImports = (module) => resolveImportIds(module).map((id) => byId(id));
+const resolveStyles = (module) => resolveImports(module).filter((imported) => (imported instanceof Object
+    && "exports" in imported
+    && Object.values(imported.exports).every((value) => typeof value === "string")
+    && Object.entries(imported.exports).find(([key, value]) => (new RegExp(`^${key}-([a-zA-Z0-9-_]){6}(\\s.+)$`)).test(value))));
+const resolveUsersById = (id) => all.find((_, user) => resolveImportIds(user).includes(id));
+const resolveUsers = (module) => resolveUsersById(module.id);
+
+const DevFinder = {
+    __proto__: null,
+    require: webpackRequire,
+    modules: modules,
+    sources: sources,
+    sourceOf: sourceOf,
+    find: find,
+    query: query,
+    byId: byId,
+    byExports: byExports,
+    byName: byName,
+    byProps: byProps,
+    byProtos: byProtos,
+    bySource: bySource,
+    all: all,
+    resolveImportIds: resolveImportIds,
+    resolveImports: resolveImports,
+    resolveStyles: resolveStyles,
+    resolveUsersById: resolveUsersById,
+    resolveUsers: resolveUsers
+};
 
 const name = "DiscordiumDevTools";
 const author = "Zerthox";
-const version = "0.1.0";
+const version = "0.2.0";
 const description = "Makes Discordium available as global for development.";
 const config = {
 	name: name,
@@ -616,10 +627,17 @@ const config = {
 	description: description
 };
 
-global.Discordium = Discordium;
+const { Finder } = Discordium;
+Finder.dev = DevFinder;
 const index = createPlugin(config, () => ({
-    start() { },
-    stop() { }
+    start() {
+        global.Discordium = Discordium;
+        global.dium = Discordium;
+    },
+    stop() {
+        delete global.Discordium;
+        delete global.dium;
+    }
 }));
 
 module.exports = index;
