@@ -13,3 +13,8 @@ global.webpackJsonp = {
         }
     }
 };
+
+global.BdApi = {
+    findModule: () => null,
+    findAllModules: () => []
+} as any;
