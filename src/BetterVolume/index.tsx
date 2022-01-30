@@ -11,17 +11,18 @@ interface NumberInputProps {
     value: number;
     min: number;
     max: number;
+    fallback: number;
     onChange(value: number): void;
 }
 
-const NumberInput = ({value, min, max, onChange}: NumberInputProps): JSX.Element => (
+const NumberInput = ({value, min, max, fallback, onChange}: NumberInputProps): JSX.Element => (
     <div className="container-BetterVolume">
         <input
             type="number"
             min={min}
             max={max}
             value={Math.round((value + Number.EPSILON) * 100) / 100}
-            onChange={({target}) => onChange(Math.min(Math.max(parseFloat(target.value), min), max))}
+            onChange={({target}) => onChange(Math.min(Math.max(parseFloat(target.value) || fallback, min), max))}
             className="input-BetterVolume"
         />
         <span className="unit-BetterVolume">%</span>
@@ -33,7 +34,7 @@ export default createPlugin({...config, styles}, ({Patcher}) => {
         async start() {
             // wait for context menu lazy load
             const useUserVolumeItem = await Patcher.waitForContextMenu(
-                () => Finder.raw.byName("useUserVolumeItem")?.exports as {default: (userId: Discord.Snowflake, mediaContext: any) => JSX.Element}
+                () => Finder.query({name: "useUserVolumeItem"}) as {default: (userId: Discord.Snowflake, mediaContext: any) => JSX.Element}
             );
 
             // add number input
@@ -50,9 +51,10 @@ export default createPlugin({...config, styles}, ({Patcher}) => {
                                 id="user-volume-input"
                                 render={() => (
                                     <NumberInput
+                                        value={AudioConvert.amplitudeToPerceptual(volume)}
                                         min={0}
                                         max={999999}
-                                        value={AudioConvert.amplitudeToPerceptual(volume)}
+                                        fallback={100}
                                         onChange={(value) => SettingsActions.setLocalVolume(
                                             userId,
                                             AudioConvert.perceptualToAmplitude(value),
