@@ -17,12 +17,11 @@ export const byExports = (exported: Exports) => {
     return (target) => target === exported || (target instanceof Object && Object.values(target).includes(exported));
 };
 
-// TODO: custom export resolve behavior for names, matched object value instead of whole object
 export const byName = (name: string) => {
-    return (target) => target instanceof Object && Object.values(target).some(byDisplayName(name));
+    return (target) => target instanceof Object && Object.values(target).some(byOwnName(name));
 };
 
-export const byDisplayName = (name: string) => {
+export const byOwnName = (name: string) => {
     return (target: any) => target?.displayName === name || target?.constructor?.displayName === name;
 };
 
@@ -34,7 +33,7 @@ export const byProtos = (protos: string[]) => {
     return (target: any) => target instanceof Object && target.prototype instanceof Object && protos.every((proto) => proto in target.prototype);
 };
 
+// TODO: allow regex?
 export const bySource = (contents: string[]) => {
-    // TODO: allow regex?
     return (target) => target instanceof Function && contents.every((content) => target.toString().includes(content));
 };

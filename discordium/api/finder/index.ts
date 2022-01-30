@@ -32,6 +32,7 @@ export interface Query {
     props?: string[];
     protos?: string[];
     source?: string[];
+    export?: string | ((target: any) => boolean);
 }
 
 // we assume bd env for now
@@ -40,17 +41,31 @@ const raw = {
     all: (filter: (module: any) => boolean) => BdApi.findAllModules(filter)
 };
 
+const resolveExports = (
+    target: any,
+    filter?: string | ((target: any) => boolean)
+) => {
+    if (target) {
+        if (typeof filter === "string") {
+            return target[filter];
+        } else if (filter instanceof Function) {
+            return filter(target) ? target : Object.values(target).find((entry) => filter(entry));
+        }
+    }
+    return target;
+};
+
 /** Finds a module using a set of filter functions. */
 export const find = (...filters: Filter[]) => raw.single(Filters.join(filters));
 
 /** Finds a module using query options. */
-export const query = (options: Query) => find(...Filters.generate(options));
+export const query = (options: Query) => resolveExports(find(...Filters.generate(options)), options.export);
 
 /** Finds a module using its exports. */
 export const byExports = (exported: Exports) => find(Filters.byExports(exported));
 
 /** Finds a module using the name of its export.  */
-export const byName = (name: string) => find(Filters.byName(name));
+export const byName = (name: string) => resolveExports(find(Filters.byName(name)), Filters.byOwnName(name));
 
 /** Finds a module using property names of its export. */
 export const byProps = (...props: string[]) => find(Filters.byProps(props));
@@ -67,13 +82,13 @@ export const all = {
     find: (...filters: Filter[]) => raw.all(Filters.join(filters)),
 
     /** Finds all modules using query options. */
-    query: (options: Query) => all.find(...Filters.generate(options)),
+    query: (options: Query) => all.find(...Filters.generate(options)).map((entry) => resolveExports(entry, options.export)),
 
     /** Finds all modules using the exports. */
     byExports: (exported: Exports) => all.find(Filters.byExports(exported)),
 
     /** Finds all modules using the name of its export. */
-    byName: (name: string) => all.find(Filters.byName(name)),
+    byName: (name: string) => all.find(Filters.byName(name)).map((entry) => resolveExports(entry, Filters.byOwnName(name))),
 
     /** Finds all modules using property names of its export. */
     byProps: (...props: string[]) => all.find(Filters.byProps(props)),
