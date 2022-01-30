@@ -5,6 +5,7 @@ import {Filters, Require, Module, ModuleId, Exports, ModuleFunction, Query} from
 const getWebpackRequire = (): Require => {
     const moduleId = "discordium";
 
+    // TODO: use chunk instead of bd's jsonp polyfill
     let webpackRequire: Require;
     global.webpackJsonp.push([[], {
         [moduleId]: (_module: Module, _exports: Exports, require: Require) => {
