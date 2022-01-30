@@ -13,7 +13,7 @@ Emulate Windows, MacOS, Linux or Browser on any platform.
 ### [OnlineFriendCount](/dist/bd/OnlineFriendCount.plugin.js) <sub><sup>`v2.1.2` *(Updated: 30/01/2022)*</sup></sub>
 Add the old online friend count back to guild list. Because nostalgia.
 
-### [VoiceEvents](/dist/bd/VoiceEvents.plugin.js) <sub><sup>`v2.1.0` *(Updated: 13/01/2022)*</sup></sub>
+### [VoiceEvents](/dist/bd/VoiceEvents.plugin.js) <sub><sup>`v2.1.1` *(Updated: 30/01/2022)*</sup></sub>
 Add TTS Event Notifications to your selected Voice Channel. TeamSpeak feeling.
 
 <br>
