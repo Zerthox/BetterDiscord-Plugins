@@ -36,6 +36,15 @@ export const ModalActions = (): ModalActions => Finder.byProps("openModalLazy");
 // COMPONENTS
 export const Flex = () => Finder.byName("Flex");
 export const Button = () => Finder.byProps("Link", "Hovers");
+export const Text = () => Finder.byName("Text");
+export const Links = () => Finder.byProps("Link", "NavLink");
+
+export const Switch = () => Finder.byName("Switch");
+export const SwitchItem = () => Finder.byName("SwitchItem");
+export const RadioGroup = () => Finder.byName("RadioGroup");
+export const Slider = () => Finder.byName("Slider");
+export const TextInput = () => Finder.byName("TextInput");
+
 export const Menu = () => Finder.byProps("MenuGroup", "MenuItem", "MenuSeparator");
 export const Form = () => Finder.byProps("FormItem", "FormSection", "FormDivider");
 

@@ -7,9 +7,8 @@ const ClientActions = Finder.byProps("toggleGuildFolderExpand");
 const GuildsTree = Finder.byProps("getGuildsTree");
 const FolderState = Finder.byProps("getExpandedFolders");
 
+const {RadioGroup, SwitchItem} = Modules;
 const {FormItem} = Modules.Form;
-const RadioGroup = Finder.byName("RadioGroup");
-const SwitchItem = Finder.byName("SwitchItem");
 const FolderHeader = Finder.query({name: "FolderHeader"});
 
 let FolderIcon = null;

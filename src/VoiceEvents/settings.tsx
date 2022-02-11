@@ -1,13 +1,10 @@
 import {Finder, React, Modules, classNames, SettingsProps} from "discordium";
 
-const {Flex, Button, margins} = Modules;
-const Text = Finder.byName("Text");
+const {Flex, Button, Text, Switch, SwitchItem, TextInput, Slider} = Modules;
 const {FormSection, FormTitle, FormItem, FormText, FormDivider} = Modules.Form;
-const Switch = Finder.byName("Switch");
-const SwitchItem = Finder.byName("SwitchItem");
-const TextInput = Finder.byName("TextInput");
 const SelectTempWrapper = Finder.byName("SelectTempWrapper");
-const Slider = Finder.byName("Slider");
+
+const {margins} = Modules;
 
 export const settings = {
     voice: null as string,

@@ -1,9 +1,10 @@
 import {Finder, React, Modules} from "discordium";
 
-const {Flex, Button, margins} = Modules;
+const {Flex, Button, SwitchItem} = Modules;
 const {FormText} = Modules.Form;
-const SwitchItem = Finder.byName("SwitchItem");
 const ImageInput = Finder.byName("ImageInput");
+
+const {margins} = Modules;
 
 export interface FolderData {
     icon: string;

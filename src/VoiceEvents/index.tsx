@@ -6,7 +6,7 @@ const {Events, Channels, SelectedChannel, Users, Members} = Modules;
 const {ActionTypes} = Modules.Constants;
 const VoiceStates = Finder.byProps("getVoiceStates", "hasVideo");
 
-const Text = Finder.byName("Text");
+const {Text} = Modules;
 const {MenuItem} = Modules.Menu;
 
 type NotificationType = "join" | "leave" | "joinSelf" | "moveSelf" | "leaveSelf";

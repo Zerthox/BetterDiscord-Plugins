@@ -7,7 +7,7 @@ const Status = Finder.byProps("getState", "getStatus", "isMobileOnline");
 const Relationships = Finder.byProps("isFriend", "getRelationshipCount");
 
 const HomeButton = Finder.byProps("HomeButton");
-const {Link} = Finder.byProps("Link", "NavLink") ?? {};
+const {Link} = Modules.Links;
 
 const guildStyles = Finder.byProps("guilds", "base");
 const listStyles = Finder.byProps("listItem");
