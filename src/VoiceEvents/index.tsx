@@ -31,6 +31,16 @@ const saveStates = () => {
 };
 
 export default createPlugin({...config, settings}, ({Logger, Patcher, Settings}) => {
+    // backwards compatibility for settings
+    for (const setting of ["join", "leave", "joinSelf", "moveSelf", "leaveSelf", "privateCall"]) {
+        const current = Settings.get()[setting];
+        if (typeof current === "string") {
+            Settings.set({
+                [setting]: {enabled: true, message: current}
+            });
+        }
+    }
+
     const findDefaultVoice = () => {
         const voices = speechSynthesis.getVoices();
         if (voices.length === 0) {
@@ -85,6 +95,12 @@ export default createPlugin({...config, settings}, ({Logger, Patcher, Settings})
 
     const notify = (type: NotificationType, userId: string, channelId: string) => {
         const settings = Settings.get();
+
+        // check for enabled
+        if (!settings[type].enabled) {
+            return;
+        }
+
         const user = Users.getUser(userId) as Discord.User;
         const channel = Channels.getChannel(channelId) as Discord.Channel;
         const isDM = channel.isDM() || channel.isGroupDM();
@@ -99,10 +115,10 @@ export default createPlugin({...config, settings}, ({Logger, Patcher, Settings})
 
         // resolve names
         const nick = Members.getMember(channel.getGuildId(), userId)?.nick ?? user.username;
-        const channelName = isDM ? settings.privateCall : channel.name;
+        const channelName = isDM ? settings.privateCall.message : channel.name;
 
         // speak message
-        speak(settings[type]
+        speak(settings[type].message
             .split("$username").join(processName(user.username))
             .split("$user").join(processName(nick))
             .split("$channel").join(processName(channelName))

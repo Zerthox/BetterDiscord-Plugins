@@ -1,15 +1,13 @@
-import {Finder, React, classNames, SettingsProps} from "discordium";
+import {Finder, React, Modules, classNames, SettingsProps} from "discordium";
 
-const Flex = Finder.byName("Flex");
+const {Flex, Button, margins} = Modules;
 const Text = Finder.byName("Text");
-const Button = Finder.byProps("Link", "Hovers");
-const {FormSection, FormTitle, FormItem, FormText, FormDivider} = Finder.byProps("FormSection", "FormText") ?? {};
+const {FormSection, FormTitle, FormItem, FormText, FormDivider} = Modules.Form;
+const Switch = Finder.byName("Switch");
 const SwitchItem = Finder.byName("SwitchItem");
 const TextInput = Finder.byName("TextInput");
 const SelectTempWrapper = Finder.byName("SelectTempWrapper");
 const Slider = Finder.byName("Slider");
-
-const margins = Finder.byProps("marginLarge");
 
 export const settings = {
     voice: null as string,
@@ -18,12 +16,30 @@ export const settings = {
     filterNames: true,
     filterBots: false,
     filterStages: true,
-    join: "$user joined $channel",
-    leave: "$user left $channel",
-    joinSelf: "You joined $channel",
-    moveSelf: "You were moved to $channel",
-    leaveSelf: "You left $channel",
-    privateCall: "The call"
+    join: {
+        enabled: true,
+        message: "$user joined $channel"
+    },
+    leave: {
+        enabled: true,
+        message: "$user left $channel"
+    },
+    joinSelf: {
+        enabled: true,
+        message: "You joined $channel"
+    },
+    moveSelf: {
+        enabled: true,
+        message: "You were moved to $channel"
+    },
+    leaveSelf: {
+        enabled: true,
+        message: "You left $channel"
+    },
+    privateCall: {
+        enabled: true,
+        message: "The call"
+    }
 };
 
 export type SettingsPanelProps = SettingsProps<typeof settings> & {speak(msg: string): void};
@@ -122,24 +138,39 @@ export const SettingsPanel = ({speak, defaults, set, voice, volume, speed, filte
                 title: "Private Call channel name",
                 setting: "privateCall"
             }
-        ]).map(({title, setting}, i) => (
+        ] as const).map(({title, setting}, i) => (
             <FormItem key={i} className={margins.marginBottom20}>
                 <FormTitle>{title}</FormTitle>
                 <Flex align={Flex.Align.CENTER}>
-                    <div style={{flexGrow: 1, marginRight: 20}}>
-                        <TextInput
-                            value={settings[setting]}
-                            placeholder={defaults[setting]}
-                            onChange={(value: string) => set({[setting]: value})}
+                    <Flex.Child grow={1}>
+                        <div>
+                            <TextInput
+                                value={settings[setting].message}
+                                placeholder={defaults[setting].message}
+                                onChange={(value: string) => set({
+                                    [setting]: {...settings[setting], message: value}
+                                })}
+                            />
+                        </div>
+                    </Flex.Child>
+                    <Flex.Child grow={0}>
+                        <Switch
+                            className={margins.marginRight20}
+                            checked={settings[setting].enabled}
+                            onChange={(value: boolean) => set({
+                                [setting]: {...settings[setting], enabled: value}
+                            })}
                         />
-                    </div>
-                    <Button
-                        size={Button.Sizes.SMALL}
-                        onClick={() => speak(settings[setting]
-                            .split("$user").join("user")
-                            .split("$channel").join("channel")
-                        )}
-                    >Test</Button>
+                    </Flex.Child>
+                    <Flex.Child grow={0}>
+                        <Button
+                            size={Button.Sizes.SMALL}
+                            onClick={() => speak(settings[setting].message
+                                .split("$user").join("user")
+                                .split("$channel").join("channel")
+                            )}
+                        >Test</Button>
+                    </Flex.Child>
                 </Flex>
             </FormItem>
         ))}
