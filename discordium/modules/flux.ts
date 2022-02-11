@@ -8,8 +8,28 @@ export type Listener<E extends Event> = (event: E) => void;
 
 export type Token = string;
 
+export type DepGraph = any;
+
+export interface Handler {
+    name: string;
+    actionHandler: (e: any) => any;
+    storeDidChange: (e: any) => boolean;
+}
+
 declare class Dispatcher {
     constructor();
+
+    // private
+    _currentDispatchActionType?: any;
+    _dependencyGraph: DepGraph;
+    _dispatch<E extends Event>(e: E): void;
+    _interceptor(e: any): any;
+    _lastID?: number;
+    _orderedActionHandlers: Record<string, Handler[]>;
+    _orderedCallbackTokens: Token[];
+    _processingWaitQueue: boolean;
+    _subscriptions: Record<string, Set<Listener<Event>>>;
+    _waitQueue: any[];
 
     dispatch<E extends Event>(event: E): void;
     dirtyDispatch<E extends Event>(event: E): void;
@@ -29,6 +49,10 @@ declare class Dispatcher {
 declare class Store {
     constructor(dispatcher: Dispatcher, events: any);
 
+    // private
+    _changeCallbacks: Set<Listener<Event>>;
+    _dispatchToken: Token;
+    _isInitialized: boolean;
     _dispatcher: Dispatcher;
 
     initialize(): void;
