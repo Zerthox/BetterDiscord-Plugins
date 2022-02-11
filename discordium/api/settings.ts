@@ -36,6 +36,11 @@ export class Settings<
         this.current = {...defaults, ...Data.load("settings")};
     }
 
+    /** Dispatches a settings update. */
+    dispatch() {
+        this._dispatcher.dirtyDispatch({type: "update", current: this.current});
+    }
+
     /** Returns current settings state. */
     get(): SettingsType {
         return {...this.current};
@@ -51,12 +56,20 @@ export class Settings<
             this.current,
             settings instanceof Function ? settings(this.get()) : settings
         );
-        this._dispatcher.dispatch({type: "update", current: this.current});
+        this.dispatch();
     }
 
     /** Resets all settings to their defaults. */
     reset(): void {
         this.set({...this.defaults});
+    }
+
+    /** Deletes settings using their keys. */
+    delete(...keys: string[]) {
+        for (const key of keys) {
+            delete this.current[key];
+        }
+        this.dispatch();
     }
 
     /** Connects a React Component to receive settings updates as props. */
