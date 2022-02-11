@@ -1,15 +1,14 @@
 import {createPlugin, Finder, Utils, React, Modules, Discord} from "discordium";
-import {settings, SettingsPanel} from "./settings";
+import {settings, SettingsPanel, NotificationType} from "./settings";
 import config from "./config.json";
 
 const {Events, Channels, SelectedChannel, Users, Members} = Modules;
 const {ActionTypes} = Modules.Constants;
+const Audio = Finder.byProps("isSelfMute", "isSelfDeaf");
 const VoiceStates = Finder.byProps("getVoiceStates", "hasVideo");
 
 const {Text} = Modules;
 const {MenuItem} = Modules.Menu;
-
-type NotificationType = "join" | "leave" | "joinSelf" | "moveSelf" | "leaveSelf";
 
 interface VoiceState {
     channelId: Discord.Snowflake;
@@ -32,13 +31,18 @@ const saveStates = () => {
 
 export default createPlugin({...config, settings}, ({Logger, Patcher, Settings}) => {
     // backwards compatibility for settings
-    for (const setting of ["join", "leave", "joinSelf", "moveSelf", "leaveSelf", "privateCall"]) {
-        const current = Settings.get()[setting];
-        if (typeof current === "string") {
-            Settings.set({
-                [setting]: {enabled: true, message: current}
-            });
+    const loaded = Settings.get() as any;
+    for (const [key, value] of Object.entries(Settings.defaults.notifs)) {
+        if (typeof loaded[key] === "string") {
+            const {notifs} = Settings.get();
+            notifs[key] = {...value, message: loaded[key]};
+            Settings.set({notifs});
+            Settings.delete(key);
         }
+    }
+    if (typeof loaded.privateCall === "string") {
+        Settings.set({unknownChannel: loaded.privateCall});
+        Settings.delete("privateCall");
     }
 
     const findDefaultVoice = () => {
@@ -97,35 +101,46 @@ export default createPlugin({...config, settings}, ({Logger, Patcher, Settings})
         const settings = Settings.get();
 
         // check for enabled
-        if (!settings[type].enabled) {
+        if (!settings.notifs[type].enabled) {
             return;
         }
 
         const user = Users.getUser(userId) as Discord.User;
         const channel = Channels.getChannel(channelId) as Discord.Channel;
-        const isDM = channel.isDM() || channel.isGroupDM();
 
         // check for filters
         if (
-            settings.filterBots && user.bot
-            || settings.filterStages && channel.isGuildStageVoice()
+            settings.filterBots && user?.bot
+            || settings.filterStages && channel?.isGuildStageVoice()
         ) {
             return;
         }
 
         // resolve names
-        const nick = Members.getMember(channel.getGuildId(), userId)?.nick ?? user.username;
-        const channelName = isDM ? settings.privateCall.message : channel.name;
+        const nick = Members.getMember(channel?.getGuildId(), userId)?.nick ?? user.username;
+        const channelName = (!channel || channel.isDM() || channel.isGroupDM()) ? settings.unknownChannel : channel.name;
 
         // speak message
-        speak(settings[type].message
+        speak(settings.notifs[type].message
             .split("$username").join(processName(user.username))
             .split("$user").join(processName(nick))
             .split("$channel").join(processName(channelName))
         );
     };
 
-    const listener = (event) => {
+    const selfMuteListener = () => {
+        const userId = Users.getCurrentUser().id;
+        const channelId = SelectedChannel.getVoiceChannelId();
+        notify(Audio.isSelfMute() ? "mute" : "unmute", userId, channelId);
+    };
+
+    const selfDeafListener = () => {
+        const userId = Users.getCurrentUser().id;
+        const channelId = SelectedChannel.getVoiceChannelId();
+        notify(Audio.isSelfDeaf() ? "deafen" : "undeafen", userId, channelId);
+    };
+
+    const voiceStateListener = (event) => {
         for (const {userId, channelId} of event.voiceStates as VoiceState[]) {
             try {
                 const prev = prevStates[userId];
@@ -176,8 +191,14 @@ export default createPlugin({...config, settings}, ({Logger, Patcher, Settings})
             saveStates();
 
             // listen for updates
-            Events.subscribe(ActionTypes.VOICE_STATE_UPDATES, listener);
-            Logger.log("Subscribed to voice state updates");
+            Events.subscribe(ActionTypes.VOICE_STATE_UPDATES, voiceStateListener);
+            Logger.log("Subscribed to voice state events");
+
+            Events.subscribe(ActionTypes.AUDIO_TOGGLE_SELF_MUTE, selfMuteListener);
+            Logger.log("Subscribed to self mute events");
+
+            Events.subscribe(ActionTypes.AUDIO_TOGGLE_SELF_DEAF, selfDeafListener);
+            Logger.log("Subscribed to self deaf events");
 
             // wait for context menu lazy load
             const useChannelHideNamesItem = await Patcher.waitForContextMenu(
@@ -205,8 +226,14 @@ export default createPlugin({...config, settings}, ({Logger, Patcher, Settings})
             // reset
             prevStates = {};
 
-            Events.unsubscribe(ActionTypes.VOICE_STATE_UPDATES, listener);
-            Logger.log("Unsubscribed from voice state updates");
+            Events.unsubscribe(ActionTypes.VOICE_STATE_UPDATES, voiceStateListener);
+            Logger.log("Unsubscribed from voice state events");
+
+            Events.unsubscribe(ActionTypes.AUDIO_TOGGLE_SELF_MUTE, selfMuteListener);
+            Logger.log("Unsubscribed from self mute events");
+
+            Events.unsubscribe(ActionTypes.AUDIO_TOGGLE_SELF_DEAF, selfDeafListener);
+            Logger.log("Unsubscribed from self deaf events");
         },
         settingsPanel: (props) => <SettingsPanel speak={speak} {...props}/>
     };

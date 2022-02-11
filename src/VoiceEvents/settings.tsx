@@ -13,30 +13,59 @@ export const settings = {
     filterNames: true,
     filterBots: false,
     filterStages: true,
-    join: {
-        enabled: true,
-        message: "$user joined $channel"
+    notifs: {
+        mute: {
+            enabled: true,
+            message: "Muted"
+        },
+        unmute: {
+            enabled: true,
+            message: "Unmuted"
+        },
+        deafen: {
+            enabled: true,
+            message: "Deafened"
+        },
+        undeafen: {
+            enabled: true,
+            message: "Undeafened"
+        },
+        join: {
+            enabled: true,
+            message: "$user joined $channel"
+        },
+        leave: {
+            enabled: true,
+            message: "$user left $channel"
+        },
+        joinSelf: {
+            enabled: true,
+            message: "You joined $channel"
+        },
+        moveSelf: {
+            enabled: true,
+            message: "You were moved to $channel"
+        },
+        leaveSelf: {
+            enabled: true,
+            message: "You left $channel"
+        }
     },
-    leave: {
-        enabled: true,
-        message: "$user left $channel"
-    },
-    joinSelf: {
-        enabled: true,
-        message: "You joined $channel"
-    },
-    moveSelf: {
-        enabled: true,
-        message: "You were moved to $channel"
-    },
-    leaveSelf: {
-        enabled: true,
-        message: "You left $channel"
-    },
-    privateCall: {
-        enabled: true,
-        message: "The call"
-    }
+    unknownChannel: "The call"
+};
+
+export type NotificationType = keyof typeof settings.notifs;
+
+const titles: Record<NotificationType, string> = {
+    mute: "Mute (Self)",
+    unmute: "Unmute (Self)",
+    deafen: "Deafen (Self)",
+    undeafen: "Undeafen (Self)",
+    join: "Join (Other Users)",
+    leave: "Leave (Other Users)",
+    joinSelf: "Join (Self)",
+    moveSelf: "Move (Self)",
+    leaveSelf: "Leave (Self)"
 };
 
 export type SettingsPanelProps = SettingsProps<typeof settings> & {speak(msg: string): void};
@@ -105,71 +134,71 @@ export const SettingsPanel = ({speak, defaults, set, voice, volume, speed, filte
             >Enable Stage Filter</SwitchItem>
         </FormItem>
         <FormSection>
-            <FormTitle tag="h3">Messages</FormTitle>
+            <FormTitle tag="h3">Notifications</FormTitle>
             <FormText type="description" className={margins.marginBottom20}>
                 $user will get replaced with the respective User Nickname, $username with the User Account name and $channel with the respective Voice Channel name.
             </FormText>
         </FormSection>
-        {([
-            {
-                title: "Join Message (Other Users)",
-                setting: "join"
-            },
-            {
-                title: "Leave Message (Other Users)",
-                setting: "leave"
-            },
-            {
-                title: "Join Message (Self)",
-                setting: "joinSelf"
-            },
-            {
-                title: "Move Message (Self)",
-                setting: "moveSelf"
-            },
-            {
-                title: "Leave Message (Self)",
-                setting: "leaveSelf"
-            },
-            {
-                title: "Private Call channel name",
-                setting: "privateCall"
-            }
-        ] as const).map(({title, setting}, i) => (
-            <FormItem key={i} className={margins.marginBottom20}>
+        {Object.entries(titles).map(([key, title]) => (
+            <FormItem key={key} className={margins.marginBottom20}>
                 <FormTitle>{title}</FormTitle>
                 <Flex align={Flex.Align.CENTER}>
                     <Flex.Child grow={1}>
                         <div>
                             <TextInput
-                                value={settings[setting].message}
-                                placeholder={defaults[setting].message}
-                                onChange={(value: string) => set({
-                                    [setting]: {...settings[setting], message: value}
-                                })}
+                                value={settings.notifs[key].message}
+                                placeholder={defaults.notifs[key].message}
+                                onChange={(value: string) => {
+                                    const {notifs} = settings;
+                                    notifs[key].message = value;
+                                    set({notifs});
+                                }}
                             />
                         </div>
                     </Flex.Child>
                     <Flex.Child grow={0}>
                         <Switch
                             className={margins.marginRight20}
-                            checked={settings[setting].enabled}
-                            onChange={(value: boolean) => set({
-                                [setting]: {...settings[setting], enabled: value}
-                            })}
+                            checked={settings.notifs[key].enabled}
+                            onChange={(value: boolean) => {
+                                const {notifs} = settings;
+                                notifs[key].enabled = value;
+                                set({notifs});
+                            }}
                         />
                     </Flex.Child>
                     <Flex.Child grow={0}>
                         <Button
                             size={Button.Sizes.SMALL}
-                            onClick={() => speak(settings[setting].message
-                                .split("$user").join("user")
-                                .split("$channel").join("channel")
+                            onClick={() => speak(
+                                settings.notifs[key].message
+                                    .split("$user").join("user")
+                                    .split("$channel").join("channel")
                             )}
                         >Test</Button>
                     </Flex.Child>
                 </Flex>
             </FormItem>
         ))}
+        <FormItem key="unknownChannel" className={margins.marginBottom20}>
+            <FormTitle>Unknown Channel Name</FormTitle>
+            <Flex align={Flex.Align.CENTER}>
+                <Flex.Child grow={1}>
+                    <div>
+                        <TextInput
+                            value={settings.unknownChannel}
+                            placeholder={defaults.unknownChannel}
+                            onChange={(value: string) => set({unknownChannel: value})}
+                        />
+                    </div>
+                </Flex.Child>
+                <Flex.Child grow={0}>
+                    <Button
+                        size={Button.Sizes.SMALL}
+                        onClick={() => speak(settings.unknownChannel)}
+                    >Test</Button>
+                </Flex.Child>
+            </Flex>
+        </FormItem>
     </>
 );
