@@ -1,7 +1,7 @@
 /**
  * @name VoiceEvents
  * @author Zerthox
- * @version 2.1.1
+ * @version 2.2.0
  * @description Add TTS Event Notifications to your selected Voice Channel. TeamSpeak feeling.
  * @authorLink https://github.com/Zerthox
  * @website https://github.com/Zerthox/BetterDiscord-Plugins
@@ -156,6 +156,13 @@ const ContextMenuActions = () => byProps("openContextMenuLazy");
 const ModalActions = () => byProps("openModalLazy");
 const Flex$2 = () => byName("Flex");
 const Button$2 = () => byProps("Link", "Hovers");
+const Text$2 = () => byName("Text");
+const Links = () => byProps("Link", "NavLink");
+const Switch$1 = () => byName("Switch");
+const SwitchItem$1 = () => byName("SwitchItem");
+const RadioGroup = () => byName("RadioGroup");
+const Slider$1 = () => byName("Slider");
+const TextInput$1 = () => byName("TextInput");
 const Menu = () => byProps("MenuGroup", "MenuItem", "MenuSeparator");
 const Form$1 = () => byProps("FormItem", "FormSection", "FormDivider");
 const margins$2 = () => byProps("marginLarge");
@@ -172,6 +179,13 @@ const discord = {
     ModalActions: ModalActions,
     Flex: Flex$2,
     Button: Button$2,
+    Text: Text$2,
+    Links: Links,
+    Switch: Switch$1,
+    SwitchItem: SwitchItem$1,
+    RadioGroup: RadioGroup,
+    Slider: Slider$1,
+    TextInput: TextInput$1,
     Menu: Menu,
     Form: Form$1,
     margins: margins$2
@@ -278,15 +292,24 @@ class Settings extends Flux.Store {
         this.defaults = defaults;
         this.current = { ...defaults, ...Data.load("settings") };
     }
+    dispatch() {
+        this._dispatcher.dirtyDispatch({ type: "update", current: this.current });
+    }
     get() {
         return { ...this.current };
     }
     set(settings) {
         Object.assign(this.current, settings instanceof Function ? settings(this.get()) : settings);
-        this._dispatcher.dispatch({ type: "update", current: this.current });
+        this.dispatch();
     }
     reset() {
         this.set({ ...this.defaults });
+    }
+    delete(...keys) {
+        for (const key of keys) {
+            delete this.current[key];
+        }
+        this.dispatch();
     }
     connect(component) {
         return Flux.default.connectStores([this], () => ({ ...this.get(), defaults: this.defaults, set: (settings) => this.set(settings) }))(component);
@@ -361,15 +384,10 @@ const createPlugin = ({ name, version, styles: css, settings }, callback) => {
     return Wrapper;
 };
 
-const Flex = byName("Flex");
-const Text$1 = byName("Text");
-const Button = byProps("Link", "Hovers");
-const { FormSection, FormTitle, FormItem, FormText, FormDivider } = byProps("FormSection", "FormText") ?? {};
-const SwitchItem = byName("SwitchItem");
-const TextInput = byName("TextInput");
+const { Flex, Button, Text: Text$1, Switch, SwitchItem, TextInput, Slider } = Modules;
+const { FormSection, FormTitle, FormItem, FormText, FormDivider } = Modules.Form;
 const SelectTempWrapper = byName("SelectTempWrapper");
-const Slider = byName("Slider");
-const margins = byProps("marginLarge");
+const { margins } = Modules;
 const settings = {
     voice: null,
     volume: 100,
@@ -377,12 +395,56 @@ const settings = {
     filterNames: true,
     filterBots: false,
     filterStages: true,
-    join: "$user joined $channel",
-    leave: "$user left $channel",
-    joinSelf: "You joined $channel",
-    moveSelf: "You were moved to $channel",
-    leaveSelf: "You left $channel",
-    privateCall: "The call"
+    notifs: {
+        mute: {
+            enabled: true,
+            message: "Muted"
+        },
+        unmute: {
+            enabled: true,
+            message: "Unmuted"
+        },
+        deafen: {
+            enabled: true,
+            message: "Deafened"
+        },
+        undeafen: {
+            enabled: true,
+            message: "Undeafened"
+        },
+        join: {
+            enabled: true,
+            message: "$user joined $channel"
+        },
+        leave: {
+            enabled: true,
+            message: "$user left $channel"
+        },
+        joinSelf: {
+            enabled: true,
+            message: "You joined $channel"
+        },
+        moveSelf: {
+            enabled: true,
+            message: "You were moved to $channel"
+        },
+        leaveSelf: {
+            enabled: true,
+            message: "You left $channel"
+        }
+    },
+    unknownChannel: "The call"
+};
+const titles = {
+    mute: "Mute (Self)",
+    unmute: "Unmute (Self)",
+    deafen: "Deafen (Self)",
+    undeafen: "Undeafen (Self)",
+    join: "Join (Other Users)",
+    leave: "Leave (Other Users)",
+    joinSelf: "Join (Self)",
+    moveSelf: "Move (Self)",
+    leaveSelf: "Leave (Self)"
 };
 const SettingsPanel = ({ speak, defaults, set, voice, volume, speed, filterNames, filterBots, filterStages, ...settings }) => (React.createElement(React.Fragment, null,
     React.createElement(FormItem, { className: margins.marginBottom20 },
@@ -410,45 +472,40 @@ const SettingsPanel = ({ speak, defaults, set, voice, volume, speed, filterNames
     React.createElement(FormItem, null,
         React.createElement(SwitchItem, { value: filterStages, onChange: (checked) => set({ filterStages: checked }), note: "Disable notifications for stage voice channels." }, "Enable Stage Filter")),
     React.createElement(FormSection, null,
-        React.createElement(FormTitle, { tag: "h3" }, "Messages"),
+        React.createElement(FormTitle, { tag: "h3" }, "Notifications"),
         React.createElement(FormText, { type: "description", className: margins.marginBottom20 }, "$user will get replaced with the respective User Nickname, $username with the User Account name and $channel with the respective Voice Channel name.")),
-    ([
-        {
-            title: "Join Message (Other Users)",
-            setting: "join"
-        },
-        {
-            title: "Leave Message (Other Users)",
-            setting: "leave"
-        },
-        {
-            title: "Join Message (Self)",
-            setting: "joinSelf"
-        },
-        {
-            title: "Move Message (Self)",
-            setting: "moveSelf"
-        },
-        {
-            title: "Leave Message (Self)",
-            setting: "leaveSelf"
-        },
-        {
-            title: "Private Call channel name",
-            setting: "privateCall"
-        }
-    ]).map(({ title, setting }, i) => (React.createElement(FormItem, { key: i, className: margins.marginBottom20 },
+    Object.entries(titles).map(([key, title]) => (React.createElement(FormItem, { key: key, className: margins.marginBottom20 },
         React.createElement(FormTitle, null, title),
         React.createElement(Flex, { align: Flex.Align.CENTER },
-            React.createElement("div", { style: { flexGrow: 1, marginRight: 20 } },
-                React.createElement(TextInput, { value: settings[setting], placeholder: defaults[setting], onChange: (value) => set({ [setting]: value }) })),
-            React.createElement(Button, { size: Button.Sizes.SMALL, onClick: () => speak(settings[setting]
-                    .split("$user").join("user")
-                    .split("$channel").join("channel")) }, "Test")))))));
+            React.createElement(Flex.Child, { grow: 1 },
+                React.createElement("div", null,
+                    React.createElement(TextInput, { value: settings.notifs[key].message, placeholder: defaults.notifs[key].message, onChange: (value) => {
+                            const { notifs } = settings;
+                            notifs[key].message = value;
+                            set({ notifs });
+                        } }))),
+            React.createElement(Flex.Child, { grow: 0 },
+                React.createElement(Switch, { className: margins.marginRight20, checked: settings.notifs[key].enabled, onChange: (value) => {
+                        const { notifs } = settings;
+                        notifs[key].enabled = value;
+                        set({ notifs });
+                    } })),
+            React.createElement(Flex.Child, { grow: 0 },
+                React.createElement(Button, { size: Button.Sizes.SMALL, onClick: () => speak(settings.notifs[key].message
+                        .split("$user").join("user")
+                        .split("$channel").join("channel")) }, "Test")))))),
+    React.createElement(FormItem, { key: "unknownChannel", className: margins.marginBottom20 },
+        React.createElement(FormTitle, null, "Unknown Channel Name"),
+        React.createElement(Flex, { align: Flex.Align.CENTER },
+            React.createElement(Flex.Child, { grow: 1 },
+                React.createElement("div", null,
+                    React.createElement(TextInput, { value: settings.unknownChannel, placeholder: defaults.unknownChannel, onChange: (value) => set({ unknownChannel: value }) }))),
+            React.createElement(Flex.Child, { grow: 0 },
+                React.createElement(Button, { size: Button.Sizes.SMALL, onClick: () => speak(settings.unknownChannel) }, "Test"))))));
 
 const name = "VoiceEvents";
 const author = "Zerthox";
-const version = "2.1.1";
+const version = "2.2.0";
 const description = "Add TTS Event Notifications to your selected Voice Channel. TeamSpeak feeling.";
 const config = {
 	name: name,
@@ -459,14 +516,28 @@ const config = {
 
 const { Events, Channels, SelectedChannel, Users, Members } = Modules;
 const { ActionTypes } = Modules.Constants;
+const Audio = byProps("isSelfMute", "isSelfDeaf");
 const VoiceStates = byProps("getVoiceStates", "hasVideo");
-const Text = byName("Text");
+const { Text } = Modules;
 const { MenuItem } = Modules.Menu;
 let prevStates = {};
 const saveStates = () => {
     prevStates = { ...VoiceStates.getVoiceStatesForChannel(SelectedChannel.getVoiceChannelId()) };
 };
 const index = createPlugin({ ...config, settings }, ({ Logger, Patcher, Settings }) => {
+    const loaded = Settings.get();
+    for (const [key, value] of Object.entries(Settings.defaults.notifs)) {
+        if (typeof loaded[key] === "string") {
+            const { notifs } = Settings.get();
+            notifs[key] = { ...value, message: loaded[key] };
+            Settings.set({ notifs });
+            Settings.delete(key);
+        }
+    }
+    if (typeof loaded.privateCall === "string") {
+        Settings.set({ unknownChannel: loaded.privateCall });
+        Settings.delete("privateCall");
+    }
     const findDefaultVoice = () => {
         const voices = speechSynthesis.getVoices();
         if (voices.length === 0) {
@@ -511,21 +582,33 @@ const index = createPlugin({ ...config, settings }, ({ Logger, Patcher, Settings
     };
     const notify = (type, userId, channelId) => {
         const settings = Settings.get();
-        const user = Users.getUser(userId);
-        const channel = Channels.getChannel(channelId);
-        const isDM = channel.isDM() || channel.isGroupDM();
-        if (settings.filterBots && user.bot
-            || settings.filterStages && channel.isGuildStageVoice()) {
+        if (!settings.notifs[type].enabled) {
             return;
         }
-        const nick = Members.getMember(channel.getGuildId(), userId)?.nick ?? user.username;
-        const channelName = isDM ? settings.privateCall : channel.name;
-        speak(settings[type]
+        const user = Users.getUser(userId);
+        const channel = Channels.getChannel(channelId);
+        if (settings.filterBots && user?.bot
+            || settings.filterStages && channel?.isGuildStageVoice()) {
+            return;
+        }
+        const nick = Members.getMember(channel?.getGuildId(), userId)?.nick ?? user.username;
+        const channelName = (!channel || channel.isDM() || channel.isGroupDM()) ? settings.unknownChannel : channel.name;
+        speak(settings.notifs[type].message
             .split("$username").join(processName(user.username))
             .split("$user").join(processName(nick))
             .split("$channel").join(processName(channelName)));
     };
-    const listener = (event) => {
+    const selfMuteListener = () => {
+        const userId = Users.getCurrentUser().id;
+        const channelId = SelectedChannel.getVoiceChannelId();
+        notify(Audio.isSelfMute() ? "mute" : "unmute", userId, channelId);
+    };
+    const selfDeafListener = () => {
+        const userId = Users.getCurrentUser().id;
+        const channelId = SelectedChannel.getVoiceChannelId();
+        notify(Audio.isSelfDeaf() ? "deafen" : "undeafen", userId, channelId);
+    };
+    const voiceStateListener = (event) => {
         for (const { userId, channelId } of event.voiceStates) {
             try {
                 const prev = prevStates[userId];
@@ -567,8 +650,12 @@ const index = createPlugin({ ...config, settings }, ({ Logger, Patcher, Settings
     return {
         async start() {
             saveStates();
-            Events.subscribe(ActionTypes.VOICE_STATE_UPDATES, listener);
-            Logger.log("Subscribed to voice state updates");
+            Events.subscribe(ActionTypes.VOICE_STATE_UPDATES, voiceStateListener);
+            Logger.log("Subscribed to voice state events");
+            Events.subscribe(ActionTypes.AUDIO_TOGGLE_SELF_MUTE, selfMuteListener);
+            Logger.log("Subscribed to self mute events");
+            Events.subscribe(ActionTypes.AUDIO_TOGGLE_SELF_DEAF, selfDeafListener);
+            Logger.log("Subscribed to self deaf events");
             const useChannelHideNamesItem = await Patcher.waitForContextMenu(() => query({ name: "useChannelHideNamesItem" }));
             Patcher.after(useChannelHideNamesItem, "default", ({ result }) => {
                 if (result) {
@@ -580,8 +667,12 @@ const index = createPlugin({ ...config, settings }, ({ Logger, Patcher, Settings
         },
         stop() {
             prevStates = {};
-            Events.unsubscribe(ActionTypes.VOICE_STATE_UPDATES, listener);
-            Logger.log("Unsubscribed from voice state updates");
+            Events.unsubscribe(ActionTypes.VOICE_STATE_UPDATES, voiceStateListener);
+            Logger.log("Unsubscribed from voice state events");
+            Events.unsubscribe(ActionTypes.AUDIO_TOGGLE_SELF_MUTE, selfMuteListener);
+            Logger.log("Unsubscribed from self mute events");
+            Events.unsubscribe(ActionTypes.AUDIO_TOGGLE_SELF_DEAF, selfDeafListener);
+            Logger.log("Unsubscribed from self deaf events");
         },
         settingsPanel: (props) => React.createElement(SettingsPanel, { speak: speak, ...props })
     };
