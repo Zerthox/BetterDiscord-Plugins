@@ -1,7 +1,7 @@
 /**
  * @name BetterVolume
  * @author Zerthox
- * @version 2.2.1
+ * @version 2.2.2
  * @description Set user volume values manually instead of using a limited slider.
  * @authorLink https://github.com/Zerthox
  * @website https://github.com/Zerthox/BetterDiscord-Plugins
@@ -156,6 +156,13 @@ const ContextMenuActions = () => byProps("openContextMenuLazy");
 const ModalActions = () => byProps("openModalLazy");
 const Flex$1 = () => byName("Flex");
 const Button$1 = () => byProps("Link", "Hovers");
+const Text = () => byName("Text");
+const Links = () => byProps("Link", "NavLink");
+const Switch = () => byName("Switch");
+const SwitchItem = () => byName("SwitchItem");
+const RadioGroup = () => byName("RadioGroup");
+const Slider = () => byName("Slider");
+const TextInput = () => byName("TextInput");
 const Menu = () => byProps("MenuGroup", "MenuItem", "MenuSeparator");
 const Form$1 = () => byProps("FormItem", "FormSection", "FormDivider");
 const margins$1 = () => byProps("marginLarge");
@@ -172,6 +179,13 @@ const discord = {
     ModalActions: ModalActions,
     Flex: Flex$1,
     Button: Button$1,
+    Text: Text,
+    Links: Links,
+    Switch: Switch,
+    SwitchItem: SwitchItem,
+    RadioGroup: RadioGroup,
+    Slider: Slider,
+    TextInput: TextInput,
     Menu: Menu,
     Form: Form$1,
     margins: margins$1
@@ -278,15 +292,24 @@ class Settings extends Flux.Store {
         this.defaults = defaults;
         this.current = { ...defaults, ...Data.load("settings") };
     }
+    dispatch() {
+        this._dispatcher.dirtyDispatch({ type: "update", current: this.current });
+    }
     get() {
         return { ...this.current };
     }
     set(settings) {
         Object.assign(this.current, settings instanceof Function ? settings(this.get()) : settings);
-        this._dispatcher.dispatch({ type: "update", current: this.current });
+        this.dispatch();
     }
     reset() {
         this.set({ ...this.defaults });
+    }
+    delete(...keys) {
+        for (const key of keys) {
+            delete this.current[key];
+        }
+        this.dispatch();
     }
     connect(component) {
         return Flux.default.connectStores([this], () => ({ ...this.get(), defaults: this.defaults, set: (settings) => this.set(settings) }))(component);
@@ -362,7 +385,7 @@ const createPlugin = ({ name, version, styles: css, settings }, callback) => {
 
 const name = "BetterVolume";
 const author = "Zerthox";
-const version = "2.2.1";
+const version = "2.2.2";
 const description = "Set user volume values manually instead of using a limited slider.";
 const config = {
 	name: name,
@@ -377,25 +400,29 @@ const { MenuItem } = Modules.Menu;
 const SettingsStore = byProps("getLocalVolume");
 const SettingsActions = byProps("setLocalVolume");
 const AudioConvert = byProps("perceptualToAmplitude");
+const limit = (input, min, max) => Math.min(Math.max(input, min), max);
 const NumberInput = ({ value, min, max, fallback, onChange }) => (React.createElement("div", { className: "container-BetterVolume" },
-    React.createElement("input", { type: "number", min: min, max: max, value: Math.round((value + Number.EPSILON) * 100) / 100, onChange: ({ target }) => onChange(Math.min(Math.max(parseFloat(target.value) || fallback, min), max)), className: "input-BetterVolume" }),
+    React.createElement("input", { type: "number", className: "input-BetterVolume", min: min, max: max, value: Math.round((value + Number.EPSILON) * 100) / 100, onChange: ({ target }) => onChange(limit(parseFloat(target.value), min, max)), onBlur: ({ target }) => {
+            const value = limit(parseFloat(target.value), min, max);
+            if (Number.isNaN(value)) {
+                onChange(fallback);
+            }
+        } }),
     React.createElement("span", { className: "unit-BetterVolume" }, "%")));
-const index = createPlugin({ ...config, styles }, ({ Patcher }) => {
-    return {
-        async start() {
-            const useUserVolumeItem = await Patcher.waitForContextMenu(() => query({ name: "useUserVolumeItem" }));
-            Patcher.after(useUserVolumeItem, "default", ({ args: [userId, mediaContext], result }) => {
-                if (result) {
-                    const volume = SettingsStore.getLocalVolume(userId, mediaContext);
-                    return (React.createElement(React.Fragment, null,
-                        result,
-                        React.createElement(MenuItem, { id: "user-volume-input", render: () => (React.createElement(NumberInput, { value: AudioConvert.amplitudeToPerceptual(volume), min: 0, max: 999999, fallback: 100, onChange: (value) => SettingsActions.setLocalVolume(userId, AudioConvert.perceptualToAmplitude(value), mediaContext) })) })));
-                }
-            });
-        },
-        stop() { }
-    };
-});
+const index = createPlugin({ ...config, styles }, ({ Patcher }) => ({
+    async start() {
+        const useUserVolumeItem = await Patcher.waitForContextMenu(() => query({ name: "useUserVolumeItem" }));
+        Patcher.after(useUserVolumeItem, "default", ({ args: [userId, mediaContext], result }) => {
+            if (result) {
+                const volume = SettingsStore.getLocalVolume(userId, mediaContext);
+                return (React.createElement(React.Fragment, null,
+                    result,
+                    React.createElement(MenuItem, { id: "user-volume-input", render: () => (React.createElement(NumberInput, { value: AudioConvert.amplitudeToPerceptual(volume), min: 0, max: 999999, fallback: 100, onChange: (value) => SettingsActions.setLocalVolume(userId, AudioConvert.perceptualToAmplitude(value), mediaContext) })) })));
+            }
+        });
+    },
+    stop() { }
+}));
 
 module.exports = index;
 
