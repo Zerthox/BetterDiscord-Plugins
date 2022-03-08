@@ -9,7 +9,7 @@ export interface SettingsContainerProps {
     onReset: () => void;
 }
 
-export const SettingsContainer = ({name, children, onReset}: SettingsContainerProps) => (
+export const SettingsContainer = ({name, children, onReset}: SettingsContainerProps): JSX.Element => (
     <Form.FormSection>
         {children}
         <Form.FormDivider className={classNames(margins.marginTop20, margins.marginBottom20)}/>

@@ -6,7 +6,7 @@ export type ConfirmOptions = BdApi.ConfirmationModalOptions;
 
 /** Shows a confirmation modal. */
 // TODO: change to promise<boolean>?
-export const confirm = (title: string, content: string | JSX.Element, options: ConfirmOptions = {}) => BdApi.showConfirmationModal(title, content, options);
+export const confirm = (title: string, content: string | JSX.Element, options: ConfirmOptions = {}): void => BdApi.showConfirmationModal(title, content, options);
 
 export const enum ToastType {
     Default = "",
@@ -23,4 +23,4 @@ export interface ToastOptions extends BdApi.ToastOptions {
 }
 
 /** Shows a toast notification. */
-export const toast = (content: string, options: ToastOptions) => BdApi.showToast(content, options);
+export const toast = (content: string, options: ToastOptions): void => BdApi.showToast(content, options);

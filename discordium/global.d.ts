@@ -4,6 +4,15 @@ declare module "*.scss" {
 }
 
 declare namespace BdApi {
+    interface Plugin {
+        start(): void;
+        stop(): void;
+        getSettingsPanel?: () => JSX.Element;
+    }
+    interface PluginConstructor {
+        new(): Plugin;
+    }
+
     const Patcher: any;
 
     function alert(title: string, content: string | JSX.Element): void;

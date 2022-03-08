@@ -64,7 +64,7 @@ export const createPlugin = <
 >(
     {name, version, styles: css, settings}: Config<SettingsType>,
     callback: (api: Api<SettingsType, DataType>) => Plugin<SettingsType>
-) => {
+): BdApi.PluginConstructor => {
     // create log
     const Logger = createLogger(name, "#3a71c1", version);
     const Patcher = createPatcher(name, Logger);
@@ -76,18 +76,20 @@ export const createPlugin = <
     const plugin = callback({Logger, Patcher, Styles, Data, Settings});
 
     // construct wrapper
-    function Wrapper() {}
-    Wrapper.prototype.start = () => {
-        Logger.log("Enabled");
-        Styles.inject(css);
-        plugin.start();
-    };
-    Wrapper.prototype.stop = () => {
-        Patcher.unpatchAll();
-        Styles.clear();
-        plugin.stop();
-        Logger.log("Disabled");
-    };
+    class Wrapper implements BdApi.Plugin {
+        start() {
+            Logger.log("Enabled");
+            Styles.inject(css);
+            plugin.start();
+        }
+        stop() {
+            Patcher.unpatchAll();
+            Styles.clear();
+            plugin.stop();
+            Logger.log("Disabled");
+        }
+        getSettingsPanel?: () => JSX.Element;
+    }
 
     // add settings panel
     if (plugin.settingsPanel) {

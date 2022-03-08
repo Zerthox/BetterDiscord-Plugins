@@ -37,7 +37,7 @@ export class Settings<
     }
 
     /** Dispatches a settings update. */
-    dispatch() {
+    dispatch(): void {
         this._dispatcher.dirtyDispatch({type: "update", current: this.current});
     }
 
@@ -65,7 +65,7 @@ export class Settings<
     }
 
     /** Deletes settings using their keys. */
-    delete(...keys: string[]) {
+    delete(...keys: string[]): void {
         for (const key of keys) {
             delete this.current[key];
         }

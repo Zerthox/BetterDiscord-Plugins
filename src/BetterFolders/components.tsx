@@ -16,7 +16,7 @@ export interface BetterFolderIconProps extends FolderData {
     FolderIcon(props: any): JSX.Element;
 }
 
-export const BetterFolderIcon = ({icon, always, childProps, FolderIcon}: BetterFolderIconProps) => {
+export const BetterFolderIcon = ({icon, always, childProps, FolderIcon}: BetterFolderIconProps): JSX.Element => {
     const result = FolderIcon(childProps);
     if (icon && (childProps.expanded || always)) {
         result.props.children = <div className="betterFolders-customIcon" style={{backgroundImage: `url(${icon})`}}/>;
@@ -49,7 +49,7 @@ export interface BetterFolderUploaderProps extends FolderData {
     FolderIcon(props: any): JSX.Element;
 }
 
-export const BetterFolderUploader = ({icon, always, folderNode, onChange, FolderIcon}: BetterFolderUploaderProps) => (
+export const BetterFolderUploader = ({icon, always, folderNode, onChange, FolderIcon}: BetterFolderUploaderProps): JSX.Element => (
     <>
         <Flex align={Flex.Align.CENTER}>
             <Button color={Button.Colors.WHITE} look={Button.Looks.OUTLINED}>

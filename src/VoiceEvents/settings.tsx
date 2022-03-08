@@ -70,7 +70,7 @@ const titles: Record<NotificationType, string> = {
 
 export type SettingsPanelProps = SettingsProps<typeof settings> & {speak(msg: string): void};
 
-export const SettingsPanel = ({speak, defaults, set, voice, volume, speed, filterNames, filterBots, filterStages, ...settings}: SettingsPanelProps) => (
+export const SettingsPanel = ({speak, defaults, set, voice, volume, speed, filterNames, filterBots, filterStages, ...settings}: SettingsPanelProps): JSX.Element => (
     <>
         <FormItem className={margins.marginBottom20}>
             <FormTitle>TTS Voice</FormTitle>

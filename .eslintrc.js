@@ -46,6 +46,7 @@ module.exports = {
         }],
         "@typescript-eslint/prefer-optional-chain": "error",
         "@typescript-eslint/no-empty-function": "off",
+        "@typescript-eslint/explicit-module-boundary-types": "error",
         "@typescript-eslint/no-explicit-any": "off"
     }
 };
