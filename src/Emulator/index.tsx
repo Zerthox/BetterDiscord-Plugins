@@ -8,7 +8,7 @@ const Overlay = Finder.byProps("initialize", "isSupported", "getFocusedPID");
 const RadioGroup = Finder.byName("RadioGroup");
 
 const settings = {
-    platform: /^win/.test(Platforms.platfrom) ? PlatformTypes.WINDOWS
+    platform: /^win/.test(Platforms.platform) ? PlatformTypes.WINDOWS
         : Platforms.platform === "darwin" ? PlatformTypes.OSX
             : Platforms.platform === "linux" ? PlatformTypes.LINUX
                 : PlatformTypes.WEB
@@ -34,7 +34,7 @@ export default createPlugin({...config, settings}, ({Logger, Patcher, Settings})
     return {
         start() {
             // patch platform specific getters
-            for (const platform of ["Windows", "OSX", "Linux", "Web"]) {
+            for (const platform of ["Windows", "OSX", "Linux", "Web"] as const) {
                 Patcher.instead(Platforms, `is${platform}`, () => Settings.get().platform === PlatformTypes[platform.toUpperCase()]);
             }
 
