@@ -38,7 +38,7 @@ export interface Query {
 // we assume bd env for now
 const raw = {
     single: (filter: (module: any) => boolean) => BdApi.findModule(filter),
-    all: (filter: (module: any) => boolean) => BdApi.findAllModules(filter)
+    all: (filter: (module: any) => boolean) => BdApi.findAllModules(filter) ?? []
 };
 
 const resolveExports = (
