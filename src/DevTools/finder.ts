@@ -1,9 +1,9 @@
-import {Filters, Require, Module, ModuleId, Exports, ModuleFunction, Query} from "discordium/api/finder";
+import {Filters, Require, Module, ModuleId, Exports, ModuleFunction, Query} from "dium/api/finder";
 
 // finder extensions for development
 
 const getWebpackRequire = (): Require => {
-    const moduleId = "discordium";
+    const moduleId = "__DIUM_DEV_TOOLS__";
 
     // TODO: use chunk instead of bd's jsonp polyfill
     let webpackRequire: Require;

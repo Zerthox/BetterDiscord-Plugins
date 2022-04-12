@@ -1,4 +1,4 @@
-# Discordium
+# Dium
 A work-in-progress framework for Discord plugins.
 
 Eventually, this might be moved to its own repository.
@@ -8,7 +8,7 @@ Eventually, this might be moved to its own repository.
  * @name Example
  * @version 0.1.0
  * @author Zerthox
- * @description Example plugin using Discordium.
+ * @description Example plugin using dium.
  */
 
 import {
@@ -24,7 +24,7 @@ import {
     Flux,
     classNames,
     lodash
-} from "discordium";
+} from "dium";
 
 const config = {
     name: "Example",

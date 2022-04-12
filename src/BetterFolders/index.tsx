@@ -1,4 +1,4 @@
-import {createPlugin, Finder, Utils, React, Flux, Modules} from "discordium";
+import {createPlugin, Finder, Utils, React, Flux, Modules} from "dium";
 import {BetterFolderIcon, BetterFolderUploader, FolderData} from "./components";
 import config from "./config.json";
 import styles from "./styles.scss";

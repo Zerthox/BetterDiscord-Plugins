@@ -1,6 +1,6 @@
 {
-    "name": "DiscordiumDevTools",
+    "name": "DiumDevTools",
     "author": "Zerthox",
     "version": "0.2.0",
-    "description": "Makes Discordium available as global for development."
+    "description": "Makes Dium available as global for development."
 }

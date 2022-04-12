@@ -1,4 +1,4 @@
-import {Finder, React, Modules, classNames, SettingsProps} from "discordium";
+import {Finder, React, Modules, classNames, SettingsProps} from "dium";
 
 const {Flex, Button, Text, Switch, SwitchItem, TextInput, Slider} = Modules;
 const {FormSection, FormTitle, FormItem, FormText, FormDivider} = Modules.Form;

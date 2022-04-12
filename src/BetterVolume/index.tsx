@@ -1,4 +1,4 @@
-import {createPlugin, React, Finder, Modules, Discord} from "discordium";
+import {createPlugin, React, Finder, Modules, Discord} from "dium";
 import config from "./config.json";
 import styles from "./styles.scss";
 

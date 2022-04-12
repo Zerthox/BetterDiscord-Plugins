@@ -7,7 +7,7 @@
         "resolveJsonModule": true,
         "baseUrl": ".",
         "paths": {
-            "discordium/*": ["./discordium/*"]
+            "dium/*": ["./dium/*"]
         }
     },
     "ts-node": {

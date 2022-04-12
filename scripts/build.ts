@@ -4,7 +4,7 @@ import minimist from "minimist";
 import chalk from "chalk";
 import * as rollup from "rollup";
 import rollupConfig from "../rollup.config";
-import {Config} from "discordium";
+import {Config} from "dium";
 
 const repo = "Zerthox/BetterDiscord-Plugins";
 
