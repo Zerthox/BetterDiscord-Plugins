@@ -1,4 +1,4 @@
-import {Finder, React, Modules} from "discordium";
+import {Finder, React, Modules} from "dium";
 
 const {Flex, Button, SwitchItem} = Modules;
 const {FormText} = Modules.Form;

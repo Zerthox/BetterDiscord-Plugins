@@ -1,4 +1,4 @@
-import {createPlugin, Finder, Utils, React} from "discordium";
+import {createPlugin, Finder, Utils, React} from "dium";
 import config from "./config.json";
 
 const Platforms = Finder.byProps("getPlatform", "isWindows", "isWeb", "PlatformTypes");
