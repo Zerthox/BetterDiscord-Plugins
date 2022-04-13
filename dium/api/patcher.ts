@@ -186,14 +186,16 @@ export const createPatcher = (id: string, Logger: Logger): Patcher => {
                     args[argIndex] = async function(...args: any[]) {
                         const result = await original.call(this, ...args);
 
-                        // check if loaded
-                        const found = callback();
-                        if (found) {
-                            resolve(found);
+                        // async check if loaded
+                        Promise.resolve().then(() => {
+                            const found = callback();
+                            if (found) {
+                                resolve(found);
 
-                            // we dont need the patch anymore
-                            cancel();
-                        }
+                                // we dont need the patch anymore
+                                cancel();
+                            }
+                        });
 
                         return result;
                     };
