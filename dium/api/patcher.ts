@@ -78,7 +78,7 @@ export interface Patcher {
     >(
         object: Module,
         method: Key,
-        arg: number,
+        argIndex: number,
         callback: () => T
     ): Promise<T>;
 
@@ -172,7 +172,7 @@ export const createPatcher = (id: string, Logger: Logger): Patcher => {
             rawPatcher.unpatchAll(id);
             Logger.log("Unpatched all");
         },
-        waitForLazy: (object, method, arg, callback) => new Promise<any>((resolve) => {
+        waitForLazy: (object, method, argIndex, callback) => new Promise<any>((resolve) => {
             // check load once before we patch
             const found = callback();
             if (found) {
@@ -182,9 +182,9 @@ export const createPatcher = (id: string, Logger: Logger): Patcher => {
                 Logger.log(`Waiting for lazy load in ${method} of ${resolveName(object, method)}`);
                 patcher.before(object, method, ({args, cancel}) => {
                     // replace resolver function
-                    const original = args[arg];
-                    args[arg] = async (...args: any[]) => {
-                        const result = await original(...args);
+                    const original = args[argIndex] as (...args: any[]) => Promise<any>;
+                    args[argIndex] = async function(...args: any[]) {
+                        const result = await original.call(this, ...args);
 
                         // check if loaded
                         const found = callback();
