@@ -1,7 +1,7 @@
 /**
  * @name BetterVolume
  * @author Zerthox
- * @version 2.2.2
+ * @version 2.2.3
  * @description Set user volume values manually instead of using a limited slider.
  * @authorLink https://github.com/Zerthox
  * @website https://github.com/Zerthox/BetterDiscord-Plugins
@@ -75,7 +75,7 @@ const generate = ({ filter, name, props, protos, source }) => [
     source instanceof Array ? bySource(source) : null
 ];
 const byName$1 = (name) => {
-    return (target) => target instanceof Object && Object.values(target).some(byOwnName(name));
+    return (target) => target instanceof Object && target !== window && Object.values(target).some(byOwnName(name));
 };
 const byOwnName = (name) => {
     return (target) => target?.displayName === name || target?.constructor?.displayName === name;
@@ -92,7 +92,7 @@ const bySource = (contents) => {
 
 const raw = {
     single: (filter) => BdApi.findModule(filter),
-    all: (filter) => BdApi.findAllModules(filter)
+    all: (filter) => BdApi.findAllModules(filter) ?? []
 };
 const resolveExports = (target, filter) => {
     if (target) {
@@ -239,7 +239,7 @@ const createPatcher = (id, Logger) => {
             rawPatcher.unpatchAll(id);
             Logger.log("Unpatched all");
         },
-        waitForLazy: (object, method, arg, callback) => new Promise((resolve) => {
+        waitForLazy: (object, method, argIndex, callback) => new Promise((resolve) => {
             const found = callback();
             if (found) {
                 resolve(found);
@@ -247,14 +247,16 @@ const createPatcher = (id, Logger) => {
             else {
                 Logger.log(`Waiting for lazy load in ${method} of ${resolveName(object, method)}`);
                 patcher.before(object, method, ({ args, cancel }) => {
-                    const original = args[arg];
-                    args[arg] = async (...args) => {
-                        const result = await original(...args);
-                        const found = callback();
-                        if (found) {
-                            resolve(found);
-                            cancel();
-                        }
+                    const original = args[argIndex];
+                    args[argIndex] = async function (...args) {
+                        const result = await original.call(this, ...args);
+                        Promise.resolve().then(() => {
+                            const found = callback();
+                            if (found) {
+                                resolve(found);
+                                cancel();
+                            }
+                        });
                         return result;
                     };
                 }, { silent: true });
@@ -363,18 +365,19 @@ const createPlugin = ({ name, version, styles: css, settings }, callback) => {
     const Data = createData(name);
     const Settings = createSettings(Data, settings ?? {});
     const plugin = callback({ Logger, Patcher, Styles, Data, Settings });
-    function Wrapper() { }
-    Wrapper.prototype.start = () => {
-        Logger.log("Enabled");
-        Styles.inject(css);
-        plugin.start();
-    };
-    Wrapper.prototype.stop = () => {
-        Patcher.unpatchAll();
-        Styles.clear();
-        plugin.stop();
-        Logger.log("Disabled");
-    };
+    class Wrapper {
+        start() {
+            Logger.log("Enabled");
+            Styles.inject(css);
+            plugin.start();
+        }
+        stop() {
+            Patcher.unpatchAll();
+            Styles.clear();
+            plugin.stop();
+            Logger.log("Disabled");
+        }
+    }
     if (plugin.settingsPanel) {
         const ConnectedSettings = Settings.connect(plugin.settingsPanel);
         Wrapper.prototype.getSettingsPanel = () => (React.createElement(SettingsContainer, { name: name, onReset: () => Settings.reset() },
@@ -385,7 +388,7 @@ const createPlugin = ({ name, version, styles: css, settings }, callback) => {
 
 const name = "BetterVolume";
 const author = "Zerthox";
-const version = "2.2.2";
+const version = "2.2.3";
 const description = "Set user volume values manually instead of using a limited slider.";
 const config = {
 	name: name,

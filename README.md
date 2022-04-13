@@ -1,19 +1,19 @@
 # BetterDiscord Plugins
 
-### [BetterFolders](/dist/bd/BetterFolders.plugin.js) <sub><sup>`v3.1.1` *(Updated: 30/01/2022)*</sup></sub>
+### [BetterFolders](/dist/bd/BetterFolders.plugin.js) <sub><sup>`v3.1.2` *(Updated: 13/04/2022)*</sup></sub>
 Add new functionality to server folders. Custom Folder Icons. Close other folders on open.
 
-### [BetterVolume](/dist/bd/BetterVolume.plugin.js) <sub><sup>`v2.2.2` *(Updated: 12/02/2022)*</sup></sub>
+### [BetterVolume](/dist/bd/BetterVolume.plugin.js) <sub><sup>`v2.2.3` *(Updated: 13/04/2022)*</sup></sub>
 Set user volume values manually instead of using a limited slider.
 
 ### [Emulator](/v1/Emulator.plugin.js) <sub><sup>`v1.1.0` *(Updated: 17/02/2020)*</sup></sub>
 Emulate Windows, MacOS, Linux or Browser on any platform.
 **WARNING:** Emulating a different platform may cause unwanted side effects. Use at own risk.
 
-### [OnlineFriendCount](/dist/bd/OnlineFriendCount.plugin.js) <sub><sup>`v2.1.2` *(Updated: 30/01/2022)*</sup></sub>
+### [OnlineFriendCount](/dist/bd/OnlineFriendCount.plugin.js) <sub><sup>`v2.1.3` *(Updated: 13/04/2022)*</sup></sub>
 Add the old online friend count back to guild list. Because nostalgia.
 
-### [VoiceEvents](/dist/bd/VoiceEvents.plugin.js) <sub><sup>`v2.2.0` *(Updated: 12/02/2022)*</sup></sub>
+### [VoiceEvents](/dist/bd/VoiceEvents.plugin.js) <sub><sup>`v2.2.1` *(Updated: 13/04/2022)*</sup></sub>
 Add TTS Event Notifications to your selected Voice Channel. TeamSpeak feeling.
 
 <br>

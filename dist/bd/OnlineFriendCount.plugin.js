@@ -1,7 +1,7 @@
 /**
  * @name OnlineFriendCount
  * @author Zerthox
- * @version 2.1.2
+ * @version 2.1.3
  * @description Add the old online friend count back to guild list. Because nostalgia.
  * @authorLink https://github.com/Zerthox
  * @website https://github.com/Zerthox/BetterDiscord-Plugins
@@ -68,7 +68,7 @@ const join = (filters) => {
     return (exports) => apply.every((filter) => filter(exports));
 };
 const byName$1 = (name) => {
-    return (target) => target instanceof Object && Object.values(target).some(byOwnName(name));
+    return (target) => target instanceof Object && target !== window && Object.values(target).some(byOwnName(name));
 };
 const byOwnName = (name) => {
     return (target) => target?.displayName === name || target?.constructor?.displayName === name;
@@ -79,7 +79,7 @@ const byProps$1 = (props) => {
 
 const raw = {
     single: (filter) => BdApi.findModule(filter),
-    all: (filter) => BdApi.findAllModules(filter)
+    all: (filter) => BdApi.findAllModules(filter) ?? []
 };
 const resolveExports = (target, filter) => {
     if (target) {
@@ -142,6 +142,13 @@ const ContextMenuActions = () => byProps("openContextMenuLazy");
 const ModalActions = () => byProps("openModalLazy");
 const Flex$1 = () => byName("Flex");
 const Button$1 = () => byProps("Link", "Hovers");
+const Text = () => byName("Text");
+const Links = () => byProps("Link", "NavLink");
+const Switch = () => byName("Switch");
+const SwitchItem = () => byName("SwitchItem");
+const RadioGroup = () => byName("RadioGroup");
+const Slider = () => byName("Slider");
+const TextInput = () => byName("TextInput");
 const Menu = () => byProps("MenuGroup", "MenuItem", "MenuSeparator");
 const Form$1 = () => byProps("FormItem", "FormSection", "FormDivider");
 const margins$1 = () => byProps("marginLarge");
@@ -158,6 +165,13 @@ const discord = {
     ModalActions: ModalActions,
     Flex: Flex$1,
     Button: Button$1,
+    Text: Text,
+    Links: Links,
+    Switch: Switch,
+    SwitchItem: SwitchItem,
+    RadioGroup: RadioGroup,
+    Slider: Slider,
+    TextInput: TextInput,
     Menu: Menu,
     Form: Form$1,
     margins: margins$1
@@ -211,7 +225,7 @@ const createPatcher = (id, Logger) => {
             rawPatcher.unpatchAll(id);
             Logger.log("Unpatched all");
         },
-        waitForLazy: (object, method, arg, callback) => new Promise((resolve) => {
+        waitForLazy: (object, method, argIndex, callback) => new Promise((resolve) => {
             const found = callback();
             if (found) {
                 resolve(found);
@@ -219,14 +233,16 @@ const createPatcher = (id, Logger) => {
             else {
                 Logger.log(`Waiting for lazy load in ${method} of ${resolveName(object, method)}`);
                 patcher.before(object, method, ({ args, cancel }) => {
-                    const original = args[arg];
-                    args[arg] = async (...args) => {
-                        const result = await original(...args);
-                        const found = callback();
-                        if (found) {
-                            resolve(found);
-                            cancel();
-                        }
+                    const original = args[argIndex];
+                    args[argIndex] = async function (...args) {
+                        const result = await original.call(this, ...args);
+                        Promise.resolve().then(() => {
+                            const found = callback();
+                            if (found) {
+                                resolve(found);
+                                cancel();
+                            }
+                        });
                         return result;
                     };
                 }, { silent: true });
@@ -264,15 +280,24 @@ class Settings extends Flux.Store {
         this.defaults = defaults;
         this.current = { ...defaults, ...Data.load("settings") };
     }
+    dispatch() {
+        this._dispatcher.dirtyDispatch({ type: "update", current: this.current });
+    }
     get() {
         return { ...this.current };
     }
     set(settings) {
         Object.assign(this.current, settings instanceof Function ? settings(this.get()) : settings);
-        this._dispatcher.dispatch({ type: "update", current: this.current });
+        this.dispatch();
     }
     reset() {
         this.set({ ...this.defaults });
+    }
+    delete(...keys) {
+        for (const key of keys) {
+            delete this.current[key];
+        }
+        this.dispatch();
     }
     connect(component) {
         return Flux.default.connectStores([this], () => ({ ...this.get(), defaults: this.defaults, set: (settings) => this.set(settings) }))(component);
@@ -382,18 +407,19 @@ const createPlugin = ({ name, version, styles: css, settings }, callback) => {
     const Data = createData(name);
     const Settings = createSettings(Data, settings ?? {});
     const plugin = callback({ Logger, Patcher, Styles, Data, Settings });
-    function Wrapper() { }
-    Wrapper.prototype.start = () => {
-        Logger.log("Enabled");
-        Styles.inject(css);
-        plugin.start();
-    };
-    Wrapper.prototype.stop = () => {
-        Patcher.unpatchAll();
-        Styles.clear();
-        plugin.stop();
-        Logger.log("Disabled");
-    };
+    class Wrapper {
+        start() {
+            Logger.log("Enabled");
+            Styles.inject(css);
+            plugin.start();
+        }
+        stop() {
+            Patcher.unpatchAll();
+            Styles.clear();
+            plugin.stop();
+            Logger.log("Disabled");
+        }
+    }
     if (plugin.settingsPanel) {
         const ConnectedSettings = Settings.connect(plugin.settingsPanel);
         Wrapper.prototype.getSettingsPanel = () => (React.createElement(SettingsContainer, { name: name, onReset: () => Settings.reset() },
@@ -404,7 +430,7 @@ const createPlugin = ({ name, version, styles: css, settings }, callback) => {
 
 const name = "OnlineFriendCount";
 const author = "Zerthox";
-const version = "2.1.2";
+const version = "2.1.3";
 const description = "Add the old online friend count back to guild list. Because nostalgia.";
 const config = {
 	name: name,
@@ -419,7 +445,7 @@ const { RelationshipTypes, StatusTypes } = Modules.Constants;
 const Status = byProps("getState", "getStatus", "isMobileOnline");
 const Relationships = byProps("isFriend", "getRelationshipCount");
 const HomeButton = byProps("HomeButton");
-const { Link } = byProps("Link", "NavLink") ?? {};
+const { Link } = Modules.Links;
 const guildStyles = byProps("guilds", "base");
 const listStyles = byProps("listItem");
 const friendsOnline = "friendsOnline-2JkivW";

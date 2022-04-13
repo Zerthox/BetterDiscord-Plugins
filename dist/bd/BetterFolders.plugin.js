@@ -1,7 +1,7 @@
 /**
  * @name BetterFolders
  * @author Zerthox
- * @version 3.1.1
+ * @version 3.1.2
  * @description Add new functionality to server folders. Custom Folder Icons. Close other folders on open.
  * @authorLink https://github.com/Zerthox
  * @website https://github.com/Zerthox/BetterDiscord-Plugins
@@ -75,7 +75,7 @@ const generate = ({ filter, name, props, protos, source }) => [
     source instanceof Array ? bySource(source) : null
 ];
 const byName$1 = (name) => {
-    return (target) => target instanceof Object && Object.values(target).some(byOwnName(name));
+    return (target) => target instanceof Object && target !== window && Object.values(target).some(byOwnName(name));
 };
 const byOwnName = (name) => {
     return (target) => target?.displayName === name || target?.constructor?.displayName === name;
@@ -92,7 +92,7 @@ const bySource = (contents) => {
 
 const raw = {
     single: (filter) => BdApi.findModule(filter),
-    all: (filter) => BdApi.findAllModules(filter)
+    all: (filter) => BdApi.findAllModules(filter) ?? []
 };
 const resolveExports = (target, filter) => {
     if (target) {
@@ -156,6 +156,13 @@ const ContextMenuActions = () => byProps("openContextMenuLazy");
 const ModalActions = () => byProps("openModalLazy");
 const Flex$2 = () => byName("Flex");
 const Button$2 = () => byProps("Link", "Hovers");
+const Text = () => byName("Text");
+const Links = () => byProps("Link", "NavLink");
+const Switch = () => byName("Switch");
+const SwitchItem$2 = () => byName("SwitchItem");
+const RadioGroup$1 = () => byName("RadioGroup");
+const Slider = () => byName("Slider");
+const TextInput = () => byName("TextInput");
 const Menu = () => byProps("MenuGroup", "MenuItem", "MenuSeparator");
 const Form$1 = () => byProps("FormItem", "FormSection", "FormDivider");
 const margins$2 = () => byProps("marginLarge");
@@ -172,6 +179,13 @@ const discord = {
     ModalActions: ModalActions,
     Flex: Flex$2,
     Button: Button$2,
+    Text: Text,
+    Links: Links,
+    Switch: Switch,
+    SwitchItem: SwitchItem$2,
+    RadioGroup: RadioGroup$1,
+    Slider: Slider,
+    TextInput: TextInput,
     Menu: Menu,
     Form: Form$1,
     margins: margins$2
@@ -225,7 +239,7 @@ const createPatcher = (id, Logger) => {
             rawPatcher.unpatchAll(id);
             Logger.log("Unpatched all");
         },
-        waitForLazy: (object, method, arg, callback) => new Promise((resolve) => {
+        waitForLazy: (object, method, argIndex, callback) => new Promise((resolve) => {
             const found = callback();
             if (found) {
                 resolve(found);
@@ -233,14 +247,16 @@ const createPatcher = (id, Logger) => {
             else {
                 Logger.log(`Waiting for lazy load in ${method} of ${resolveName(object, method)}`);
                 patcher.before(object, method, ({ args, cancel }) => {
-                    const original = args[arg];
-                    args[arg] = async (...args) => {
-                        const result = await original(...args);
-                        const found = callback();
-                        if (found) {
-                            resolve(found);
-                            cancel();
-                        }
+                    const original = args[argIndex];
+                    args[argIndex] = async function (...args) {
+                        const result = await original.call(this, ...args);
+                        Promise.resolve().then(() => {
+                            const found = callback();
+                            if (found) {
+                                resolve(found);
+                                cancel();
+                            }
+                        });
                         return result;
                     };
                 }, { silent: true });
@@ -278,15 +294,24 @@ class Settings extends Flux.Store {
         this.defaults = defaults;
         this.current = { ...defaults, ...Data.load("settings") };
     }
+    dispatch() {
+        this._dispatcher.dirtyDispatch({ type: "update", current: this.current });
+    }
     get() {
         return { ...this.current };
     }
     set(settings) {
         Object.assign(this.current, settings instanceof Function ? settings(this.get()) : settings);
-        this._dispatcher.dispatch({ type: "update", current: this.current });
+        this.dispatch();
     }
     reset() {
         this.set({ ...this.defaults });
+    }
+    delete(...keys) {
+        for (const key of keys) {
+            delete this.current[key];
+        }
+        this.dispatch();
     }
     connect(component) {
         return Flux.default.connectStores([this], () => ({ ...this.get(), defaults: this.defaults, set: (settings) => this.set(settings) }))(component);
@@ -409,18 +434,19 @@ const createPlugin = ({ name, version, styles: css, settings }, callback) => {
     const Data = createData(name);
     const Settings = createSettings(Data, settings ?? {});
     const plugin = callback({ Logger, Patcher, Styles, Data, Settings });
-    function Wrapper() { }
-    Wrapper.prototype.start = () => {
-        Logger.log("Enabled");
-        Styles.inject(css);
-        plugin.start();
-    };
-    Wrapper.prototype.stop = () => {
-        Patcher.unpatchAll();
-        Styles.clear();
-        plugin.stop();
-        Logger.log("Disabled");
-    };
+    class Wrapper {
+        start() {
+            Logger.log("Enabled");
+            Styles.inject(css);
+            plugin.start();
+        }
+        stop() {
+            Patcher.unpatchAll();
+            Styles.clear();
+            plugin.stop();
+            Logger.log("Disabled");
+        }
+    }
     if (plugin.settingsPanel) {
         const ConnectedSettings = Settings.connect(plugin.settingsPanel);
         Wrapper.prototype.getSettingsPanel = () => (React.createElement(SettingsContainer, { name: name, onReset: () => Settings.reset() },
@@ -429,10 +455,10 @@ const createPlugin = ({ name, version, styles: css, settings }, callback) => {
     return Wrapper;
 };
 
-const { Flex, Button, margins } = Modules;
+const { Flex, Button, SwitchItem: SwitchItem$1 } = Modules;
 const { FormText } = Modules.Form;
-const SwitchItem$1 = byName("SwitchItem");
 const ImageInput = byName("ImageInput");
+const { margins } = Modules;
 const BetterFolderIcon = ({ icon, always, childProps, FolderIcon }) => {
     const result = FolderIcon(childProps);
     if (icon && (childProps.expanded || always)) {
@@ -451,7 +477,7 @@ const BetterFolderUploader = ({ icon, always, folderNode, onChange, FolderIcon }
 
 const name = "BetterFolders";
 const author = "Zerthox";
-const version = "3.1.1";
+const version = "3.1.2";
 const description = "Add new functionality to server folders. Custom Folder Icons. Close other folders on open.";
 const config = {
 	name: name,
@@ -465,9 +491,8 @@ const styles = ".betterFolders-customIcon {\n  width: 100%;\n  height: 100%;\n  
 const ClientActions = byProps("toggleGuildFolderExpand");
 const GuildsTree = byProps("getGuildsTree");
 const FolderState = byProps("getExpandedFolders");
+const { RadioGroup, SwitchItem } = Modules;
 const { FormItem } = Modules.Form;
-const RadioGroup = byName("RadioGroup");
-const SwitchItem = byName("SwitchItem");
 const FolderHeader = query({ name: "FolderHeader" });
 let FolderIcon = null;
 const guildStyles = byProps("guilds", "base");
