@@ -1,28 +1,8 @@
 import * as Filters from "./filters";
+import {Exports} from "./require";
 
 export * as Filters from "./filters";
-
-export type ModuleId = number;
-
-export type Exports = Record<string, any>;
-
-export interface Module {
-    id: ModuleId;
-    loaded: boolean;
-    exports: Exports;
-}
-
-export type ModuleFunction = (this: Exports, module: Module, exports: Exports, require: Require) => void;
-
-export interface Require {
-    (id: ModuleId): any;
-
-    /** module register */
-    m: Record<string, ModuleFunction>;
-
-    /** module cache */
-    c: Record<string, Module>;
-}
+export * from "./require";
 
 export type Filter = (exports: Exports) => boolean;
 

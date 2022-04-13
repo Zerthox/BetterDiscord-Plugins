@@ -2,7 +2,7 @@ import {Require} from "dium/api/finder";
 
 global.TESTING = true;
 
-const mockRequire: Require = () => null;
+const mockRequire: Partial<Require> = () => null;
 mockRequire.m = {};
 mockRequire.c = {};
 
