@@ -1,5 +1,6 @@
 import {describe, it} from "mocha";
 import {strict as assert} from "assert";
+import "../mock";
 
 import {queryTree, queryTreeAll} from "dium/utils/react";
 
