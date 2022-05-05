@@ -2,16 +2,16 @@ import * as Finder from "../api/finder";
 
 // we import instances for the typing
 // FIXME: mirror versions!
-import ReactInstance from "react";
-import ReactDOMInstance from "react-dom";
-import classNamesInstance from "classnames";
-import lodashInstance from "lodash";
-import semverInstance from "semver";
-import momentInstance from "moment";
-import SimpleMarkdownInstance from "simple-markdown";
-import hljsInstance from "highlight.js";
-import joiInstance from "joi";
-import RavenInstance from "raven";
+import type ReactInstance from "react";
+import type ReactDOMInstance from "react-dom";
+import type classNamesInstance from "classnames";
+import type lodashInstance from "lodash";
+import type semverInstance from "semver";
+import type momentInstance from "moment";
+import type SimpleMarkdownInstance from "simple-markdown";
+import type hljsInstance from "highlight.js";
+import type joiInstance from "joi";
+import type RavenInstance from "raven";
 
 export const EventEmitter = (): NodeJS.EventEmitter => Finder.byProps("subscribe", "emit");
 
