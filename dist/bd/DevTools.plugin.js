@@ -514,7 +514,7 @@ const SettingsContainer = ({ name, children, onReset }) => (React.createElement(
                 onConfirm: () => onReset()
             }) }, "Reset"))));
 
-const version$1 = "0.2.3";
+const version$1 = "0.2.4";
 
 const createPlugin = ({ name, version, styles: css, settings }, callback) => {
     const Logger = createLogger(name, "#3a71c1", version);
@@ -554,7 +554,6 @@ const dium = {
     Utils: index$1,
     Modules: Modules$1,
     version: version$1,
-    Settings: Settings,
     React: React,
     ReactDOM: ReactDOM,
     classNames: classNames,

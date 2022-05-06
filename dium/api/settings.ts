@@ -18,7 +18,7 @@ interface SettingsEvent<SettingsType> extends DispatchEvent {
     current: SettingsType;
 }
 
-export class Settings<
+class Settings<
     SettingsType extends Record<string, any>,
     DataType extends {settings: SettingsType}
 > extends Flux.Store {
@@ -147,6 +147,8 @@ export class Settings<
         this.listeners.clear();
     }
 }
+
+export type {Settings};
 
 export const createSettings = <
     SettingsType extends Record<string, any>,
