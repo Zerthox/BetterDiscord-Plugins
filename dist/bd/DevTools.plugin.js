@@ -1,7 +1,7 @@
 /**
  * @name DiumDevTools
  * @author Zerthox
- * @version 0.2.1
+ * @version 0.2.2
  * @description Makes Dium available as global for development.
  * @authorLink https://github.com/Zerthox
  * @website https://github.com/Zerthox/BetterDiscord-Plugins
@@ -646,7 +646,7 @@ const DevFinder = {
 
 const name = "DiumDevTools";
 const author = "Zerthox";
-const version = "0.2.1";
+const version = "0.2.2";
 const description = "Makes Dium available as global for development.";
 const config = {
 	name: name,
@@ -659,10 +659,10 @@ const { Finder } = dium;
 Finder.dev = DevFinder;
 const index = createPlugin(config, () => ({
     start() {
-        global.dium = dium;
+        window.dium = dium;
     },
     stop() {
-        delete global.dium;
+        delete window.dium;
     }
 }));
 

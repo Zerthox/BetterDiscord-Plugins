@@ -2,6 +2,12 @@ import * as dium from "dium";
 import * as DevFinder from "./finder";
 import config from "./config.json";
 
+declare global {
+    interface Window {
+        dium?: typeof dium;
+    }
+}
+
 // add finder extension
 const {Finder} = dium;
 (Finder as any).dev = DevFinder;
@@ -9,10 +15,10 @@ const {Finder} = dium;
 export default dium.createPlugin(config, () => ({
     start() {
         // expose as global
-        global.dium = dium;
+        window.dium = dium;
     },
     stop() {
         // remove global
-        delete global.dium;
+        delete window.dium;
     }
 }));
