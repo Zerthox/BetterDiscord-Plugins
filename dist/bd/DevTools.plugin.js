@@ -81,7 +81,7 @@ const byName$2 = (name) => {
     return (target) => target instanceof Object && target !== window && Object.values(target).some(byOwnName(name));
 };
 const byOwnName = (name) => {
-    return (target) => target?.displayName === name || target?.constructor?.displayName === name;
+    return (target) => (target?.getName?.() ?? target?.displayName ?? target?.constructor?.displayName) === name;
 };
 const byProps$2 = (props) => {
     return (target) => target instanceof Object && props.every((prop) => prop in target);
@@ -514,9 +514,9 @@ const SettingsContainer = ({ name, children, onReset }) => (React.createElement(
                 onConfirm: () => onReset()
             }) }, "Reset"))));
 
-const version$1 = "0.2.4";
+const version$1 = "0.2.5";
 
-const createPlugin = ({ name, version, styles: css, settings }, callback) => {
+const createPlugin = ({ name, version, styles, settings }, callback) => {
     const Logger = createLogger(name, "#3a71c1", version);
     const Patcher = createPatcher(name, Logger);
     const Styles = createStyles(name);
@@ -526,7 +526,7 @@ const createPlugin = ({ name, version, styles: css, settings }, callback) => {
     class Wrapper {
         start() {
             Logger.log("Enabled");
-            Styles.inject(css);
+            Styles.inject(styles);
             plugin.start();
         }
         stop() {

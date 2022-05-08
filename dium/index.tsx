@@ -62,7 +62,7 @@ export const createPlugin = <
     SettingsType extends Record<string, any>,
     DataType extends {settings: SettingsType} = {settings: SettingsType}
 >(
-    {name, version, styles: css, settings}: Config<SettingsType>,
+    {name, version, styles, settings}: Config<SettingsType>,
     callback: (api: Api<SettingsType, DataType>) => Plugin<SettingsType>
 ): BdApi.PluginConstructor => {
     // create log
@@ -79,7 +79,7 @@ export const createPlugin = <
     class Wrapper implements BdApi.Plugin {
         start() {
             Logger.log("Enabled");
-            Styles.inject(css);
+            Styles.inject(styles);
             plugin.start();
         }
         stop() {

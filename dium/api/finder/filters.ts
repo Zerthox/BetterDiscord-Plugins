@@ -22,7 +22,7 @@ export const byName = (name: string): Filter => {
 };
 
 export const byOwnName = (name: string): Filter => {
-    return (target: any) => target?.displayName === name || target?.constructor?.displayName === name;
+    return (target: any) => (target?.getName?.() ?? target?.displayName ?? target?.constructor?.displayName) === name;
 };
 
 export const byProps = (props: string[]): Filter => {
