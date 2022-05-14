@@ -1,6 +1,6 @@
 import {Data} from "./data";
 import {Flux} from "../modules";
-import {Event as DispatchEvent, Listener as DispatchListener} from "../modules/flux";
+import {Action, Listener as DispatchListener} from "../modules/flux";
 
 export type Listener<Data> = (data: Data) => void;
 
@@ -13,7 +13,7 @@ export type SettingsProps<SettingsType extends Record<string, any>> = SettingsTy
     set(settings: Update<SettingsType>): void;
 };
 
-interface SettingsEvent<SettingsType> extends DispatchEvent {
+interface SettingsAction<SettingsType> extends Action {
     type: "update";
     current: SettingsType;
 }
@@ -23,7 +23,7 @@ class Settings<
     DataType extends {settings: SettingsType}
 > extends Flux.Store {
     defaults: SettingsType;
-    protected listeners: Map<Listener<SettingsType>, DispatchListener<SettingsEvent<SettingsType>>>;
+    protected listeners: Map<Listener<SettingsType>, DispatchListener<SettingsAction<SettingsType>>>;
     protected current: SettingsType;
 
     constructor(Data: Data<DataType>, defaults: SettingsType) {
@@ -124,7 +124,7 @@ class Settings<
 
     /** Registers a new listener to be called on settings state changes. */
     addListener(listener: Listener<SettingsType>): Listener<SettingsType> {
-        const wrapper = ({current}: SettingsEvent<SettingsType>) => listener(current);
+        const wrapper = ({current}: SettingsAction<SettingsType>) => listener(current);
         this.listeners.set(listener, wrapper);
         this._dispatcher.subscribe("update", wrapper);
         return listener;
