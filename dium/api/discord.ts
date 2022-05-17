@@ -1,4 +1,4 @@
-import {Moment} from "moment";
+import type {Moment} from "moment";
 
 /** A timestamped ID stored as a string. */
 export type Snowflake = string;

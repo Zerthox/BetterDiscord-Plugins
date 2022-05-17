@@ -14,7 +14,7 @@ import {
 import {React} from "./modules";
 import {SettingsContainer} from "./components";
 
-export {Finder, Discord, ReactInternals, ReactDOMInternals} from "./api";
+export {Finder, type Discord, ReactInternals, ReactDOMInternals} from "./api";
 export * as Utils from "./utils";
 export {default as Modules} from "./modules";
 export * from "./modules";
