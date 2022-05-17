@@ -3,7 +3,7 @@ A work-in-progress framework for Discord plugins.
 
 Eventually, this might be moved to its own repository.
 
-```ts
+```tsx
 /**
  * @name Example
  * @version 0.1.0

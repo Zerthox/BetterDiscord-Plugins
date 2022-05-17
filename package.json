@@ -1,6 +1,6 @@
 {
     "name": "betterdiscord-plugins",
-    "version": "0.2.5",
+    "version": "0.1.0",
     "description": "Plugins for BetterDiscord.",
     "author": "Zerthox",
     "license": "MIT",
@@ -10,35 +10,22 @@
         "dev": "ts-node scripts/build.ts --dev --watch",
         "check": "tsc --noemit",
         "lint": "eslint . -f node_modules/eslint-friendly-formatter",
-        "lint-fix": "eslint . -f node_modules/eslint-friendly-formatter --fix",
-        "test": "mocha -r ts-node/register tests/**/*.ts"
+        "lint-fix": "eslint . -f node_modules/eslint-friendly-formatter --fix"
     },
-    "repository": {
-        "type": "git",
-        "url": "https://github.com/Zerthox/BetterDiscord-Plugins.git"
-    },
-    "bugs": {
-        "url": "https://github.com/Zerthox/BetterDiscord-Plugins/issues"
-    },
+    "repository": "https://github.com/Zerthox/BetterDiscord-Plugins",
+    "bugs": "https://github.com/Zerthox/BetterDiscord-Plugins/issues",
     "homepage": "https://github.com/Zerthox/BetterDiscord-Plugins#readme",
+    "workspaces": [
+        "dium"
+    ],
     "dependencies": {
-        "@types/classnames": "^2.3.1",
-        "@types/highlight.js": "^10.1.0",
-        "@types/joi": "^17.2.3",
-        "@types/lodash": "^4.14.176",
         "@types/node": "^16.11.6",
-        "@types/raven": "^2.5.4",
         "@types/react": "^17.0.33",
-        "@types/react-dom": "^17.0.10",
-        "@types/react-reconciler": "^0.26.4",
-        "@types/semver": "^7.3.9",
-        "moment": "^2.29.3",
-        "simple-markdown": "^0.7.3"
+        "@types/react-dom": "^17.0.10"
     },
     "devDependencies": {
         "@rollup/plugin-json": "^4.1.0",
         "@rollup/plugin-typescript": "^8.3.0",
-        "@types/chalk": "^2.2.0",
         "@types/minimist": "^1.2.2",
         "@types/mocha": "^9.0.0",
         "@typescript-eslint/eslint-plugin": "^5.2.0",
