@@ -207,7 +207,7 @@ const Menu = () => byProps$1("MenuGroup", "MenuItem", "MenuSeparator");
 const Form$1 = () => byProps$1("FormItem", "FormSection", "FormDivider");
 const margins$1 = () => byProps$1("marginLarge");
 
-const discord$1 = {
+const discord = {
     __proto__: null,
     Constants: Constants,
     i18n: i18n,
@@ -249,7 +249,7 @@ const createProxy = (entries) => {
 const Modules = createProxy({
     ...npm,
     ...flux,
-    ...discord$1
+    ...discord
 });
 const Modules$1 = Modules;
 const { React, ReactDOM, classNames, lodash, Flux } = Modules;
@@ -388,10 +388,6 @@ class Settings extends Flux.Store {
 }
 const createSettings = (Data, defaults) => new Settings(Data, defaults);
 
-const discord = {
-    __proto__: null
-};
-
 const ReactInternals = React?.__SECRET_INTERNALS_DO_NOT_USE_OR_YOU_WILL_BE_FIRED;
 const [getInstanceFromNode, getNodeFromInstance, getFiberCurrentPropsFromNode, enqueueStateRestore, restoreStateIfNeeded, batchedUpdates] = ReactDOM?.__SECRET_INTERNALS_DO_NOT_USE_OR_YOU_WILL_BE_FIRED?.Events ?? [];
 const ReactDOMInternals = {
@@ -514,7 +510,7 @@ const SettingsContainer = ({ name, children, onReset }) => (React.createElement(
                 onConfirm: () => onReset()
             }) }, "Reset"))));
 
-const version$1 = "0.2.5";
+const version$1 = "0.2.6";
 
 const createPlugin = ({ name, version, styles, settings }, callback) => {
     const Logger = createLogger(name, "#3a71c1", version);
@@ -548,7 +544,6 @@ const dium = {
     __proto__: null,
     createPlugin: createPlugin,
     Finder: index$2,
-    Discord: discord,
     ReactInternals: ReactInternals,
     ReactDOMInternals: ReactDOMInternals,
     Utils: index$1,
