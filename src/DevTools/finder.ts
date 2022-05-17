@@ -27,6 +27,13 @@ export {webpackRequire as require};
 
 type RawFilter = (exports: Exports, module: Module) => boolean;
 
+const byModuleSourceFilter = (contents: string[]): RawFilter => {
+    return (_, module) => {
+        const source = sourceOf(module.id).toString();
+        return contents.every((content) => source.includes(content));
+    };
+};
+
 const applyFilters = (filters: RawFilter[]) => (module: Module) => {
     const {exports} = module;
     return (
@@ -72,28 +79,34 @@ export const byProtos = (...protos: string[]): Module => find(Filters.byProtos(p
 /** Finds a module using source code contents of its export entries. */
 export const bySource = (...contents: string[]): Module => find(Filters.bySource(contents));
 
+/** Finds a module using source code contents of its entire source code. */
+export const byModuleSource = (...contents: string[]): Module => find(byModuleSourceFilter(contents));
+
 /** Returns all module results. */
 export const all = {
-    /** Finds all raw modules using a set of filter functions. */
+    /** Finds all modules using a set of filter functions. */
     find: (...filters: RawFilter[]): Module[] => modules().filter(applyFilters(filters)),
 
-    /** Finds all raw modules using query options. */
+    /** Finds all modules using query options. */
     query: (options: Query): Module[] => all.find(...Filters.generate(options)),
 
-    /** Finds all raw modules using the exports. */
+    /** Finds all modules using the exports. */
     byExports: (exported: Exports): Module[] => all.find(Filters.byExports(exported)),
 
-    /** Finds all raw modules using the name of its export. */
+    /** Finds all modules using the name of its export. */
     byName: (name: string): Module[] => all.find(Filters.byName(name)),
 
-    /** Finds all raw modules using property names of its export. */
+    /** Finds all modules using property names of its export. */
     byProps: (...props: string[]): Module[] => all.find(Filters.byProps(props)),
 
-    /** Finds all raw modules using prototype names of it export. */
+    /** Finds all modules using prototype names of it export. */
     byProtos: (...protos: string[]): Module[] => all.find(Filters.byProtos(protos)),
 
-    /** Finds all raw modules using source code contents of its export entries. */
-    bySource: (...contents: string[]): Module[] => all.find(Filters.bySource(contents))
+    /** Finds all modules using source code contents of its export entries. */
+    bySource: (...contents: string[]): Module[] => all.find(Filters.bySource(contents)),
+
+    /** Finds all modules using source code contents of its entire source code. */
+    byModuleSource: (...contents: string[]): Module[] => all.find(byModuleSourceFilter(contents))
 };
 
 /** Returns module ids of all other modules imported in the module. */

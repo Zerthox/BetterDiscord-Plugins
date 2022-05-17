@@ -1,7 +1,7 @@
 /**
  * @name DiumDevTools
  * @author Zerthox
- * @version 0.2.2
+ * @version 0.2.3
  * @description Makes Dium available as global for development.
  * @authorLink https://github.com/Zerthox
  * @website https://github.com/Zerthox/BetterDiscord-Plugins
@@ -571,6 +571,12 @@ const getWebpackRequire = () => {
     return webpackRequire;
 };
 const webpackRequire = getWebpackRequire();
+const byModuleSourceFilter = (contents) => {
+    return (_, module) => {
+        const source = sourceOf(module.id).toString();
+        return contents.every((content) => source.includes(content));
+    };
+};
 const applyFilters = (filters) => (module) => {
     const { exports } = module;
     return (filters.every((filter) => filter(exports, module))
@@ -587,6 +593,7 @@ const byName = (name) => find(byName$2(name));
 const byProps = (...props) => find(byProps$2(props));
 const byProtos = (...protos) => find(byProtos$2(protos));
 const bySource = (...contents) => find(bySource$2(contents));
+const byModuleSource = (...contents) => find(byModuleSourceFilter(contents));
 const all = {
     find: (...filters) => modules().filter(applyFilters(filters)),
     query: (options) => all.find(...generate(options)),
@@ -594,7 +601,8 @@ const all = {
     byName: (name) => all.find(byName$2(name)),
     byProps: (...props) => all.find(byProps$2(props)),
     byProtos: (...protos) => all.find(byProtos$2(protos)),
-    bySource: (...contents) => all.find(bySource$2(contents))
+    bySource: (...contents) => all.find(bySource$2(contents)),
+    byModuleSource: (...contents) => all.find(byModuleSourceFilter(contents))
 };
 const resolveImportIds = (module) => {
     const source = sourceOf(module.id).toString();
@@ -630,6 +638,7 @@ const DevFinder = {
     byProps: byProps,
     byProtos: byProtos,
     bySource: bySource,
+    byModuleSource: byModuleSource,
     all: all,
     resolveImportIds: resolveImportIds,
     resolveImports: resolveImports,
@@ -640,7 +649,7 @@ const DevFinder = {
 
 const name = "DiumDevTools";
 const author = "Zerthox";
-const version = "0.2.2";
+const version = "0.2.3";
 const description = "Makes Dium available as global for development.";
 const config = {
 	name: name,
