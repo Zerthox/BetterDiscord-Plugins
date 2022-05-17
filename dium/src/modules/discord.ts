@@ -6,6 +6,7 @@ export const Constants = () => Finder.byProps("Permissions", "RelationshipTypes"
 export const i18n = () => Finder.byProps("languages", "getLocale");
 
 // STORES/ACTIONS
+// TODO: rename to actual names (store suffix)
 export const Channels = () => Finder.byProps("getChannel", "hasChannel");
 export const SelectedChannel = () => Finder.byProps("getChannelId", "getVoiceChannelId");
 export const Users = () => Finder.byProps("getUser", "getCurrentUser");

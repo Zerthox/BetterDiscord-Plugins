@@ -18,9 +18,7 @@ export interface Handler {
     storeDidChange: (e: any) => boolean;
 }
 
-declare class Dispatcher {
-    constructor();
-
+export interface Dispatcher {
     // private
     _currentDispatchActionType?: any;
     _dependencyGraph: DepGraph;
@@ -46,6 +44,10 @@ declare class Dispatcher {
     unsubscribe<A extends Action>(action: A["type"], listener: Listener<A>): void;
 
     wait<T>(callback: () => T): T | void;
+}
+
+export interface DispatcherConstructor {
+    new(): Dispatcher;
 }
 
 declare class Store {
@@ -80,7 +82,7 @@ declare class BatchedStoreListener {
     detach(): any;
 }
 
-export type {Dispatcher, Store, BatchedStoreListener};
+export type {Store, BatchedStoreListener};
 
 export interface Flux {
     Store: typeof Store;
@@ -106,7 +108,7 @@ export interface FluxHooks {
     default: Flux;
 
     Store: typeof Store;
-    Dispatcher: typeof Dispatcher;
+    Dispatcher: DispatcherConstructor;
     BatchedStoreListener: typeof BatchedStoreListener;
     ActionBase: any;
 
@@ -118,4 +120,4 @@ export interface FluxHooks {
 
 export const Flux = (): FluxHooks => Finder.byProps("Store", "useStateFromStores");
 
-export const Events = (): Dispatcher => Finder.byProps("dirtyDispatch");
+export const Dispatcher = (): Dispatcher => Finder.byProps("dirtyDispatch");

@@ -93,6 +93,7 @@ export const createPlugin = <
 
     // add settings panel
     if (plugin.settingsPanel) {
+        // TODO: use via hook instead?
         const ConnectedSettings = Settings.connect(plugin.settingsPanel);
         Wrapper.prototype.getSettingsPanel = () => (
             <SettingsContainer name={name} onReset={() => Settings.reset()}>
