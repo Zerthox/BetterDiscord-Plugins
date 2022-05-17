@@ -1,8 +1,3 @@
-declare module "*.scss" {
-    const contents: string;
-    export default contents;
-}
-
 declare namespace BdApi {
     interface Plugin {
         start(): void;
