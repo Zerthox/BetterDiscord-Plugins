@@ -7,12 +7,16 @@ on:
     paths:
       - "**/*.ts"
       - "**/*.tsx"
+      - "**/package.json"
+      - "**/tsconfig.json"
   pull_request:
     branches:
       - master
     paths:
       - "**/*.ts"
       - "**/*.tsx"
+      - "**/package.json"
+      - "**/tsconfig.json"
 
 jobs:
   check:
