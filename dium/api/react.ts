@@ -3,8 +3,6 @@ import type {Fiber, ReactContext} from "react-reconciler";
 
 export type {Fiber} from "react-reconciler";
 
-export type BasicStateAction<S> = ((prevState: S) => S) | S;
-
 export interface MutableSource<Source> {
     _source: Source;
     _getVersion: (source: Source) => any;
