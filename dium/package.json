@@ -9,7 +9,7 @@
         "check": "tsc --noemit",
         "test": "mocha -r ts-node/register tests/**/*.ts"
     },
-    "main": "src/index.tsx",
+    "main": "src/index",
     "repository": "https://github.com/Zerthox/BetterDiscord-Plugins",
     "bugs": "https://github.com/Zerthox/BetterDiscord-Plugins/issues",
     "homepage": "https://github.com/Zerthox/BetterDiscord-Plugins/tree/master/dium#readme",
