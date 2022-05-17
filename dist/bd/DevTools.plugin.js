@@ -81,7 +81,7 @@ const byName$2 = (name) => {
     return (target) => target instanceof Object && target !== window && Object.values(target).some(byOwnName(name));
 };
 const byOwnName = (name) => {
-    return (target) => (target?.getName?.() ?? target?.displayName ?? target?.constructor?.displayName) === name;
+    return (target) => (target?.displayName ?? target?.constructor?.displayName) === name;
 };
 const byProps$2 = (props) => {
     return (target) => target instanceof Object && props.every((prop) => prop in target);
