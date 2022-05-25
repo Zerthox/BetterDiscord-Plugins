@@ -3,8 +3,8 @@ import config from "./config.json";
 import styles from "./styles.scss";
 
 const {MenuItem} = Modules.Menu;
-const SettingsStore = Finder.byProps("getLocalVolume");
-const SettingsActions = Finder.byProps("setLocalVolume");
+const MediaEngineStore = Finder.byProps("getLocalVolume");
+const MediaEngineActions = Finder.byProps("setLocalVolume");
 const AudioConvert = Finder.byProps("perceptualToAmplitude");
 
 const limit = (input: number, min: number, max: number): number => Math.min(Math.max(input, min), max);
@@ -49,7 +49,7 @@ export default createPlugin({...config, styles}, ({Patcher}) => ({
             // check for original render
             if (result) {
                 // we can read this directly, the original has a hook to ensure updates
-                const volume = SettingsStore.getLocalVolume(userId, mediaContext);
+                const volume = MediaEngineStore.getLocalVolume(userId, mediaContext);
 
                 return (
                     <>
@@ -62,7 +62,7 @@ export default createPlugin({...config, styles}, ({Patcher}) => ({
                                     min={0}
                                     max={999999}
                                     fallback={100}
-                                    onChange={(value) => SettingsActions.setLocalVolume(
+                                    onChange={(value) => MediaEngineActions.setLocalVolume(
                                         userId,
                                         AudioConvert.perceptualToAmplitude(value),
                                         mediaContext

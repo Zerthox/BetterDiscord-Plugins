@@ -3,7 +3,7 @@ import config from "./config.json";
 
 const Platforms = Finder.byProps("getPlatform", "isWindows", "isWeb", "PlatformTypes");
 const {PlatformTypes} = Platforms;
-const Overlay = Finder.byProps("initialize", "isSupported", "getFocusedPID");
+const OverlayBridgeStore = Finder.byProps("initialize", "isSupported", "getFocusedPID");
 
 const RadioGroup = Finder.byName("RadioGroup");
 
@@ -39,7 +39,7 @@ export default createPlugin({...config, settings}, ({Logger, Patcher, Settings})
             }
 
             // patch overlay requirement
-            Patcher.instead(Overlay, "isSupported", () => Platforms.isWindows());
+            Patcher.instead(OverlayBridgeStore, "isSupported", () => Platforms.isWindows());
         },
         async stop() {
             await triggerRerender();
