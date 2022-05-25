@@ -8,11 +8,6 @@ export type Update<Data> = Partial<Data> | ((current: Data) => Partial<Data>);
 
 export type Setter<Data> = (update: Update<Data>) => void;
 
-export type SettingsProps<SettingsType extends Record<string, any>> = SettingsType & {
-    defaults: SettingsType;
-    set(settings: Update<SettingsType>): void;
-};
-
 interface SettingsAction<SettingsType> extends Action {
     type: "update";
     current: SettingsType;
@@ -72,19 +67,11 @@ class Settings<
         this.dispatch();
     }
 
-    /** Connects a React Component to receive settings updates as props. */
-    connect<Props>(component: React.ComponentType<SettingsProps<SettingsType> & Props>): React.ComponentClass<Props> {
-        return Flux.default.connectStores<Props, SettingsProps<SettingsType>>(
-            [this],
-            () => ({...this.get(), defaults: this.defaults, set: (settings) => this.set(settings)})
-        )(component);
-    }
-
     /**
      * Returns the current settings state.
      *
      * ```js
-     * const current = Settings.useCurrent();
+     * const currentSettings = Settings.useCurrent();
      * ```
      */
     useCurrent(): SettingsType {
@@ -98,7 +85,7 @@ class Settings<
      * Returns the current settings state & a setter function.
      *
      * ```js
-     * const [current, set] = Settings.useState();
+     * const [currentSettings, setSettings] = Settings.useState();
      * ```
      */
     useState(): [SettingsType, Setter<SettingsType>] {
@@ -112,7 +99,7 @@ class Settings<
      * Returns the current settings state, defaults & a setter function.
      *
      * ```js
-     * const [current, defaults, set] = Settings.useStateWithDefaults();
+     * const [currentSettings, defaultSettings, setSettings] = Settings.useStateWithDefaults();
      * ```
      */
     useStateWithDefaults(): [SettingsType, SettingsType, Setter<SettingsType>] {

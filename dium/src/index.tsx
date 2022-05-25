@@ -8,8 +8,7 @@ import {
     createData,
     Data,
     createSettings,
-    Settings,
-    SettingsProps
+    Settings
 } from "./api";
 import {React} from "./modules";
 import {SettingsContainer} from "./components";
@@ -42,7 +41,7 @@ export interface Config<Settings extends Record<string, any>> {
     settings?: Settings;
 }
 
-export interface Plugin<Settings extends Record<string, any>> {
+export interface Plugin<> {
     /** Called on plugin start. */
     start(): void | Promise<void>;
 
@@ -54,7 +53,7 @@ export interface Plugin<Settings extends Record<string, any>> {
     stop(): void;
 
     /** Settings UI as React component. */
-    settingsPanel?: React.ComponentType<SettingsProps<Settings>>;
+    SettingsPanel?: React.ComponentType;
 }
 
 /** Creates a BetterDiscord plugin. */
@@ -63,7 +62,7 @@ export const createPlugin = <
     DataType extends {settings: SettingsType} = {settings: SettingsType}
 >(
     {name, version, styles, settings}: Config<SettingsType>,
-    callback: (api: Api<SettingsType, DataType>) => Plugin<SettingsType>
+    callback: (api: Api<SettingsType, DataType>) => Plugin
 ): BdApi.PluginConstructor => {
     // create log
     const Logger = createLogger(name, "#3a71c1", version);
@@ -92,12 +91,10 @@ export const createPlugin = <
     }
 
     // add settings panel
-    if (plugin.settingsPanel) {
-        // TODO: use via hook instead?
-        const ConnectedSettings = Settings.connect(plugin.settingsPanel);
+    if (plugin.SettingsPanel) {
         Wrapper.prototype.getSettingsPanel = () => (
             <SettingsContainer name={name} onReset={() => Settings.reset()}>
-                <ConnectedSettings/>
+                <plugin.SettingsPanel/>
             </SettingsContainer>
         );
     }
