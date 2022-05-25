@@ -235,6 +235,9 @@ export default createPlugin({...config, settings}, ({Logger, Patcher, Settings})
             Dispatcher.unsubscribe(ActionTypes.AUDIO_TOGGLE_SELF_DEAF, selfDeafListener);
             Logger.log("Unsubscribed from self deaf events");
         },
-        settingsPanel: (props) => <SettingsPanel speak={speak} {...props}/>
+        SettingsPanel: () => {
+            const [current, defaults, setSettings] = Settings.useStateWithDefaults();
+            return <SettingsPanel current={current} defaults={defaults} onChange={setSettings} speak={speak}/>;
+        }
     };
 });

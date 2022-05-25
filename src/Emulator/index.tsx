@@ -45,17 +45,21 @@ export default createPlugin({...config, settings}, ({Logger, Patcher, Settings})
             await triggerRerender();
             notify("Stopped emulating", {type: Utils.ToastType.Info, timeout: 5000});
         },
-        settingsPanel: ({platform}) => (
-            <RadioGroup
-                value={platform}
-                onChange={({value}) => changePlatform(value)}
-                options={[
-                    {value: PlatformTypes.WINDOWS, name: "Windows"},
-                    {value: PlatformTypes.OSX, name: "MacOS"},
-                    {value: PlatformTypes.LINUX, name: "Linux"},
-                    {value: PlatformTypes.WEB, name: "Browser"}
-                ]}
-            />
-        )
+        SettingsPanel: () => {
+            const {platform} = Settings.useCurrent();
+
+            return (
+                <RadioGroup
+                    value={platform}
+                    onChange={({value}) => changePlatform(value)}
+                    options={[
+                        {value: PlatformTypes.WINDOWS, name: "Windows"},
+                        {value: PlatformTypes.OSX, name: "MacOS"},
+                        {value: PlatformTypes.LINUX, name: "Linux"},
+                        {value: PlatformTypes.WEB, name: "Browser"}
+                    ]}
+                />
+            );
+        }
     };
 });
