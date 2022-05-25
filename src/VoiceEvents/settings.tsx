@@ -2,7 +2,7 @@ import {Finder, React, Modules, classNames, SettingsProps} from "dium";
 
 const {Flex, Button, Text, Switch, SwitchItem, TextInput, Slider} = Modules;
 const {FormSection, FormTitle, FormItem, FormText, FormDivider} = Modules.Form;
-const SelectTempWrapper = Finder.byName("SelectTempWrapper");
+const SingleSelect = Finder.byName("SingleSelect");
 
 const {margins} = Modules;
 
@@ -70,24 +70,43 @@ const titles: Record<NotificationType, string> = {
 
 export type SettingsPanelProps = SettingsProps<typeof settings> & {speak(msg: string): void};
 
+interface VoiceLabel {
+    name: string;
+    lang: string;
+}
+
+const VoiceLabel = ({name, lang}: VoiceLabel): JSX.Element => (
+    <Flex direction={Flex.Direction.HORIZONTAL} align={Flex.Align.CENTER}>
+        <Text
+            variant="text-md/normal"
+        >{name}</Text>
+        <Text
+            variant="text-xs/semibold"
+            style={{marginLeft: 8}}
+        >{lang}</Text>
+    </Flex>
+);
+
+interface VoiceSelectOption {
+    value: string;
+    label: string;
+    lang: string;
+}
+
 export const SettingsPanel = ({speak, defaults, set, voice, volume, speed, filterNames, filterBots, filterStages, ...settings}: SettingsPanelProps): JSX.Element => (
     <>
         <FormItem className={margins.marginBottom20}>
             <FormTitle>TTS Voice</FormTitle>
-            <SelectTempWrapper
+            <SingleSelect
                 value={voice}
-                searchable={false}
-                clearable={false}
-                onChange={({value}: {value: string}) => set({voice: value})}
+                onChange={(value: string) => set({voice: value})}
                 options={speechSynthesis.getVoices().map(({name, lang, voiceURI}) => ({
                     value: voiceURI,
-                    label: (
-                        <Flex>
-                            <Text style={{marginRight: 4}}>{name}</Text>
-                            <Text color={Text.Colors.MUTED}>[{lang}]</Text>
-                        </Flex>
-                    )
-                }))}
+                    label: name,
+                    lang
+                })) as VoiceSelectOption[]}
+                renderOptionLabel={({label, lang}: VoiceSelectOption) => <VoiceLabel name={label} lang={lang}/>}
+                renderOptionValue={([{label, lang}]: VoiceSelectOption[]) => <VoiceLabel name={label} lang={lang}/>}
             />
         </FormItem>
         <FormItem className={margins.marginBottom20}>
