@@ -3,8 +3,7 @@ import config from "./config.json";
 import styles from "./styles.scss";
 
 const {RelationshipTypes, StatusTypes} = Modules.Constants;
-const PresenceStore = Finder.byProps("getState", "getStatus", "isMobileOnline");
-const RelationshipStore = Finder.byProps("isFriend", "getRelationshipCount");
+const {PresenceStore, RelationshipStore} = Modules;
 
 const HomeButton = Finder.byProps("HomeButton");
 const {Link} = Modules.Links;

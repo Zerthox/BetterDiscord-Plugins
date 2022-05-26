@@ -3,7 +3,7 @@ import {BetterFolderIcon, BetterFolderUploader, FolderData} from "./components";
 import config from "./config.json";
 import styles from "./styles.scss";
 
-const ClientActions = Finder.byProps("toggleGuildFolderExpand");
+const {ClientActions} = Modules;
 const SortedGuildStore = Finder.byProps("getGuildsTree");
 const ExpandedGuildFolderStore = Finder.byProps("getExpandedFolders");
 

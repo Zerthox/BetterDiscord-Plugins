@@ -2,10 +2,9 @@ import {createPlugin, Finder, Utils, React, Modules, Discord} from "dium";
 import {settings, SettingsPanel, NotificationType} from "./settings";
 import config from "./config.json";
 
-const {Dispatcher, ChannelStore, SelectedChannelStore, UserStore, GuildMemberStore} = Modules;
+const {Dispatcher, ChannelStore, SelectedChannelStore, UserStore, GuildMemberStore, MediaEngineStore} = Modules;
 const {ActionTypes} = Modules.Constants;
-const Audio = Finder.byProps("isSelfMute", "isSelfDeaf");
-const VoiceStates = Finder.byProps("getVoiceStates", "hasVideo");
+const VoiceStateStore = Finder.byProps("getVoiceStates", "hasVideo");
 
 const {Text} = Modules;
 const {MenuItem} = Modules.Menu;
@@ -26,7 +25,7 @@ interface VoiceState {
 
 let prevStates: Record<string, VoiceState> = {};
 const saveStates = () => {
-    prevStates = {...VoiceStates.getVoiceStatesForChannel(SelectedChannelStore.getVoiceChannelId())};
+    prevStates = {...VoiceStateStore.getVoiceStatesForChannel(SelectedChannelStore.getVoiceChannelId())};
 };
 
 export default createPlugin({...config, settings}, ({Logger, Patcher, Settings}) => {
@@ -131,13 +130,13 @@ export default createPlugin({...config, settings}, ({Logger, Patcher, Settings})
     const selfMuteListener = () => {
         const userId = UserStore.getCurrentUser().id;
         const channelId = SelectedChannelStore.getVoiceChannelId();
-        notify(Audio.isSelfMute() ? "mute" : "unmute", userId, channelId);
+        notify(MediaEngineStore.isSelfMute() ? "mute" : "unmute", userId, channelId);
     };
 
     const selfDeafListener = () => {
         const userId = UserStore.getCurrentUser().id;
         const channelId = SelectedChannelStore.getVoiceChannelId();
-        notify(Audio.isSelfDeaf() ? "deafen" : "undeafen", userId, channelId);
+        notify(MediaEngineStore.isSelfDeaf() ? "deafen" : "undeafen", userId, channelId);
     };
 
     const voiceStateListener = (event) => {
@@ -172,7 +171,7 @@ export default createPlugin({...config, settings}, ({Logger, Patcher, Settings})
                         // no previous state & same channel is join
                         notify("join", userId, channelId);
                         saveStates();
-                    } else if (prev && !VoiceStates.getVoiceStatesForChannel(selectedChannelId)[userId]) {
+                    } else if (prev && !VoiceStateStore.getVoiceStatesForChannel(selectedChannelId)[userId]) {
                         // previous state & no current state is leave
                         notify("leave", userId, selectedChannelId);
                         saveStates();

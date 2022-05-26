@@ -1,15 +1,27 @@
 /* eslint-disable @typescript-eslint/explicit-module-boundary-types */
 import * as Finder from "../api/finder";
+import type {Store} from "./flux";
 
 // GENERAL
 export const Constants = () => Finder.byProps("Permissions", "RelationshipTypes");
 export const i18n = () => Finder.byProps("languages", "getLocale");
+export const Platforms = () => Finder.byProps("getPlatform", "isWindows", "isWeb", "PlatformTypes");
 
 // STORES/ACTIONS
-export const ChannelStore = () => Finder.byProps("getChannel", "hasChannel");
-export const SelectedChannelStore = () => Finder.byProps("getChannelId", "getVoiceChannelId");
-export const UserStore = () => Finder.byProps("getUser", "getCurrentUser");
-export const GuildMemberStore = () => Finder.byProps("getMember", "isMember");
+type UntypedStore = Store & Record<string, any>;
+
+export const ClientActions = () => Finder.byProps("toggleGuildFolderExpand");
+
+export const ChannelStore = (): UntypedStore => Finder.byProps("getChannel", "hasChannel");
+export const SelectedChannelStore = (): UntypedStore => Finder.byProps("getChannelId", "getVoiceChannelId");
+
+export const UserStore = (): UntypedStore => Finder.byProps("getUser", "getCurrentUser");
+export const GuildMemberStore = (): UntypedStore => Finder.byProps("getMember", "isMember");
+export const PresenceStore = (): UntypedStore => Finder.byProps("getState", "getStatus", "isMobileOnline");
+export const RelationshipStore = (): UntypedStore => Finder.byProps("isFriend", "getRelationshipCount");
+
+export const MediaEngineStore = (): UntypedStore => Finder.byProps("getLocalVolume");
+export const MediaEngineActions = (): UntypedStore => Finder.byProps("setLocalVolume");
 
 export interface ContextMenuActions {
     openContextMenu(e, t, n, r);

@@ -2,10 +2,10 @@ import {createPlugin, React, Finder, Modules, Discord} from "dium";
 import config from "./config.json";
 import styles from "./styles.scss";
 
-const {MenuItem} = Modules.Menu;
-const MediaEngineStore = Finder.byProps("getLocalVolume");
-const MediaEngineActions = Finder.byProps("setLocalVolume");
+const {MediaEngineStore, MediaEngineActions} = Modules;
 const AudioConvert = Finder.byProps("perceptualToAmplitude");
+
+const {MenuItem} = Modules.Menu;
 
 const limit = (input: number, min: number, max: number): number => Math.min(Math.max(input, min), max);
 
