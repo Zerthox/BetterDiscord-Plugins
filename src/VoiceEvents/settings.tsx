@@ -70,12 +70,12 @@ const titles: Record<NotificationType, string> = {
     leaveSelf: "Leave (Self)"
 };
 
-interface VoiceLabel {
+interface VoiceLabelProps {
     name: string;
     lang: string;
 }
 
-const VoiceLabel = ({name, lang}: VoiceLabel): JSX.Element => (
+const VoiceLabel = ({name, lang}: VoiceLabelProps): JSX.Element => (
     <Flex direction={Flex.Direction.HORIZONTAL} align={Flex.Align.CENTER}>
         <Text
             variant="text-md/normal"
