@@ -47,19 +47,23 @@ export interface ModalActions {
 export const ModalActions = (): ModalActions => Finder.byProps("openModalLazy");
 
 // COMPONENTS
-export const Flex = () => Finder.byName("Flex");
-export const Button = () => Finder.byProps("Link", "Hovers");
-export const Text = () => Finder.byName("Text");
-export const Links = () => Finder.byProps("Link", "NavLink");
+type UntypedComponent = React.ComponentType<any> & Record<string, any>;
 
-export const Switch = () => Finder.byName("Switch");
-export const SwitchItem = () => Finder.byName("SwitchItem");
-export const RadioGroup = () => Finder.byName("RadioGroup");
-export const Slider = () => Finder.byName("Slider");
-export const TextInput = () => Finder.byName("TextInput");
+export const Flex = (): UntypedComponent => Finder.byName("Flex");
+export const Button = (): UntypedComponent => Finder.byProps("Link", "Hovers");
+export const Text = (): UntypedComponent => Finder.byName("Text");
+export const Links = (): UntypedComponent => Finder.byProps("Link", "NavLink");
 
-export const Menu = () => Finder.byProps("MenuGroup", "MenuItem", "MenuSeparator");
-export const Form = () => Finder.byProps("FormItem", "FormSection", "FormDivider");
+export const Switch = (): UntypedComponent => Finder.byName("Switch");
+export const SwitchItem = (): UntypedComponent => Finder.byName("SwitchItem");
+export const RadioGroup = (): UntypedComponent => Finder.byName("RadioGroup");
+export const Slider = (): UntypedComponent => Finder.byName("Slider");
+export const TextInput = (): UntypedComponent => Finder.byName("TextInput");
+
+export const Menu = (): Record<string, UntypedComponent> => Finder.byProps("MenuGroup", "MenuItem", "MenuSeparator");
+export const Form = (): Record<string, UntypedComponent> => Finder.byProps("FormItem", "FormSection", "FormDivider");
 
 // STYLE MODULES
-export const margins = () => Finder.byProps("marginLarge");
+type StyleModule = Record<string, string>;
+
+export const margins = (): StyleModule => Finder.byProps("marginLarge");
