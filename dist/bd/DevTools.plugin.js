@@ -178,20 +178,26 @@ const npm = {
 };
 
 const Flux$1 = () => byProps$1("Store", "useStateFromStores");
-const Events = () => byProps$1("dirtyDispatch");
+const Dispatcher = () => byProps$1("dirtyDispatch");
 
 const flux = {
     __proto__: null,
     Flux: Flux$1,
-    Events: Events
+    Dispatcher: Dispatcher
 };
 
 const Constants = () => byProps$1("Permissions", "RelationshipTypes");
 const i18n = () => byProps$1("languages", "getLocale");
-const Channels = () => byProps$1("getChannel", "hasChannel");
-const SelectedChannel = () => byProps$1("getChannelId", "getVoiceChannelId");
-const Users = () => byProps$1("getUser", "getCurrentUser");
-const Members = () => byProps$1("getMember", "isMember");
+const Platforms = () => byProps$1("getPlatform", "isWindows", "isWeb", "PlatformTypes");
+const ClientActions = () => byProps$1("toggleGuildFolderExpand");
+const ChannelStore = () => byProps$1("getChannel", "hasChannel");
+const SelectedChannelStore = () => byProps$1("getChannelId", "getVoiceChannelId");
+const UserStore = () => byProps$1("getUser", "getCurrentUser");
+const GuildMemberStore = () => byProps$1("getMember", "isMember");
+const PresenceStore = () => byProps$1("getState", "getStatus", "isMobileOnline");
+const RelationshipStore = () => byProps$1("isFriend", "getRelationshipCount");
+const MediaEngineStore = () => byProps$1("getLocalVolume");
+const MediaEngineActions = () => byProps$1("setLocalVolume");
 const ContextMenuActions = () => byProps$1("openContextMenuLazy");
 const ModalActions = () => byProps$1("openModalLazy");
 const Flex$1 = () => byName$1("Flex");
@@ -211,10 +217,16 @@ const discord = {
     __proto__: null,
     Constants: Constants,
     i18n: i18n,
-    Channels: Channels,
-    SelectedChannel: SelectedChannel,
-    Users: Users,
-    Members: Members,
+    Platforms: Platforms,
+    ClientActions: ClientActions,
+    ChannelStore: ChannelStore,
+    SelectedChannelStore: SelectedChannelStore,
+    UserStore: UserStore,
+    GuildMemberStore: GuildMemberStore,
+    PresenceStore: PresenceStore,
+    RelationshipStore: RelationshipStore,
+    MediaEngineStore: MediaEngineStore,
+    MediaEngineActions: MediaEngineActions,
     ContextMenuActions: ContextMenuActions,
     ModalActions: ModalActions,
     Flex: Flex$1,
@@ -353,9 +365,6 @@ class Settings extends Flux.Store {
             delete this.current[key];
         }
         this.dispatch();
-    }
-    connect(component) {
-        return Flux.default.connectStores([this], () => ({ ...this.get(), defaults: this.defaults, set: (settings) => this.set(settings) }))(component);
     }
     useCurrent() {
         return Flux.useStateFromStores([this], () => this.get());
@@ -510,7 +519,7 @@ const SettingsContainer = ({ name, children, onReset }) => (React.createElement(
                 onConfirm: () => onReset()
             }) }, "Reset"))));
 
-const version$1 = "0.2.6";
+const version$1 = "0.2.8";
 
 const createPlugin = ({ name, version, styles, settings }, callback) => {
     const Logger = createLogger(name, "#3a71c1", version);
@@ -532,10 +541,9 @@ const createPlugin = ({ name, version, styles, settings }, callback) => {
             Logger.log("Disabled");
         }
     }
-    if (plugin.settingsPanel) {
-        const ConnectedSettings = Settings.connect(plugin.settingsPanel);
+    if (plugin.SettingsPanel) {
         Wrapper.prototype.getSettingsPanel = () => (React.createElement(SettingsContainer, { name: name, onReset: () => Settings.reset() },
-            React.createElement(ConnectedSettings, null)));
+            React.createElement(plugin.SettingsPanel, null)));
     }
     return Wrapper;
 };
