@@ -169,8 +169,10 @@ export const createPatcher = (id: string, Logger: Logger): Patcher => {
             options
         ),
         unpatchAll: () => {
-            rawPatcher.unpatchAll(id);
-            Logger.log("Unpatched all");
+            if (rawPatcher.getPatchesByCaller(id).length > 0) {
+                rawPatcher.unpatchAll(id);
+                Logger.log("Unpatched all");
+            }
         },
         waitForLazy: (object, method, argIndex, callback) => new Promise<any>((resolve) => {
             // check load once before we patch
