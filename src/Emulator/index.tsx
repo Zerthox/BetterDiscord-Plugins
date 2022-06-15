@@ -25,7 +25,7 @@ export default createPlugin({...config, settings}, ({Logger, Patcher, Settings})
     };
 
     const changePlatform = async (platform: any) => {
-        Settings.set({platform});
+        Settings.update({platform});
         await triggerRerender();
         const platformName = Platforms.isWindows() ? "Windows" : Platforms.isOSX() ? "MacOS" : Platforms.isLinux() ? "Linux" : "Browser";
         notify(`Emulating ${platformName}`, {type: Utils.ToastType.Info, timeout: 5000});
@@ -35,7 +35,7 @@ export default createPlugin({...config, settings}, ({Logger, Patcher, Settings})
         start() {
             // patch platform specific getters
             for (const platform of ["Windows", "OSX", "Linux", "Web"] as const) {
-                Patcher.instead(Platforms, `is${platform}`, () => Settings.get().platform === PlatformTypes[platform.toUpperCase()]);
+                Patcher.instead(Platforms, `is${platform}`, () => Settings.current.platform === PlatformTypes[platform.toUpperCase()]);
             }
 
             // patch overlay requirement

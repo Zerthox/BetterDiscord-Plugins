@@ -17,9 +17,13 @@ class Settings<
     SettingsType extends Record<string, any>,
     DataType extends {settings: SettingsType}
 > extends Flux.Store {
+    /** Default settings values. */
     defaults: SettingsType;
+
+    /** Current settings state. */
+    current: SettingsType;
+
     protected listeners: Map<Listener<SettingsType>, DispatchListener<SettingsAction<SettingsType>>>;
-    protected current: SettingsType;
 
     constructor(Data: Data<DataType>, defaults: SettingsType) {
         super(new Flux.Dispatcher(), {
@@ -36,27 +40,22 @@ class Settings<
         this._dispatcher.dirtyDispatch({type: "update", current: this.current});
     }
 
-    /** Returns current settings state. */
-    get(): SettingsType {
-        return {...this.current};
-    }
-
     /**
      * Updates settings state partially.
      *
      * Similar interface to React's `setState()`.
      */
-    set(settings: Update<SettingsType>): void {
+    update(settings: Update<SettingsType>): void {
         Object.assign(
             this.current,
-            settings instanceof Function ? settings(this.get()) : settings
+            settings instanceof Function ? settings(this.current) : settings
         );
         this.dispatch();
     }
 
     /** Resets all settings to their defaults. */
     reset(): void {
-        this.set({...this.defaults});
+        this.update({...this.defaults});
     }
 
     /** Deletes settings using their keys. */
@@ -77,7 +76,7 @@ class Settings<
     useCurrent(): SettingsType {
         return Flux.useStateFromStores(
             [this],
-            () => this.get()
+            () => this.current
         );
     }
 
@@ -91,7 +90,7 @@ class Settings<
     useState(): [SettingsType, Setter<SettingsType>] {
         return Flux.useStateFromStores(
             [this],
-            () => [this.get(), (settings) => this.set(settings)]
+            () => [this.current, (settings) => this.update(settings)]
         );
     }
 
@@ -105,7 +104,7 @@ class Settings<
     useStateWithDefaults(): [SettingsType, SettingsType, Setter<SettingsType>] {
         return Flux.useStateFromStores(
             [this],
-            () => [this.get(), this.defaults, (settings) => this.set(settings)]
+            () => [this.current, this.defaults, (settings) => this.update(settings)]
         );
     }
 

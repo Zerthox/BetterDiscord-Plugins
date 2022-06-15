@@ -30,17 +30,17 @@ const saveStates = () => {
 
 export default createPlugin({...config, settings}, ({Logger, Patcher, Settings}) => {
     // backwards compatibility for settings
-    const loaded = Settings.get() as any;
+    const loaded = Settings.current as any;
     for (const [key, value] of Object.entries(Settings.defaults.notifs)) {
         if (typeof loaded[key] === "string") {
-            const {notifs} = Settings.get();
+            const {notifs} = Settings.current;
             notifs[key] = {...value, message: loaded[key]};
-            Settings.set({notifs});
+            Settings.update({notifs});
             Settings.delete(key);
         }
     }
     if (typeof loaded.privateCall === "string") {
-        Settings.set({unknownChannel: loaded.privateCall});
+        Settings.update({unknownChannel: loaded.privateCall});
         Settings.delete("privateCall");
     }
 
@@ -64,25 +64,25 @@ export default createPlugin({...config, settings}, ({Logger, Patcher, Settings})
 
     // update default voice
     Settings.defaults.voice = findDefaultVoice()?.voiceURI;
-    if (Settings.get().voice === null) {
-        Settings.set({voice: Settings.defaults.voice});
+    if (Settings.current.voice === null) {
+        Settings.update({voice: Settings.defaults.voice});
     }
 
     const findCurrentVoice = () => {
-        const uri = Settings.get().voice;
+        const uri = Settings.current.voice;
         const voice = speechSynthesis.getVoices().find((voice) => voice.voiceURI === uri);
         if (voice) {
             return voice;
         } else {
             Logger.warn(`Voice "${uri}" not found, reverting to default`);
             const defaultVoice = findDefaultVoice();
-            Settings.set({voice: defaultVoice.voiceURI});
+            Settings.update({voice: defaultVoice.voiceURI});
             return defaultVoice;
         }
     };
 
     const speak = (message: string) => {
-        const {volume, speed} = Settings.get();
+        const {volume, speed} = Settings.current;
 
         const utterance = new SpeechSynthesisUtterance(message);
         utterance.voice = findCurrentVoice();
@@ -93,11 +93,11 @@ export default createPlugin({...config, settings}, ({Logger, Patcher, Settings})
     };
 
     const processName = (name: string) => {
-        return Settings.get().filterNames ? name.split("").map((char) => /[a-zA-Z0-9]/.test(char) ? char : " ").join("") : name;
+        return Settings.current.filterNames ? name.split("").map((char) => /[a-zA-Z0-9]/.test(char) ? char : " ").join("") : name;
     };
 
     const notify = (type: NotificationType, userId: string, channelId: string) => {
-        const settings = Settings.get();
+        const settings = Settings.current;
 
         // check for enabled
         if (!settings.notifs[type].enabled) {

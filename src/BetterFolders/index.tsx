@@ -25,10 +25,10 @@ export default createPlugin({...config, styles, settings}, ({Logger, Patcher, Da
     const oldFolders = Data.load("folders");
     if (oldFolders) {
         Data.delete("folders");
-        Settings.set({folders: oldFolders as Record<number, FolderData>});
+        Settings.update({folders: oldFolders as Record<number, FolderData>});
     }
 
-    const getFolder = (id: number) => Settings.get().folders[id];
+    const getFolder = (id: number) => Settings.current.folders[id];
 
     interface OuterIconProps {
         folderId: number;
@@ -78,7 +78,7 @@ export default createPlugin({...config, styles, settings}, ({Logger, Patcher, Da
 
             // patch folder expand
             Patcher.after(ClientActions, "toggleGuildFolderExpand", ({original, args: [folderId]}) => {
-                if (Settings.get().closeOnOpen) {
+                if (Settings.current.closeOnOpen) {
                     for (const id of ExpandedGuildFolderStore.getExpandedFolders()) {
                         if (id !== folderId) {
                             original(id);
@@ -153,13 +153,13 @@ export default createPlugin({...config, styles, settings}, ({Logger, Patcher, Da
                     original(...args);
 
                     // update folders if necessary
-                    const {folders} = Settings.get();
+                    const {folders} = Settings.current;
                     if (state.iconType === "custom" && state.icon) {
                         folders[folderId] = {icon: state.icon, always: state.always};
-                        Settings.set({folders});
+                        Settings.update({folders});
                     } else if ((state.iconType === "default" || !state.icon) && folders[folderId]) {
                         delete folders[folderId];
-                        Settings.set({folders});
+                        Settings.update({folders});
                     }
                 };
             });
