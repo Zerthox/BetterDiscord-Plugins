@@ -1,6 +1,6 @@
 /* eslint-disable @typescript-eslint/explicit-module-boundary-types */
 import * as Finder from "../api/finder";
-import type {Store} from "./flux";
+import {UntypedStore, UntypedComponent, StyleModule} from ".";
 
 // GENERAL
 export const Constants = () => Finder.byProps("Permissions", "RelationshipTypes");
@@ -8,8 +8,6 @@ export const i18n = () => Finder.byProps("languages", "getLocale");
 export const Platforms = () => Finder.byProps("getPlatform", "isWindows", "isWeb", "PlatformTypes");
 
 // STORES/ACTIONS
-type UntypedStore = Store & Record<string, any>;
-
 export const ClientActions = () => Finder.byProps("toggleGuildFolderExpand");
 
 export const ChannelStore = (): UntypedStore => Finder.byProps("getChannel", "hasChannel");
@@ -47,8 +45,6 @@ export interface ModalActions {
 export const ModalActions = (): ModalActions => Finder.byProps("openModalLazy");
 
 // COMPONENTS
-type UntypedComponent = React.ComponentType<any> & Record<string, any>;
-
 export const Flex = (): UntypedComponent => Finder.byName("Flex");
 export const Button = (): UntypedComponent => Finder.byProps("Link", "Hovers");
 export const Text = (): UntypedComponent => Finder.byName("Text");
@@ -64,6 +60,4 @@ export const Menu = (): Record<string, UntypedComponent> => Finder.byProps("Menu
 export const Form = (): Record<string, UntypedComponent> => Finder.byProps("FormItem", "FormSection", "FormDivider");
 
 // STYLE MODULES
-type StyleModule = Record<string, string>;
-
 export const margins = (): StyleModule => Finder.byProps("marginLarge");

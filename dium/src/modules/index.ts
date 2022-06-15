@@ -1,6 +1,13 @@
 import * as npm from "./npm";
 import * as flux from "./flux";
 import * as discord from "./discord";
+import type {Store} from "./flux";
+
+export type UntypedStore = Store & Record<string, any>;
+
+export type UntypedComponent = React.ComponentType<any> & Record<string, any>;
+
+export type StyleModule = Record<string, string>;
 
 type ModuleProxy<T extends Record<string, () => any>> = {
     [P in keyof T]: ReturnType<T[P]>;
