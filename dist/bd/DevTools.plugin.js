@@ -1,8 +1,8 @@
 /**
- * @name DiumDevTools
+ * @name DevTools
  * @author Zerthox
- * @version 0.2.3
- * @description Makes Dium available as global for development.
+ * @version 0.3.0
+ * @description Utilities for development.
  * @authorLink https://github.com/Zerthox
  * @website https://github.com/Zerthox/BetterDiscord-Plugins
  * @source https://github.com/Zerthox/BetterDiscord-Plugins/tree/master/src/DevTools
@@ -151,7 +151,7 @@ const index$2 = {
 };
 
 const EventEmitter = () => byProps$1("subscribe", "emit");
-const React$1 = () => byProps$1("createElement", "Component", "Fragment");
+const React$2 = () => byProps$1("createElement", "Component", "Fragment");
 const ReactDOM$1 = () => byProps$1("render", "findDOMNode", "createPortal");
 const classNames$1 = () => find$1((exports) => exports instanceof Object && exports.default === exports && Object.keys(exports).length === 1);
 const lodash$1 = () => byProps$1("cloneDeep", "flattenDeep");
@@ -165,7 +165,7 @@ const joi = () => byProps$1("assert", "validate", "object");
 const npm = {
     __proto__: null,
     EventEmitter: EventEmitter,
-    React: React$1,
+    React: React$2,
     ReactDOM: ReactDOM$1,
     classNames: classNames$1,
     lodash: lodash$1,
@@ -192,7 +192,7 @@ const Platforms = () => byProps$1("getPlatform", "isWindows", "isWeb", "Platform
 const ClientActions = () => byProps$1("toggleGuildFolderExpand");
 const ChannelStore = () => byProps$1("getChannel", "hasChannel");
 const SelectedChannelStore = () => byProps$1("getChannelId", "getVoiceChannelId");
-const UserStore = () => byProps$1("getUser", "getCurrentUser");
+const UserStore$1 = () => byProps$1("getUser", "getCurrentUser");
 const GuildMemberStore = () => byProps$1("getMember", "isMember");
 const PresenceStore = () => byProps$1("getState", "getStatus", "isMobileOnline");
 const RelationshipStore = () => byProps$1("isFriend", "getRelationshipCount");
@@ -205,7 +205,7 @@ const Button$1 = () => byProps$1("Link", "Hovers");
 const Text = () => byName$1("Text");
 const Links = () => byProps$1("Link", "NavLink");
 const Switch = () => byName$1("Switch");
-const SwitchItem = () => byName$1("SwitchItem");
+const SwitchItem$1 = () => byName$1("SwitchItem");
 const RadioGroup = () => byName$1("RadioGroup");
 const Slider = () => byName$1("Slider");
 const TextInput = () => byName$1("TextInput");
@@ -221,7 +221,7 @@ const discord = {
     ClientActions: ClientActions,
     ChannelStore: ChannelStore,
     SelectedChannelStore: SelectedChannelStore,
-    UserStore: UserStore,
+    UserStore: UserStore$1,
     GuildMemberStore: GuildMemberStore,
     PresenceStore: PresenceStore,
     RelationshipStore: RelationshipStore,
@@ -234,7 +234,7 @@ const discord = {
     Text: Text,
     Links: Links,
     Switch: Switch,
-    SwitchItem: SwitchItem,
+    SwitchItem: SwitchItem$1,
     RadioGroup: RadioGroup,
     Slider: Slider,
     TextInput: TextInput,
@@ -258,13 +258,13 @@ const createProxy = (entries) => {
     }
     return result;
 };
-const Modules = createProxy({
+const Modules$1 = createProxy({
     ...npm,
     ...flux,
     ...discord
 });
-const Modules$1 = Modules;
-const { React, ReactDOM, classNames, lodash, Flux } = Modules;
+const Modules$2 = Modules$1;
+const { React: React$1, ReactDOM, classNames, lodash, Flux } = Modules$1;
 
 const resolveName = (object, method) => {
     const target = method === "default" ? object[method] : {};
@@ -289,8 +289,10 @@ const createPatcher = (id, Logger) => {
         before: (object, method, callback, options = {}) => forward(rawPatcher.before, object, method, ({ result: _, ...data }) => callback(data), options),
         after: (object, method, callback, options = {}) => forward(rawPatcher.after, object, method, callback, options),
         unpatchAll: () => {
-            rawPatcher.unpatchAll(id);
-            Logger.log("Unpatched all");
+            if (rawPatcher.getPatchesByCaller(id).length > 0) {
+                rawPatcher.unpatchAll(id);
+                Logger.log("Unpatched all");
+            }
         },
         waitForLazy: (object, method, argIndex, callback) => new Promise((resolve) => {
             const found = callback();
@@ -315,8 +317,8 @@ const createPatcher = (id, Logger) => {
                 }, { silent: true });
             }
         }),
-        waitForContextMenu: (callback) => patcher.waitForLazy(Modules$1.ContextMenuActions, "openContextMenuLazy", 1, callback),
-        waitForModal: (callback) => patcher.waitForLazy(Modules$1.ModalActions, "openModalLazy", 0, callback)
+        waitForContextMenu: (callback) => patcher.waitForLazy(Modules$2.ContextMenuActions, "openContextMenuLazy", 1, callback),
+        waitForModal: (callback) => patcher.waitForLazy(Modules$2.ModalActions, "openModalLazy", 0, callback)
     };
     return patcher;
 };
@@ -350,15 +352,12 @@ class Settings extends Flux.Store {
     dispatch() {
         this._dispatcher.dirtyDispatch({ type: "update", current: this.current });
     }
-    get() {
-        return { ...this.current };
-    }
-    set(settings) {
-        Object.assign(this.current, settings instanceof Function ? settings(this.get()) : settings);
+    update(settings) {
+        Object.assign(this.current, settings instanceof Function ? settings(this.current) : settings);
         this.dispatch();
     }
     reset() {
-        this.set({ ...this.defaults });
+        this.update({ ...this.defaults });
     }
     delete(...keys) {
         for (const key of keys) {
@@ -367,13 +366,13 @@ class Settings extends Flux.Store {
         this.dispatch();
     }
     useCurrent() {
-        return Flux.useStateFromStores([this], () => this.get());
+        return Flux.useStateFromStores([this], () => this.current);
     }
     useState() {
-        return Flux.useStateFromStores([this], () => [this.get(), (settings) => this.set(settings)]);
+        return Flux.useStateFromStores([this], () => [this.current, (settings) => this.update(settings)]);
     }
     useStateWithDefaults() {
-        return Flux.useStateFromStores([this], () => [this.get(), this.defaults, (settings) => this.set(settings)]);
+        return Flux.useStateFromStores([this], () => [this.current, this.defaults, (settings) => this.update(settings)]);
     }
     addListener(listener) {
         const wrapper = ({ current }) => listener(current);
@@ -397,7 +396,7 @@ class Settings extends Flux.Store {
 }
 const createSettings = (Data, defaults) => new Settings(Data, defaults);
 
-const ReactInternals = React?.__SECRET_INTERNALS_DO_NOT_USE_OR_YOU_WILL_BE_FIRED;
+const ReactInternals = React$1?.__SECRET_INTERNALS_DO_NOT_USE_OR_YOU_WILL_BE_FIRED;
 const [getInstanceFromNode, getNodeFromInstance, getFiberCurrentPropsFromNode, enqueueStateRestore, restoreStateIfNeeded, batchedUpdates] = ReactDOM?.__SECRET_INTERNALS_DO_NOT_USE_OR_YOU_WILL_BE_FIRED?.Events ?? [];
 const ReactDOMInternals = {
     getInstanceFromNode,
@@ -467,7 +466,7 @@ const queryFiber = (fiber, predicate, direction = "up" , depth = 30, current = 0
     return null;
 };
 const findOwner = (fiber) => {
-    return queryFiber(fiber, (node) => node?.stateNode instanceof React.Component, "up" , 50);
+    return queryFiber(fiber, (node) => node?.stateNode instanceof React$1.Component, "up" , 50);
 };
 const forceUpdateOwner = (fiber) => new Promise((resolve) => {
     const owner = findOwner(fiber);
@@ -510,16 +509,16 @@ const index$1 = {
     forceFullRerender: forceFullRerender
 };
 
-const { Flex, Button, Form, margins } = Modules$1;
-const SettingsContainer = ({ name, children, onReset }) => (React.createElement(Form.FormSection, null,
+const { Flex, Button, Form, margins } = Modules$2;
+const SettingsContainer = ({ name, children, onReset }) => (React$1.createElement(Form.FormSection, null,
     children,
-    React.createElement(Form.FormDivider, { className: classNames(margins.marginTop20, margins.marginBottom20) }),
-    React.createElement(Flex, { justify: Flex.Justify.END },
-        React.createElement(Button, { size: Button.Sizes.SMALL, onClick: () => confirm(name, "Reset all settings?", {
+    React$1.createElement(Form.FormDivider, { className: classNames(margins.marginTop20, margins.marginBottom20) }),
+    React$1.createElement(Flex, { justify: Flex.Justify.END },
+        React$1.createElement(Button, { size: Button.Sizes.SMALL, onClick: () => confirm(name, "Reset all settings?", {
                 onConfirm: () => onReset()
             }) }, "Reset"))));
 
-const version$1 = "0.2.8";
+const version$1 = "0.2.9";
 
 const createPlugin = ({ name, version, styles, settings }, callback) => {
     const Logger = createLogger(name, "#3a71c1", version);
@@ -542,8 +541,8 @@ const createPlugin = ({ name, version, styles, settings }, callback) => {
         }
     }
     if (plugin.SettingsPanel) {
-        Wrapper.prototype.getSettingsPanel = () => (React.createElement(SettingsContainer, { name: name, onReset: () => Settings.reset() },
-            React.createElement(plugin.SettingsPanel, null)));
+        Wrapper.prototype.getSettingsPanel = () => (React$1.createElement(SettingsContainer, { name: name, onReset: () => Settings.reset() },
+            React$1.createElement(plugin.SettingsPanel, null)));
     }
     return Wrapper;
 };
@@ -555,9 +554,9 @@ const dium = {
     ReactInternals: ReactInternals,
     ReactDOMInternals: ReactDOMInternals,
     Utils: index$1,
-    Modules: Modules$1,
+    Modules: Modules$2,
     version: version$1,
-    React: React,
+    React: React$1,
     ReactDOM: ReactDOM,
     classNames: classNames,
     lodash: lodash,
@@ -655,10 +654,10 @@ const DevFinder = {
     resolveUsers: resolveUsers
 };
 
-const name = "DiumDevTools";
+const name = "DevTools";
 const author = "Zerthox";
-const version = "0.2.3";
-const description = "Makes Dium available as global for development.";
+const version = "0.3.0";
+const description = "Utilities for development.";
 const config = {
 	name: name,
 	author: author,
@@ -666,14 +665,66 @@ const config = {
 	description: description
 };
 
-const { Finder } = dium;
+const { React, Finder, Modules } = dium;
+const { UserStore, SwitchItem } = Modules;
+const { UserFlags } = Modules.Constants;
+const DeveloperExperimentStore = Finder.byProps("isDeveloper");
+const settings = {
+    global: true,
+    developer: true,
+    staff: true
+};
 Finder.dev = DevFinder;
-const index = createPlugin(config, () => ({
-    start() {
+const updateGlobal = (expose) => {
+    if (expose) {
         window.dium = dium;
+    }
+    else {
+        delete window.dium;
+    }
+};
+const origDesc = Object.getOwnPropertyDescriptor(Object.getPrototypeOf(DeveloperExperimentStore), "isDeveloper");
+const updateStaffFlag = (flag) => {
+    const user = UserStore.getCurrentUser();
+    if (flag) {
+        user.flags |= UserFlags.STAFF;
+    }
+    else {
+        user.flags &= ~UserFlags.STAFF;
+    }
+    UserStore.emitChange();
+};
+const index = createPlugin({ ...config, settings }, ({ Settings }) => ({
+    start() {
+        updateGlobal(Settings.current.global);
+        Object.defineProperty(Object.getPrototypeOf(DeveloperExperimentStore), "isDeveloper", {
+            ...origDesc,
+            get: () => Settings.current.developer
+        });
+        DeveloperExperimentStore.emitChange();
+        updateStaffFlag(Settings.current.staff);
     },
     stop() {
-        delete window.dium;
+        updateGlobal(false);
+        Object.defineProperty(Object.getPrototypeOf(DeveloperExperimentStore), "isDeveloper", { ...origDesc });
+        DeveloperExperimentStore.emitChange();
+        updateStaffFlag(false);
+    },
+    SettingsPanel: () => {
+        const [settings, setSettings] = Settings.useState();
+        return (React.createElement(React.Fragment, null,
+            React.createElement(SwitchItem, { value: settings.global, onChange: (checked) => {
+                    setSettings({ global: checked });
+                    updateGlobal(checked);
+                }, note: "Expose dium as global for development." }, "Dium Global"),
+            React.createElement(SwitchItem, { value: settings.developer, onChange: (checked) => {
+                    setSettings({ developer: checked });
+                    DeveloperExperimentStore.emitChange();
+                }, note: "Enable experiments & other developer tabs in settings. Reopen to see them." }, "Enable Developer Experiments"),
+            React.createElement(SwitchItem, { value: settings.staff, onChange: (checked) => {
+                    setSettings({ staff: checked });
+                    updateStaffFlag(checked);
+                }, note: "Add the Staff flag to the current user.", hideBorder: true }, "Enable Staff flag")));
     }
 }));
 

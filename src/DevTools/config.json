@@ -1,6 +1,6 @@
 {
-    "name": "DiumDevTools",
+    "name": "DevTools",
     "author": "Zerthox",
-    "version": "0.2.3",
-    "description": "Makes Dium available as global for development."
+    "version": "0.3.0",
+    "description": "Utilities for development."
 }
