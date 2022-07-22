@@ -54,7 +54,7 @@ WScript.Quit();
 'use strict';
 
 const createLogger = (name, color, version) => {
-    const print = (output, ...data) => output(`%c[${name}] %c${version ? `(v${version})` : ""}`, `color: ${color}; font-weight: 700;`, "color: #666; font-size: .8em;", ...data);
+    const print = (output, ...data) => output(`%c[${name}] %c${version ? `version ${version}` : ""}`, `color: ${color}; font-weight: 700;`, "color: #d5d5d5; font-size: 1em;", ...data);
     return {
         print,
         log: (...data) => print(console.log, ...data),
@@ -367,7 +367,7 @@ const createPlugin = ({ name, version, styles: css, settings }, callback) => {
     const plugin = callback({ Logger, Patcher, Styles, Data, Settings });
     class Wrapper {
         start() {
-            Logger.log("Enabled");
+            Logger.log("has started.");
             Styles.inject(css);
             plugin.start();
         }
@@ -375,7 +375,7 @@ const createPlugin = ({ name, version, styles: css, settings }, callback) => {
             Patcher.unpatchAll();
             Styles.clear();
             plugin.stop();
-            Logger.log("Disabled");
+            Logger.log("has stopped.");
         }
     }
     if (plugin.settingsPanel) {
