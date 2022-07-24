@@ -25,7 +25,10 @@ const NumberInput = ({value, min, max, fallback, onChange}: NumberInputProps): J
             min={min}
             max={max}
             value={Math.round((value + Number.EPSILON) * 100) / 100}
-            onChange={({target}) => onChange(limit(parseFloat(target.value), min, max))}
+            onChange={({target}) => {
+                const value = limit(parseFloat(target.value), min, max);
+                onChange(Number.isNaN(value) ? fallback : value);
+            }}
             onBlur={({target}) => {
                 const value = limit(parseFloat(target.value), min, max);
                 if (Number.isNaN(value)) {
