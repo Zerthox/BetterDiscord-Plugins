@@ -5,7 +5,7 @@ import styles from "./styles.scss";
 const {RelationshipTypes, StatusTypes} = Modules.Constants;
 const {PresenceStore, RelationshipStore} = Modules;
 
-const HomeButton = Finder.byProps("HomeButton");
+const HomeButtonModule = Finder.byProps("HomeButton") as {HomeButton: React.FunctionComponent};
 const {Link} = Modules.Links;
 
 const guildStyles = Finder.byProps("guilds", "base");
@@ -41,7 +41,7 @@ export default createPlugin({...config, styles}, ({Logger, Patcher}) => {
 
     return {
         start() {
-            Patcher.instead(HomeButton, "HomeButton", ({original: HomeButton, args: [props]}) => (
+            Patcher.instead(HomeButtonModule, "HomeButton", ({original: HomeButton, args: [props]}) => (
                 <>
                     <HomeButton {...props}/>
                     <OnlineCount/>

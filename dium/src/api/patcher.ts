@@ -139,7 +139,7 @@ export const createPatcher = (id: string, Logger: Logger): Patcher => {
             {silent: true}
         );
         if (!options.silent) {
-            Logger.log(`Patched ${method} of ${options.name ?? resolveName(object, method)}`);
+            Logger.log(`Patched ${String(method)} of ${options.name ?? resolveName(object, method)}`);
         }
         return cancel;
     };
@@ -181,7 +181,7 @@ export const createPatcher = (id: string, Logger: Logger): Patcher => {
                 resolve(found);
             } else {
                 // patch lazy load method
-                Logger.log(`Waiting for lazy load in ${method} of ${resolveName(object, method)}`);
+                Logger.log(`Waiting for lazy load in ${String(method)} of ${resolveName(object, method)}`);
                 patcher.before(object, method, ({args, cancel}) => {
                     // replace resolver function
                     const original = args[argIndex] as (...args: any[]) => Promise<any>;
