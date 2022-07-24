@@ -1,7 +1,7 @@
 /**
  * @name BetterVolume
  * @author Zerthox
- * @version 2.2.3
+ * @version 2.2.4
  * @description Set user volume values manually instead of using a limited slider.
  * @authorLink https://github.com/Zerthox
  * @website https://github.com/Zerthox/BetterDiscord-Plugins
@@ -78,7 +78,7 @@ const byName$1 = (name) => {
     return (target) => target instanceof Object && target !== window && Object.values(target).some(byOwnName(name));
 };
 const byOwnName = (name) => {
-    return (target) => target?.displayName === name || target?.constructor?.displayName === name;
+    return (target) => (target?.displayName ?? target?.constructor?.displayName) === name;
 };
 const byProps$1 = (props) => {
     return (target) => target instanceof Object && props.every((prop) => prop in target);
@@ -138,20 +138,26 @@ const npm = {
 };
 
 const Flux$1 = () => byProps("Store", "useStateFromStores");
-const Events = () => byProps("dirtyDispatch");
+const Dispatcher = () => byProps("dirtyDispatch");
 
 const flux = {
     __proto__: null,
     Flux: Flux$1,
-    Events: Events
+    Dispatcher: Dispatcher
 };
 
 const Constants = () => byProps("Permissions", "RelationshipTypes");
 const i18n = () => byProps("languages", "getLocale");
-const Channels = () => byProps("getChannel", "hasChannel");
-const SelectedChannel = () => byProps("getChannelId", "getVoiceChannelId");
-const Users = () => byProps("getUser", "getCurrentUser");
-const Members = () => byProps("getMember", "isMember");
+const Platforms = () => byProps("getPlatform", "isWindows", "isWeb", "PlatformTypes");
+const ClientActions = () => byProps("toggleGuildFolderExpand");
+const ChannelStore = () => byProps("getChannel", "hasChannel");
+const SelectedChannelStore = () => byProps("getChannelId", "getVoiceChannelId");
+const UserStore = () => byProps("getUser", "getCurrentUser");
+const GuildMemberStore = () => byProps("getMember", "isMember");
+const PresenceStore = () => byProps("getState", "getStatus", "isMobileOnline");
+const RelationshipStore = () => byProps("isFriend", "getRelationshipCount");
+const MediaEngineStore$1 = () => byProps("getLocalVolume");
+const MediaEngineActions$1 = () => byProps("setLocalVolume");
 const ContextMenuActions = () => byProps("openContextMenuLazy");
 const ModalActions = () => byProps("openModalLazy");
 const Flex$1 = () => byName("Flex");
@@ -171,10 +177,16 @@ const discord = {
     __proto__: null,
     Constants: Constants,
     i18n: i18n,
-    Channels: Channels,
-    SelectedChannel: SelectedChannel,
-    Users: Users,
-    Members: Members,
+    Platforms: Platforms,
+    ClientActions: ClientActions,
+    ChannelStore: ChannelStore,
+    SelectedChannelStore: SelectedChannelStore,
+    UserStore: UserStore,
+    GuildMemberStore: GuildMemberStore,
+    PresenceStore: PresenceStore,
+    RelationshipStore: RelationshipStore,
+    MediaEngineStore: MediaEngineStore$1,
+    MediaEngineActions: MediaEngineActions$1,
     ContextMenuActions: ContextMenuActions,
     ModalActions: ModalActions,
     Flex: Flex$1,
@@ -226,7 +238,7 @@ const createPatcher = (id, Logger) => {
             return temp;
         } : (context, args, result) => callback({ cancel, original, context, args, result }), { silent: true });
         if (!options.silent) {
-            Logger.log(`Patched ${method} of ${options.name ?? resolveName(object, method)}`);
+            Logger.log(`Patched ${String(method)} of ${options.name ?? resolveName(object, method)}`);
         }
         return cancel;
     };
@@ -236,8 +248,10 @@ const createPatcher = (id, Logger) => {
         before: (object, method, callback, options = {}) => forward(rawPatcher.before, object, method, ({ result: _, ...data }) => callback(data), options),
         after: (object, method, callback, options = {}) => forward(rawPatcher.after, object, method, callback, options),
         unpatchAll: () => {
-            rawPatcher.unpatchAll(id);
-            Logger.log("Unpatched all");
+            if (rawPatcher.getPatchesByCaller(id).length > 0) {
+                rawPatcher.unpatchAll(id);
+                Logger.log("Unpatched all");
+            }
         },
         waitForLazy: (object, method, argIndex, callback) => new Promise((resolve) => {
             const found = callback();
@@ -245,7 +259,7 @@ const createPatcher = (id, Logger) => {
                 resolve(found);
             }
             else {
-                Logger.log(`Waiting for lazy load in ${method} of ${resolveName(object, method)}`);
+                Logger.log(`Waiting for lazy load in ${String(method)} of ${resolveName(object, method)}`);
                 patcher.before(object, method, ({ args, cancel }) => {
                     const original = args[argIndex];
                     args[argIndex] = async function (...args) {
@@ -297,15 +311,12 @@ class Settings extends Flux.Store {
     dispatch() {
         this._dispatcher.dirtyDispatch({ type: "update", current: this.current });
     }
-    get() {
-        return { ...this.current };
-    }
-    set(settings) {
-        Object.assign(this.current, settings instanceof Function ? settings(this.get()) : settings);
+    update(settings) {
+        Object.assign(this.current, settings instanceof Function ? settings(this.current) : settings);
         this.dispatch();
     }
     reset() {
-        this.set({ ...this.defaults });
+        this.update({ ...this.defaults });
     }
     delete(...keys) {
         for (const key of keys) {
@@ -313,17 +324,14 @@ class Settings extends Flux.Store {
         }
         this.dispatch();
     }
-    connect(component) {
-        return Flux.default.connectStores([this], () => ({ ...this.get(), defaults: this.defaults, set: (settings) => this.set(settings) }))(component);
-    }
     useCurrent() {
-        return Flux.useStateFromStores([this], () => this.get());
+        return Flux.useStateFromStores([this], () => this.current);
     }
     useState() {
-        return Flux.useStateFromStores([this], () => [this.get(), (settings) => this.set(settings)]);
+        return Flux.useStateFromStores([this], () => [this.current, (settings) => this.update(settings)]);
     }
     useStateWithDefaults() {
-        return Flux.useStateFromStores([this], () => [this.get(), this.defaults, (settings) => this.set(settings)]);
+        return Flux.useStateFromStores([this], () => [this.current, this.defaults, (settings) => this.update(settings)]);
     }
     addListener(listener) {
         const wrapper = ({ current }) => listener(current);
@@ -358,7 +366,7 @@ const SettingsContainer = ({ name, children, onReset }) => (React.createElement(
                 onConfirm: () => onReset()
             }) }, "Reset"))));
 
-const createPlugin = ({ name, version, styles: css, settings }, callback) => {
+const createPlugin = ({ name, version, styles, settings }, callback) => {
     const Logger = createLogger(name, "#3a71c1", version);
     const Patcher = createPatcher(name, Logger);
     const Styles = createStyles(name);
@@ -368,7 +376,7 @@ const createPlugin = ({ name, version, styles: css, settings }, callback) => {
     class Wrapper {
         start() {
             Logger.log("Enabled");
-            Styles.inject(css);
+            Styles.inject(styles);
             plugin.start();
         }
         stop() {
@@ -378,17 +386,16 @@ const createPlugin = ({ name, version, styles: css, settings }, callback) => {
             Logger.log("Disabled");
         }
     }
-    if (plugin.settingsPanel) {
-        const ConnectedSettings = Settings.connect(plugin.settingsPanel);
+    if (plugin.SettingsPanel) {
         Wrapper.prototype.getSettingsPanel = () => (React.createElement(SettingsContainer, { name: name, onReset: () => Settings.reset() },
-            React.createElement(ConnectedSettings, null)));
+            React.createElement(plugin.SettingsPanel, null)));
     }
     return Wrapper;
 };
 
 const name = "BetterVolume";
 const author = "Zerthox";
-const version = "2.2.3";
+const version = "2.2.4";
 const description = "Set user volume values manually instead of using a limited slider.";
 const config = {
 	name: name,
@@ -397,12 +404,11 @@ const config = {
 	description: description
 };
 
-const styles = ".container-BetterVolume {\n  margin: 0px 8px;\n  padding: 3px 6px;\n  background: var(--background-primary);\n  border-radius: 3px;\n  display: flex;\n}\n\n.input-BetterVolume {\n  margin-right: 2px;\n  flex-grow: 1;\n  background: transparent;\n  border: none;\n  color: var(--interactive-normal);\n  font-weight: 500;\n}";
+const styles = ".container-BetterVolume {\n  margin: 0 8px;\n  padding: 3px 6px;\n  background: var(--background-primary);\n  border-radius: 3px;\n  display: flex;\n}\n\n.input-BetterVolume {\n  margin-right: 2px;\n  flex-grow: 1;\n  background: transparent;\n  border: none;\n  color: var(--interactive-normal);\n  font-weight: 500;\n}\n.input-BetterVolume:hover::-webkit-inner-spin-button {\n  appearance: auto;\n}";
 
-const { MenuItem } = Modules.Menu;
-const SettingsStore = byProps("getLocalVolume");
-const SettingsActions = byProps("setLocalVolume");
+const { MediaEngineStore, MediaEngineActions } = Modules;
 const AudioConvert = byProps("perceptualToAmplitude");
+const { MenuItem } = Modules.Menu;
 const limit = (input, min, max) => Math.min(Math.max(input, min), max);
 const NumberInput = ({ value, min, max, fallback, onChange }) => (React.createElement("div", { className: "container-BetterVolume" },
     React.createElement("input", { type: "number", className: "input-BetterVolume", min: min, max: max, value: Math.round((value + Number.EPSILON) * 100) / 100, onChange: ({ target }) => onChange(limit(parseFloat(target.value), min, max)), onBlur: ({ target }) => {
@@ -417,10 +423,10 @@ const index = createPlugin({ ...config, styles }, ({ Patcher }) => ({
         const useUserVolumeItem = await Patcher.waitForContextMenu(() => query({ name: "useUserVolumeItem" }));
         Patcher.after(useUserVolumeItem, "default", ({ args: [userId, mediaContext], result }) => {
             if (result) {
-                const volume = SettingsStore.getLocalVolume(userId, mediaContext);
+                const volume = MediaEngineStore.getLocalVolume(userId, mediaContext);
                 return (React.createElement(React.Fragment, null,
                     result,
-                    React.createElement(MenuItem, { id: "user-volume-input", render: () => (React.createElement(NumberInput, { value: AudioConvert.amplitudeToPerceptual(volume), min: 0, max: 999999, fallback: 100, onChange: (value) => SettingsActions.setLocalVolume(userId, AudioConvert.perceptualToAmplitude(value), mediaContext) })) })));
+                    React.createElement(MenuItem, { id: "user-volume-input", render: () => (React.createElement(NumberInput, { value: AudioConvert.amplitudeToPerceptual(volume), min: 0, max: 999999, fallback: 100, onChange: (value) => MediaEngineActions.setLocalVolume(userId, AudioConvert.perceptualToAmplitude(value), mediaContext) })) })));
             }
         });
     },

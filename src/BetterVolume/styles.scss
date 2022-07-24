@@ -1,6 +1,6 @@
 // BetterVolume styles
 .container-BetterVolume {
-	margin: 0px 8px;
+	margin: 0 8px;
 	padding: 3px 6px;
 	background: var(--background-primary);
 	border-radius: 3px;
@@ -13,4 +13,7 @@
 	border: none;
 	color: var(--interactive-normal);
 	font-weight: 500;
+	&:hover::-webkit-inner-spin-button {
+		appearance: auto;
+	}
 }
