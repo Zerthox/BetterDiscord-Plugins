@@ -1,5 +1,5 @@
 import {Logger} from "./logger";
-import Modules from "../modules";
+import {ContextMenuActions, ModalActions} from "../modules";
 
 export interface Options {
     silent?: boolean;
@@ -204,8 +204,8 @@ export const createPatcher = (id: string, Logger: Logger): Patcher => {
                 }, {silent: true});
             }
         }),
-        waitForContextMenu: (callback) => patcher.waitForLazy(Modules.ContextMenuActions, "openContextMenuLazy", 1, callback),
-        waitForModal: (callback) => patcher.waitForLazy(Modules.ModalActions, "openModalLazy", 0, callback)
+        waitForContextMenu: (callback) => patcher.waitForLazy(ContextMenuActions, "openContextMenuLazy", 1, callback),
+        waitForModal: (callback) => patcher.waitForLazy(ModalActions, "openModalLazy", 0, callback)
     };
 
     return patcher;

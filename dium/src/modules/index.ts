@@ -1,21 +1,24 @@
-import * as npm from "./npm";
-import * as flux from "./flux";
-import * as discord from "./discord";
 import type {Store} from "./flux";
 
-export type UntypedStore = Store & Record<string, any>;
+export * from "./npm";
+export {Flux, Dispatcher, Store} from "./flux";
+export * from "./discord";
 
-export type UntypedComponent = React.ComponentType<any> & Record<string, any>;
+export type Untyped<T> = T & Record<string, any>;
+
+export type UntypedStore = Untyped<Store>;
+
+export type UntypedComponent = Untyped<React.ComponentType<any>>;
 
 export type StyleModule = Record<string, string>;
 
-type ModuleProxy<T extends Record<string, () => any>> = {
+type ModuleCache<T extends Record<string, () => any>> = {
     [P in keyof T]: ReturnType<T[P]>;
 };
 
-const createProxy = <T extends Record<string, () => any>>(
+export const createCache = <T extends Record<string, () => any>>(
     entries: T
-): ModuleProxy<T> => {
+): ModuleCache<T> => {
     const result = {};
     for (const [key, value] of Object.entries(entries)) {
         Object.defineProperty(result, key, {
@@ -28,15 +31,5 @@ const createProxy = <T extends Record<string, () => any>>(
             }
         });
     }
-    return result as ModuleProxy<T>;
+    return result as ModuleCache<T>;
 };
-
-const Modules = createProxy({
-    ...npm,
-    ...flux,
-    ...discord
-});
-
-export default Modules;
-
-export const {React, ReactDOM, classNames, lodash, Flux} = Modules;

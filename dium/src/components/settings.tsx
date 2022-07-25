@@ -1,7 +1,5 @@
-import Modules, {React, classNames} from "../modules";
+import {React, classNames, Flex, Button, Form, margins} from "../modules";
 import {confirm} from "../utils";
-
-const {Flex, Button, Form, margins} = Modules;
 
 export interface SettingsContainerProps {
     name: string;

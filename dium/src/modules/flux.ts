@@ -1,6 +1,7 @@
-import * as Finder from "../api/finder";
-
+/* eslint-disable spaced-comment */
 /* eslint-disable @typescript-eslint/explicit-module-boundary-types */
+
+import * as Finder from "../api/finder";
 
 export interface Action extends Record<string, any> {
     type: string;
@@ -118,6 +119,6 @@ export interface FluxHooks {
     statesWillNeverBeEqual(a: any, b: any): boolean;
 }
 
-export const Flux = (): FluxHooks => Finder.byProps("Store", "useStateFromStores");
+export const Flux: FluxHooks = /*@__PURE__*/ Finder.byProps("Store", "useStateFromStores");
 
-export const Dispatcher = (): Dispatcher => Finder.byProps("dirtyDispatch");
+export const Dispatcher: Dispatcher = /*@__PURE__*/ Finder.byProps("dirtyDispatch");

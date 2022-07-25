@@ -3,6 +3,8 @@ A work-in-progress framework for Discord plugins.
 
 Eventually, this might be moved to its own repository.
 
+**Important:** This library relies heavily on tree-shaking (dead code elimination) to eliminate searches for unused modules.
+
 ```tsx
 /**
  * @name Example
@@ -15,16 +17,14 @@ import {
     createPlugin,
     Finder,
     Utils,
-    Modules,
     Discord,
     React,
     ReactInternals,
     ReactDOM,
     ReactDOMInternals,
-    Flux,
-    classNames,
-    lodash
+    Flux
 } from "dium";
+import {classNames, lodash} from "dium/modules";
 
 const config = {
     name: "Example",
@@ -46,16 +46,19 @@ export default createPlugin(config, ({Logger, Patcher, Styles, Data, Settings}) 
         stop: () => {
             // do something on plugin stop
         },
-        settingsPanel: (props) => {
-            // render settings
+        SettingsPanel: () => {
+            // use settings via hook
+            const [settings, setSettings] = Settings.useState();
+
+            // render settings panel
             return (
                 <div className="example-container">
                     <div className="example-setting">
-                        Setting is {props.enabled ? "enabled" : "disabled"}
+                        Setting is {settings.enabled ? "enabled" : "disabled"}
                     </div>
                     <div
                         className="example-clickable"
-                        onClick={() => props.set({enabled: !props.enabled})}
+                        onClick={() => setSettings({enabled: !settings.enabled})}
                     >Click to toggle</div>
                 </div>
             );
