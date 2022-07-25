@@ -22,25 +22,36 @@ interface NumberInputProps {
     onChange(value: number): void;
 }
 
-const NumberInput = ({value, min, max, fallback, onChange}: NumberInputProps): JSX.Element => (
-    <div className="container-BetterVolume">
-        <input
-            type="number"
-            className="input-BetterVolume"
-            min={min}
-            max={max}
-            value={Math.round((value + Number.EPSILON) * 100) / 100}
-            onChange={({target}) => onChange(limit(parseFloat(target.value), min, max))}
-            onBlur={({target}) => {
-                const value = limit(parseFloat(target.value), min, max);
-                if (Number.isNaN(value)) {
-                    onChange(fallback);
-                }
-            }}
-        />
-        <span className="unit-BetterVolume">%</span>
-    </div>
-);
+const NumberInput = ({value, min, max, fallback, onChange}: NumberInputProps): JSX.Element => {
+    const [isEmpty, setEmpty] = React.useState(false);
+
+    return (
+        <div className="container-BetterVolume">
+            <input
+                type="number"
+                className="input-BetterVolume"
+                min={min}
+                max={max}
+                value={!isEmpty ? Math.round((value + Number.EPSILON) * 100) / 100 : ""}
+                onChange={({target}) => {
+                    const value = limit(parseFloat(target.value), min, max);
+                    const isNaN = Number.isNaN(value);
+                    setEmpty(isNaN);
+                    if (!isNaN) {
+                        onChange(value);
+                    }
+                }}
+                onBlur={() => {
+                    if (isEmpty) {
+                        setEmpty(false);
+                        onChange(fallback);
+                    }
+                }}
+            />
+            <span className="unit-BetterVolume">%</span>
+        </div>
+    );
+};
 
 export default createPlugin({...config, styles}, ({Patcher}) => ({
     async start() {
@@ -50,11 +61,11 @@ export default createPlugin({...config, styles}, ({Patcher}) => ({
         );
 
         // add number input
-        Patcher.after(useUserVolumeItem, "default", ({args: [userId, mediaContext], result}) => {
+        Patcher.after(useUserVolumeItem, "default", ({args: [userId, context], result}) => {
             // check for original render
             if (result) {
                 // we can read this directly, the original has a hook to ensure updates
-                const volume = MediaEngineStore.getLocalVolume(userId, mediaContext);
+                const volume = MediaEngineStore.getLocalVolume(userId, context);
 
                 return (
                     <>
@@ -70,7 +81,7 @@ export default createPlugin({...config, styles}, ({Patcher}) => ({
                                     onChange={(value) => MediaEngineActions.setLocalVolume(
                                         userId,
                                         AudioConvert.perceptualToAmplitude(value),
-                                        mediaContext
+                                        context
                                     )}
                                 />
                             )}
