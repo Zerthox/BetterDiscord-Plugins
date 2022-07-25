@@ -1,7 +1,7 @@
 /**
  * @name OnlineFriendCount
  * @author Zerthox
- * @version 2.1.3
+ * @version 2.1.4
  * @description Add the old online friend count back to guild list. Because nostalgia.
  * @authorLink https://github.com/Zerthox
  * @website https://github.com/Zerthox/BetterDiscord-Plugins
@@ -71,7 +71,7 @@ const byName$1 = (name) => {
     return (target) => target instanceof Object && target !== window && Object.values(target).some(byOwnName(name));
 };
 const byOwnName = (name) => {
-    return (target) => target?.displayName === name || target?.constructor?.displayName === name;
+    return (target) => (target?.displayName ?? target?.constructor?.displayName) === name;
 };
 const byProps$1 = (props) => {
     return (target) => target instanceof Object && props.every((prop) => prop in target);
@@ -96,108 +96,22 @@ const find = (...filters) => raw.single(join(filters));
 const byName = (name) => resolveExports(find(byName$1(name)), byOwnName(name));
 const byProps = (...props) => find(byProps$1(props));
 
-const EventEmitter = () => byProps("subscribe", "emit");
-const React$1 = () => byProps("createElement", "Component", "Fragment");
-const ReactDOM$1 = () => byProps("render", "findDOMNode", "createPortal");
-const classNames$1 = () => find((exports) => exports instanceof Object && exports.default === exports && Object.keys(exports).length === 1);
-const lodash$1 = () => byProps("cloneDeep", "flattenDeep");
-const semver = () => byProps("valid", "satifies");
-const moment = () => byProps("utc", "months");
-const SimpleMarkdown = () => byProps("parseBlock", "parseInline");
-const hljs = () => byProps("highlight", "highlightBlock");
-const Raven = () => byProps("captureBreadcrumb");
-const joi = () => byProps("assert", "validate", "object");
+const React = /*@__PURE__*/ byProps("createElement", "Component", "Fragment");
+const ReactDOM = /*@__PURE__*/ byProps("render", "findDOMNode", "createPortal");
+const classNames = /*@__PURE__*/ find((exports) => exports instanceof Object && exports.default === exports && Object.keys(exports).length === 1);
 
-const npm = {
-    __proto__: null,
-    EventEmitter: EventEmitter,
-    React: React$1,
-    ReactDOM: ReactDOM$1,
-    classNames: classNames$1,
-    lodash: lodash$1,
-    semver: semver,
-    moment: moment,
-    SimpleMarkdown: SimpleMarkdown,
-    hljs: hljs,
-    Raven: Raven,
-    joi: joi
-};
+const Flux = /*@__PURE__*/ byProps("Store", "useStateFromStores");
 
-const Flux$1 = () => byProps("Store", "useStateFromStores");
-const Events = () => byProps("dirtyDispatch");
-
-const flux = {
-    __proto__: null,
-    Flux: Flux$1,
-    Events: Events
-};
-
-const Constants = () => byProps("Permissions", "RelationshipTypes");
-const i18n = () => byProps("languages", "getLocale");
-const Channels = () => byProps("getChannel", "hasChannel");
-const SelectedChannel = () => byProps("getChannelId", "getVoiceChannelId");
-const Users = () => byProps("getUser", "getCurrentUser");
-const Members = () => byProps("getMember", "isMember");
-const ContextMenuActions = () => byProps("openContextMenuLazy");
-const ModalActions = () => byProps("openModalLazy");
-const Flex$1 = () => byName("Flex");
-const Button$1 = () => byProps("Link", "Hovers");
-const Text = () => byName("Text");
-const Links = () => byProps("Link", "NavLink");
-const Switch = () => byName("Switch");
-const SwitchItem = () => byName("SwitchItem");
-const RadioGroup = () => byName("RadioGroup");
-const Slider = () => byName("Slider");
-const TextInput = () => byName("TextInput");
-const Menu = () => byProps("MenuGroup", "MenuItem", "MenuSeparator");
-const Form$1 = () => byProps("FormItem", "FormSection", "FormDivider");
-const margins$1 = () => byProps("marginLarge");
-
-const discord = {
-    __proto__: null,
-    Constants: Constants,
-    i18n: i18n,
-    Channels: Channels,
-    SelectedChannel: SelectedChannel,
-    Users: Users,
-    Members: Members,
-    ContextMenuActions: ContextMenuActions,
-    ModalActions: ModalActions,
-    Flex: Flex$1,
-    Button: Button$1,
-    Text: Text,
-    Links: Links,
-    Switch: Switch,
-    SwitchItem: SwitchItem,
-    RadioGroup: RadioGroup,
-    Slider: Slider,
-    TextInput: TextInput,
-    Menu: Menu,
-    Form: Form$1,
-    margins: margins$1
-};
-
-const createProxy = (entries) => {
-    const result = {};
-    for (const [key, value] of Object.entries(entries)) {
-        Object.defineProperty(result, key, {
-            enumerable: true,
-            configurable: true,
-            get() {
-                delete this[key];
-                this[key] = value();
-                return this[key];
-            }
-        });
-    }
-    return result;
-};
-const Modules = createProxy({
-    ...npm,
-    ...flux,
-    ...discord
-});
-const { React, ReactDOM, classNames, lodash, Flux } = Modules;
+const Constants = /*@__PURE__*/ byProps("Permissions", "RelationshipTypes");
+const PresenceStore = /*@__PURE__*/ byProps("getState", "getStatus", "isMobileOnline");
+const RelationshipStore = /*@__PURE__*/ byProps("isFriend", "getRelationshipCount");
+const ContextMenuActions = /*@__PURE__*/ byProps("openContextMenuLazy");
+const ModalActions = /*@__PURE__*/ byProps("openModalLazy");
+const Flex = /*@__PURE__*/ byName("Flex");
+const Button = /*@__PURE__*/ byProps("Link", "Hovers");
+const Links = /*@__PURE__*/ byProps("Link", "NavLink");
+const Form = /*@__PURE__*/ byProps("FormItem", "FormSection", "FormDivider");
+const margins = /*@__PURE__*/ byProps("marginLarge");
 
 const resolveName = (object, method) => {
     const target = method === "default" ? object[method] : {};
@@ -212,7 +126,7 @@ const createPatcher = (id, Logger) => {
             return temp;
         } : (context, args, result) => callback({ cancel, original, context, args, result }), { silent: true });
         if (!options.silent) {
-            Logger.log(`Patched ${method} of ${options.name ?? resolveName(object, method)}`);
+            Logger.log(`Patched ${String(method)} of ${options.name ?? resolveName(object, method)}`);
         }
         return cancel;
     };
@@ -222,8 +136,10 @@ const createPatcher = (id, Logger) => {
         before: (object, method, callback, options = {}) => forward(rawPatcher.before, object, method, ({ result: _, ...data }) => callback(data), options),
         after: (object, method, callback, options = {}) => forward(rawPatcher.after, object, method, callback, options),
         unpatchAll: () => {
-            rawPatcher.unpatchAll(id);
-            Logger.log("Unpatched all");
+            if (rawPatcher.getPatchesByCaller(id).length > 0) {
+                rawPatcher.unpatchAll(id);
+                Logger.log("Unpatched all");
+            }
         },
         waitForLazy: (object, method, argIndex, callback) => new Promise((resolve) => {
             const found = callback();
@@ -231,7 +147,7 @@ const createPatcher = (id, Logger) => {
                 resolve(found);
             }
             else {
-                Logger.log(`Waiting for lazy load in ${method} of ${resolveName(object, method)}`);
+                Logger.log(`Waiting for lazy load in ${String(method)} of ${resolveName(object, method)}`);
                 patcher.before(object, method, ({ args, cancel }) => {
                     const original = args[argIndex];
                     args[argIndex] = async function (...args) {
@@ -248,8 +164,8 @@ const createPatcher = (id, Logger) => {
                 }, { silent: true });
             }
         }),
-        waitForContextMenu: (callback) => patcher.waitForLazy(Modules.ContextMenuActions, "openContextMenuLazy", 1, callback),
-        waitForModal: (callback) => patcher.waitForLazy(Modules.ModalActions, "openModalLazy", 0, callback)
+        waitForContextMenu: (callback) => patcher.waitForLazy(ContextMenuActions, "openContextMenuLazy", 1, callback),
+        waitForModal: (callback) => patcher.waitForLazy(ModalActions, "openModalLazy", 0, callback)
     };
     return patcher;
 };
@@ -283,15 +199,12 @@ class Settings extends Flux.Store {
     dispatch() {
         this._dispatcher.dirtyDispatch({ type: "update", current: this.current });
     }
-    get() {
-        return { ...this.current };
-    }
-    set(settings) {
-        Object.assign(this.current, settings instanceof Function ? settings(this.get()) : settings);
+    update(settings) {
+        Object.assign(this.current, settings instanceof Function ? settings(this.current) : settings);
         this.dispatch();
     }
     reset() {
-        this.set({ ...this.defaults });
+        this.update({ ...this.defaults });
     }
     delete(...keys) {
         for (const key of keys) {
@@ -299,17 +212,14 @@ class Settings extends Flux.Store {
         }
         this.dispatch();
     }
-    connect(component) {
-        return Flux.default.connectStores([this], () => ({ ...this.get(), defaults: this.defaults, set: (settings) => this.set(settings) }))(component);
-    }
     useCurrent() {
-        return Flux.useStateFromStores([this], () => this.get());
+        return Flux.useStateFromStores([this], () => this.current);
     }
     useState() {
-        return Flux.useStateFromStores([this], () => [this.get(), (settings) => this.set(settings)]);
+        return Flux.useStateFromStores([this], () => [this.current, (settings) => this.update(settings)]);
     }
     useStateWithDefaults() {
-        return Flux.useStateFromStores([this], () => [this.get(), this.defaults, (settings) => this.set(settings)]);
+        return Flux.useStateFromStores([this], () => [this.current, this.defaults, (settings) => this.update(settings)]);
     }
     addListener(listener) {
         const wrapper = ({ current }) => listener(current);
@@ -391,7 +301,6 @@ const forceFullRerender = (fiber) => new Promise((resolve) => {
     }
 });
 
-const { Flex, Button, Form, margins } = Modules;
 const SettingsContainer = ({ name, children, onReset }) => (React.createElement(Form.FormSection, null,
     children,
     React.createElement(Form.FormDivider, { className: classNames(margins.marginTop20, margins.marginBottom20) }),
@@ -400,7 +309,7 @@ const SettingsContainer = ({ name, children, onReset }) => (React.createElement(
                 onConfirm: () => onReset()
             }) }, "Reset"))));
 
-const createPlugin = ({ name, version, styles: css, settings }, callback) => {
+const createPlugin = ({ name, version, styles, settings }, callback) => {
     const Logger = createLogger(name, "#3a71c1", version);
     const Patcher = createPatcher(name, Logger);
     const Styles = createStyles(name);
@@ -410,7 +319,7 @@ const createPlugin = ({ name, version, styles: css, settings }, callback) => {
     class Wrapper {
         start() {
             Logger.log("Enabled");
-            Styles.inject(css);
+            Styles.inject(styles);
             plugin.start();
         }
         stop() {
@@ -420,17 +329,16 @@ const createPlugin = ({ name, version, styles: css, settings }, callback) => {
             Logger.log("Disabled");
         }
     }
-    if (plugin.settingsPanel) {
-        const ConnectedSettings = Settings.connect(plugin.settingsPanel);
+    if (plugin.SettingsPanel) {
         Wrapper.prototype.getSettingsPanel = () => (React.createElement(SettingsContainer, { name: name, onReset: () => Settings.reset() },
-            React.createElement(ConnectedSettings, null)));
+            React.createElement(plugin.SettingsPanel, null)));
     }
     return Wrapper;
 };
 
 const name = "OnlineFriendCount";
 const author = "Zerthox";
-const version = "2.1.3";
+const version = "2.1.4";
 const description = "Add the old online friend count back to guild list. Because nostalgia.";
 const config = {
 	name: name,
@@ -441,17 +349,15 @@ const config = {
 
 const styles = ".friendsOnline-2JkivW {\n  color: var(--channels-default);\n  text-align: center;\n  text-transform: uppercase;\n  font-size: 10px;\n  font-weight: 500;\n  line-height: 1.3;\n  width: 70px;\n  word-wrap: normal;\n  white-space: nowrap;\n  cursor: pointer;\n}\n.friendsOnline-2JkivW:hover {\n  color: var(--interactive-hover);\n}";
 
-const { RelationshipTypes, StatusTypes } = Modules.Constants;
-const Status = byProps("getState", "getStatus", "isMobileOnline");
-const Relationships = byProps("isFriend", "getRelationshipCount");
-const HomeButton = byProps("HomeButton");
-const { Link } = Modules.Links;
+const { RelationshipTypes, StatusTypes } = Constants;
+const HomeButtonModule = byProps("HomeButton");
+const { Link } = Links;
 const guildStyles = byProps("guilds", "base");
 const listStyles = byProps("listItem");
 const friendsOnline = "friendsOnline-2JkivW";
 const OnlineCount = () => {
-    const online = Flux.useStateFromStores([Status, Relationships], () => (Object.entries(Relationships.getRelationships())
-        .filter(([id, type]) => type === RelationshipTypes.FRIEND && Status.getStatus(id) !== StatusTypes.OFFLINE)
+    const online = Flux.useStateFromStores([PresenceStore, RelationshipStore], () => (Object.entries(RelationshipStore.getRelationships())
+        .filter(([id, type]) => type === RelationshipTypes.FRIEND && PresenceStore.getStatus(id) !== StatusTypes.OFFLINE)
         .length));
     return (React.createElement("div", { className: listStyles.listItem },
         React.createElement(Link, { to: { pathname: "/channels/@me" } },
@@ -472,7 +378,7 @@ const index = createPlugin({ ...config, styles }, ({ Logger, Patcher }) => {
     };
     return {
         start() {
-            Patcher.instead(HomeButton, "HomeButton", ({ original: HomeButton, args: [props] }) => (React.createElement(React.Fragment, null,
+            Patcher.instead(HomeButtonModule, "HomeButton", ({ original: HomeButton, args: [props] }) => (React.createElement(React.Fragment, null,
                 React.createElement(HomeButton, { ...props }),
                 React.createElement(OnlineCount, null))));
             triggerRerender();

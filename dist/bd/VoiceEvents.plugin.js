@@ -1,7 +1,7 @@
 /**
  * @name VoiceEvents
  * @author Zerthox
- * @version 2.2.2
+ * @version 2.2.3
  * @description Add TTS Event Notifications to your selected Voice Channel. TeamSpeak feeling.
  * @authorLink https://github.com/Zerthox
  * @website https://github.com/Zerthox/BetterDiscord-Plugins
@@ -110,120 +110,30 @@ const query = (options) => resolveExports(find(...generate(options)), options.ex
 const byName = (name) => resolveExports(find(byName$1(name)), byOwnName(name));
 const byProps = (...props) => find(byProps$1(props));
 
-const EventEmitter = () => byProps("subscribe", "emit");
-const React$1 = () => byProps("createElement", "Component", "Fragment");
-const ReactDOM$1 = () => byProps("render", "findDOMNode", "createPortal");
-const classNames$1 = () => find((exports) => exports instanceof Object && exports.default === exports && Object.keys(exports).length === 1);
-const lodash$1 = () => byProps("cloneDeep", "flattenDeep");
-const semver = () => byProps("valid", "satifies");
-const moment = () => byProps("utc", "months");
-const SimpleMarkdown = () => byProps("parseBlock", "parseInline");
-const hljs = () => byProps("highlight", "highlightBlock");
-const Raven = () => byProps("captureBreadcrumb");
-const joi = () => byProps("assert", "validate", "object");
+const React = /*@__PURE__*/ byProps("createElement", "Component", "Fragment");
+const classNames = /*@__PURE__*/ find((exports) => exports instanceof Object && exports.default === exports && Object.keys(exports).length === 1);
 
-const npm = {
-    __proto__: null,
-    EventEmitter: EventEmitter,
-    React: React$1,
-    ReactDOM: ReactDOM$1,
-    classNames: classNames$1,
-    lodash: lodash$1,
-    semver: semver,
-    moment: moment,
-    SimpleMarkdown: SimpleMarkdown,
-    hljs: hljs,
-    Raven: Raven,
-    joi: joi
-};
+const Flux = /*@__PURE__*/ byProps("Store", "useStateFromStores");
+const Dispatcher = /*@__PURE__*/ byProps("dirtyDispatch");
 
-const Flux$1 = () => byProps("Store", "useStateFromStores");
-const Dispatcher$1 = () => byProps("dirtyDispatch");
-
-const flux = {
-    __proto__: null,
-    Flux: Flux$1,
-    Dispatcher: Dispatcher$1
-};
-
-const Constants = () => byProps("Permissions", "RelationshipTypes");
-const i18n = () => byProps("languages", "getLocale");
-const Platforms = () => byProps("getPlatform", "isWindows", "isWeb", "PlatformTypes");
-const ClientActions = () => byProps("toggleGuildFolderExpand");
-const ChannelStore$1 = () => byProps("getChannel", "hasChannel");
-const SelectedChannelStore$1 = () => byProps("getChannelId", "getVoiceChannelId");
-const UserStore$1 = () => byProps("getUser", "getCurrentUser");
-const GuildMemberStore$1 = () => byProps("getMember", "isMember");
-const PresenceStore = () => byProps("getState", "getStatus", "isMobileOnline");
-const RelationshipStore = () => byProps("isFriend", "getRelationshipCount");
-const MediaEngineStore$1 = () => byProps("getLocalVolume");
-const MediaEngineActions = () => byProps("setLocalVolume");
-const ContextMenuActions = () => byProps("openContextMenuLazy");
-const ModalActions = () => byProps("openModalLazy");
-const Flex$2 = () => byName("Flex");
-const Button$2 = () => byProps("Link", "Hovers");
-const Text$2 = () => byName("Text");
-const Links = () => byProps("Link", "NavLink");
-const Switch$1 = () => byName("Switch");
-const SwitchItem$1 = () => byName("SwitchItem");
-const RadioGroup = () => byName("RadioGroup");
-const Slider$1 = () => byName("Slider");
-const TextInput$1 = () => byName("TextInput");
-const Menu = () => byProps("MenuGroup", "MenuItem", "MenuSeparator");
-const Form$1 = () => byProps("FormItem", "FormSection", "FormDivider");
-const margins$2 = () => byProps("marginLarge");
-
-const discord = {
-    __proto__: null,
-    Constants: Constants,
-    i18n: i18n,
-    Platforms: Platforms,
-    ClientActions: ClientActions,
-    ChannelStore: ChannelStore$1,
-    SelectedChannelStore: SelectedChannelStore$1,
-    UserStore: UserStore$1,
-    GuildMemberStore: GuildMemberStore$1,
-    PresenceStore: PresenceStore,
-    RelationshipStore: RelationshipStore,
-    MediaEngineStore: MediaEngineStore$1,
-    MediaEngineActions: MediaEngineActions,
-    ContextMenuActions: ContextMenuActions,
-    ModalActions: ModalActions,
-    Flex: Flex$2,
-    Button: Button$2,
-    Text: Text$2,
-    Links: Links,
-    Switch: Switch$1,
-    SwitchItem: SwitchItem$1,
-    RadioGroup: RadioGroup,
-    Slider: Slider$1,
-    TextInput: TextInput$1,
-    Menu: Menu,
-    Form: Form$1,
-    margins: margins$2
-};
-
-const createProxy = (entries) => {
-    const result = {};
-    for (const [key, value] of Object.entries(entries)) {
-        Object.defineProperty(result, key, {
-            enumerable: true,
-            configurable: true,
-            get() {
-                delete this[key];
-                this[key] = value();
-                return this[key];
-            }
-        });
-    }
-    return result;
-};
-const Modules = createProxy({
-    ...npm,
-    ...flux,
-    ...discord
-});
-const { React, ReactDOM, classNames, lodash, Flux } = Modules;
+const Constants = /*@__PURE__*/ byProps("Permissions", "RelationshipTypes");
+const ChannelStore = /*@__PURE__*/ byProps("getChannel", "hasChannel");
+const SelectedChannelStore = /*@__PURE__*/ byProps("getChannelId", "getVoiceChannelId");
+const UserStore = /*@__PURE__*/ byProps("getUser", "getCurrentUser");
+const GuildMemberStore = /*@__PURE__*/ byProps("getMember", "isMember");
+const MediaEngineStore = /*@__PURE__*/ byProps("getLocalVolume");
+const ContextMenuActions = /*@__PURE__*/ byProps("openContextMenuLazy");
+const ModalActions = /*@__PURE__*/ byProps("openModalLazy");
+const Flex = /*@__PURE__*/ byName("Flex");
+const Button = /*@__PURE__*/ byProps("Link", "Hovers");
+const Text = /*@__PURE__*/ byName("Text");
+const Switch = /*@__PURE__*/ byName("Switch");
+const SwitchItem = /*@__PURE__*/ byName("SwitchItem");
+const Slider = /*@__PURE__*/ byName("Slider");
+const TextInput = /*@__PURE__*/ byName("TextInput");
+const Menu = /*@__PURE__*/ byProps("MenuGroup", "MenuItem", "MenuSeparator");
+const Form = /*@__PURE__*/ byProps("FormItem", "FormSection", "FormDivider");
+const margins = /*@__PURE__*/ byProps("marginLarge");
 
 const resolveName = (object, method) => {
     const target = method === "default" ? object[method] : {};
@@ -238,7 +148,7 @@ const createPatcher = (id, Logger) => {
             return temp;
         } : (context, args, result) => callback({ cancel, original, context, args, result }), { silent: true });
         if (!options.silent) {
-            Logger.log(`Patched ${method} of ${options.name ?? resolveName(object, method)}`);
+            Logger.log(`Patched ${String(method)} of ${options.name ?? resolveName(object, method)}`);
         }
         return cancel;
     };
@@ -248,8 +158,10 @@ const createPatcher = (id, Logger) => {
         before: (object, method, callback, options = {}) => forward(rawPatcher.before, object, method, ({ result: _, ...data }) => callback(data), options),
         after: (object, method, callback, options = {}) => forward(rawPatcher.after, object, method, callback, options),
         unpatchAll: () => {
-            rawPatcher.unpatchAll(id);
-            Logger.log("Unpatched all");
+            if (rawPatcher.getPatchesByCaller(id).length > 0) {
+                rawPatcher.unpatchAll(id);
+                Logger.log("Unpatched all");
+            }
         },
         waitForLazy: (object, method, argIndex, callback) => new Promise((resolve) => {
             const found = callback();
@@ -257,7 +169,7 @@ const createPatcher = (id, Logger) => {
                 resolve(found);
             }
             else {
-                Logger.log(`Waiting for lazy load in ${method} of ${resolveName(object, method)}`);
+                Logger.log(`Waiting for lazy load in ${String(method)} of ${resolveName(object, method)}`);
                 patcher.before(object, method, ({ args, cancel }) => {
                     const original = args[argIndex];
                     args[argIndex] = async function (...args) {
@@ -274,8 +186,8 @@ const createPatcher = (id, Logger) => {
                 }, { silent: true });
             }
         }),
-        waitForContextMenu: (callback) => patcher.waitForLazy(Modules.ContextMenuActions, "openContextMenuLazy", 1, callback),
-        waitForModal: (callback) => patcher.waitForLazy(Modules.ModalActions, "openModalLazy", 0, callback)
+        waitForContextMenu: (callback) => patcher.waitForLazy(ContextMenuActions, "openContextMenuLazy", 1, callback),
+        waitForModal: (callback) => patcher.waitForLazy(ModalActions, "openModalLazy", 0, callback)
     };
     return patcher;
 };
@@ -309,15 +221,12 @@ class Settings extends Flux.Store {
     dispatch() {
         this._dispatcher.dirtyDispatch({ type: "update", current: this.current });
     }
-    get() {
-        return { ...this.current };
-    }
-    set(settings) {
-        Object.assign(this.current, settings instanceof Function ? settings(this.get()) : settings);
+    update(settings) {
+        Object.assign(this.current, settings instanceof Function ? settings(this.current) : settings);
         this.dispatch();
     }
     reset() {
-        this.set({ ...this.defaults });
+        this.update({ ...this.defaults });
     }
     delete(...keys) {
         for (const key of keys) {
@@ -326,13 +235,13 @@ class Settings extends Flux.Store {
         this.dispatch();
     }
     useCurrent() {
-        return Flux.useStateFromStores([this], () => this.get());
+        return Flux.useStateFromStores([this], () => this.current);
     }
     useState() {
-        return Flux.useStateFromStores([this], () => [this.get(), (settings) => this.set(settings)]);
+        return Flux.useStateFromStores([this], () => [this.current, (settings) => this.update(settings)]);
     }
     useStateWithDefaults() {
-        return Flux.useStateFromStores([this], () => [this.get(), this.defaults, (settings) => this.set(settings)]);
+        return Flux.useStateFromStores([this], () => [this.current, this.defaults, (settings) => this.update(settings)]);
     }
     addListener(listener) {
         const wrapper = ({ current }) => listener(current);
@@ -359,12 +268,11 @@ const createSettings = (Data, defaults) => new Settings(Data, defaults);
 const alert = (title, content) => BdApi.alert(title, content);
 const confirm = (title, content, options = {}) => BdApi.showConfirmationModal(title, content, options);
 
-const { Flex: Flex$1, Button: Button$1, Form, margins: margins$1 } = Modules;
 const SettingsContainer = ({ name, children, onReset }) => (React.createElement(Form.FormSection, null,
     children,
-    React.createElement(Form.FormDivider, { className: classNames(margins$1.marginTop20, margins$1.marginBottom20) }),
-    React.createElement(Flex$1, { justify: Flex$1.Justify.END },
-        React.createElement(Button$1, { size: Button$1.Sizes.SMALL, onClick: () => confirm(name, "Reset all settings?", {
+    React.createElement(Form.FormDivider, { className: classNames(margins.marginTop20, margins.marginBottom20) }),
+    React.createElement(Flex, { justify: Flex.Justify.END },
+        React.createElement(Button, { size: Button.Sizes.SMALL, onClick: () => confirm(name, "Reset all settings?", {
                 onConfirm: () => onReset()
             }) }, "Reset"))));
 
@@ -395,10 +303,8 @@ const createPlugin = ({ name, version, styles, settings }, callback) => {
     return Wrapper;
 };
 
-const { Flex, Button, Text: Text$1, Switch, SwitchItem, TextInput, Slider } = Modules;
-const { FormSection, FormTitle, FormItem, FormText, FormDivider } = Modules.Form;
+const { FormSection, FormTitle, FormItem, FormText, FormDivider } = Form;
 const SingleSelect = byName("SingleSelect");
-const { margins } = Modules;
 const settings = {
     voice: null,
     volume: 100,
@@ -458,8 +364,8 @@ const titles = {
     leaveSelf: "Leave (Self)"
 };
 const VoiceLabel = ({ name, lang }) => (React.createElement(Flex, { direction: Flex.Direction.HORIZONTAL, align: Flex.Align.CENTER },
-    React.createElement(Text$1, { variant: "text-md/normal" }, name),
-    React.createElement(Text$1, { variant: "text-xs/semibold", style: { marginLeft: 8 } }, lang)));
+    React.createElement(Text, { variant: "text-md/normal" }, name),
+    React.createElement(Text, { variant: "text-xs/semibold", style: { marginLeft: 8 } }, lang)));
 const SettingsPanel = ({ current, defaults, onChange, speak }) => {
     const { voice, volume, speed, filterNames, filterBots, filterStages, ...settings } = current;
     return (React.createElement(React.Fragment, null,
@@ -518,7 +424,7 @@ const SettingsPanel = ({ current, defaults, onChange, speak }) => {
 
 const name = "VoiceEvents";
 const author = "Zerthox";
-const version = "2.2.2";
+const version = "2.2.3";
 const description = "Add TTS Event Notifications to your selected Voice Channel. TeamSpeak feeling.";
 const config = {
 	name: name,
@@ -527,27 +433,25 @@ const config = {
 	description: description
 };
 
-const { Dispatcher, ChannelStore, SelectedChannelStore, UserStore, GuildMemberStore, MediaEngineStore } = Modules;
-const { ActionTypes } = Modules.Constants;
+const { ActionTypes } = Constants;
 const VoiceStateStore = byProps("getVoiceStates", "hasVideo");
-const { Text } = Modules;
-const { MenuItem } = Modules.Menu;
+const { MenuItem } = Menu;
 let prevStates = {};
 const saveStates = () => {
     prevStates = { ...VoiceStateStore.getVoiceStatesForChannel(SelectedChannelStore.getVoiceChannelId()) };
 };
 const index = createPlugin({ ...config, settings }, ({ Logger, Patcher, Settings }) => {
-    const loaded = Settings.get();
+    const loaded = Settings.current;
     for (const [key, value] of Object.entries(Settings.defaults.notifs)) {
         if (typeof loaded[key] === "string") {
-            const { notifs } = Settings.get();
+            const { notifs } = Settings.current;
             notifs[key] = { ...value, message: loaded[key] };
-            Settings.set({ notifs });
+            Settings.update({ notifs });
             Settings.delete(key);
         }
     }
     if (typeof loaded.privateCall === "string") {
-        Settings.set({ unknownChannel: loaded.privateCall });
+        Settings.update({ unknownChannel: loaded.privateCall });
         Settings.delete("privateCall");
     }
     const findDefaultVoice = () => {
@@ -565,11 +469,11 @@ const index = createPlugin({ ...config, settings }, ({ Logger, Patcher, Settings
         }
     };
     Settings.defaults.voice = findDefaultVoice()?.voiceURI;
-    if (Settings.get().voice === null) {
-        Settings.set({ voice: Settings.defaults.voice });
+    if (Settings.current.voice === null) {
+        Settings.update({ voice: Settings.defaults.voice });
     }
     const findCurrentVoice = () => {
-        const uri = Settings.get().voice;
+        const uri = Settings.current.voice;
         const voice = speechSynthesis.getVoices().find((voice) => voice.voiceURI === uri);
         if (voice) {
             return voice;
@@ -577,12 +481,12 @@ const index = createPlugin({ ...config, settings }, ({ Logger, Patcher, Settings
         else {
             Logger.warn(`Voice "${uri}" not found, reverting to default`);
             const defaultVoice = findDefaultVoice();
-            Settings.set({ voice: defaultVoice.voiceURI });
+            Settings.update({ voice: defaultVoice.voiceURI });
             return defaultVoice;
         }
     };
     const speak = (message) => {
-        const { volume, speed } = Settings.get();
+        const { volume, speed } = Settings.current;
         const utterance = new SpeechSynthesisUtterance(message);
         utterance.voice = findCurrentVoice();
         utterance.volume = volume / 100;
@@ -590,10 +494,10 @@ const index = createPlugin({ ...config, settings }, ({ Logger, Patcher, Settings
         speechSynthesis.speak(utterance);
     };
     const processName = (name) => {
-        return Settings.get().filterNames ? name.split("").map((char) => /[a-zA-Z0-9]/.test(char) ? char : " ").join("") : name;
+        return Settings.current.filterNames ? name.split("").map((char) => /[a-zA-Z0-9]/.test(char) ? char : " ").join("") : name;
     };
     const notify = (type, userId, channelId) => {
-        const settings = Settings.get();
+        const settings = Settings.current;
         if (!settings.notifs[type].enabled) {
             return;
         }

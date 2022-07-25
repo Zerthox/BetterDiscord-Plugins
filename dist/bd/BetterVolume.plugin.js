@@ -1,7 +1,7 @@
 /**
  * @name BetterVolume
  * @author Zerthox
- * @version 2.2.4
+ * @version 2.2.5
  * @description Set user volume values manually instead of using a limited slider.
  * @authorLink https://github.com/Zerthox
  * @website https://github.com/Zerthox/BetterDiscord-Plugins
@@ -110,120 +110,20 @@ const query = (options) => resolveExports(find(...generate(options)), options.ex
 const byName = (name) => resolveExports(find(byName$1(name)), byOwnName(name));
 const byProps = (...props) => find(byProps$1(props));
 
-const EventEmitter = () => byProps("subscribe", "emit");
-const React$1 = () => byProps("createElement", "Component", "Fragment");
-const ReactDOM$1 = () => byProps("render", "findDOMNode", "createPortal");
-const classNames$1 = () => find((exports) => exports instanceof Object && exports.default === exports && Object.keys(exports).length === 1);
-const lodash$1 = () => byProps("cloneDeep", "flattenDeep");
-const semver = () => byProps("valid", "satifies");
-const moment = () => byProps("utc", "months");
-const SimpleMarkdown = () => byProps("parseBlock", "parseInline");
-const hljs = () => byProps("highlight", "highlightBlock");
-const Raven = () => byProps("captureBreadcrumb");
-const joi = () => byProps("assert", "validate", "object");
+const React = /*@__PURE__*/ byProps("createElement", "Component", "Fragment");
+const classNames = /*@__PURE__*/ find((exports) => exports instanceof Object && exports.default === exports && Object.keys(exports).length === 1);
 
-const npm = {
-    __proto__: null,
-    EventEmitter: EventEmitter,
-    React: React$1,
-    ReactDOM: ReactDOM$1,
-    classNames: classNames$1,
-    lodash: lodash$1,
-    semver: semver,
-    moment: moment,
-    SimpleMarkdown: SimpleMarkdown,
-    hljs: hljs,
-    Raven: Raven,
-    joi: joi
-};
+const Flux = /*@__PURE__*/ byProps("Store", "useStateFromStores");
 
-const Flux$1 = () => byProps("Store", "useStateFromStores");
-const Dispatcher = () => byProps("dirtyDispatch");
-
-const flux = {
-    __proto__: null,
-    Flux: Flux$1,
-    Dispatcher: Dispatcher
-};
-
-const Constants = () => byProps("Permissions", "RelationshipTypes");
-const i18n = () => byProps("languages", "getLocale");
-const Platforms = () => byProps("getPlatform", "isWindows", "isWeb", "PlatformTypes");
-const ClientActions = () => byProps("toggleGuildFolderExpand");
-const ChannelStore = () => byProps("getChannel", "hasChannel");
-const SelectedChannelStore = () => byProps("getChannelId", "getVoiceChannelId");
-const UserStore = () => byProps("getUser", "getCurrentUser");
-const GuildMemberStore = () => byProps("getMember", "isMember");
-const PresenceStore = () => byProps("getState", "getStatus", "isMobileOnline");
-const RelationshipStore = () => byProps("isFriend", "getRelationshipCount");
-const MediaEngineStore$1 = () => byProps("getLocalVolume");
-const MediaEngineActions$1 = () => byProps("setLocalVolume");
-const ContextMenuActions = () => byProps("openContextMenuLazy");
-const ModalActions = () => byProps("openModalLazy");
-const Flex$1 = () => byName("Flex");
-const Button$1 = () => byProps("Link", "Hovers");
-const Text = () => byName("Text");
-const Links = () => byProps("Link", "NavLink");
-const Switch = () => byName("Switch");
-const SwitchItem = () => byName("SwitchItem");
-const RadioGroup = () => byName("RadioGroup");
-const Slider = () => byName("Slider");
-const TextInput = () => byName("TextInput");
-const Menu = () => byProps("MenuGroup", "MenuItem", "MenuSeparator");
-const Form$1 = () => byProps("FormItem", "FormSection", "FormDivider");
-const margins$1 = () => byProps("marginLarge");
-
-const discord = {
-    __proto__: null,
-    Constants: Constants,
-    i18n: i18n,
-    Platforms: Platforms,
-    ClientActions: ClientActions,
-    ChannelStore: ChannelStore,
-    SelectedChannelStore: SelectedChannelStore,
-    UserStore: UserStore,
-    GuildMemberStore: GuildMemberStore,
-    PresenceStore: PresenceStore,
-    RelationshipStore: RelationshipStore,
-    MediaEngineStore: MediaEngineStore$1,
-    MediaEngineActions: MediaEngineActions$1,
-    ContextMenuActions: ContextMenuActions,
-    ModalActions: ModalActions,
-    Flex: Flex$1,
-    Button: Button$1,
-    Text: Text,
-    Links: Links,
-    Switch: Switch,
-    SwitchItem: SwitchItem,
-    RadioGroup: RadioGroup,
-    Slider: Slider,
-    TextInput: TextInput,
-    Menu: Menu,
-    Form: Form$1,
-    margins: margins$1
-};
-
-const createProxy = (entries) => {
-    const result = {};
-    for (const [key, value] of Object.entries(entries)) {
-        Object.defineProperty(result, key, {
-            enumerable: true,
-            configurable: true,
-            get() {
-                delete this[key];
-                this[key] = value();
-                return this[key];
-            }
-        });
-    }
-    return result;
-};
-const Modules = createProxy({
-    ...npm,
-    ...flux,
-    ...discord
-});
-const { React, ReactDOM, classNames, lodash, Flux } = Modules;
+const MediaEngineStore = /*@__PURE__*/ byProps("getLocalVolume");
+const MediaEngineActions = /*@__PURE__*/ byProps("setLocalVolume");
+const ContextMenuActions = /*@__PURE__*/ byProps("openContextMenuLazy");
+const ModalActions = /*@__PURE__*/ byProps("openModalLazy");
+const Flex = /*@__PURE__*/ byName("Flex");
+const Button = /*@__PURE__*/ byProps("Link", "Hovers");
+const Menu = /*@__PURE__*/ byProps("MenuGroup", "MenuItem", "MenuSeparator");
+const Form = /*@__PURE__*/ byProps("FormItem", "FormSection", "FormDivider");
+const margins = /*@__PURE__*/ byProps("marginLarge");
 
 const resolveName = (object, method) => {
     const target = method === "default" ? object[method] : {};
@@ -276,8 +176,8 @@ const createPatcher = (id, Logger) => {
                 }, { silent: true });
             }
         }),
-        waitForContextMenu: (callback) => patcher.waitForLazy(Modules.ContextMenuActions, "openContextMenuLazy", 1, callback),
-        waitForModal: (callback) => patcher.waitForLazy(Modules.ModalActions, "openModalLazy", 0, callback)
+        waitForContextMenu: (callback) => patcher.waitForLazy(ContextMenuActions, "openContextMenuLazy", 1, callback),
+        waitForModal: (callback) => patcher.waitForLazy(ModalActions, "openModalLazy", 0, callback)
     };
     return patcher;
 };
@@ -357,7 +257,6 @@ const createSettings = (Data, defaults) => new Settings(Data, defaults);
 
 const confirm = (title, content, options = {}) => BdApi.showConfirmationModal(title, content, options);
 
-const { Flex, Button, Form, margins } = Modules;
 const SettingsContainer = ({ name, children, onReset }) => (React.createElement(Form.FormSection, null,
     children,
     React.createElement(Form.FormDivider, { className: classNames(margins.marginTop20, margins.marginBottom20) }),
@@ -395,7 +294,7 @@ const createPlugin = ({ name, version, styles, settings }, callback) => {
 
 const name = "BetterVolume";
 const author = "Zerthox";
-const version = "2.2.4";
+const version = "2.2.5";
 const description = "Set user volume values manually instead of using a limited slider.";
 const config = {
 	name: name,
@@ -406,27 +305,36 @@ const config = {
 
 const styles = ".container-BetterVolume {\n  margin: 0 8px;\n  padding: 3px 6px;\n  background: var(--background-primary);\n  border-radius: 3px;\n  display: flex;\n}\n\n.input-BetterVolume {\n  margin-right: 2px;\n  flex-grow: 1;\n  background: transparent;\n  border: none;\n  color: var(--interactive-normal);\n  font-weight: 500;\n}\n.input-BetterVolume:hover::-webkit-inner-spin-button {\n  appearance: auto;\n}";
 
-const { MediaEngineStore, MediaEngineActions } = Modules;
 const AudioConvert = byProps("perceptualToAmplitude");
-const { MenuItem } = Modules.Menu;
+const { MenuItem } = Menu;
 const limit = (input, min, max) => Math.min(Math.max(input, min), max);
-const NumberInput = ({ value, min, max, fallback, onChange }) => (React.createElement("div", { className: "container-BetterVolume" },
-    React.createElement("input", { type: "number", className: "input-BetterVolume", min: min, max: max, value: Math.round((value + Number.EPSILON) * 100) / 100, onChange: ({ target }) => onChange(limit(parseFloat(target.value), min, max)), onBlur: ({ target }) => {
-            const value = limit(parseFloat(target.value), min, max);
-            if (Number.isNaN(value)) {
-                onChange(fallback);
-            }
-        } }),
-    React.createElement("span", { className: "unit-BetterVolume" }, "%")));
+const NumberInput = ({ value, min, max, fallback, onChange }) => {
+    const [isEmpty, setEmpty] = React.useState(false);
+    return (React.createElement("div", { className: "container-BetterVolume" },
+        React.createElement("input", { type: "number", className: "input-BetterVolume", min: min, max: max, value: !isEmpty ? Math.round((value + Number.EPSILON) * 100) / 100 : "", onChange: ({ target }) => {
+                const value = limit(parseFloat(target.value), min, max);
+                const isNaN = Number.isNaN(value);
+                setEmpty(isNaN);
+                if (!isNaN) {
+                    onChange(value);
+                }
+            }, onBlur: () => {
+                if (isEmpty) {
+                    setEmpty(false);
+                    onChange(fallback);
+                }
+            } }),
+        React.createElement("span", { className: "unit-BetterVolume" }, "%")));
+};
 const index = createPlugin({ ...config, styles }, ({ Patcher }) => ({
     async start() {
         const useUserVolumeItem = await Patcher.waitForContextMenu(() => query({ name: "useUserVolumeItem" }));
-        Patcher.after(useUserVolumeItem, "default", ({ args: [userId, mediaContext], result }) => {
+        Patcher.after(useUserVolumeItem, "default", ({ args: [userId, context], result }) => {
             if (result) {
-                const volume = MediaEngineStore.getLocalVolume(userId, mediaContext);
+                const volume = MediaEngineStore.getLocalVolume(userId, context);
                 return (React.createElement(React.Fragment, null,
                     result,
-                    React.createElement(MenuItem, { id: "user-volume-input", render: () => (React.createElement(NumberInput, { value: AudioConvert.amplitudeToPerceptual(volume), min: 0, max: 999999, fallback: 100, onChange: (value) => MediaEngineActions.setLocalVolume(userId, AudioConvert.perceptualToAmplitude(value), mediaContext) })) })));
+                    React.createElement(MenuItem, { id: "user-volume-input", render: () => (React.createElement(NumberInput, { value: AudioConvert.amplitudeToPerceptual(volume), min: 0, max: 999999, fallback: 100, onChange: (value) => MediaEngineActions.setLocalVolume(userId, AudioConvert.perceptualToAmplitude(value), context) })) })));
             }
         });
     },
