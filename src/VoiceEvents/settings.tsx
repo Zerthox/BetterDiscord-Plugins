@@ -1,10 +1,8 @@
-import {Finder, React, Modules, classNames} from "dium";
+import {Finder, React} from "dium";
+import {classNames, Flex, Button, Text, Switch, SwitchItem, TextInput, Slider, Form, margins} from "dium/modules";
 
-const {Flex, Button, Text, Switch, SwitchItem, TextInput, Slider} = Modules;
-const {FormSection, FormTitle, FormItem, FormText, FormDivider} = Modules.Form;
+const {FormSection, FormTitle, FormItem, FormText, FormDivider} = Form;
 const SingleSelect = Finder.byName("SingleSelect");
-
-const {margins} = Modules;
 
 export const settings = {
     voice: null as string,

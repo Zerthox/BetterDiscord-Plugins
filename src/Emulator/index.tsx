@@ -1,7 +1,7 @@
-import {createPlugin, Finder, Utils, React, Modules} from "dium";
+import {createPlugin, Finder, Utils, React} from "dium";
+import {Platforms} from "dium/modules";
 import config from "./config.json";
 
-const {Platforms} = Modules;
 const {PlatformTypes} = Platforms;
 const OverlayBridgeStore = Finder.byProps("initialize", "isSupported", "getFocusedPID");
 

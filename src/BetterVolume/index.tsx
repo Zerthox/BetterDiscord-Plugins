@@ -1,11 +1,16 @@
-import {createPlugin, React, Finder, Modules, Discord} from "dium";
+import {createPlugin, React, Finder, Discord} from "dium";
+import {MediaEngineStore, MediaEngineActions, MediaEngineContext, Menu} from "dium/modules";
 import config from "./config.json";
 import styles from "./styles.scss";
 
-const {MediaEngineStore, MediaEngineActions} = Modules;
-const AudioConvert = Finder.byProps("perceptualToAmplitude");
+interface AudioConvert {
+    amplitudeToPerceptual(amplitude: number): number;
+    perceptualToAmplitude(perceptual: number): number;
+}
 
-const {MenuItem} = Modules.Menu;
+const AudioConvert = Finder.byProps("perceptualToAmplitude") as AudioConvert;
+
+const {MenuItem} = Menu;
 
 const limit = (input: number, min: number, max: number): number => Math.min(Math.max(input, min), max);
 
@@ -41,7 +46,7 @@ export default createPlugin({...config, styles}, ({Patcher}) => ({
     async start() {
         // wait for context menu lazy load
         const useUserVolumeItem = await Patcher.waitForContextMenu(
-            () => Finder.query({name: "useUserVolumeItem"}) as {default: (userId: Discord.Snowflake, mediaContext: any) => JSX.Element}
+            () => Finder.query({name: "useUserVolumeItem"}) as {default: (userId: Discord.Snowflake, context: MediaEngineContext) => JSX.Element}
         );
 
         // add number input

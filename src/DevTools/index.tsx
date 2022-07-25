@@ -1,12 +1,13 @@
 import * as dium from "dium";
+import {UserStore, SwitchItem, Constants} from "dium/modules";
+import * as Modules from "dium/modules";
 import * as DevFinder from "./finder";
 import config from "./config.json";
 import type {UntypedStore} from "dium/modules";
 
-const {React, Finder, Modules} = dium;
+const {React, Finder} = dium;
 
-const {UserStore, SwitchItem} = Modules;
-const {UserFlags} = Modules.Constants;
+const {UserFlags} = Constants;
 const DeveloperExperimentStore: UntypedStore = Finder.byProps("isDeveloper");
 
 const settings = {
@@ -15,18 +16,22 @@ const settings = {
     staff: true
 };
 
-// add finder extension
-(Finder as any).dev = DevFinder;
+// add extensions
+const diumGlobal = {
+    ...dium,
+    Finder: {...Finder, dev: DevFinder},
+    Modules
+};
 
 declare global {
     interface Window {
-        dium?: typeof dium;
+        dium?: typeof diumGlobal;
     }
 }
 
 const updateGlobal = (expose: boolean) => {
     if (expose) {
-        window.dium = dium;
+        window.dium = diumGlobal;
     } else {
         delete window.dium;
     }

@@ -1,12 +1,12 @@
-import {createPlugin, Finder, Utils, React, Flux, Modules} from "dium";
+import {createPlugin, Finder, Utils, React, Flux} from "dium";
+import {Constants, PresenceStore, RelationshipStore, Links} from "dium/modules";
 import config from "./config.json";
 import styles from "./styles.scss";
 
-const {RelationshipTypes, StatusTypes} = Modules.Constants;
-const {PresenceStore, RelationshipStore} = Modules;
+const {RelationshipTypes, StatusTypes} = Constants;
 
 const HomeButtonModule = Finder.byProps("HomeButton") as {HomeButton: React.FunctionComponent};
-const {Link} = Modules.Links;
+const {Link} = Links;
 
 const guildStyles = Finder.byProps("guilds", "base");
 const listStyles = Finder.byProps("listItem");

@@ -1,13 +1,22 @@
-import {createPlugin, Finder, Utils, React, Modules, Discord} from "dium";
+import {createPlugin, Finder, Utils, React, Discord} from "dium";
+import {
+    Constants,
+    Dispatcher,
+    ChannelStore,
+    SelectedChannelStore,
+    UserStore,
+    GuildMemberStore,
+    MediaEngineStore,
+    Text,
+    Menu
+} from "dium/modules";
 import {settings, SettingsPanel, NotificationType} from "./settings";
 import config from "./config.json";
 
-const {Dispatcher, ChannelStore, SelectedChannelStore, UserStore, GuildMemberStore, MediaEngineStore} = Modules;
-const {ActionTypes} = Modules.Constants;
+const {ActionTypes} = Constants;
 const VoiceStateStore = Finder.byProps("getVoiceStates", "hasVideo");
 
-const {Text} = Modules;
-const {MenuItem} = Modules.Menu;
+const {MenuItem} = Menu;
 
 interface VoiceState {
     channelId: Discord.Snowflake;
