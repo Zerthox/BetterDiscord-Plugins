@@ -21,7 +21,7 @@ const config: RollupOptions = {
         }),
         typescript(),
         cleanup({
-            comments: [/^\*[@#]__PURE__$/],
+            comments: [/[@#]__PURE__/],
             maxEmptyLines: 0,
             extensions: ["js", "ts", "tsx"],
             sourcemap: false

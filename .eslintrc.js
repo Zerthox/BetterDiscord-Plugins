@@ -30,6 +30,11 @@ module.exports = {
         "quote-props": ["error", "as-needed"],
         "operator-linebreak": ["error", "before"],
         "no-multiple-empty-lines": ["error", {max: 1}],
+        "spaced-comment": ["error", "always", {
+            block: {
+                balanced: true
+            }
+        }],
         "linebreak-style": "off",
         "max-len": "off",
         "require-jsdoc": "off",
