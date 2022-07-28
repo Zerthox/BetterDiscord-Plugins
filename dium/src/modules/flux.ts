@@ -1,5 +1,3 @@
-/* eslint-disable @typescript-eslint/explicit-module-boundary-types */
-
 import * as Finder from "../api/finder";
 
 export interface Action extends Record<string, any> {
@@ -51,7 +49,18 @@ export interface DispatcherConstructor {
 }
 
 declare class Store {
-    constructor(dispatcher: Dispatcher, actions: any);
+    constructor(dispatcher: Dispatcher, actions: unknown);
+
+    static destroy(): any;
+    static emitChanges(): any;
+    static getAll(): any;
+    static getChangeSentinel(): any;
+    static initialize(): any;
+    static initialized: Promise<unknown>;
+    static injectBatchEmitChanges(arg: unknown): any;
+    static isPaused(): boolean;
+    static pauseEmittingChanges(arg: unknown): any;
+    static resumeEmittingChanges(arg: unknown): any;
 
     // private
     _changeCallbacks: Set<Listener<Action>>;
@@ -65,21 +74,21 @@ declare class Store {
     getDispatchToken(): Token;
 
     addChangeListener(listener: Listener<Action>): void;
-    addConditionalChangeListener(listener: Listener<Action>, condition: any): void;
+    addConditionalChangeListener(listener: Listener<Action>, condition: boolean): void;
     removeChangeListener(listener: Listener<Action>): void;
     hasChangeCallbacks(): boolean;
 
     emitChange(): void;
-    mustEmitChanges(arg: any): void;
-    syncWith(arg1: any, arg2: any, arg3: any): any;
+    mustEmitChanges(func: () => boolean): void;
+    syncWith(stores: Store[], func: () => boolean, timeout?: number): any;
     waitFor(...stores: Store[]): void;
 }
 
 declare class BatchedStoreListener {
-    constructor(e: any, t: any);
+    constructor(stores: Store[], changeCallback: () => void);
 
-    attach(e: any): any;
-    detach(): any;
+    attach(name: string): void;
+    detach(): void;
 }
 
 export type {Store, BatchedStoreListener};
@@ -91,8 +100,8 @@ export interface Flux {
     StoreListenerMixin: any;
     LazyStoreListenerMixin: any;
 
-    destroy(): any;
-    initialize(): any;
+    destroy(): void;
+    initialize(): void;
     initialized: boolean;
 
     connectStores<OuterProps, InnerProps>(
@@ -111,11 +120,12 @@ export interface FluxHooks {
     Dispatcher: DispatcherConstructor;
     BatchedStoreListener: typeof BatchedStoreListener;
     ActionBase: any;
+    ActionHandlers: any;
 
-    useStateFromStores<T>(stores: Store[], callback: () => T, deps?: any[], compare?: Comparator<T>): T;
-    useStateFromStoresArray<T>(stores: Store[], callback: () => T, deps?: any[]): T;
-    useStateFromStoresObject<T>(stores: Store[], callback: () => T, deps?: any[]): T;
-    statesWillNeverBeEqual(a: any, b: any): boolean;
+    useStateFromStores<T>(stores: Store[], callback: () => T, deps?: unknown[], compare?: Comparator<T>): T;
+    useStateFromStoresArray<T>(stores: Store[], callback: () => T, deps?: unknown[]): T;
+    useStateFromStoresObject<T>(stores: Store[], callback: () => T, deps?: unknown[]): T;
+    statesWillNeverBeEqual: Comparator<unknown>;
 }
 
 export const Flux: FluxHooks = /* @__PURE__ */ Finder.byProps("Store", "useStateFromStores");
