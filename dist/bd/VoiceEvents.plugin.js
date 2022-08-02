@@ -1,7 +1,7 @@
 /**
  * @name VoiceEvents
  * @author Zerthox
- * @version 2.2.3
+ * @version 2.2.4
  * @description Add TTS Event Notifications to your selected Voice Channel. TeamSpeak feeling.
  * @authorLink https://github.com/Zerthox
  * @website https://github.com/Zerthox/BetterDiscord-Plugins
@@ -110,30 +110,29 @@ const query = (options) => resolveExports(find(...generate(options)), options.ex
 const byName = (name) => resolveExports(find(byName$1(name)), byOwnName(name));
 const byProps = (...props) => find(byProps$1(props));
 
-const React = /*@__PURE__*/ byProps("createElement", "Component", "Fragment");
-const classNames = /*@__PURE__*/ find((exports) => exports instanceof Object && exports.default === exports && Object.keys(exports).length === 1);
+const React = /* @__PURE__ */ byProps("createElement", "Component", "Fragment");
+const classNames = /* @__PURE__ */ find((exports) => exports instanceof Object && exports.default === exports && Object.keys(exports).length === 1);
 
-const Flux = /*@__PURE__*/ byProps("Store", "useStateFromStores");
-const Dispatcher = /*@__PURE__*/ byProps("dirtyDispatch");
+const Flux = /* @__PURE__ */ byProps("Store", "useStateFromStores");
+const Dispatcher = /* @__PURE__ */ byProps("dirtyDispatch");
 
-const Constants = /*@__PURE__*/ byProps("Permissions", "RelationshipTypes");
-const ChannelStore = /*@__PURE__*/ byProps("getChannel", "hasChannel");
-const SelectedChannelStore = /*@__PURE__*/ byProps("getChannelId", "getVoiceChannelId");
-const UserStore = /*@__PURE__*/ byProps("getUser", "getCurrentUser");
-const GuildMemberStore = /*@__PURE__*/ byProps("getMember", "isMember");
-const MediaEngineStore = /*@__PURE__*/ byProps("getLocalVolume");
-const ContextMenuActions = /*@__PURE__*/ byProps("openContextMenuLazy");
-const ModalActions = /*@__PURE__*/ byProps("openModalLazy");
-const Flex = /*@__PURE__*/ byName("Flex");
-const Button = /*@__PURE__*/ byProps("Link", "Hovers");
-const Text = /*@__PURE__*/ byName("Text");
-const Switch = /*@__PURE__*/ byName("Switch");
-const SwitchItem = /*@__PURE__*/ byName("SwitchItem");
-const Slider = /*@__PURE__*/ byName("Slider");
-const TextInput = /*@__PURE__*/ byName("TextInput");
-const Menu = /*@__PURE__*/ byProps("MenuGroup", "MenuItem", "MenuSeparator");
-const Form = /*@__PURE__*/ byProps("FormItem", "FormSection", "FormDivider");
-const margins = /*@__PURE__*/ byProps("marginLarge");
+const ChannelStore = /* @__PURE__ */ byProps("getChannel", "hasChannel");
+const SelectedChannelStore = /* @__PURE__ */ byProps("getChannelId", "getVoiceChannelId");
+const UserStore = /* @__PURE__ */ byProps("getUser", "getCurrentUser");
+const GuildMemberStore = /* @__PURE__ */ byProps("getMember", "isMember");
+const MediaEngineStore = /* @__PURE__ */ byProps("getLocalVolume");
+const ContextMenuActions = /* @__PURE__ */ byProps("openContextMenuLazy");
+const ModalActions = /* @__PURE__ */ byProps("openModalLazy");
+const Flex = /* @__PURE__ */ byName("Flex");
+const Button = /* @__PURE__ */ byProps("Link", "Hovers");
+const Text = /* @__PURE__ */ byName("Text");
+const Switch = /* @__PURE__ */ byName("Switch");
+const SwitchItem = /* @__PURE__ */ byName("SwitchItem");
+const Slider = /* @__PURE__ */ byName("Slider");
+const TextInput = /* @__PURE__ */ byName("TextInput");
+const Menu = /* @__PURE__ */ byProps("MenuGroup", "MenuItem", "MenuSeparator");
+const Form = /* @__PURE__ */ byProps("FormItem", "FormSection", "FormDivider");
+const margins = /* @__PURE__ */ byProps("marginLarge");
 
 const resolveName = (object, method) => {
     const target = method === "default" ? object[method] : {};
@@ -424,7 +423,7 @@ const SettingsPanel = ({ current, defaults, onChange, speak }) => {
 
 const name = "VoiceEvents";
 const author = "Zerthox";
-const version = "2.2.3";
+const version = "2.2.4";
 const description = "Add TTS Event Notifications to your selected Voice Channel. TeamSpeak feeling.";
 const config = {
 	name: name,
@@ -433,7 +432,6 @@ const config = {
 	description: description
 };
 
-const { ActionTypes } = Constants;
 const VoiceStateStore = byProps("getVoiceStates", "hasVideo");
 const { MenuItem } = Menu;
 let prevStates = {};
@@ -566,28 +564,28 @@ const index = createPlugin({ ...config, settings }, ({ Logger, Patcher, Settings
     return {
         async start() {
             saveStates();
-            Dispatcher.subscribe(ActionTypes.VOICE_STATE_UPDATES, voiceStateListener);
+            Dispatcher.subscribe("VOICE_STATE_UPDATES", voiceStateListener);
             Logger.log("Subscribed to voice state events");
-            Dispatcher.subscribe(ActionTypes.AUDIO_TOGGLE_SELF_MUTE, selfMuteListener);
+            Dispatcher.subscribe("AUDIO_TOGGLE_SELF_MUTE", selfMuteListener);
             Logger.log("Subscribed to self mute events");
-            Dispatcher.subscribe(ActionTypes.AUDIO_TOGGLE_SELF_DEAF, selfDeafListener);
+            Dispatcher.subscribe("AUDIO_TOGGLE_SELF_DEAF", selfDeafListener);
             Logger.log("Subscribed to self deaf events");
             const useChannelHideNamesItem = await Patcher.waitForContextMenu(() => query({ name: "useChannelHideNamesItem" }));
             Patcher.after(useChannelHideNamesItem, "default", ({ result }) => {
                 if (result) {
                     return (React.createElement(React.Fragment, null,
                         result,
-                        React.createElement(MenuItem, { isFocused: false, id: "voiceevents-clear", label: "Clear notification queue", action: () => speechSynthesis.cancel() })));
+                        React.createElement(MenuItem, { isFocused: false, id: "voiceevents-clear", label: "Clear VoiceEvents queue", action: () => speechSynthesis.cancel() })));
                 }
             });
         },
         stop() {
             prevStates = {};
-            Dispatcher.unsubscribe(ActionTypes.VOICE_STATE_UPDATES, voiceStateListener);
+            Dispatcher.unsubscribe("VOICE_STATE_UPDATES", voiceStateListener);
             Logger.log("Unsubscribed from voice state events");
-            Dispatcher.unsubscribe(ActionTypes.AUDIO_TOGGLE_SELF_MUTE, selfMuteListener);
+            Dispatcher.unsubscribe("AUDIO_TOGGLE_SELF_MUTE", selfMuteListener);
             Logger.log("Unsubscribed from self mute events");
-            Dispatcher.unsubscribe(ActionTypes.AUDIO_TOGGLE_SELF_DEAF, selfDeafListener);
+            Dispatcher.unsubscribe("AUDIO_TOGGLE_SELF_DEAF", selfDeafListener);
             Logger.log("Unsubscribed from self deaf events");
         },
         SettingsPanel: () => {

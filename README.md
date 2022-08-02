@@ -9,7 +9,7 @@ Set user volume values manually instead of using a limited slider.
 ### [OnlineFriendCount](/dist/bd/OnlineFriendCount.plugin.js) <sub><sup>`v2.1.4` *(Updated: 25/07/2022)*</sup></sub>
 Add the old online friend count back to guild list. Because nostalgia.
 
-### [VoiceEvents](/dist/bd/VoiceEvents.plugin.js) <sub><sup>`v2.2.3` *(Updated: 25/07/2022)*</sup></sub>
+### [VoiceEvents](/dist/bd/VoiceEvents.plugin.js) <sub><sup>`v2.2.4` *(Updated: 02/08/2022)*</sup></sub>
 Add TTS Event Notifications to your selected Voice Channel. TeamSpeak feeling.
 
 <br>
