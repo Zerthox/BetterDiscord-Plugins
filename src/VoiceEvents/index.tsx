@@ -1,6 +1,5 @@
 import {createPlugin, Finder, Utils, React, Discord} from "dium";
 import {
-    Constants,
     Dispatcher,
     ChannelStore,
     SelectedChannelStore,
@@ -13,7 +12,6 @@ import {
 import {settings, SettingsPanel, NotificationType} from "./settings";
 import config from "./config.json";
 
-const {ActionTypes} = Constants;
 const VoiceStateStore = Finder.byProps("getVoiceStates", "hasVideo");
 
 const {MenuItem} = Menu;
@@ -199,13 +197,13 @@ export default createPlugin({...config, settings}, ({Logger, Patcher, Settings})
             saveStates();
 
             // listen for updates
-            Dispatcher.subscribe(ActionTypes.VOICE_STATE_UPDATES, voiceStateListener);
+            Dispatcher.subscribe("VOICE_STATE_UPDATES", voiceStateListener);
             Logger.log("Subscribed to voice state events");
 
-            Dispatcher.subscribe(ActionTypes.AUDIO_TOGGLE_SELF_MUTE, selfMuteListener);
+            Dispatcher.subscribe("AUDIO_TOGGLE_SELF_MUTE", selfMuteListener);
             Logger.log("Subscribed to self mute events");
 
-            Dispatcher.subscribe(ActionTypes.AUDIO_TOGGLE_SELF_DEAF, selfDeafListener);
+            Dispatcher.subscribe("AUDIO_TOGGLE_SELF_DEAF", selfDeafListener);
             Logger.log("Subscribed to self deaf events");
 
             // wait for context menu lazy load
@@ -222,7 +220,7 @@ export default createPlugin({...config, settings}, ({Logger, Patcher, Settings})
                             <MenuItem
                                 isFocused={false}
                                 id="voiceevents-clear"
-                                label="Clear notification queue"
+                                label="Clear VoiceEvents queue"
                                 action={() => speechSynthesis.cancel()}
                             />
                         </>
@@ -234,13 +232,13 @@ export default createPlugin({...config, settings}, ({Logger, Patcher, Settings})
             // reset
             prevStates = {};
 
-            Dispatcher.unsubscribe(ActionTypes.VOICE_STATE_UPDATES, voiceStateListener);
+            Dispatcher.unsubscribe("VOICE_STATE_UPDATES", voiceStateListener);
             Logger.log("Unsubscribed from voice state events");
 
-            Dispatcher.unsubscribe(ActionTypes.AUDIO_TOGGLE_SELF_MUTE, selfMuteListener);
+            Dispatcher.unsubscribe("AUDIO_TOGGLE_SELF_MUTE", selfMuteListener);
             Logger.log("Unsubscribed from self mute events");
 
-            Dispatcher.unsubscribe(ActionTypes.AUDIO_TOGGLE_SELF_DEAF, selfDeafListener);
+            Dispatcher.unsubscribe("AUDIO_TOGGLE_SELF_DEAF", selfDeafListener);
             Logger.log("Unsubscribed from self deaf events");
         },
         SettingsPanel: () => {
