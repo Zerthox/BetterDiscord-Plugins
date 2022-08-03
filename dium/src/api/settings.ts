@@ -1,6 +1,6 @@
-import {Data} from "./data";
 import {Flux} from "../modules";
-import {Action, Listener as DispatchListener} from "../modules/flux";
+import type {Data} from "./data";
+import type {Action, Handler} from "../modules/flux";
 
 export type Listener<Data> = (data: Data) => void;
 
@@ -23,11 +23,11 @@ class Settings<
     /** Current settings state. */
     current: SettingsType;
 
-    protected listeners: Map<Listener<SettingsType>, DispatchListener<SettingsAction<SettingsType>>>;
+    protected listeners: Map<Listener<SettingsType>, Handler<SettingsAction<SettingsType>>>;
 
     constructor(Data: Data<DataType>, defaults: SettingsType) {
         super(new Flux.Dispatcher(), {
-            update: ({current}) => Data.save("settings", current)
+            update: ({current}: SettingsAction<SettingsType>) => Data.save("settings", current)
         });
         this.listeners = new Map();
 
@@ -37,7 +37,10 @@ class Settings<
 
     /** Dispatches a settings update. */
     dispatch(): void {
-        this._dispatcher.dirtyDispatch({type: "update", current: this.current});
+        this._dispatcher.dispatch<SettingsAction<SettingsType>>({
+            type: "update",
+            current: this.current
+        });
     }
 
     /**

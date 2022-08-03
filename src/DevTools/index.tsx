@@ -1,5 +1,5 @@
 import * as dium from "dium";
-import {UserStore, SwitchItem, Constants} from "dium/modules";
+import {Constants, UserStore, SwitchItem} from "dium/modules";
 import * as Modules from "dium/modules";
 import * as DevFinder from "./finder";
 import config from "./config.json";
