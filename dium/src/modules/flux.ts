@@ -82,9 +82,6 @@ export interface Dispatcher {
     unsubscribe<A extends Action>(action: A["type"], handler: Handler<A>): void;
 
     wait<T>(callback: () => T): T | void;
-
-    /** @deprecated removed on canary */
-    dirtyDispatch<A extends Action>(action: A): void;
 }
 
 export interface DispatcherConstructor {
