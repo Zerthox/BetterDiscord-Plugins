@@ -16,6 +16,11 @@ const VoiceStateStore = Finder.byProps("getVoiceStates", "hasVideo");
 
 const {MenuItem} = Menu;
 
+interface VoiceStateUpdatesAction {
+    type: "VOICE_STATE_UPDATES";
+    voiceStates: VoiceState[];
+}
+
 interface VoiceState {
     channelId: Discord.Snowflake;
     userId: Discord.Snowflake;
@@ -134,20 +139,20 @@ export default createPlugin({...config, settings}, ({Logger, Patcher, Settings})
         );
     };
 
-    const selfMuteListener = () => {
+    const selfMuteHandler = () => {
         const userId = UserStore.getCurrentUser().id;
         const channelId = SelectedChannelStore.getVoiceChannelId();
         notify(MediaEngineStore.isSelfMute() ? "mute" : "unmute", userId, channelId);
     };
 
-    const selfDeafListener = () => {
+    const selfDeafHandler = () => {
         const userId = UserStore.getCurrentUser().id;
         const channelId = SelectedChannelStore.getVoiceChannelId();
         notify(MediaEngineStore.isSelfDeaf() ? "deafen" : "undeafen", userId, channelId);
     };
 
-    const voiceStateListener = (event) => {
-        for (const {userId, channelId} of event.voiceStates as VoiceState[]) {
+    const voiceStateHandler = (action: VoiceStateUpdatesAction) => {
+        for (const {userId, channelId} of action.voiceStates) {
             try {
                 const prev = prevStates[userId];
 
@@ -197,14 +202,14 @@ export default createPlugin({...config, settings}, ({Logger, Patcher, Settings})
             saveStates();
 
             // listen for updates
-            Dispatcher.subscribe("VOICE_STATE_UPDATES", voiceStateListener);
-            Logger.log("Subscribed to voice state events");
+            Dispatcher.subscribe("VOICE_STATE_UPDATES", voiceStateHandler);
+            Logger.log("Subscribed to voice state actions");
 
-            Dispatcher.subscribe("AUDIO_TOGGLE_SELF_MUTE", selfMuteListener);
-            Logger.log("Subscribed to self mute events");
+            Dispatcher.subscribe("AUDIO_TOGGLE_SELF_MUTE", selfMuteHandler);
+            Logger.log("Subscribed to self mute actions");
 
-            Dispatcher.subscribe("AUDIO_TOGGLE_SELF_DEAF", selfDeafListener);
-            Logger.log("Subscribed to self deaf events");
+            Dispatcher.subscribe("AUDIO_TOGGLE_SELF_DEAF", selfDeafHandler);
+            Logger.log("Subscribed to self deaf actions");
 
             // wait for context menu lazy load
             const useChannelHideNamesItem = await Patcher.waitForContextMenu(
@@ -232,14 +237,14 @@ export default createPlugin({...config, settings}, ({Logger, Patcher, Settings})
             // reset
             prevStates = {};
 
-            Dispatcher.unsubscribe("VOICE_STATE_UPDATES", voiceStateListener);
-            Logger.log("Unsubscribed from voice state events");
+            Dispatcher.unsubscribe("VOICE_STATE_UPDATES", voiceStateHandler);
+            Logger.log("Unsubscribed from voice state actions");
 
-            Dispatcher.unsubscribe("AUDIO_TOGGLE_SELF_MUTE", selfMuteListener);
-            Logger.log("Unsubscribed from self mute events");
+            Dispatcher.unsubscribe("AUDIO_TOGGLE_SELF_MUTE", selfMuteHandler);
+            Logger.log("Unsubscribed from self mute actions");
 
-            Dispatcher.unsubscribe("AUDIO_TOGGLE_SELF_DEAF", selfDeafListener);
-            Logger.log("Unsubscribed from self deaf events");
+            Dispatcher.unsubscribe("AUDIO_TOGGLE_SELF_DEAF", selfDeafHandler);
+            Logger.log("Unsubscribed from self deaf actions");
         },
         SettingsPanel: () => {
             const [current, defaults, setSettings] = Settings.useStateWithDefaults();

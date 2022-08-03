@@ -1,7 +1,7 @@
 /**
  * @name VoiceEvents
  * @author Zerthox
- * @version 2.2.4
+ * @version 2.2.5
  * @description Add TTS Event Notifications to your selected Voice Channel. TeamSpeak feeling.
  * @authorLink https://github.com/Zerthox
  * @website https://github.com/Zerthox/BetterDiscord-Plugins
@@ -114,7 +114,7 @@ const React = /* @__PURE__ */ byProps("createElement", "Component", "Fragment");
 const classNames = /* @__PURE__ */ find((exports) => exports instanceof Object && exports.default === exports && Object.keys(exports).length === 1);
 
 const Flux = /* @__PURE__ */ byProps("Store", "useStateFromStores");
-const Dispatcher = /* @__PURE__ */ byProps("dirtyDispatch");
+const Dispatcher = /* @__PURE__ */ byProps("dispatch", "subscribe");
 
 const ChannelStore = /* @__PURE__ */ byProps("getChannel", "hasChannel");
 const SelectedChannelStore = /* @__PURE__ */ byProps("getChannelId", "getVoiceChannelId");
@@ -218,7 +218,10 @@ class Settings extends Flux.Store {
         this.current = { ...defaults, ...Data.load("settings") };
     }
     dispatch() {
-        this._dispatcher.dirtyDispatch({ type: "update", current: this.current });
+        this._dispatcher.dispatch({
+            type: "update",
+            current: this.current
+        });
     }
     update(settings) {
         Object.assign(this.current, settings instanceof Function ? settings(this.current) : settings);
@@ -423,7 +426,7 @@ const SettingsPanel = ({ current, defaults, onChange, speak }) => {
 
 const name = "VoiceEvents";
 const author = "Zerthox";
-const version = "2.2.4";
+const version = "2.2.5";
 const description = "Add TTS Event Notifications to your selected Voice Channel. TeamSpeak feeling.";
 const config = {
 	name: name,
@@ -512,18 +515,18 @@ const index = createPlugin({ ...config, settings }, ({ Logger, Patcher, Settings
             .split("$user").join(processName(nick))
             .split("$channel").join(processName(channelName)));
     };
-    const selfMuteListener = () => {
+    const selfMuteHandler = () => {
         const userId = UserStore.getCurrentUser().id;
         const channelId = SelectedChannelStore.getVoiceChannelId();
         notify(MediaEngineStore.isSelfMute() ? "mute" : "unmute", userId, channelId);
     };
-    const selfDeafListener = () => {
+    const selfDeafHandler = () => {
         const userId = UserStore.getCurrentUser().id;
         const channelId = SelectedChannelStore.getVoiceChannelId();
         notify(MediaEngineStore.isSelfDeaf() ? "deafen" : "undeafen", userId, channelId);
     };
-    const voiceStateListener = (event) => {
-        for (const { userId, channelId } of event.voiceStates) {
+    const voiceStateHandler = (action) => {
+        for (const { userId, channelId } of action.voiceStates) {
             try {
                 const prev = prevStates[userId];
                 if (userId === UserStore.getCurrentUser().id) {
@@ -564,12 +567,12 @@ const index = createPlugin({ ...config, settings }, ({ Logger, Patcher, Settings
     return {
         async start() {
             saveStates();
-            Dispatcher.subscribe("VOICE_STATE_UPDATES", voiceStateListener);
-            Logger.log("Subscribed to voice state events");
-            Dispatcher.subscribe("AUDIO_TOGGLE_SELF_MUTE", selfMuteListener);
-            Logger.log("Subscribed to self mute events");
-            Dispatcher.subscribe("AUDIO_TOGGLE_SELF_DEAF", selfDeafListener);
-            Logger.log("Subscribed to self deaf events");
+            Dispatcher.subscribe("VOICE_STATE_UPDATES", voiceStateHandler);
+            Logger.log("Subscribed to voice state actions");
+            Dispatcher.subscribe("AUDIO_TOGGLE_SELF_MUTE", selfMuteHandler);
+            Logger.log("Subscribed to self mute actions");
+            Dispatcher.subscribe("AUDIO_TOGGLE_SELF_DEAF", selfDeafHandler);
+            Logger.log("Subscribed to self deaf actions");
             const useChannelHideNamesItem = await Patcher.waitForContextMenu(() => query({ name: "useChannelHideNamesItem" }));
             Patcher.after(useChannelHideNamesItem, "default", ({ result }) => {
                 if (result) {
@@ -581,12 +584,12 @@ const index = createPlugin({ ...config, settings }, ({ Logger, Patcher, Settings
         },
         stop() {
             prevStates = {};
-            Dispatcher.unsubscribe("VOICE_STATE_UPDATES", voiceStateListener);
-            Logger.log("Unsubscribed from voice state events");
-            Dispatcher.unsubscribe("AUDIO_TOGGLE_SELF_MUTE", selfMuteListener);
-            Logger.log("Unsubscribed from self mute events");
-            Dispatcher.unsubscribe("AUDIO_TOGGLE_SELF_DEAF", selfDeafListener);
-            Logger.log("Unsubscribed from self deaf events");
+            Dispatcher.unsubscribe("VOICE_STATE_UPDATES", voiceStateHandler);
+            Logger.log("Unsubscribed from voice state actions");
+            Dispatcher.unsubscribe("AUDIO_TOGGLE_SELF_MUTE", selfMuteHandler);
+            Logger.log("Unsubscribed from self mute actions");
+            Dispatcher.unsubscribe("AUDIO_TOGGLE_SELF_DEAF", selfDeafHandler);
+            Logger.log("Unsubscribed from self deaf actions");
         },
         SettingsPanel: () => {
             const [current, defaults, setSettings] = Settings.useStateWithDefaults();
