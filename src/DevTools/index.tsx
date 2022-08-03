@@ -3,17 +3,15 @@ import {Constants, UserStore, SwitchItem} from "dium/modules";
 import * as Modules from "dium/modules";
 import * as DevFinder from "./finder";
 import config from "./config.json";
-import type {UntypedStore} from "dium/modules";
 
 const {React, Finder} = dium;
 
 const {UserFlags} = Constants;
-const DeveloperExperimentStore: UntypedStore = Finder.byProps("isDeveloper");
 
 const settings = {
     global: true,
-    developer: true,
-    staff: true
+    developer: false,
+    staff: false
 };
 
 // add extensions
@@ -37,8 +35,6 @@ const updateGlobal = (expose: boolean) => {
     }
 };
 
-const origDesc = Object.getOwnPropertyDescriptor(Object.getPrototypeOf(DeveloperExperimentStore), "isDeveloper");
-
 const updateStaffFlag = (flag: boolean) => {
     const user = UserStore.getCurrentUser();
     if (flag) {
@@ -54,26 +50,23 @@ export default dium.createPlugin({...config, settings}, ({Settings}) => ({
         // expose global
         updateGlobal(Settings.current.global);
 
-        // replace developer getter
-        Object.defineProperty(Object.getPrototypeOf(DeveloperExperimentStore), "isDeveloper", {
-            ...origDesc,
-            get: () => Settings.current.developer
-        });
-        DeveloperExperimentStore.emitChange();
-
-        // update flag
-        updateStaffFlag(Settings.current.staff);
+        try {
+            // update flag
+            updateStaffFlag(Settings.current.staff);
+        } catch (err) {
+            console.error(err);
+        }
     },
     stop() {
         // remove global
         updateGlobal(false);
 
-        // reset developer getter
-        Object.defineProperty(Object.getPrototypeOf(DeveloperExperimentStore), "isDeveloper", {...origDesc});
-        DeveloperExperimentStore.emitChange();
-
-        // reset flag
-        updateStaffFlag(false);
+        try {
+            // reset flag
+            updateStaffFlag(false);
+        } catch (err) {
+            console.error(err);
+        }
     },
     SettingsPanel: () => {
         const [settings, setSettings] = Settings.useState();
@@ -89,11 +82,8 @@ export default dium.createPlugin({...config, settings}, ({Settings}) => ({
                     note="Expose dium as global for development."
                 >Dium Global</SwitchItem>
                 <SwitchItem
-                    value={settings.developer}
-                    onChange={(checked: boolean) => {
-                        setSettings({developer: checked});
-                        DeveloperExperimentStore.emitChange();
-                    }}
+                    disabled // disabled for now
+                    value={false}
                     note="Enable experiments &amp; other developer tabs in settings. Reopen to see them."
                 >Enable Developer Experiments</SwitchItem>
                 <SwitchItem

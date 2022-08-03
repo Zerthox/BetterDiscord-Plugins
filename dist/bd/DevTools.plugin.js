@@ -1,7 +1,7 @@
 /**
  * @name DevTools
  * @author Zerthox
- * @version 0.3.0
+ * @version 0.3.1
  * @description Utilities for development.
  * @authorLink https://github.com/Zerthox
  * @website https://github.com/Zerthox/BetterDiscord-Plugins
@@ -150,52 +150,52 @@ const index$2 = {
     Filters: Filters
 };
 
-const EventEmitter = /*@__PURE__*/ byProps$1("subscribe", "emit");
-const React$1 = /*@__PURE__*/ byProps$1("createElement", "Component", "Fragment");
-const ReactDOM = /*@__PURE__*/ byProps$1("render", "findDOMNode", "createPortal");
-const classNames = /*@__PURE__*/ find$1((exports) => exports instanceof Object && exports.default === exports && Object.keys(exports).length === 1);
-const lodash = /*@__PURE__*/ byProps$1("cloneDeep", "flattenDeep");
-const semver = /*@__PURE__*/ byProps$1("valid", "satifies");
-const moment = /*@__PURE__*/ byProps$1("utc", "months");
-const SimpleMarkdown = /*@__PURE__*/ byProps$1("parseBlock", "parseInline");
-const hljs = /*@__PURE__*/ byProps$1("highlight", "highlightBlock");
-const Raven = /*@__PURE__*/ byProps$1("captureBreadcrumb");
-const joi = /*@__PURE__*/ byProps$1("assert", "validate", "object");
+const EventEmitter = /* @__PURE__ */ byProps$1("subscribe", "emit");
+const React$1 = /* @__PURE__ */ byProps$1("createElement", "Component", "Fragment");
+const ReactDOM = /* @__PURE__ */ byProps$1("render", "findDOMNode", "createPortal");
+const classNames = /* @__PURE__ */ find$1((exports) => exports instanceof Object && exports.default === exports && Object.keys(exports).length === 1);
+const lodash = /* @__PURE__ */ byProps$1("cloneDeep", "flattenDeep");
+const semver = /* @__PURE__ */ byProps$1("valid", "satifies");
+const moment = /* @__PURE__ */ byProps$1("utc", "months");
+const SimpleMarkdown = /* @__PURE__ */ byProps$1("parseBlock", "parseInline");
+const hljs = /* @__PURE__ */ byProps$1("highlight", "highlightBlock");
+const Raven = /* @__PURE__ */ byProps$1("captureBreadcrumb");
+const joi = /* @__PURE__ */ byProps$1("assert", "validate", "object");
 
-const Flux = /*@__PURE__*/ byProps$1("Store", "useStateFromStores");
-const Dispatcher = /*@__PURE__*/ byProps$1("dirtyDispatch");
+const Flux = /* @__PURE__ */ byProps$1("Store", "useStateFromStores");
+const Dispatcher = /* @__PURE__ */ byProps$1("dispatch", "subscribe");
 
-const Constants = /*@__PURE__*/ byProps$1("Permissions", "RelationshipTypes");
-const i18n = /*@__PURE__*/ byProps$1("languages", "getLocale");
-const Platforms = /*@__PURE__*/ byProps$1("getPlatform", "isWindows", "isWeb", "PlatformTypes");
-const ClientActions = /*@__PURE__*/ byProps$1("toggleGuildFolderExpand");
-const GuildStore = /*@__PURE__*/ byProps$1("getGuild");
-const GuildActions = /*@__PURE__*/ byProps$1("requestMembers");
-const ChannelStore = /*@__PURE__*/ byProps$1("getChannel", "hasChannel");
-const ChannelActions = /*@__PURE__*/ byProps$1("selectChannel");
-const SelectedChannelStore = /*@__PURE__*/ byProps$1("getChannelId", "getVoiceChannelId");
-const UserStore = /*@__PURE__*/ byProps$1("getUser", "getCurrentUser");
-const GuildMemberStore = /*@__PURE__*/ byProps$1("getMember", "isMember");
-const PresenceStore = /*@__PURE__*/ byProps$1("getState", "getStatus", "isMobileOnline");
-const RelationshipStore = /*@__PURE__*/ byProps$1("isFriend", "getRelationshipCount");
-const MessageStore = /*@__PURE__*/ byProps$1("getMessage", "getMessages");
-const MessageActions = /*@__PURE__*/ byProps$1("jumpToMessage", "_sendMessage");
-const MediaEngineStore = /*@__PURE__*/ byProps$1("getLocalVolume");
-const MediaEngineActions = /*@__PURE__*/ byProps$1("setLocalVolume");
-const ContextMenuActions = /*@__PURE__*/ byProps$1("openContextMenuLazy");
-const ModalActions = /*@__PURE__*/ byProps$1("openModalLazy");
-const Flex = /*@__PURE__*/ byName$1("Flex");
-const Button = /*@__PURE__*/ byProps$1("Link", "Hovers");
-const Text = /*@__PURE__*/ byName$1("Text");
-const Links = /*@__PURE__*/ byProps$1("Link", "NavLink");
-const Switch = /*@__PURE__*/ byName$1("Switch");
-const SwitchItem = /*@__PURE__*/ byName$1("SwitchItem");
-const RadioGroup = /*@__PURE__*/ byName$1("RadioGroup");
-const Slider = /*@__PURE__*/ byName$1("Slider");
-const TextInput = /*@__PURE__*/ byName$1("TextInput");
-const Menu = /*@__PURE__*/ byProps$1("MenuGroup", "MenuItem", "MenuSeparator");
-const Form = /*@__PURE__*/ byProps$1("FormItem", "FormSection", "FormDivider");
-const margins = /*@__PURE__*/ byProps$1("marginLarge");
+const Constants = /* @__PURE__ */ byProps$1("Permissions", "RelationshipTypes");
+const i18n = /* @__PURE__ */ byProps$1("languages", "getLocale");
+const Platforms = /* @__PURE__ */ byProps$1("getPlatform", "isWindows", "isWeb", "PlatformTypes");
+const ClientActions = /* @__PURE__ */ byProps$1("toggleGuildFolderExpand");
+const GuildStore = /* @__PURE__ */ byProps$1("getGuild");
+const GuildActions = /* @__PURE__ */ byProps$1("requestMembers");
+const ChannelStore = /* @__PURE__ */ byProps$1("getChannel", "hasChannel");
+const ChannelActions = /* @__PURE__ */ byProps$1("selectChannel");
+const SelectedChannelStore = /* @__PURE__ */ byProps$1("getChannelId", "getVoiceChannelId");
+const UserStore = /* @__PURE__ */ byProps$1("getUser", "getCurrentUser");
+const GuildMemberStore = /* @__PURE__ */ byProps$1("getMember", "isMember");
+const PresenceStore = /* @__PURE__ */ byProps$1("getState", "getStatus", "isMobileOnline");
+const RelationshipStore = /* @__PURE__ */ byProps$1("isFriend", "getRelationshipCount");
+const MessageStore = /* @__PURE__ */ byProps$1("getMessage", "getMessages");
+const MessageActions = /* @__PURE__ */ byProps$1("jumpToMessage", "_sendMessage");
+const MediaEngineStore = /* @__PURE__ */ byProps$1("getLocalVolume");
+const MediaEngineActions = /* @__PURE__ */ byProps$1("setLocalVolume");
+const ContextMenuActions = /* @__PURE__ */ byProps$1("openContextMenuLazy");
+const ModalActions = /* @__PURE__ */ byProps$1("openModalLazy");
+const Flex = /* @__PURE__ */ byName$1("Flex");
+const Button = /* @__PURE__ */ byProps$1("Link", "Hovers");
+const Text = /* @__PURE__ */ byName$1("Text");
+const Links = /* @__PURE__ */ byProps$1("Link", "NavLink");
+const Switch = /* @__PURE__ */ byName$1("Switch");
+const SwitchItem = /* @__PURE__ */ byName$1("SwitchItem");
+const RadioGroup = /* @__PURE__ */ byName$1("RadioGroup");
+const Slider = /* @__PURE__ */ byName$1("Slider");
+const TextInput = /* @__PURE__ */ byName$1("TextInput");
+const Menu = /* @__PURE__ */ byProps$1("MenuGroup", "MenuItem", "MenuSeparator");
+const Form = /* @__PURE__ */ byProps$1("FormItem", "FormSection", "FormDivider");
+const margins = /* @__PURE__ */ byProps$1("marginLarge");
 
 const Modules = {
     __proto__: null,
@@ -329,7 +329,10 @@ class Settings extends Flux.Store {
         this.current = { ...defaults, ...Data.load("settings") };
     }
     dispatch() {
-        this._dispatcher.dirtyDispatch({ type: "update", current: this.current });
+        this._dispatcher.dispatch({
+            type: "update",
+            current: this.current
+        });
     }
     update(settings) {
         Object.assign(this.current, settings instanceof Function ? settings(this.current) : settings);
@@ -631,7 +634,7 @@ const DevFinder = {
 
 const name = "DevTools";
 const author = "Zerthox";
-const version = "0.3.0";
+const version = "0.3.1";
 const description = "Utilities for development.";
 const config = {
 	name: name,
@@ -642,11 +645,10 @@ const config = {
 
 const { React, Finder } = dium;
 const { UserFlags } = Constants;
-const DeveloperExperimentStore = Finder.byProps("isDeveloper");
 const settings = {
     global: true,
-    developer: true,
-    staff: true
+    developer: false,
+    staff: false
 };
 const diumGlobal = {
     ...dium,
@@ -661,7 +663,6 @@ const updateGlobal = (expose) => {
         delete window.dium;
     }
 };
-const origDesc = Object.getOwnPropertyDescriptor(Object.getPrototypeOf(DeveloperExperimentStore), "isDeveloper");
 const updateStaffFlag = (flag) => {
     const user = UserStore.getCurrentUser();
     if (flag) {
@@ -675,18 +676,21 @@ const updateStaffFlag = (flag) => {
 const index = createPlugin({ ...config, settings }, ({ Settings }) => ({
     start() {
         updateGlobal(Settings.current.global);
-        Object.defineProperty(Object.getPrototypeOf(DeveloperExperimentStore), "isDeveloper", {
-            ...origDesc,
-            get: () => Settings.current.developer
-        });
-        DeveloperExperimentStore.emitChange();
-        updateStaffFlag(Settings.current.staff);
+        try {
+            updateStaffFlag(Settings.current.staff);
+        }
+        catch (err) {
+            console.error(err);
+        }
     },
     stop() {
         updateGlobal(false);
-        Object.defineProperty(Object.getPrototypeOf(DeveloperExperimentStore), "isDeveloper", { ...origDesc });
-        DeveloperExperimentStore.emitChange();
-        updateStaffFlag(false);
+        try {
+            updateStaffFlag(false);
+        }
+        catch (err) {
+            console.error(err);
+        }
     },
     SettingsPanel: () => {
         const [settings, setSettings] = Settings.useState();
@@ -695,10 +699,8 @@ const index = createPlugin({ ...config, settings }, ({ Settings }) => ({
                     setSettings({ global: checked });
                     updateGlobal(checked);
                 }, note: "Expose dium as global for development." }, "Dium Global"),
-            React.createElement(SwitchItem, { value: settings.developer, onChange: (checked) => {
-                    setSettings({ developer: checked });
-                    DeveloperExperimentStore.emitChange();
-                }, note: "Enable experiments & other developer tabs in settings. Reopen to see them." }, "Enable Developer Experiments"),
+            React.createElement(SwitchItem, { disabled
+                : true, value: false, note: "Enable experiments & other developer tabs in settings. Reopen to see them." }, "Enable Developer Experiments"),
             React.createElement(SwitchItem, { value: settings.staff, onChange: (checked) => {
                     setSettings({ staff: checked });
                     updateStaffFlag(checked);
