@@ -10,6 +10,7 @@ export const Platforms: any = /* @__PURE__ */ Finder.byProps("getPlatform", "isW
 
 // STORES/ACTIONS
 export const ClientActions: any = /* @__PURE__ */ Finder.byProps("toggleGuildFolderExpand");
+export const UserSettings: any = /* @__PURE__ */ Finder.byProps("MessageDisplayCompact");
 
 export const GuildStore: Untyped<Store> = /* @__PURE__ */ Finder.byProps("getGuild");
 export const GuildActions: any = /* @__PURE__ */ Finder.byProps("requestMembers");
