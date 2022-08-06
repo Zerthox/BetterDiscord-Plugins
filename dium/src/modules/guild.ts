@@ -1,5 +1,5 @@
 import * as Finder from "../api/finder";
-import type {Untyped, Snowflake, Store} from ".";
+import type {Snowflake, Store, ActionModule} from ".";
 
 /** A Guild (server). */
 export interface Guild {
@@ -90,7 +90,7 @@ export interface Member {
     userId: Snowflake;
 
     colorString: string;
-    nick?: any;
+    nick?: string;
     joinedAt: string;
     guildMemberAvatar?: any;
     guildMemberBanner?: any;
@@ -115,6 +115,21 @@ export interface GuildStore extends Store {
 
 export const GuildStore: GuildStore = /* @__PURE__ */ Finder.byProps("getGuild");
 
-export const GuildActions: any = /* @__PURE__ */ Finder.byProps("requestMembers");
+export const GuildActions: ActionModule = /* @__PURE__ */ Finder.byProps("requestMembers");
 
-export const GuildMemberStore: Untyped<Store> = /* @__PURE__ */ Finder.byProps("getMember", "isMember");
+export interface GuildMemberStore extends Store {
+    getCommunicationDisabledUserMap();
+    getCommunicationDisabledVersion();
+    getMember(guild: Snowflake, user: Snowflake): Member;
+    getMemberIds(guild: Snowflake): Snowflake[];
+    getMembers(guild: Snowflake): Member[];
+    getMutableAllGuildsAndMembers();
+    getNick(guild: Snowflake, user: Snowflake): string;
+    getNicknameGuildsMapping(user: Snowflake): Record<string, Snowflake[]>;
+    getNicknames(user: Snowflake): string[];
+    isMember(guild: Snowflake, user: Snowflake): boolean;
+    memberOf(e);
+    __getLocalVars();
+}
+
+export const GuildMemberStore: GuildMemberStore = /* @__PURE__ */ Finder.byProps("getMember", "isMember");

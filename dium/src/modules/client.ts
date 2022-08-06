@@ -1,5 +1,5 @@
 import * as Finder from "../api/finder";
-import type {Snowflake, Store, Untyped} from ".";
+import type {ActionModule, Snowflake, Store, Untyped} from ".";
 
 export interface Platforms {
     PlatformTypes: {
@@ -122,7 +122,7 @@ export interface MediaEngineStore extends Untyped<Store> {
 
 export const MediaEngineStore: MediaEngineStore = /* @__PURE__ */ Finder.byProps("getLocalVolume");
 
-export interface MediaEngineActions extends Record<string, any> {
+export interface MediaEngineActions extends ActionModule {
     setLocalPan(userId: Snowflake, left: number, right: number, context?: MediaEngineContext): void;
     setLocalVolume(userId: Snowflake, volume: number, context?: MediaEngineContext): void;
     setLoopback(enabled: boolean): void;

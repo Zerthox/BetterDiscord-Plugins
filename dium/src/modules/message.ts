@@ -1,5 +1,5 @@
 import * as Finder from "../api/finder";
-import type {Untyped, Snowflake, Store, User} from ".";
+import type {Untyped, Snowflake, Store, User, ActionModule} from ".";
 
 export const enum MessageType {
     Default = 0,
@@ -109,4 +109,4 @@ export interface Message {
 
 export const MessageStore: Untyped<Store> = /* @__PURE__ */ Finder.byProps("getMessage", "getMessages");
 
-export const MessageActions: any = /* @__PURE__ */ Finder.byProps("jumpToMessage", "_sendMessage");
+export const MessageActions: ActionModule = /* @__PURE__ */ Finder.byProps("jumpToMessage", "_sendMessage");

@@ -1,11 +1,7 @@
 import * as Finder from "../api/finder";
-import type {Untyped, Snowflake, Store} from ".";
+import type {Snowflake, Store, ActionModule} from ".";
 
-/**
- * A Channel.
- *
- * Includes all kinds of channels.
- */
+/** A Channel. */
 export interface Channel {
     id: Snowflake;
     name: string;
@@ -92,8 +88,39 @@ export const enum ChannelType {
     GuildForum = 15
 }
 
-export const ChannelStore: Untyped<Store> = /* @__PURE__ */ Finder.byProps("getChannel", "hasChannel");
+export interface ChannelStore extends Store {
+    getAllThreadsForParent(e);
+    getBasicChannel(e);
+    getCachedChannelJsonForGuild(e);
+    getChannel(id: Snowflake): Channel;
+    getDMFromUserId(e);
+    getDMUserIds();
+    getGuildChannelsVersion(e);
+    getInitialOverlayState();
+    getMutableBasicGuildChannelsForGuild(e);
+    getMutableGuildChannelsForGuild(e);
+    getMutablePrivateChannels();
+    getPrivateChannelsVersion();
+    getSortedPrivateChannels();
+    hasChannel(e);
+    hasRestoredGuild(e);
+    loadAllGuildAndPrivateChannelsFromDisk();
+    __getLocalVars();
+}
 
-export const ChannelActions: any = /* @__PURE__ */ Finder.byProps("selectChannel");
+export const ChannelStore: ChannelStore = /* @__PURE__ */ Finder.byProps("getChannel", "hasChannel");
 
-export const SelectedChannelStore: Untyped<Store> = /* @__PURE__ */ Finder.byProps("getChannelId", "getVoiceChannelId");
+export const ChannelActions: ActionModule = /* @__PURE__ */ Finder.byProps("selectChannel");
+
+export interface SelectedChannelStore extends Store {
+    getChannelId(e);
+    getCurrentlySelectedChannelId(e);
+    getLastChannelFollowingDestination();
+    getLastSelectedChannelId(e?: any): Snowflake;
+    getLastSelectedChannels(e);
+    getMostRecentSelectedTextChannelId(e);
+    getVoiceChannelId(): Snowflake;
+    __getLocalVars();
+}
+
+export const SelectedChannelStore: SelectedChannelStore = /* @__PURE__ */ Finder.byProps("getChannelId", "getVoiceChannelId");

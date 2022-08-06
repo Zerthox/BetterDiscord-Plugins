@@ -1,5 +1,5 @@
 import * as Finder from "../api/finder";
-import type {Untyped, Snowflake, Store} from ".";
+import type {Snowflake, Store} from ".";
 
 /** A User. */
 export interface User {
@@ -60,8 +60,74 @@ export interface User {
     toString(): string;
 }
 
-export const UserStore: Untyped<Store> = /* @__PURE__ */ Finder.byProps("getUser", "getCurrentUser");
+export interface UserStore extends Store {
+    filter(predicate: (user: User) => boolean, sorted?: boolean): User[];
+    findByTag(username: string, discriminator: string): User;
+    forEach(callback: (user: User) => boolean);
+    getCurrentUser(): User;
+    getUser(id: Snowflake): User;
+    getUsers(): User[];
+    __getLocalVars(): any;
+}
 
-export const PresenceStore: Untyped<Store> = /* @__PURE__ */ Finder.byProps("getState", "getStatus", "isMobileOnline");
+export const UserStore: UserStore = /* @__PURE__ */ Finder.byProps("getUser", "getCurrentUser");
 
-export const RelationshipStore: Untyped<Store> = /* @__PURE__ */ Finder.byProps("isFriend", "getRelationshipCount");
+export const enum StatusType {
+    DND = "dnd",
+    IDLE = "idle",
+    INVISIBLE = "invisible",
+    OFFLINE = "offline",
+    ONLINE = "online",
+    STREAMING = "streaming",
+    UNKNOWN = "unknown"
+}
+
+export interface PresenceStoreState {
+    statuses: Record<Snowflake, StatusType>;
+    clientStatuses: Record<Snowflake, {desktop?: StatusType; mobile?: StatusType}>;
+    activities: Record<Snowflake, any[]>;
+    activityMetadata: Record<any, any>;
+
+    /** Maps users to guilds to presences. */
+    presencesForGuilds: Record<Snowflake, Record<Snowflake, any>>;
+}
+
+export interface PresenceStore extends Store {
+    findActivity(e, t, n);
+    getActivities(e, t);
+    getActivityMetadata(e);
+    getAllApplicationActivities(e);
+    getApplicationActivity(e, t, n);
+    getPrimaryActivity(e, t);
+    getState(): PresenceStoreState;
+    getStatus(user: Snowflake, t?, n?): StatusType;
+    getUserIds(): Snowflake[];
+    isMobileOnline(user: Snowflake): boolean;
+    setCurrentUserOnConnectionOpen(e, t);
+    __getLocalVars();
+}
+
+export const PresenceStore: PresenceStore = /* @__PURE__ */ Finder.byProps("getState", "getStatus", "isMobileOnline");
+
+export const enum RelationshipType {
+    BLOCKED = 2,
+    FRIEND = 1,
+    IMPLICIT = 5,
+    NONE = 0,
+    PENDING_INCOMING = 3,
+    PENDING_OUTGOING = 4
+}
+
+export interface RelationshipStore extends Store {
+    getFriendIDs(): Snowflake[];
+    getNickname(arg: any): any;
+    getPendingCount(): number;
+    getRelationshipCount(): number;
+    getRelationshipType(user: Snowflake): RelationshipType;
+    getRelationships(): Record<Snowflake, RelationshipType>;
+    isBlocked(user: Snowflake): boolean;
+    isFriend(user: Snowflake): boolean;
+    __getLocalVars();
+}
+
+export const RelationshipStore: RelationshipStore = /* @__PURE__ */ Finder.byProps("isFriend", "getRelationshipCount");
