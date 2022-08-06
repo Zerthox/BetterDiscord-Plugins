@@ -8,10 +8,7 @@ const OverlayBridgeStore = Finder.byProps("initialize", "isSupported", "getFocus
 const RadioGroup = Finder.byName("RadioGroup");
 
 const settings = {
-    platform: /^win/.test(Platforms.platform) ? PlatformTypes.WINDOWS
-        : Platforms.platform === "darwin" ? PlatformTypes.OSX
-            : Platforms.platform === "linux" ? PlatformTypes.LINUX
-                : PlatformTypes.WEB
+    platform: null // TODO: get platform
 };
 
 export default createPlugin({...config, settings}, ({Logger, Patcher, Settings}) => {

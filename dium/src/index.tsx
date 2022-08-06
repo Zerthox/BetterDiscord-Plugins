@@ -13,7 +13,7 @@ import {
 import {React} from "./modules";
 import {SettingsContainer} from "./components";
 
-export {Finder, type Discord, ReactInternals, ReactDOMInternals} from "./api";
+export {Finder, ReactInternals, ReactDOMInternals} from "./api";
 export * as Utils from "./utils";
 export {React, ReactDOM, Flux} from "./modules";
 export {version} from "../package.json";

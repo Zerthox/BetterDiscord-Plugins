@@ -1,5 +1,6 @@
-import {createPlugin, React, Finder, Discord} from "dium";
+import {createPlugin, React, Finder} from "dium";
 import {MediaEngineStore, MediaEngineActions, MediaEngineContext, Menu} from "dium/modules";
+import type {Snowflake} from "dium/modules";
 import config from "./config.json";
 import styles from "./styles.scss";
 
@@ -57,7 +58,7 @@ export default createPlugin({...config, styles}, ({Patcher}) => ({
     async start() {
         // wait for context menu lazy load
         const useUserVolumeItem = await Patcher.waitForContextMenu(
-            () => Finder.query({name: "useUserVolumeItem"}) as {default: (userId: Discord.Snowflake, context: MediaEngineContext) => JSX.Element}
+            () => Finder.query({name: "useUserVolumeItem"}) as {default: (userId: Snowflake, context: MediaEngineContext) => JSX.Element}
         );
 
         // add number input

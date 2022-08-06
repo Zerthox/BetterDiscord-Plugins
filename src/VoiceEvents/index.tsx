@@ -1,4 +1,4 @@
-import {createPlugin, Finder, Utils, React, Discord} from "dium";
+import {createPlugin, Finder, Utils, React} from "dium";
 import {
     Dispatcher,
     ChannelStore,
@@ -9,6 +9,7 @@ import {
     Text,
     Menu
 } from "dium/modules";
+import type {Snowflake, User, Channel} from "dium/modules";
 import {settings, SettingsPanel, NotificationType} from "./settings";
 import config from "./config.json";
 
@@ -22,8 +23,8 @@ interface VoiceStateUpdatesAction {
 }
 
 interface VoiceState {
-    channelId: Discord.Snowflake;
-    userId: Discord.Snowflake;
+    channelId: Snowflake;
+    userId: Snowflake;
     sessionId: string;
     deaf: boolean;
     mute: boolean;
@@ -116,8 +117,8 @@ export default createPlugin({...config, settings}, ({Logger, Patcher, Settings})
             return;
         }
 
-        const user = UserStore.getUser(userId) as Discord.User;
-        const channel = ChannelStore.getChannel(channelId) as Discord.Channel;
+        const user = UserStore.getUser(userId) as User;
+        const channel = ChannelStore.getChannel(channelId) as Channel;
 
         // check for filters
         if (
@@ -213,7 +214,7 @@ export default createPlugin({...config, settings}, ({Logger, Patcher, Settings})
 
             // wait for context menu lazy load
             const useChannelHideNamesItem = await Patcher.waitForContextMenu(
-                () => Finder.query({name: "useChannelHideNamesItem"}) as {default: (channel: Discord.Channel) => JSX.Element}
+                () => Finder.query({name: "useChannelHideNamesItem"}) as {default: (channel: Channel) => JSX.Element}
             );
 
             // add queue clear item

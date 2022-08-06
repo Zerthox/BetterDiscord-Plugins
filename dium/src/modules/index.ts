@@ -1,13 +1,13 @@
-import type {Store} from "./flux";
-
 export * from "./npm";
+
+export * from "./general";
 export {Flux, Dispatcher, Store} from "./flux";
-export * from "./discord";
+export * from "./client";
+export * from "./user";
+export * from "./guild";
+export * from "./channel";
+export * from "./experiment";
+
+export * from "./components";
 
 export type Untyped<T> = T & Record<string, any>;
-
-export type UntypedStore = Untyped<Store>;
-
-export type UntypedComponent = Untyped<React.ComponentType<any>>;
-
-export type StyleModule = Record<string, string>;
