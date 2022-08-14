@@ -16,11 +16,13 @@ export interface Query {
 }
 
 // we assume bd env for now
+// TODO: use new webpack api
 const raw = {
     single: (filter: (module: any) => boolean) => BdApi.findModule(filter),
     all: (filter: (module: any) => boolean) => BdApi.findAllModules(filter) ?? []
 };
 
+// TODO: make resolve optional
 const resolveExports = (
     target: any,
     filter?: string | ((target: any) => boolean)

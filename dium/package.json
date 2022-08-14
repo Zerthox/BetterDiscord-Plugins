@@ -21,6 +21,7 @@
         "@types/react-dom": "^17.0.10",
         "@types/react-reconciler": "^0.26.4",
         "@types/semver": "^7.3.9",
+        "betterdiscord": "github:zerthox/betterdiscord-types",
         "classnames": "^2.3.1",
         "highlight.js": "^11.5.1",
         "joi": "^17.6.0",

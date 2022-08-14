@@ -1,6 +1,6 @@
 global.TESTING = true;
 
-global.BdApi = {
+(global as any).BdApi = {
     findModule: () => null,
     findAllModules: () => []
 } as any;

@@ -1,8 +1,10 @@
+import type * as BD from "betterdiscord";
+
 export const sleep = (duration: number): Promise<void> => new Promise((resolve) => setTimeout(resolve, duration));
 
 export const alert = (title: string, content: string | JSX.Element): void => BdApi.alert(title, content);
 
-export type ConfirmOptions = BdApi.ConfirmationModalOptions;
+export type ConfirmOptions = BD.ConfirmationModalOptions;
 
 /** Shows a confirmation modal. */
 // TODO: change to promise<boolean>?
@@ -18,7 +20,7 @@ export const enum ToastType {
     Error = "error"
 }
 
-export interface ToastOptions extends BdApi.ToastOptions {
+export interface ToastOptions extends BD.ToastOptions {
     type?: ToastType;
 }
 

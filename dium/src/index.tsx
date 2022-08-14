@@ -12,6 +12,7 @@ import {
 } from "./api";
 import {React} from "./modules";
 import {SettingsContainer} from "./components";
+import type * as BD from "betterdiscord";
 
 export {Finder, ReactInternals, ReactDOMInternals} from "./api";
 export * as Utils from "./utils";
@@ -62,7 +63,7 @@ export const createPlugin = <
 >(
     {name, version, styles, settings}: Config<SettingsType>,
     callback: (api: Api<SettingsType, DataType>) => Plugin
-): BdApi.PluginConstructor => {
+): BD.PluginClass => {
     // create log
     const Logger = createLogger(name, "#3a71c1", version);
     const Patcher = createPatcher(name, Logger);
@@ -74,7 +75,7 @@ export const createPlugin = <
     const plugin = callback({Logger, Patcher, Styles, Data, Settings});
 
     // construct wrapper
-    class Wrapper implements BdApi.Plugin {
+    class Wrapper implements BD.Plugin {
         start() {
             Logger.log("Enabled");
             Styles.inject(styles);
