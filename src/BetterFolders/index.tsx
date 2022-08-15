@@ -1,4 +1,4 @@
-import {createPlugin, Finder, Utils, React, Flux} from "dium";
+import {createPlugin, Finder, Filters, Utils, React, Flux} from "dium";
 import {ClientActions, RadioGroup, SwitchItem, Form} from "dium/modules";
 import {BetterFolderIcon, BetterFolderUploader, FolderData} from "./components";
 import config from "./config.json";
@@ -19,7 +19,7 @@ const settings = {
     folders: {} as Record<number, FolderData>
 };
 
-export default createPlugin({...config, styles, settings}, ({Logger, Patcher, Data, Settings}) => {
+export default createPlugin({...config, styles, settings}, ({Logger, Lazy, Patcher, Data, Settings}) => {
     // backwards compatibility for old bd version
     const oldFolders = Data.load("folders");
     if (oldFolders) {
@@ -89,7 +89,7 @@ export default createPlugin({...config, styles, settings}, ({Logger, Patcher, Da
             triggerRerender();
 
             // wait for modal lazy load
-            const GuildFolderSettingsModal = await Patcher.waitForModal(() => Finder.byName("GuildFolderSettingsModal"));
+            const GuildFolderSettingsModal = await Lazy.waitFor(Filters.byName("GuildFolderSettingsModal"));
 
             // patch folder settings render
             Patcher.after(GuildFolderSettingsModal.prototype, "render", ({context, result}) => {

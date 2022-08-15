@@ -1,4 +1,6 @@
-import {Require, Filters, Module, WebpackId, Exports, ModuleFunction, Query} from "dium/api/finder";
+import * as Filters from "dium/api/filters";
+import {Query} from "dium/api/filters";
+import {Require, Module, WebpackId, Exports, ModuleFunction} from "dium/api/require";
 
 // finder extensions for development
 
@@ -55,7 +57,7 @@ export const sourceOf = (id: WebpackId | string): ModuleFunction => webpackRequi
 export const find = (...filters: RawFilter[]): Module => modules().find(applyFilters(filters)) ?? null;
 
 /** Finds a raw module using query options. */
-export const query = (options: Query): Module => find(...Filters.generate(options));
+export const query = (options: Query): Module => find(Filters.query(options));
 
 /**
  * Finds a raw module using its id.
@@ -88,7 +90,7 @@ export const all = {
     find: (...filters: RawFilter[]): Module[] => modules().filter(applyFilters(filters)),
 
     /** Finds all modules using query options. */
-    query: (options: Query): Module[] => all.find(...Filters.generate(options)),
+    query: (options: Query): Module[] => all.find(Filters.query(options)),
 
     /** Finds all modules using the exports. */
     byExports: (exported: Exports): Module[] => all.find(Filters.byExports(exported)),

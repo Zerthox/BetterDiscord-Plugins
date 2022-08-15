@@ -1,4 +1,4 @@
-import {createPlugin, React, Finder} from "dium";
+import {createPlugin, Finder, Filters, React} from "dium";
 import {MediaEngineStore, MediaEngineActions, MediaEngineContext, Menu} from "dium/modules";
 import type {Snowflake} from "dium/modules";
 import config from "./config.json";
@@ -54,12 +54,10 @@ const NumberInput = ({value, min, max, fallback, onChange}: NumberInputProps): J
     );
 };
 
-export default createPlugin({...config, styles}, ({Patcher}) => ({
+export default createPlugin({...config, styles}, ({Lazy, Patcher}) => ({
     async start() {
         // wait for context menu lazy load
-        const useUserVolumeItem = await Patcher.waitForContextMenu(
-            () => Finder.query({name: "useUserVolumeItem"}) as {default: (userId: Snowflake, context: MediaEngineContext) => JSX.Element}
-        );
+        const useUserVolumeItem = await Lazy.waitFor(Filters.byName("useUserVolumeItem")) as {default: (userId: Snowflake, context: MediaEngineContext) => JSX.Element};
 
         // add number input
         Patcher.after(useUserVolumeItem, "default", ({args: [userId, context], result}) => {

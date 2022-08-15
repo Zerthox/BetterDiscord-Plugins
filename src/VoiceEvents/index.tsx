@@ -1,4 +1,4 @@
-import {createPlugin, Finder, Utils, React} from "dium";
+import {createPlugin, Finder, Filters, Utils, React} from "dium";
 import {
     Dispatcher,
     ChannelStore,
@@ -41,7 +41,7 @@ const saveStates = () => {
     prevStates = {...VoiceStateStore.getVoiceStatesForChannel(SelectedChannelStore.getVoiceChannelId())};
 };
 
-export default createPlugin({...config, settings}, ({Logger, Patcher, Settings}) => {
+export default createPlugin({...config, settings}, ({Logger, Lazy, Patcher, Settings}) => {
     // backwards compatibility for settings
     const loaded = Settings.current as any;
     for (const [key, value] of Object.entries(Settings.defaults.notifs)) {
@@ -213,9 +213,7 @@ export default createPlugin({...config, settings}, ({Logger, Patcher, Settings})
             Logger.log("Subscribed to self deaf actions");
 
             // wait for context menu lazy load
-            const useChannelHideNamesItem = await Patcher.waitForContextMenu(
-                () => Finder.query({name: "useChannelHideNamesItem"}) as {default: (channel: Channel) => JSX.Element}
-            );
+            const useChannelHideNamesItem = await Lazy.waitFor(Filters.byName("useChannelHideNamesItem")) as {default: (channel: Channel) => JSX.Element};
 
             // add queue clear item
             Patcher.after(useChannelHideNamesItem, "default", ({result}) => {
