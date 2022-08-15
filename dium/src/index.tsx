@@ -8,24 +8,27 @@ import {
     createData,
     Data,
     createSettings,
-    Settings
+    Settings,
+    Lazy,
+    createLazy
 } from "./api";
 import {React} from "./modules";
 import {SettingsContainer} from "./components";
 import type * as BD from "betterdiscord";
 
-export {Finder, ReactInternals, ReactDOMInternals} from "./api";
+export {Filters, Finder, ReactInternals, ReactDOMInternals} from "./api";
 export * as Utils from "./utils";
 export {React, ReactDOM, Flux} from "./modules";
 export {version} from "../package.json";
 
-export {Logger, Patcher, Styles, Data, Settings} from "./api";
+export type {Logger, Lazy, Patcher, Styles, Data, Settings, Webpack} from "./api";
 
 export interface Api<
     SettingsType extends Record<string, any>,
     DataType extends {settings: SettingsType}
 > {
     Logger: Logger;
+    Lazy: Lazy;
     Patcher: Patcher;
     Styles: Styles;
     Data: Data<DataType>;
@@ -57,6 +60,7 @@ export interface Plugin<> {
 }
 
 /** Creates a BetterDiscord plugin. */
+// TODO: auto detect information from bd meta?
 export const createPlugin = <
     SettingsType extends Record<string, any>,
     DataType extends {settings: SettingsType} = {settings: SettingsType}
@@ -66,22 +70,25 @@ export const createPlugin = <
 ): BD.PluginClass => {
     // create log
     const Logger = createLogger(name, "#3a71c1", version);
+    const Lazy = createLazy();
     const Patcher = createPatcher(name, Logger);
     const Styles = createStyles(name);
     const Data = createData<DataType>(name);
     const Settings = createSettings(Data, settings ?? {} as SettingsType);
 
     // get plugin info
-    const plugin = callback({Logger, Patcher, Styles, Data, Settings});
+    const plugin = callback({Logger, Lazy, Patcher, Styles, Data, Settings});
 
     // construct wrapper
     class Wrapper implements BD.Plugin {
         start() {
             Logger.log("Enabled");
+            Lazy.reset();
             Styles.inject(styles);
             plugin.start();
         }
         stop() {
+            Lazy.abort();
             Patcher.unpatchAll();
             Styles.clear();
             plugin.stop();
