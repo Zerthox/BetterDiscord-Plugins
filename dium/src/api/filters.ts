@@ -1,16 +1,27 @@
-import {Exports, Filter, Query} from ".";
+import {Exports} from "./require";
+
+export type Filter = (exports: Exports) => boolean;
+
+export interface Query {
+    filter?: Filter | Filter[];
+    name?: string;
+    props?: string[];
+    protos?: string[];
+    source?: string[];
+    export?: string | ((target: any) => boolean);
+}
 
 export const join = (filters: Filter[]): Filter => {
-    return (exports) => filters.every((filter) => filter(exports));
+    return (target) => filters.every((filter) => filter(target));
 };
 
-export const generate = ({filter, name, props, protos, source}: Query): Filter[] => [
+export const query = ({filter, name, props, protos, source}: Query): Filter => join([
     ...[filter].flat(),
     typeof name === "string" ? byName(name) : null,
     props instanceof Array ? byProps(props) : null,
     protos instanceof Array ? byProtos(protos) : null,
     source instanceof Array ? bySource(source) : null
-].filter(Boolean);
+].filter(Boolean));
 
 export const byExports = (exported: Exports): Filter => {
     return (target) => target === exported || (target instanceof Object && Object.values(target).includes(exported));

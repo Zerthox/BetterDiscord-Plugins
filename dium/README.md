@@ -16,8 +16,8 @@ Eventually, this might be moved to its own repository.
 import {
     createPlugin,
     Finder,
+    Filters,
     Utils,
-    Discord,
     React,
     ReactInternals,
     ReactDOM,
@@ -38,7 +38,7 @@ const config = {
     }
 };
 
-export default createPlugin(config, ({Logger, Patcher, Styles, Data, Settings}) => {
+export default createPlugin(config, ({Logger, Lazy, Patcher, Styles, Data, Settings}) => {
     return {
         start: async () => {
             // do something on plugin start

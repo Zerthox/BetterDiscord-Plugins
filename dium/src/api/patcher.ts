@@ -1,5 +1,5 @@
 import {Logger} from "./logger";
-import {ContextMenuActions, ModalActions} from "../modules";
+import type * as BD from "betterdiscord";
 
 export interface Options {
     silent?: boolean;
@@ -9,25 +9,23 @@ export interface Options {
 
 export type Cancel = () => void;
 
-export interface Data<Original extends () => any> {
+export interface Data<Original> {
     cancel: Cancel;
     original: Original;
     context: any;
-    args: Parameters<Original>;
-    result?: ReturnType<Original>;
+    args: Original extends (...args: any) => any ? Parameters<Original> : IArguments;
 }
 
-export type Callback<Original extends () => any> = (data: Data<Original>) => unknown;
+export interface DataWithResult<Original> extends Data<Original> {
+    result: Original extends (...args: any) => any ? ReturnType<Original> : any;
+}
 
 export interface Patcher {
     /** Patches the method, executing a callback **instead** of the original. */
-    instead<
-        Module extends Record<Key, (...args: any[]) => any>,
-        Key extends keyof Module
-    >(
+    instead<Module, Key extends keyof Module>(
         object: Module,
         method: Key,
-        callback: Callback<Module[Key]>,
+        callback: (data: Data<Module[Key]>) => unknown,
         options?: Options
     ): Cancel;
 
@@ -36,13 +34,10 @@ export interface Patcher {
      *
      * Typically used to modify arguments passed to the original.
      */
-    before<
-        Module extends Record<Key, (...args: any[]) => any>,
-        Key extends keyof Module
-    >(
+    before<Module, Key extends keyof Module>(
         object: Module,
         method: Key,
-        callback: Callback<Module[Key]>,
+        callback: (data: Data<Module[Key]>) => unknown,
         options?: Options
     ): Cancel;
 
@@ -53,48 +48,15 @@ export interface Patcher {
      *
      * Has access to the original method's return value via `result`.
      */
-    after<
-        Module extends Record<Key, (...args: any[]) => any>,
-        Key extends keyof Module
-    >(
+    after<Module, Key extends keyof Module>(
         object: Module,
         method: Key,
-        callback: Callback<Module[Key]>,
+        callback: (data: DataWithResult<Module[Key]>) => unknown,
         options?: Options
     ): Cancel;
 
     /** Reverts all patches done by this patcher. */
     unpatchAll(): void;
-
-    /**
-     * Patches the lazy load method, executing a callback every time it loads something.
-     *
-     * The patch is cancelled automatically once the callback returns something.
-     */
-    waitForLazy<
-        T,
-        Module extends Record<Key, (...args: any[]) => Promise<any>>,
-        Key extends keyof Module
-    >(
-        object: Module,
-        method: Key,
-        argIndex: number,
-        callback: () => T
-    ): Promise<T>;
-
-    /**
-     * Listen for context menu related lazy loads.
-     *
-     * The patch is cancelled automatically once the callback returns something.
-     */
-    waitForContextMenu<T>(callback: () => T): Promise<T>;
-
-    /**
-     * Listen for modal related lazy loads.
-     *
-     * The patch is cancelled automatically once the callback returns something.
-     */
-    waitForModal<T>(callback: () => T): Promise<T>;
 }
 
 const resolveName = <Module, Key extends keyof Module>(object: Module, method: Key) => {
@@ -105,25 +67,11 @@ const resolveName = <Module, Key extends keyof Module>(object: Module, method: K
 export const createPatcher = (id: string, Logger: Logger): Patcher => {
     // we assume bd env for now
 
-    type PatcherMethod<
-        Module extends Record<Key, () => any>,
-        Key extends keyof Module
-    > = (
-        id: string,
+    const forward = <Module, Key extends keyof Module>(
+        patcher: BD.Patcher["before" | "after" | "instead"],
         object: Module,
         method: Key,
-        callback: (context: any, args: any, result: any) => any,
-        options: Record<string, any>
-    ) => Cancel;
-
-    const forward = <
-        Module extends Record<Key, () => any>,
-        Key extends keyof Module
-    >(
-        patcher: PatcherMethod<Module, Key>,
-        object: Module,
-        method: Key,
-        callback: Callback<Module[Key]>,
+        callback: (cancel: BD.CancelPatch, original: Module[Key], ...args: any) => any,
         options: Options
     ) => {
         const original = object[method];
@@ -131,12 +79,11 @@ export const createPatcher = (id: string, Logger: Logger): Patcher => {
             id,
             object,
             method,
-            options.once ? (context, args, result) => {
-                const temp = callback({cancel, original, context, args, result});
+            options.once ? (...args) => {
+                const temp = callback(cancel, original, ...args);
                 cancel();
                 return temp;
-            } : (context, args, result) => callback({cancel, original, context, args, result}),
-            {silent: true}
+            } : (...args) => callback(cancel, original, ...args)
         );
         if (!options.silent) {
             Logger.log(`Patched ${String(method)} of ${options.name ?? resolveName(object, method)}`);
@@ -151,21 +98,21 @@ export const createPatcher = (id: string, Logger: Logger): Patcher => {
             rawPatcher.instead,
             object,
             method,
-            ({result: _, ...data}) => callback(data),
+            (cancel, original, context, args) => callback({cancel, original, context, args}),
             options
         ),
         before: (object, method, callback, options = {}) => forward(
             rawPatcher.before,
             object,
             method,
-            ({result: _, ...data}) => callback(data),
+            (cancel, original, context, args) => callback({cancel, original, context, args}),
             options
         ),
         after: (object, method, callback, options = {}) => forward(
             rawPatcher.after,
             object,
             method,
-            callback,
+            (cancel, original, context, args, result) => callback({cancel, original, context, args, result}),
             options
         ),
         unpatchAll: () => {
@@ -173,39 +120,7 @@ export const createPatcher = (id: string, Logger: Logger): Patcher => {
                 rawPatcher.unpatchAll(id);
                 Logger.log("Unpatched all");
             }
-        },
-        waitForLazy: (object, method, argIndex, callback) => new Promise<any>((resolve) => {
-            // check load once before we patch
-            const found = callback();
-            if (found) {
-                resolve(found);
-            } else {
-                // patch lazy load method
-                Logger.log(`Waiting for lazy load in ${String(method)} of ${resolveName(object, method)}`);
-                patcher.before(object, method, ({args, cancel}) => {
-                    // replace resolver function
-                    const original = args[argIndex] as (...args: any[]) => Promise<any>;
-                    args[argIndex] = async function(...args: any[]) {
-                        const result = await original.call(this, ...args);
-
-                        // async check if loaded
-                        Promise.resolve().then(() => {
-                            const found = callback();
-                            if (found) {
-                                resolve(found);
-
-                                // we dont need the patch anymore
-                                cancel();
-                            }
-                        });
-
-                        return result;
-                    };
-                }, {silent: true});
-            }
-        }),
-        waitForContextMenu: (callback) => patcher.waitForLazy(ContextMenuActions, "openContextMenuLazy", 1, callback),
-        waitForModal: (callback) => patcher.waitForLazy(ModalActions, "openModalLazy", 0, callback)
+        }
     };
 
     return patcher;

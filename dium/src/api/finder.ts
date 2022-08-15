@@ -1,28 +1,10 @@
 import * as Filters from "./filters";
+import {Filter, Query} from "./filters";
 import {Exports} from "./require";
 
-export * as Filters from "./filters";
-export * from "./require";
-
-export type Filter = (exports: Exports) => boolean;
-
-export interface Query {
-    filter?: Filter | Filter[];
-    name?: string;
-    props?: string[];
-    protos?: string[];
-    source?: string[];
-    export?: string | ((target: any) => boolean);
-}
-
 // we assume bd env for now
-// TODO: use new webpack api
-const raw = {
-    single: (filter: (module: any) => boolean) => BdApi.findModule(filter),
-    all: (filter: (module: any) => boolean) => BdApi.findAllModules(filter) ?? []
-};
+const {Webpack} = BdApi;
 
-// TODO: make resolve optional
 const resolveExports = (
     target: any,
     filter?: string | ((target: any) => boolean)
@@ -38,16 +20,16 @@ const resolveExports = (
 };
 
 /** Finds a module using a set of filter functions. */
-export const find = (...filters: Filter[]): any => raw.single(Filters.join(filters));
+export const find = (filter: Filter): any => Webpack.getModule(filter);
 
 /** Finds a module using query options. */
-export const query = (options: Query): any => resolveExports(find(...Filters.generate(options)), options.export);
+export const query = (options: Query): any => resolveExports(find(Filters.query(options)), options.export);
 
 /** Finds a module using its exports. */
 export const byExports = (exported: Exports): any => find(Filters.byExports(exported));
 
 /** Finds a module using the name of its export.  */
-export const byName = (name: string): any => resolveExports(find(Filters.byName(name)), Filters.byOwnName(name));
+export const byName = (name: string, resolve = true): any => resolveExports(find(Filters.byName(name)), resolve ? Filters.byOwnName(name) : null);
 
 /** Finds a module using property names of its export. */
 export const byProps = (...props: string[]): any => find(Filters.byProps(props));
@@ -61,16 +43,16 @@ export const bySource = (...contents: string[]): any => find(Filters.bySource(co
 /** Returns all module results. */
 export const all = {
     /** Finds all modules using a set of filter functions. */
-    find: (...filters: Filter[]): any[] => raw.all(Filters.join(filters)),
+    find: (filter: Filter): any[] => Webpack.getModule(filter, {first: false}) ?? [],
 
     /** Finds all modules using query options. */
-    query: (options: Query): any[] => all.find(...Filters.generate(options)).map((entry) => resolveExports(entry, options.export)),
+    query: (options: Query): any[] => all.find(Filters.query(options)).map((entry) => resolveExports(entry, options.export)),
 
     /** Finds all modules using the exports. */
     byExports: (exported: Exports): any[] => all.find(Filters.byExports(exported)),
 
     /** Finds all modules using the name of its export. */
-    byName: (name: string): any[] => all.find(Filters.byName(name)).map((entry) => resolveExports(entry, Filters.byOwnName(name))),
+    byName: (name: string, resolve = true): any[] => all.find(Filters.byName(name)).map((entry) => resolveExports(entry, resolve ? Filters.byOwnName(name) : null)),
 
     /** Finds all modules using property names of its export. */
     byProps: (...props: string[]): any[] => all.find(Filters.byProps(props)),
