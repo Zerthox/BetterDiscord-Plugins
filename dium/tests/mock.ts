@@ -1,6 +1,7 @@
 global.TESTING = true;
 
 (global as any).BdApi = {
-    findModule: () => null,
-    findAllModules: () => []
+    Webpack: {
+        getModule: () => null
+    }
 } as any;
