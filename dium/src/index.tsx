@@ -83,7 +83,6 @@ export const createPlugin = <
     class Wrapper implements BD.Plugin {
         start() {
             Logger.log("Enabled");
-            Lazy.reset();
             Styles.inject(styles);
             plugin.start();
         }
