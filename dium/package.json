@@ -14,23 +14,26 @@
     "bugs": "https://github.com/Zerthox/BetterDiscord-Plugins/issues",
     "homepage": "https://github.com/Zerthox/BetterDiscord-Plugins/tree/master/dium#readme",
     "dependencies": {
+        "@react-spring/web": "^9.5.2",
         "@types/betterdiscord": "github:zerthox/betterdiscord-types",
         "@types/lodash": "^4.14.176",
         "@types/node": "^16.11.6",
-        "@types/raven": "^2.5.4",
+        "@types/platform": "^1.3.4",
         "@types/react": "^17.0.33",
         "@types/react-dom": "^17.0.10",
         "@types/react-reconciler": "^0.26.4",
         "@types/semver": "^7.3.9",
         "classnames": "^2.3.1",
         "highlight.js": "^11.5.1",
-        "joi": "^17.6.0",
+        "lottie-web": "^5.9.6",
         "moment": "^2.29.3",
         "simple-markdown": "^0.7.3"
     },
     "devDependencies": {
         "@types/mocha": "^9.0.0",
         "mocha": "^9.1.3",
+        "react": "^17.0.2",
+        "react-dom": "^17.0.2",
         "ts-node": "^10.4.0",
         "typescript": "^4.4.4"
     }

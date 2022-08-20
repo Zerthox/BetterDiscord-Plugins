@@ -82,6 +82,21 @@ export type UserSettings = Record<string, UserSetting<any>>;
 
 export const UserSettings: UserSettings = /* @__PURE__ */ Finder.byProps("MessageDisplayCompact");
 
+export interface LocaleStore extends Store {
+    get locale(): any;
+    __getLocalVars(): any;
+}
+
+export const LocaleStore: LocaleStore = /* @__PURE__ */ Finder.byName("LocaleStore");
+
+export interface ThemeStore extends Store {
+    get theme(): any;
+    getState(): any;
+    __getLocalVars(): any;
+}
+
+export const ThemeStore: ThemeStore = /* @__PURE__ */ Finder.byName("ThemeStore");
+
 export interface ContextMenuActions {
     openContextMenu(e: any, t: any, n: any, r: any): any;
     openContextMenuLazy(event: React.MouseEvent, resolver: (...args: any[]) => Promise<any>, unknown: any): any;

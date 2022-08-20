@@ -1,6 +1,8 @@
 import * as Finder from "../api/finder";
 import {Untyped} from ".";
 
+// TODO: split components from modules?
+
 type UntypedComponent = Untyped<React.ComponentType<any>>;
 type StyleModule = Record<string, string>;
 
