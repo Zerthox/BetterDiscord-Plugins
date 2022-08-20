@@ -1,7 +1,5 @@
 import {Filter} from "./filters";
 
-const {Webpack} = BdApi;
-
 export interface Lazy {
     /** Waits for a lazy loaded module. */
     waitFor(filter: Filter): Promise<any>;
@@ -14,7 +12,7 @@ export const createLazy = (): Lazy => {
     let controller = new AbortController();
 
     return {
-        waitFor: (filter: Filter) => Webpack.waitForModule(filter, {signal: controller.signal}),
+        waitFor: (filter: Filter) => BdApi.Webpack.waitForModule(filter, {signal: controller.signal}),
         abort: () => {
             // abort current controller
             controller.abort();

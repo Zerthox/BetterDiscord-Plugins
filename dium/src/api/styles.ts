@@ -7,8 +7,6 @@ export interface Styles {
 }
 
 export const createStyles = (id: string): Styles => {
-    // we assume bd env for now
-
     return {
         inject(styles) {
             if (typeof styles === "string") {

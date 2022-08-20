@@ -2,9 +2,6 @@ import * as Filters from "./filters";
 import {Filter, Query} from "./filters";
 import {Exports} from "./require";
 
-// we assume bd env for now
-const {Webpack} = BdApi;
-
 const resolveExports = (
     target: any,
     filter?: string | ((target: any) => boolean)
@@ -20,7 +17,7 @@ const resolveExports = (
 };
 
 /** Finds a module using a set of filter functions. */
-export const find = (filter: Filter): any => Webpack.getModule(filter);
+export const find = (filter: Filter): any => BdApi.Webpack.getModule(filter);
 
 /** Finds a module using query options. */
 export const query = (options: Query): any => resolveExports(find(Filters.query(options)), options.export);
@@ -43,7 +40,7 @@ export const bySource = (...contents: string[]): any => find(Filters.bySource(co
 /** Returns all module results. */
 export const all = {
     /** Finds all modules using a set of filter functions. */
-    find: (filter: Filter): any[] => Webpack.getModule(filter, {first: false}) ?? [],
+    find: (filter: Filter): any[] => BdApi.Webpack.getModule(filter, {first: false}) ?? [],
 
     /** Finds all modules using query options. */
     query: (options: Query): any[] => all.find(Filters.query(options)).map((entry) => resolveExports(entry, options.export)),

@@ -65,25 +65,23 @@ const resolveName = <Module, Key extends keyof Module>(object: Module, method: K
 };
 
 export const createPatcher = (id: string, Logger: Logger): Patcher => {
-    // we assume bd env for now
-
     const forward = <Module, Key extends keyof Module>(
-        patcher: BD.Patcher["before" | "after" | "instead"],
+        patch: BD.Patcher["before" | "after" | "instead"],
         object: Module,
         method: Key,
         callback: (cancel: BD.CancelPatch, original: Module[Key], ...args: any) => any,
         options: Options
     ) => {
         const original = object[method];
-        const cancel = patcher(
+        const cancel = patch(
             id,
             object,
             method,
-            options.once ? (...args) => {
-                const temp = callback(cancel, original, ...args);
+            options.once ? (...args: any) => {
+                const result = callback(cancel, original, ...args);
                 cancel();
-                return temp;
-            } : (...args) => callback(cancel, original, ...args)
+                return result;
+            } : (...args: any) => callback(cancel, original, ...args)
         );
         if (!options.silent) {
             Logger.log(`Patched ${String(method)} of ${options.name ?? resolveName(object, method)}`);
@@ -91,37 +89,33 @@ export const createPatcher = (id: string, Logger: Logger): Patcher => {
         return cancel;
     };
 
-    const rawPatcher = BdApi.Patcher;
-
-    const patcher: Patcher = {
+    return {
         instead: (object, method, callback, options = {}) => forward(
-            rawPatcher.instead,
+            BdApi.Patcher.instead,
             object,
             method,
             (cancel, original, context, args) => callback({cancel, original, context, args}),
             options
         ),
         before: (object, method, callback, options = {}) => forward(
-            rawPatcher.before,
+            BdApi.Patcher.before,
             object,
             method,
             (cancel, original, context, args) => callback({cancel, original, context, args}),
             options
         ),
         after: (object, method, callback, options = {}) => forward(
-            rawPatcher.after,
+            BdApi.Patcher.after,
             object,
             method,
             (cancel, original, context, args, result) => callback({cancel, original, context, args, result}),
             options
         ),
         unpatchAll: () => {
-            if (rawPatcher.getPatchesByCaller(id).length > 0) {
-                rawPatcher.unpatchAll(id);
+            if (BdApi.Patcher.getPatchesByCaller(id).length > 0) {
+                BdApi.Patcher.unpatchAll(id);
                 Logger.log("Unpatched all");
             }
         }
     };
-
-    return patcher;
 };

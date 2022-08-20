@@ -1,5 +1,3 @@
-// we assume bd env for now
-
 export interface Data<
     Content extends Record<string, any>
 > {
