@@ -8,7 +8,7 @@ const SortedGuildStore = Finder.byProps("getGuildsTree");
 const ExpandedGuildFolderStore = Finder.byProps("getExpandedFolders");
 
 const {FormItem} = Form;
-const FolderHeader = Finder.query({name: "FolderHeader"});
+const FolderHeader = Finder.byAnyName("FolderHeader", false) as {default: (props: any) => JSX.Element};
 
 let FolderIcon = null;
 
@@ -53,7 +53,7 @@ export default createPlugin({...config, styles, settings}, ({Logger, Lazy, Patch
     return {
         async start() {
             // patch folder icon render
-            Patcher.after(FolderHeader as {default: (props: any) => JSX.Element}, "default", ({args: [props], result}) => {
+            Patcher.after(FolderHeader, "default", ({args: [props], result}) => {
                 // find icon container
                 const iconContainer = Utils.queryTree(result, (node) => node?.props?.children?.type?.displayName === "FolderIconContent");
                 if (!iconContainer) {
@@ -89,7 +89,7 @@ export default createPlugin({...config, styles, settings}, ({Logger, Lazy, Patch
             triggerRerender();
 
             // wait for modal lazy load
-            const GuildFolderSettingsModal = await Lazy.waitFor(Filters.byName("GuildFolderSettingsModal"));
+            const GuildFolderSettingsModal = await Lazy.waitFor(Filters.byAnyName("GuildFolderSettingsModal"));
 
             // patch folder settings render
             Patcher.after(GuildFolderSettingsModal.prototype, "render", ({context, result}) => {

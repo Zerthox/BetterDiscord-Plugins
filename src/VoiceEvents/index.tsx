@@ -213,7 +213,7 @@ export default createPlugin({...config, settings}, ({Logger, Lazy, Patcher, Sett
             Logger.log("Subscribed to self deaf actions");
 
             // wait for context menu lazy load
-            const useChannelHideNamesItem = await Lazy.waitFor(Filters.byName("useChannelHideNamesItem")) as {default: (channel: Channel) => JSX.Element};
+            const useChannelHideNamesItem = await Lazy.waitFor(Filters.byAnyName("useChannelHideNamesItem"), false) as {default: (channel: Channel) => JSX.Element};
 
             // add queue clear item
             Patcher.after(useChannelHideNamesItem, "default", ({result}) => {

@@ -1,5 +1,5 @@
 import * as Filters from "dium/api/filters";
-import {Query} from "dium/api/filters";
+import {Query, RawFilter} from "dium/api/filters";
 import {Require, Module, WebpackId, Exports, ModuleFunction} from "dium/api/require";
 
 // finder extensions for development
@@ -27,7 +27,9 @@ const getWebpackRequire = (): Require => {
 const webpackRequire = getWebpackRequire();
 export {webpackRequire as require};
 
-type RawFilter = (exports: Exports, module: Module) => boolean;
+const byExportsFilter = (exported: Exports): RawFilter => {
+    return (target) => target === exported || (target instanceof Object && Object.values(target).includes(exported));
+};
 
 const byModuleSourceFilter = (contents: string[]): RawFilter => {
     return (_, module) => {
@@ -39,8 +41,8 @@ const byModuleSourceFilter = (contents: string[]): RawFilter => {
 const applyFilters = (filters: RawFilter[]) => (module: Module) => {
     const {exports} = module;
     return (
-        filters.every((filter) => filter(exports, module))
-        || exports?.__esModule && "default" in exports && filters.every((filter) => filter(exports.default, module))
+        filters.every((filter) => filter(exports, module, String(module.id)))
+        || exports?.__esModule && "default" in exports && filters.every((filter) => filter(exports.default, module, String(module.id)))
     );
 };
 
@@ -67,10 +69,13 @@ export const query = (options: Query): Module => find(Filters.query(options));
 export const byId = (id: WebpackId | string): Module => webpackRequire.c[id] ?? null;
 
 /** Finds a module using its exports. */
-export const byExports = (exported: Exports): Module => find(Filters.byExports(exported));
+export const byExports = (exported: Exports): Module => find(byExportsFilter(exported));
 
 /** Finds a raw module using the name of its export.  */
 export const byName = (name: string): Module => find(Filters.byName(name));
+
+/** Finds a raw module using the name of any value within its export.  */
+export const byAnyName = (name: string): Module => find(Filters.byAnyName(name));
 
 /** Finds a raw module using property names of its export. */
 export const byProps = (...props: string[]): Module => find(Filters.byProps(props));
@@ -93,10 +98,13 @@ export const all = {
     query: (options: Query): Module[] => all.find(Filters.query(options)),
 
     /** Finds all modules using the exports. */
-    byExports: (exported: Exports): Module[] => all.find(Filters.byExports(exported)),
+    byExports: (exported: Exports): Module[] => all.find(byExportsFilter(exported)),
 
     /** Finds all modules using the name of its export. */
     byName: (name: string): Module[] => all.find(Filters.byName(name)),
+
+    /** Finds all modules using the name of any value within its export. */
+    byAnyName: (name: string): Module[] => all.find(Filters.byAnyName(name)),
 
     /** Finds all modules using property names of its export. */
     byProps: (...props: string[]): Module[] => all.find(Filters.byProps(props)),

@@ -2,7 +2,7 @@ import {Finder, React} from "dium";
 import {classNames, Flex, Button, Text, Switch, SwitchItem, TextInput, Slider, Form, margins} from "dium/modules";
 
 const {FormSection, FormTitle, FormItem, FormText, FormDivider} = Form;
-const SingleSelect = Finder.byName("SingleSelect");
+const SingleSelect = Finder.byAnyName("SingleSelect");
 
 export const settings = {
     voice: null as string,

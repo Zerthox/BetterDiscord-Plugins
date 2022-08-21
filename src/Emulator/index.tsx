@@ -5,7 +5,7 @@ import config from "./config.json";
 const {PlatformTypes} = Platforms;
 const OverlayBridgeStore = Finder.byProps("initialize", "isSupported", "getFocusedPID");
 
-const RadioGroup = Finder.byName("RadioGroup");
+const RadioGroup = Finder.byAnyName("RadioGroup");
 
 const settings = {
     platform: null // TODO: get platform

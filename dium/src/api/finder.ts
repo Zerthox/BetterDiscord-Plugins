@@ -1,32 +1,31 @@
 import * as Filters from "./filters";
 import {Filter, Query} from "./filters";
-import {Exports} from "./require";
 
-const resolveExports = (
+export interface QueryWithResolve extends Query {
+    resolve?: boolean;
+}
+
+const resolveExport = (
     target: any,
-    filter?: string | ((target: any) => boolean)
+    filter?: (target: any) => boolean
 ) => {
-    if (target) {
-        if (typeof filter === "string") {
-            return target[filter];
-        } else if (filter instanceof Function) {
-            return filter(target) ? target : Object.values(target).find((entry) => filter(entry));
-        }
+    if (target && typeof filter === "function") {
+        return filter(target) ? target : Object.values(target).find((entry) => filter(entry));
     }
     return target;
 };
 
 /** Finds a module using a set of filter functions. */
-export const find = (filter: Filter): any => BdApi.Webpack.getModule(filter);
+export const find = (filter: Filter, resolve = true): any => BdApi.Webpack.getModule(filter, {defaultExport: resolve});
 
 /** Finds a module using query options. */
-export const query = (options: Query): any => resolveExports(find(Filters.query(options)), options.export);
-
-/** Finds a module using its exports. */
-export const byExports = (exported: Exports): any => find(Filters.byExports(exported));
+export const query = (options: QueryWithResolve): any => find(Filters.query(options), options.resolve);
 
 /** Finds a module using the name of its export.  */
-export const byName = (name: string, resolve = true): any => resolveExports(find(Filters.byName(name)), resolve ? Filters.byOwnName(name) : null);
+export const byName = (name: string, resolve = true): any => find(Filters.byName(name), resolve);
+
+/** Finds a module using the name of any value within its export. */
+export const byAnyName = (name: string, resolve = true): any => resolveExport(find(Filters.byAnyName(name)), resolve ? Filters.byName(name) : null);
 
 /** Finds a module using property names of its export. */
 export const byProps = (...props: string[]): any => find(Filters.byProps(props));
@@ -40,16 +39,16 @@ export const bySource = (...contents: string[]): any => find(Filters.bySource(co
 /** Returns all module results. */
 export const all = {
     /** Finds all modules using a set of filter functions. */
-    find: (filter: Filter): any[] => BdApi.Webpack.getModule(filter, {first: false}) ?? [],
+    find: (filter: Filter, resolve = true): any[] => BdApi.Webpack.getModule(filter, {first: false, defaultExport: resolve}) ?? [],
 
     /** Finds all modules using query options. */
-    query: (options: Query): any[] => all.find(Filters.query(options)).map((entry) => resolveExports(entry, options.export)),
-
-    /** Finds all modules using the exports. */
-    byExports: (exported: Exports): any[] => all.find(Filters.byExports(exported)),
+    query: (options: QueryWithResolve): any[] => all.find(Filters.query(options), options.resolve),
 
     /** Finds all modules using the name of its export. */
-    byName: (name: string, resolve = true): any[] => all.find(Filters.byName(name)).map((entry) => resolveExports(entry, resolve ? Filters.byOwnName(name) : null)),
+    byName: (name: string, resolve = true): any[] => all.find(Filters.byName(name), resolve),
+
+    /** Finds all modules using the name of any value within its export. */
+    byAnyName: (name: string, resolve = true): any[] => all.find(Filters.byAnyName(name)).map((entry) => resolveExport(entry, resolve ? Filters.byName(name) : null)),
 
     /** Finds all modules using property names of its export. */
     byProps: (...props: string[]): any[] => all.find(Filters.byProps(props)),
