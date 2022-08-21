@@ -72,7 +72,10 @@ export const createPatcher = (id: string, Logger: Logger): Patcher => {
         callback: (cancel: BD.CancelPatch, original: Module[Key], ...args: any) => any,
         options: Options
     ) => {
-        const original = object[method];
+        const original = object?.[method];
+        if (typeof original !== "function") {
+            throw TypeError(`patch target ${original} is not a function`);
+        }
         const cancel = patch(
             id,
             object,
