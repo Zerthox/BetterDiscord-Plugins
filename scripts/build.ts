@@ -4,7 +4,7 @@ import minimist from "minimist";
 import chalk from "chalk";
 import * as rollup from "rollup";
 import rollupConfig from "../rollup.config";
-import type {Config} from "dium";
+import type {Meta} from "betterdiscord";
 
 const repo = "Zerthox/BetterDiscord-Plugins";
 
@@ -21,14 +21,14 @@ const wscript = readFileSync(path.resolve(__dirname, "wscript.js"), "utf8").spli
 const args = minimist(process.argv.slice(2), {boolean: ["dev", "watch"]});
 
 // resolve input paths
-let inputs: string[] = [];
+let inputPaths: string[] = [];
 if (args._.length === 0) {
-    inputs = sourceEntries.map((entry) => path.resolve(sourceFolder, entry.name));
+    inputPaths = sourceEntries.map((entry) => path.resolve(sourceFolder, entry.name));
 } else {
     for (const name of args._) {
         const entry = sourceEntries.find((entry) => entry.name.toLowerCase() === name.toLowerCase());
         if (entry) {
-            inputs.push(path.resolve(sourceFolder, entry.name));
+            inputPaths.push(path.resolve(sourceFolder, entry.name));
         } else {
             warn(`Unknown plugin "${name}"`);
         }
@@ -36,7 +36,7 @@ if (args._.length === 0) {
 }
 
 // check for inputs
-if (inputs.length === 0) {
+if (inputPaths.length === 0) {
     error("No plugin inputs");
     process.exit(1);
 }
@@ -52,15 +52,15 @@ const outDir = args.dev ? path.resolve(
 const watchers: Record<string, rollup.RollupWatcher> = {};
 
 // build each input
-for (const input of inputs) {
-    const output = path.resolve(outDir, `${path.basename(input)}.plugin.js`);
+for (const inputPath of inputPaths) {
+    const outputPath = path.resolve(outDir, `${path.basename(inputPath)}.plugin.js`);
 
     if (args.watch) {
         // watch for changes
-        watch(input, output).then(() => console.log(`Watching for changes in "${input}"`));
+        watch(inputPath, outputPath).then(() => console.log(`Watching for changes in "${inputPath}"`));
     } else {
         // build once
-        build(input, output);
+        build(inputPath, outputPath);
     }
 }
 if (args.watch) {
@@ -73,82 +73,89 @@ if (args.watch) {
     });
 }
 
-async function build(input: string, output: string) {
+async function build(inputPath: string, outputPath: string) {
     // parse config
-    const config = await readConfig(input);
+    const config = await readConfig(inputPath);
     const {output: outputConfig, ...inputConfig} = rollupConfig;
 
     // bundle plugin
     const bundle = await rollup.rollup({
         ...inputConfig,
-        input: path.resolve(input, "index.tsx")
+        input: path.resolve(inputPath, "index.tsx")
     });
     await bundle.write({
         ...outputConfig,
-        ...genOutputOptions(config, output)
+        ...genOutputOptions(config, outputPath)
     });
-    success(`Built ${config.name} v${config.version} to "${output}"`);
+    success(`Built ${config.name} v${config.version} to "${outputPath}"`);
 
     await bundle.close();
 }
 
-async function watch(input: string, output: string) {
-    const config = await readConfig(input);
-    const {output: outputConfig, ...inputConfig} = rollupConfig;
+async function watch(inputPath: string, outputPath: string) {
+    const config = await readConfig(inputPath);
+    const {output: outputConfig, plugins, ...inputConfig} = rollupConfig;
+    const configPath = resolveConfig(inputPath);
 
     // start watching
     const watcher = rollup.watch({
         ...inputConfig,
-        input: path.resolve(input, "index.tsx"),
+        input: path.resolve(inputPath, "index.tsx"),
         output: {
             ...outputConfig,
-            ...genOutputOptions(config, output)
-        }
+            ...genOutputOptions(config, outputPath)
+        },
+        plugins: [
+            ...plugins,
+            {
+                name: "config-watcher",
+                buildStart() {
+                    this.addWatchFile(configPath);
+                }
+            }
+        ]
     });
 
     // close finished bundles
     watcher.on("event", (event) => {
         if (event.code === "BUNDLE_END") {
-            success(`Built ${config.name} v${config.version} to "${output}" [${event.duration}ms]`);
+            success(`Built ${config.name} v${config.version} to "${outputPath}" [${event.duration}ms]`);
             event.result.close();
         }
     });
 
     // restart on config changes
-    const configPath = resolveConfig(input);
     watcher.on("change", (file) => {
         // check for config changes
         if (file === configPath) {
-            watchers[input].close();
-            watch(input, output);
+            watchers[inputPath].close();
+            watch(inputPath, outputPath);
         }
 
         console.log(`=> Changed "${file}"`);
     });
 
-    watchers[input] = watcher;
+    watchers[inputPath] = watcher;
 }
 
-interface Meta extends Config<unknown> {
-    authorLink?: string;
-    updateUrl?: string;
-    website?: string;
-    source?: string;
-    donate?: string;
+interface Config {
+    name: string;
+    version: string;
+    author: string;
+    description: string;
 }
 
-function resolveConfig(input: string): string {
-    return path.resolve(input, "config.json");
+function resolveConfig(inputPath: string): string {
+    return path.resolve(inputPath, "config.json");
 }
 
-async function readConfig(input: string): Promise<Meta> {
-    const config = JSON.parse(await fs.readFile(resolveConfig(input), "utf8")) as Config<unknown>;
+async function readConfig(inputPath: string): Promise<Meta> {
+    const config = JSON.parse(await fs.readFile(resolveConfig(inputPath), "utf8")) as Config;
     return {
         ...config,
         authorLink: `https://github.com/${config.author}`,
         website: `https://github.com/${repo}`,
-        source: `https://github.com/${repo}/tree/master/src/${path.basename(input)}`,
-        updateUrl: `https://raw.githubusercontent.com/${repo}/master/dist/bd/${path.basename(input)}.plugin.js`
+        source: `https://github.com/${repo}/tree/master/src/${path.basename(inputPath)}`
     };
 }
 
@@ -160,9 +167,9 @@ function toMeta(config: Meta): string {
     return result + "\n**/\n";
 }
 
-function genOutputOptions(config: Meta, output: string) {
+function genOutputOptions(config: Meta, outputPath: string) {
     return {
-        file: output,
+        file: outputPath,
         banner: toMeta(config) + `\n/*@cc_on @if (@_jscript)\n${wscript}\n@else @*/\n`,
         footer: "\n/*@end @*/"
     };
