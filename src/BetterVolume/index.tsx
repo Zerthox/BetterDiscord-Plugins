@@ -1,7 +1,6 @@
 import {createPlugin, Finder, Filters, React} from "dium";
 import {MediaEngineStore, MediaEngineActions, MediaEngineContext, Menu} from "dium/modules";
 import type {Snowflake} from "dium/modules";
-import config from "./config.json";
 import styles from "./styles.scss";
 
 interface AudioConvert {
@@ -54,7 +53,7 @@ const NumberInput = ({value, min, max, fallback, onChange}: NumberInputProps): J
     );
 };
 
-export default createPlugin({...config, styles}, ({Lazy, Patcher}) => ({
+export default createPlugin({styles}, ({Lazy, Patcher}) => ({
     async start() {
         // wait for context menu lazy load
         const useUserVolumeItem = await Lazy.waitFor(Filters.byAnyName("useUserVolumeItem"), false) as {default: (userId: Snowflake, context: MediaEngineContext) => JSX.Element};

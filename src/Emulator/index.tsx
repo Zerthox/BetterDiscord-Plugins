@@ -1,6 +1,5 @@
 import {createPlugin, Finder, Utils, React} from "dium";
 import {Platforms} from "dium/modules";
-import config from "./config.json";
 
 const {PlatformTypes} = Platforms;
 const OverlayBridgeStore = Finder.byProps("initialize", "isSupported", "getFocusedPID");
@@ -11,7 +10,7 @@ const settings = {
     platform: null // TODO: get platform
 };
 
-export default createPlugin({...config, settings}, ({Logger, Patcher, Settings}) => {
+export default createPlugin({settings}, ({Logger, Patcher, Settings}) => {
     const notify = (message: string, options: Utils.ToastOptions) => {
         Logger.log(message);
         Utils.toast(message, options);

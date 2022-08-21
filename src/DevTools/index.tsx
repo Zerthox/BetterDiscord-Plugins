@@ -2,7 +2,6 @@ import * as dium from "dium";
 import {Constants, UserStore, SwitchItem} from "dium/modules";
 import * as Modules from "dium/modules";
 import * as DevFinder from "./finder";
-import config from "./config.json";
 
 const {React, Finder} = dium;
 
@@ -45,7 +44,7 @@ const updateStaffFlag = (flag: boolean) => {
     UserStore.emitChange();
 };
 
-export default dium.createPlugin({...config, settings}, ({Settings}) => ({
+export default dium.createPlugin({settings}, ({Settings}) => ({
     start() {
         // expose global
         updateGlobal(Settings.current.global);

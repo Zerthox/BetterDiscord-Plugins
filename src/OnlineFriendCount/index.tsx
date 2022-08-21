@@ -1,6 +1,5 @@
 import {createPlugin, Finder, Utils, React, Flux} from "dium";
 import {Constants, PresenceStore, RelationshipStore, Links} from "dium/modules";
-import config from "./config.json";
 import styles from "./styles.scss";
 
 const {RelationshipTypes, StatusTypes} = Constants;
@@ -28,7 +27,7 @@ const OnlineCount = () => {
     );
 };
 
-export default createPlugin({...config, styles}, ({Logger, Patcher}) => {
+export default createPlugin({styles}, ({Logger, Patcher}) => {
     const triggerRerender = async () => {
         const node = document.getElementsByClassName(guildStyles.guilds)?.[0];
         const fiber = Utils.getFiber(node);

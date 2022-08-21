@@ -11,7 +11,6 @@ import {
 } from "dium/modules";
 import type {Snowflake, User, Channel} from "dium/modules";
 import {settings, SettingsPanel, NotificationType} from "./settings";
-import config from "./config.json";
 
 const VoiceStateStore = Finder.byProps("getVoiceStates", "hasVideo");
 
@@ -41,7 +40,7 @@ const saveStates = () => {
     prevStates = {...VoiceStateStore.getVoiceStatesForChannel(SelectedChannelStore.getVoiceChannelId())};
 };
 
-export default createPlugin({...config, settings}, ({Logger, Lazy, Patcher, Settings}) => {
+export default createPlugin({settings}, ({meta, Logger, Lazy, Patcher, Settings}) => {
     // backwards compatibility for settings
     const loaded = Settings.current as any;
     for (const [key, value] of Object.entries(Settings.defaults.notifs)) {
@@ -62,7 +61,7 @@ export default createPlugin({...config, settings}, ({Logger, Lazy, Patcher, Sett
         if (voices.length === 0) {
             Logger.error("No speech synthesis voices available");
             Utils.alert(
-                config.name,
+                meta.name,
                 <Text color={Text.Colors.STANDARD}>
                     Electron does not have any Speech Synthesis Voices available on your system.
                     <br/>

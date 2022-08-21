@@ -27,31 +27,67 @@ export interface Api<
     SettingsType extends Record<string, any>,
     DataType extends {settings: SettingsType}
 > {
+    /** Meta information about the plugin. */
+    meta: BD.Meta;
+
+    /** Logger to output formatted messages to the console. */
     Logger: Logger;
+
+    /** Helper for lazy loaded modules. */
     Lazy: Lazy;
+
+    /** Helper for modifying function behavior. */
     Patcher: Patcher;
+
+    /**
+     * Plugin styles.
+     *
+     * Usually not accessed manually.
+     */
     Styles: Styles;
+
+    /**
+     * Plugin data storage.
+     *
+     * Usually not accessed manually.
+     */
     Data: Data<DataType>;
+
+    /**
+     * Plugin settings.
+     *
+     * This is a Flux store.
+     */
     Settings: Settings<SettingsType, DataType>;
 }
 
 export interface Config<Settings extends Record<string, any>> {
-    name: string;
-    version: string;
-    author: string;
-    description?: string;
+    /** Plugin name. */
+    name?: string;
+
+    /** Plugin version. */
+    version?: string;
+
+    /**
+     * Plugin styles.
+     *
+     * Passed as CSS in string form.
+     * Injected/removed when the plugin is started/stopped.
+     */
     styles?: string;
+
+    /** Initial plugin settings. */
     settings?: Settings;
 }
 
-export interface Plugin<> {
+export interface Plugin {
     /** Called on plugin start. */
     start(): void | Promise<void>;
 
     /**
      * Called on plugin stop.
      *
-     * Be cautious when  doing async work here.
+     * Be cautious when doing async work here.
      */
     stop(): void;
 
@@ -60,50 +96,45 @@ export interface Plugin<> {
 }
 
 /** Creates a BetterDiscord plugin. */
-// TODO: auto detect information from bd meta?
 export const createPlugin = <
     SettingsType extends Record<string, any>,
     DataType extends {settings: SettingsType} = {settings: SettingsType}
 >(
-    {name, version, styles, settings}: Config<SettingsType>,
+    config: Config<SettingsType>,
     callback: (api: Api<SettingsType, DataType>) => Plugin
-): BD.PluginClass => {
-    // create log
+): BD.PluginCallback => (meta) => {
+    const name = config.name ?? meta.name;
+    const version = config.version ?? meta.version;
+
+    // create api
     const Logger = createLogger(name, "#3a71c1", version);
     const Lazy = createLazy();
     const Patcher = createPatcher(name, Logger);
     const Styles = createStyles(name);
     const Data = createData<DataType>(name);
-    const Settings = createSettings(Data, settings ?? {} as SettingsType);
+    const Settings = createSettings(Data, config.settings ?? {} as SettingsType);
 
     // get plugin info
-    const plugin = callback({Logger, Lazy, Patcher, Styles, Data, Settings});
+    const plugin = callback({meta, Logger, Lazy, Patcher, Styles, Data, Settings});
 
-    // construct wrapper
-    class Wrapper implements BD.Plugin {
+    // construct plugin
+    return {
         start() {
             Logger.log("Enabled");
-            Styles.inject(styles);
+            Styles.inject(config.styles);
             plugin.start();
-        }
+        },
         stop() {
             Lazy.abort();
             Patcher.unpatchAll();
             Styles.clear();
             plugin.stop();
             Logger.log("Disabled");
-        }
-        getSettingsPanel?: () => JSX.Element;
-    }
-
-    // add settings panel
-    if (plugin.SettingsPanel) {
-        Wrapper.prototype.getSettingsPanel = () => (
+        },
+        getSettingsPanel: plugin.SettingsPanel ? () => (
             <SettingsContainer name={name} onReset={() => Settings.reset()}>
                 <plugin.SettingsPanel/>
             </SettingsContainer>
-        );
-    }
-
-    return Wrapper;
+        ) : null
+    };
 };

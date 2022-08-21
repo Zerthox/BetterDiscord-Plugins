@@ -1,7 +1,6 @@
 import {createPlugin, Finder, Filters, Utils, React, Flux} from "dium";
 import {ClientActions, RadioGroup, SwitchItem, Form} from "dium/modules";
 import {BetterFolderIcon, BetterFolderUploader, FolderData} from "./components";
-import config from "./config.json";
 import styles from "./styles.scss";
 
 const SortedGuildStore = Finder.byProps("getGuildsTree");
@@ -19,7 +18,7 @@ const settings = {
     folders: {} as Record<number, FolderData>
 };
 
-export default createPlugin({...config, styles, settings}, ({Logger, Lazy, Patcher, Data, Settings}) => {
+export default createPlugin({styles, settings}, ({Logger, Lazy, Patcher, Data, Settings}) => {
     // backwards compatibility for old bd version
     const oldFolders = Data.load("folders");
     if (oldFolders) {
