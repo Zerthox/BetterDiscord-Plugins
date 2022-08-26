@@ -88,7 +88,7 @@ export default createPlugin({styles, settings}, ({Logger, Lazy, Patcher, Data, S
             triggerRerender();
 
             // wait for modal lazy load
-            const GuildFolderSettingsModal = await Lazy.waitFor(Filters.byAnyName("GuildFolderSettingsModal"));
+            const GuildFolderSettingsModal = await Lazy.waitFor(Filters.byName("GuildFolderSettingsModal"));
 
             // patch folder settings render
             Patcher.after(GuildFolderSettingsModal.prototype, "render", ({context, result}) => {

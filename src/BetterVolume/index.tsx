@@ -56,7 +56,7 @@ const NumberInput = ({value, min, max, fallback, onChange}: NumberInputProps): J
 export default createPlugin({styles}, ({Lazy, Patcher}) => ({
     async start() {
         // wait for context menu lazy load
-        const useUserVolumeItem = await Lazy.waitFor(Filters.byAnyName("useUserVolumeItem"), false) as {default: (userId: Snowflake, context: MediaEngineContext) => JSX.Element};
+        const useUserVolumeItem = await Lazy.waitFor(Filters.byName("useUserVolumeItem"), false) as {default: (userId: Snowflake, context: MediaEngineContext) => JSX.Element};
 
         // add number input
         Patcher.after(useUserVolumeItem, "default", ({args: [userId, context], result}) => {
