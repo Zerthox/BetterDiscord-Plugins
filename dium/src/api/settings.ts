@@ -1,6 +1,6 @@
-import {Flux} from "../modules";
+import {React, Flux} from "../modules";
 import type {Data} from "./data";
-import type {Action, Handler} from "../modules/flux";
+import type {Action} from "../modules/flux";
 
 export type Listener<Data> = (data: Data) => void;
 
@@ -10,7 +10,7 @@ export type Setter<Data> = (update: Update<Data>) => void;
 
 interface SettingsAction<SettingsType> extends Action {
     type: "update";
-    current: SettingsType;
+    settings: Partial<SettingsType>;
 }
 
 class Settings<
@@ -23,23 +23,29 @@ class Settings<
     /** Current settings state. */
     current: SettingsType;
 
-    protected listeners: Map<Listener<SettingsType>, Handler<SettingsAction<SettingsType>>>;
+    protected listeners: Set<Listener<SettingsType>>;
 
     constructor(Data: Data<DataType>, defaults: SettingsType) {
         super(new Flux.Dispatcher(), {
-            update: ({current}: SettingsAction<SettingsType>) => Data.save("settings", current)
+            update: ({settings}: SettingsAction<SettingsType>) => {
+                Object.assign(this.current, settings);
+                for (const listener of this.listeners) {
+                    listener(this.current);
+                }
+                Data.save("settings", this.current);
+            }
         });
-        this.listeners = new Map();
 
+        this.listeners = new Set();
         this.defaults = defaults;
         this.current = {...defaults, ...Data.load("settings")};
     }
 
     /** Dispatches a settings update. */
-    dispatch(): void {
+    dispatch(settings: Partial<SettingsType>): void {
         this._dispatcher.dispatch<SettingsAction<SettingsType>>({
             type: "update",
-            current: this.current
+            settings
         });
     }
 
@@ -49,24 +55,21 @@ class Settings<
      * Similar interface to React's `setState()`.
      */
     update(settings: Update<SettingsType>): void {
-        Object.assign(
-            this.current,
-            settings instanceof Function ? settings(this.current) : settings
-        );
-        this.dispatch();
+        this.dispatch(typeof settings === "function" ? settings(this.current) : settings);
     }
 
     /** Resets all settings to their defaults. */
     reset(): void {
-        this.update({...this.defaults});
+        this.dispatch({...this.defaults});
     }
 
     /** Deletes settings using their keys. */
     delete(...keys: string[]): void {
+        const settings = {...this.current};
         for (const key of keys) {
-            delete this.current[key];
+            delete settings[key];
         }
-        this.dispatch();
+        this.dispatch(settings);
     }
 
     /**
@@ -111,28 +114,27 @@ class Settings<
         );
     }
 
+    /** Adds a new listener from within a component. */
+    useListener(listener: Listener<SettingsType>): void {
+        React.useEffect(() => {
+            this.addListener(listener);
+            return () => this.removeListener(listener);
+        }, [listener]);
+    }
+
     /** Registers a new listener to be called on settings state changes. */
     addListener(listener: Listener<SettingsType>): Listener<SettingsType> {
-        const wrapper = ({current}: SettingsAction<SettingsType>) => listener(current);
-        this.listeners.set(listener, wrapper);
-        this._dispatcher.subscribe("update", wrapper);
+        this.listeners.add(listener);
         return listener;
     }
 
     /** Removes a previously added settings change listener. */
     removeListener(listener: Listener<SettingsType>): void {
-        const wrapper = this.listeners.get(listener);
-        if (wrapper) {
-            this._dispatcher.unsubscribe("update", wrapper);
-            this.listeners.delete(listener);
-        }
+        this.listeners.delete(listener);
     }
 
     /** Removes all current settings change listeners. */
     removeAllListeners(): void {
-        for (const wrapper of this.listeners.values()) {
-            this._dispatcher.unsubscribe("update", wrapper);
-        }
         this.listeners.clear();
     }
 }
