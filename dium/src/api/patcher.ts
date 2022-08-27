@@ -12,7 +12,7 @@ export type Cancel = () => void;
 export interface Data<Original> {
     cancel: Cancel;
     original: Original;
-    context: any;
+    context: ThisParameterType<Original> extends unknown ? any : ThisParameterType<Original>;
     args: Original extends (...args: any) => any ? Parameters<Original> : IArguments;
 }
 
