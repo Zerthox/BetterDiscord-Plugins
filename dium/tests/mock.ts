@@ -1,4 +1,4 @@
-global.TESTING = true;
+(global as any).TESTING = true;
 
 (global as any).BdApi = {
     Webpack: {
