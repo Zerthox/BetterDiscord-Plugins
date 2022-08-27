@@ -1,0 +1,84 @@
+import {createPlugin, Finder, React} from "dium";
+import {classNames, Flex, Clickable, Text, SwitchItem} from "dium/modules";
+import styles from "./styles.scss";
+
+const Embed = Finder.byAnyName("Embed") as typeof React.Component<any, any>;
+const MessageAttachment = Finder.byName("MessageAttachment", false) as {default: React.FunctionComponent<any>};
+const ArrowDropDown = Finder.byAnyName("ArrowDropDown") as React.FunctionComponent<any>;
+const ArrowDropUp = Finder.byAnyName("ArrowDropUp") as React.FunctionComponent<any>;
+
+const settings = {
+    hideByDefault: false
+};
+
+const enum AccessoryType {
+    Embed = "embed",
+    Attachment = "attachment"
+}
+
+export default createPlugin({styles, settings}, ({Patcher, Settings}) => {
+    interface HiderProps {
+        placeholder: string;
+        type: AccessoryType;
+        children: React.ReactNode;
+    }
+
+    const typeClasses = {
+        [AccessoryType.Embed]: "collapseEmbeds-embed",
+        [AccessoryType.Attachment]: "collapseEmbeds-attachment"
+    };
+
+    const Hider = ({placeholder, type, children}: HiderProps): JSX.Element => {
+        const {hideByDefault} = Settings.useCurrent();
+        const [shown, setShown] = React.useState(!hideByDefault);
+
+        Settings.useListener(({hideByDefault}) => setShown(!hideByDefault));
+
+        return (
+            <Flex
+                align={Flex.Align.CENTER}
+                className={classNames(
+                    "collapseEmbeds-container",
+                    typeClasses[type],
+                    `collapseEmbeds-${shown ? "expanded" : "collapsed"}`
+                )}
+            >
+                <div className="collapseEmbeds-content">
+                    {shown ? children : <Text variant="text-xs/normal">{placeholder}</Text>}
+                </div>
+                <Clickable
+                    className="collapseEmbeds-hideButton"
+                    onClick={() => setShown(!shown)}
+                >
+                    {shown ? <ArrowDropUp/> : <ArrowDropDown/>}
+                </Clickable>
+            </Flex>
+        );
+    };
+
+    return {
+        start() {
+            Patcher.after(Embed.prototype, "render", ({result, context}) => {
+                const {embed} = context.props;
+                return <Hider type={AccessoryType.Embed} placeholder={embed.provider?.name}>{result}</Hider>;
+            });
+
+            Patcher.after(MessageAttachment, "default", ({args: [props], result}) => {
+                return <Hider type={AccessoryType.Attachment} placeholder={props.attachment.filename}>{result}</Hider>;
+            });
+        },
+        stop() {},
+        SettingsPanel: () => {
+            const [{hideByDefault}, setSettings] = Settings.useState();
+
+            return (
+                <SwitchItem
+                    note="Collapse all embeds &amp; attachments initially."
+                    hideBorder
+                    value={hideByDefault}
+                    onChange={(checked: boolean) => setSettings({hideByDefault: checked})}
+                >Collapse by default</SwitchItem>
+            );
+        }
+    };
+});

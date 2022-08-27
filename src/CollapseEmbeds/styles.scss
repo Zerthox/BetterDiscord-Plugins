@@ -1,0 +1,19 @@
+.collapseEmbeds-hideButton {
+    align-self: flex-end;
+    color: var(--interactive-normal);
+    cursor: pointer;
+    visibility: hidden;
+    &:hover {
+        color: var(--interactive-hover);
+    }
+    .collapseEmbeds-expanded > & {
+        margin-bottom: -6px;
+    }
+    .collapseEmbeds-attachment.collapseEmbeds-expanded > & {
+        margin-left: -23px;
+    }
+    .collapseEmbeds-container:hover > &,
+    .collapseEmbeds-collapsed > & {
+        visibility: visible;
+    }
+}
