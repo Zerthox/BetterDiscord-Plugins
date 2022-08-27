@@ -8,7 +8,7 @@ type UntypedComponent = Untyped<React.ComponentType<any>>;
 export const Flex: UntypedComponent = /* @__PURE__ */ Finder.byAnyName("Flex");
 export const Button: UntypedComponent = /* @__PURE__ */ Finder.byProps("Link", "Hovers");
 export const Text: UntypedComponent = /* @__PURE__ */ Finder.byAnyName("Text");
-export const Clickable: React.ComponentClass<any> = /* @__PURE__ */ Finder.byAnyName("Clickable");
+export const Clickable: React.ComponentClass<any, any> = /* @__PURE__ */ Finder.byAnyName("Clickable");
 export const Links: UntypedComponent = /* @__PURE__ */ Finder.byProps("Link", "NavLink");
 
 export const Switch: UntypedComponent = /* @__PURE__ */ Finder.byAnyName("Switch");

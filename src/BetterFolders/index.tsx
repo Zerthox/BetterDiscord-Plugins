@@ -7,7 +7,7 @@ const SortedGuildStore = Finder.byProps("getGuildsTree");
 const ExpandedGuildFolderStore = Finder.byProps("getExpandedFolders");
 
 const {FormItem} = Form;
-const FolderHeader = Finder.byAnyName("FolderHeader", false) as {default: (props: any) => JSX.Element};
+const FolderHeader = Finder.byAnyName("FolderHeader", false) as {default: React.FunctionComponent<any>};
 
 let FolderIcon = null;
 
@@ -88,7 +88,7 @@ export default createPlugin({styles, settings}, ({Logger, Lazy, Patcher, Data, S
             triggerRerender();
 
             // wait for modal lazy load
-            const GuildFolderSettingsModal = await Lazy.waitFor(Filters.byName("GuildFolderSettingsModal"));
+            const GuildFolderSettingsModal = await Lazy.waitFor(Filters.byName("GuildFolderSettingsModal")) as typeof React.Component<any, any>;
 
             // patch folder settings render
             Patcher.after(GuildFolderSettingsModal.prototype, "render", ({context, result}) => {
@@ -96,7 +96,7 @@ export default createPlugin({styles, settings}, ({Logger, Lazy, Patcher, Data, S
                 const {state} = context;
 
                 // find form
-                const form = Utils.queryTree(result, (node) => node?.type === "form");
+                const form = Utils.queryTree(result as JSX.Element, (node) => node?.type === "form");
                 if (!form) {
                     Logger.warn("Unable to find form");
                     return;
@@ -145,7 +145,7 @@ export default createPlugin({styles, settings}, ({Logger, Lazy, Patcher, Data, S
                 }
 
                 // override submit onclick
-                const button = Utils.queryTree(result, (node) => node?.props?.type === "submit");
+                const button = Utils.queryTree(result as JSX.Element, (node) => node?.props?.type === "submit");
                 const original = button.props.onClick;
                 button.props.onClick = (...args: any[]) => {
                     original(...args);

@@ -4,7 +4,7 @@ import styles from "./styles.scss";
 
 const {RelationshipTypes, StatusTypes} = Constants;
 
-const HomeButtonModule = Finder.byProps("HomeButton") as {HomeButton: React.FunctionComponent};
+const HomeButtonModule = Finder.byProps("HomeButton") as {HomeButton: React.FunctionComponent<any>};
 const {Link} = Links;
 
 const guildStyles = Finder.byProps("guilds", "base");

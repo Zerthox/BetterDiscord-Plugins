@@ -106,7 +106,7 @@ export const queryFiber = (fiber: Fiber, predicate: Predicate<Fiber>, direction:
 
 /** A fiber node with React component as state node. */
 export interface OwnerFiber extends Fiber {
-    stateNode: React.Component;
+    stateNode: React.Component<any>;
 }
 
 /** Finds the owner in the parents of a fiber node. */

@@ -7,12 +7,14 @@ import {
     GuildMemberStore,
     MediaEngineStore,
     Text,
-    Menu
+    Menu,
+    Untyped,
+    Store
 } from "dium/modules";
 import type {Snowflake, User, Channel} from "dium/modules";
 import {settings, SettingsPanel, NotificationType} from "./settings";
 
-const VoiceStateStore = Finder.byProps("getVoiceStates", "hasVideo");
+const VoiceStateStore = Finder.byProps("getVoiceStates", "hasVideo") as Untyped<Store>;
 
 const {MenuItem} = Menu;
 

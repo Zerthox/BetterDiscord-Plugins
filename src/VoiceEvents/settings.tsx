@@ -2,7 +2,7 @@ import {Finder, React} from "dium";
 import {classNames, Flex, Button, Text, Switch, SwitchItem, TextInput, Slider, Form, margins} from "dium/modules";
 
 const {FormSection, FormTitle, FormItem, FormText, FormDivider} = Form;
-const SingleSelect = Finder.byAnyName("SingleSelect");
+const SingleSelect = Finder.byAnyName("SingleSelect") as React.ComponentType<any>;
 
 export const settings = {
     voice: null as string,
@@ -75,9 +75,7 @@ interface VoiceLabelProps {
 
 const VoiceLabel = ({name, lang}: VoiceLabelProps): JSX.Element => (
     <Flex direction={Flex.Direction.HORIZONTAL} align={Flex.Align.CENTER}>
-        <Text
-            variant="text-md/normal"
-        >{name}</Text>
+        <Text variant="text-md/normal">{name}</Text>
         <Text
             variant="text-xs/semibold"
             style={{marginLeft: 8}}
@@ -185,7 +183,6 @@ export const SettingsPanel = ({current, defaults, onChange, speak}: SettingsPane
                         </Flex.Child>
                         <Flex.Child grow={0}>
                             <Switch
-                                className={margins.marginRight20}
                                 checked={settings.notifs[key].enabled}
                                 onChange={(value: boolean) => {
                                     const {notifs} = settings;
