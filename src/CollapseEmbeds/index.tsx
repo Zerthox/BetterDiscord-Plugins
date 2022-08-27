@@ -20,6 +20,7 @@ export default createPlugin({styles, settings}, ({Patcher, Settings}) => {
     interface HiderProps {
         placeholder: string;
         type: AccessoryType;
+        marginCorrect?: boolean;
         children: React.ReactNode;
     }
 
@@ -27,8 +28,9 @@ export default createPlugin({styles, settings}, ({Patcher, Settings}) => {
         [AccessoryType.Embed]: "collapseEmbeds-embed",
         [AccessoryType.Attachment]: "collapseEmbeds-attachment"
     };
+    const iconClass = "collapseEmbeds-icon";
 
-    const Hider = ({placeholder, type, children}: HiderProps): JSX.Element => {
+    const Hider = ({placeholder, type, marginCorrect, children}: HiderProps): JSX.Element => {
         const {hideByDefault} = Settings.useCurrent();
         const [shown, setShown] = React.useState(!hideByDefault);
 
@@ -47,10 +49,13 @@ export default createPlugin({styles, settings}, ({Patcher, Settings}) => {
                     {shown ? children : <Text variant="text-xs/normal">{placeholder}</Text>}
                 </div>
                 <Clickable
-                    className="collapseEmbeds-hideButton"
+                    className={classNames(
+                        "collapseEmbeds-hideButton",
+                        {["collapseEmbeds-marginCorrect"]: marginCorrect}
+                    )}
                     onClick={() => setShown(!shown)}
                 >
-                    {shown ? <ArrowDropUp/> : <ArrowDropDown/>}
+                    {shown ? <ArrowDropUp className={iconClass}/> : <ArrowDropDown className={iconClass}/>}
                 </Clickable>
             </Flex>
         );
@@ -63,9 +68,13 @@ export default createPlugin({styles, settings}, ({Patcher, Settings}) => {
                 return <Hider type={AccessoryType.Embed} placeholder={embed.provider?.name}>{result}</Hider>;
             });
 
-            Patcher.after(MessageAttachment, "default", ({args: [props], result}) => {
-                return <Hider type={AccessoryType.Attachment} placeholder={props.attachment.filename}>{result}</Hider>;
-            });
+            Patcher.after(MessageAttachment, "default", ({args: [props], result}) => (
+                <Hider
+                    type={AccessoryType.Attachment}
+                    placeholder={props.attachment.filename}
+                    marginCorrect={props.canRemoveAttachment}
+                >{result}</Hider>
+            ));
         },
         stop() {},
         SettingsPanel: () => {

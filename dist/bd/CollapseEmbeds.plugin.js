@@ -1,7 +1,7 @@
 /**
  * @name CollapseEmbeds
  * @author Zerthox
- * @version 0.1.0
+ * @version 0.1.1
  * @description Collapse embeds & attachments.
  * @authorLink https://github.com/Zerthox
  * @website https://github.com/Zerthox/BetterDiscord-Plugins
@@ -257,7 +257,7 @@ const createPlugin = (config, callback) => (meta) => {
     };
 };
 
-const styles = ".collapseEmbeds-hideButton {\n  align-self: flex-end;\n  color: var(--interactive-normal);\n  cursor: pointer;\n  visibility: hidden;\n}\n.collapseEmbeds-hideButton:hover {\n  color: var(--interactive-hover);\n}\n.collapseEmbeds-expanded > .collapseEmbeds-hideButton {\n  margin-bottom: -6px;\n}\n.collapseEmbeds-attachment.collapseEmbeds-expanded > .collapseEmbeds-hideButton {\n  margin-left: -23px;\n}\n.collapseEmbeds-container:hover > .collapseEmbeds-hideButton, .collapseEmbeds-collapsed > .collapseEmbeds-hideButton {\n  visibility: visible;\n}";
+const styles = ".collapseEmbeds-hideButton {\n  margin-bottom: -4px;\n  align-self: flex-end;\n  color: var(--interactive-normal);\n  cursor: pointer;\n  visibility: hidden;\n}\n.collapseEmbeds-hideButton:hover {\n  color: var(--interactive-hover);\n}\n.collapseEmbeds-expanded > .collapseEmbeds-hideButton {\n  margin-bottom: -6px;\n}\n.collapseEmbeds-expanded > .collapseEmbeds-hideButton.collapseEmbeds-marginCorrect {\n  margin-left: -20px;\n}\n.collapseEmbeds-container:hover > .collapseEmbeds-hideButton, .collapseEmbeds-collapsed > .collapseEmbeds-hideButton {\n  visibility: visible;\n}\n\n.collapseEmbeds-icon {\n  margin: -2px;\n}";
 
 const Embed = byAnyName("Embed");
 const MessageAttachment = byName("MessageAttachment", false);
@@ -271,13 +271,14 @@ const index = createPlugin({ styles, settings }, ({ Patcher, Settings }) => {
         ["embed" ]: "collapseEmbeds-embed",
         ["attachment" ]: "collapseEmbeds-attachment"
     };
-    const Hider = ({ placeholder, type, children }) => {
+    const iconClass = "collapseEmbeds-icon";
+    const Hider = ({ placeholder, type, marginCorrect, children }) => {
         const { hideByDefault } = Settings.useCurrent();
         const [shown, setShown] = React.useState(!hideByDefault);
         Settings.useListener(({ hideByDefault }) => setShown(!hideByDefault));
         return (React.createElement(Flex, { align: Flex.Align.CENTER, className: classNames("collapseEmbeds-container", typeClasses[type], `collapseEmbeds-${shown ? "expanded" : "collapsed"}`) },
             React.createElement("div", { className: "collapseEmbeds-content" }, shown ? children : React.createElement(Text, { variant: "text-xs/normal" }, placeholder)),
-            React.createElement(Clickable, { className: "collapseEmbeds-hideButton", onClick: () => setShown(!shown) }, shown ? React.createElement(ArrowDropUp, null) : React.createElement(ArrowDropDown, null))));
+            React.createElement(Clickable, { className: classNames("collapseEmbeds-hideButton", { ["collapseEmbeds-marginCorrect"]: marginCorrect }), onClick: () => setShown(!shown) }, shown ? React.createElement(ArrowDropUp, { className: iconClass }) : React.createElement(ArrowDropDown, { className: iconClass }))));
     };
     return {
         start() {
@@ -285,9 +286,7 @@ const index = createPlugin({ styles, settings }, ({ Patcher, Settings }) => {
                 const { embed } = context.props;
                 return React.createElement(Hider, { type: "embed" , placeholder: embed.provider?.name }, result);
             });
-            Patcher.after(MessageAttachment, "default", ({ args: [props], result }) => {
-                return React.createElement(Hider, { type: "attachment" , placeholder: props.attachment.filename }, result);
-            });
+            Patcher.after(MessageAttachment, "default", ({ args: [props], result }) => (React.createElement(Hider, { type: "attachment" , placeholder: props.attachment.filename, marginCorrect: props.canRemoveAttachment }, result)));
         },
         stop() { },
         SettingsPanel: () => {

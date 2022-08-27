@@ -1,4 +1,5 @@
 .collapseEmbeds-hideButton {
+    margin-bottom: -4px;
     align-self: flex-end;
     color: var(--interactive-normal);
     cursor: pointer;
@@ -8,12 +9,15 @@
     }
     .collapseEmbeds-expanded > & {
         margin-bottom: -6px;
-    }
-    .collapseEmbeds-attachment.collapseEmbeds-expanded > & {
-        margin-left: -23px;
+        &.collapseEmbeds-marginCorrect {
+            margin-left: -20px;
+        }
     }
     .collapseEmbeds-container:hover > &,
     .collapseEmbeds-collapsed > & {
         visibility: visible;
     }
+}
+.collapseEmbeds-icon {
+    margin: -2px;
 }
