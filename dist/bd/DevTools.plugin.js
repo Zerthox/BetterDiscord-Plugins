@@ -1,12 +1,11 @@
 /**
  * @name DevTools
  * @author Zerthox
- * @version 0.3.1
+ * @version 0.3.3
  * @description Utilities for development.
  * @authorLink https://github.com/Zerthox
  * @website https://github.com/Zerthox/BetterDiscord-Plugins
  * @source https://github.com/Zerthox/BetterDiscord-Plugins/tree/master/src/DevTools
- * @updateUrl https://raw.githubusercontent.com/Zerthox/BetterDiscord-Plugins/master/dist/bd/DevTools.plugin.js
 **/
 
 /*@cc_on @if (@_jscript)
@@ -53,35 +52,28 @@ WScript.Quit();
 
 'use strict';
 
-const createLogger = (name, color, version) => {
-    const print = (output, ...data) => output(`%c[${name}] %c${version ? `(v${version})` : ""}`, `color: ${color}; font-weight: 700;`, "color: #666; font-size: .8em;", ...data);
-    return {
-        print,
-        log: (...data) => print(console.log, ...data),
-        warn: (...data) => print(console.warn, ...data),
-        error: (...data) => print(console.error, ...data)
-    };
-};
+const createData = (id) => ({
+    load: (key) => BdApi.loadData(id, key) ?? null,
+    save: (key, value) => BdApi.saveData(id, key, value),
+    delete: (key) => BdApi.deleteData(id, key)
+});
 
 const join = (filters) => {
-    const apply = filters.filter((filter) => filter instanceof Function);
-    return (exports) => apply.every((filter) => filter(exports));
+    return (target) => filters.every((filter) => filter(target));
 };
-const generate = ({ filter, name, props, protos, source }) => [
+const query$2 = ({ filter, name, anyName, props, protos, source }) => join([
     ...[filter].flat(),
     typeof name === "string" ? byName$2(name) : null,
+    typeof anyName === "string" ? byAnyName$2(anyName) : null,
     props instanceof Array ? byProps$2(props) : null,
     protos instanceof Array ? byProtos$2(protos) : null,
     source instanceof Array ? bySource$2(source) : null
-];
-const byExports$2 = (exported) => {
-    return (target) => target === exported || (target instanceof Object && Object.values(target).includes(exported));
-};
+].filter(Boolean));
 const byName$2 = (name) => {
-    return (target) => target instanceof Object && target !== window && Object.values(target).some(byOwnName(name));
-};
-const byOwnName = (name) => {
     return (target) => (target?.displayName ?? target?.constructor?.displayName) === name;
+};
+const byAnyName$2 = (name) => {
+    return (target) => target instanceof Object && target !== window && Object.values(target).some(byName$2(name));
 };
 const byProps$2 = (props) => {
     return (target) => target instanceof Object && props.every((prop) => prop in target);
@@ -93,106 +85,157 @@ const bySource$2 = (contents) => {
     return (target) => target instanceof Function && contents.every((content) => target.toString().includes(content));
 };
 
-const Filters = {
+const filters = {
     __proto__: null,
     join: join,
-    generate: generate,
-    byExports: byExports$2,
+    query: query$2,
     byName: byName$2,
-    byOwnName: byOwnName,
+    byAnyName: byAnyName$2,
     byProps: byProps$2,
     byProtos: byProtos$2,
     bySource: bySource$2
 };
 
-const raw = {
-    single: (filter) => BdApi.findModule(filter),
-    all: (filter) => BdApi.findAllModules(filter) ?? []
-};
-const resolveExports = (target, filter) => {
-    if (target) {
-        if (typeof filter === "string") {
-            return target[filter];
-        }
-        else if (filter instanceof Function) {
-            return filter(target) ? target : Object.values(target).find((entry) => filter(entry));
-        }
+const resolveExport = (target, filter) => {
+    if (target && typeof filter === "function") {
+        return filter(target) ? target : Object.values(target).find((entry) => filter(entry));
     }
     return target;
 };
-const find$1 = (...filters) => raw.single(join(filters));
-const query$1 = (options) => resolveExports(find$1(...generate(options)), options.export);
-const byExports$1 = (exported) => find$1(byExports$2(exported));
-const byName$1 = (name) => resolveExports(find$1(byName$2(name)), byOwnName(name));
+const find$1 = (filter, resolve = true) => BdApi.Webpack.getModule(filter, { defaultExport: resolve });
+const query$1 = (options) => find$1(query$2(options), options.resolve);
+const byName$1 = (name, resolve = true) => find$1(byName$2(name), resolve);
+const byAnyName$1 = (name, resolve = true) => resolveExport(find$1(byAnyName$2(name)), resolve ? byName$2(name) : null);
 const byProps$1 = (...props) => find$1(byProps$2(props));
 const byProtos$1 = (...protos) => find$1(byProtos$2(protos));
 const bySource$1 = (...contents) => find$1(bySource$2(contents));
 const all$1 = {
-    find: (...filters) => raw.all(join(filters)),
-    query: (options) => all$1.find(...generate(options)).map((entry) => resolveExports(entry, options.export)),
-    byExports: (exported) => all$1.find(byExports$2(exported)),
-    byName: (name) => all$1.find(byName$2(name)).map((entry) => resolveExports(entry, byOwnName(name))),
+    find: (filter, resolve = true) => BdApi.Webpack.getModule(filter, { first: false, defaultExport: resolve }) ?? [],
+    query: (options) => all$1.find(query$2(options), options.resolve),
+    byName: (name, resolve = true) => all$1.find(byName$2(name), resolve),
+    byAnyName: (name, resolve = true) => all$1.find(byAnyName$2(name)).map((entry) => resolveExport(entry, resolve ? byName$2(name) : null)),
     byProps: (...props) => all$1.find(byProps$2(props)),
     byProtos: (...protos) => all$1.find(byProtos$2(protos)),
     bySource: (...contents) => all$1.find(bySource$2(contents))
 };
 
-const index$2 = {
+const finder = {
     __proto__: null,
     find: find$1,
     query: query$1,
-    byExports: byExports$1,
     byName: byName$1,
+    byAnyName: byAnyName$1,
     byProps: byProps$1,
     byProtos: byProtos$1,
     bySource: bySource$1,
-    all: all$1,
-    Filters: Filters
+    all: all$1
+};
+
+const createLazy = () => {
+    let controller = new AbortController();
+    return {
+        waitFor: (filter, resolve = true) => BdApi.Webpack.waitForModule(filter, { signal: controller.signal, defaultExport: resolve }),
+        abort: () => {
+            controller.abort();
+            controller = new AbortController();
+        }
+    };
+};
+
+const createLogger = (name, color, version) => {
+    const print = (output, ...data) => output(`%c[${name}] %c${version ? `(v${version})` : ""}`, `color: ${color}; font-weight: 700;`, "color: #666; font-size: .8em;", ...data);
+    return {
+        print,
+        log: (...data) => print(console.log, ...data),
+        warn: (...data) => print(console.warn, ...data),
+        error: (...data) => print(console.error, ...data)
+    };
+};
+
+const resolveName = (object, method) => {
+    const target = method === "default" ? object[method] : {};
+    return object.displayName ?? object.constructor?.displayName ?? target.displayName ?? "unknown";
+};
+const createPatcher = (id, Logger) => {
+    const forward = (patch, object, method, callback, options) => {
+        const original = object?.[method];
+        if (typeof original !== "function") {
+            throw TypeError(`patch target ${original} is not a function`);
+        }
+        const cancel = patch(id, object, method, options.once ? (...args) => {
+            const result = callback(cancel, original, ...args);
+            cancel();
+            return result;
+        } : (...args) => callback(cancel, original, ...args));
+        if (!options.silent) {
+            Logger.log(`Patched ${String(method)} of ${options.name ?? resolveName(object, method)}`);
+        }
+        return cancel;
+    };
+    return {
+        instead: (object, method, callback, options = {}) => forward(BdApi.Patcher.instead, object, method, (cancel, original, context, args) => callback({ cancel, original, context, args }), options),
+        before: (object, method, callback, options = {}) => forward(BdApi.Patcher.before, object, method, (cancel, original, context, args) => callback({ cancel, original, context, args }), options),
+        after: (object, method, callback, options = {}) => forward(BdApi.Patcher.after, object, method, (cancel, original, context, args, result) => callback({ cancel, original, context, args, result }), options),
+        unpatchAll: () => {
+            if (BdApi.Patcher.getPatchesByCaller(id).length > 0) {
+                BdApi.Patcher.unpatchAll(id);
+                Logger.log("Unpatched all");
+            }
+        }
+    };
 };
 
 const EventEmitter = /* @__PURE__ */ byProps$1("subscribe", "emit");
 const React$1 = /* @__PURE__ */ byProps$1("createElement", "Component", "Fragment");
 const ReactDOM = /* @__PURE__ */ byProps$1("render", "findDOMNode", "createPortal");
+const ReactSpring = /* @__PURE__ */ byProps$1("SpringContext", "animated");
 const classNames = /* @__PURE__ */ find$1((exports) => exports instanceof Object && exports.default === exports && Object.keys(exports).length === 1);
 const lodash = /* @__PURE__ */ byProps$1("cloneDeep", "flattenDeep");
-const semver = /* @__PURE__ */ byProps$1("valid", "satifies");
+const semver = /* @__PURE__ */ byProps$1("SemVer");
 const moment = /* @__PURE__ */ byProps$1("utc", "months");
 const SimpleMarkdown = /* @__PURE__ */ byProps$1("parseBlock", "parseInline");
 const hljs = /* @__PURE__ */ byProps$1("highlight", "highlightBlock");
-const Raven = /* @__PURE__ */ byProps$1("captureBreadcrumb");
-const joi = /* @__PURE__ */ byProps$1("assert", "validate", "object");
+const platform = /* @__PURE__ */ byProps$1("os", "manufacturer");
+const lottie = /* @__PURE__ */ byProps$1("setSubframeRendering");
+
+const Constants = /* @__PURE__ */ byProps$1("Permissions", "RelationshipTypes");
+const i18n = /* @__PURE__ */ byProps$1("languages", "getLocale");
 
 const Flux = /* @__PURE__ */ byProps$1("Store", "useStateFromStores");
 const Dispatcher = /* @__PURE__ */ byProps$1("dispatch", "subscribe");
 
-const Constants = /* @__PURE__ */ byProps$1("Permissions", "RelationshipTypes");
-const i18n = /* @__PURE__ */ byProps$1("languages", "getLocale");
 const Platforms = /* @__PURE__ */ byProps$1("getPlatform", "isWindows", "isWeb", "PlatformTypes");
 const ClientActions = /* @__PURE__ */ byProps$1("toggleGuildFolderExpand");
+const UserSettings = /* @__PURE__ */ byProps$1("MessageDisplayCompact");
+const LocaleStore = /* @__PURE__ */ byName$1("LocaleStore");
+const ThemeStore = /* @__PURE__ */ byName$1("ThemeStore");
+const ContextMenuActions = /* @__PURE__ */ byProps$1("openContextMenuLazy");
+const ModalActions = /* @__PURE__ */ byProps$1("openModalLazy");
+const MediaEngineStore = /* @__PURE__ */ byProps$1("getLocalVolume");
+const MediaEngineActions = /* @__PURE__ */ byProps$1("setLocalVolume");
+
+const UserStore = /* @__PURE__ */ byProps$1("getUser", "getCurrentUser");
+const PresenceStore = /* @__PURE__ */ byProps$1("getState", "getStatus", "isMobileOnline");
+const RelationshipStore = /* @__PURE__ */ byProps$1("isFriend", "getRelationshipCount");
+
 const GuildStore = /* @__PURE__ */ byProps$1("getGuild");
 const GuildActions = /* @__PURE__ */ byProps$1("requestMembers");
+const GuildMemberStore = /* @__PURE__ */ byProps$1("getMember", "isMember");
+
 const ChannelStore = /* @__PURE__ */ byProps$1("getChannel", "hasChannel");
 const ChannelActions = /* @__PURE__ */ byProps$1("selectChannel");
 const SelectedChannelStore = /* @__PURE__ */ byProps$1("getChannelId", "getVoiceChannelId");
-const UserStore = /* @__PURE__ */ byProps$1("getUser", "getCurrentUser");
-const GuildMemberStore = /* @__PURE__ */ byProps$1("getMember", "isMember");
-const PresenceStore = /* @__PURE__ */ byProps$1("getState", "getStatus", "isMobileOnline");
-const RelationshipStore = /* @__PURE__ */ byProps$1("isFriend", "getRelationshipCount");
-const MessageStore = /* @__PURE__ */ byProps$1("getMessage", "getMessages");
-const MessageActions = /* @__PURE__ */ byProps$1("jumpToMessage", "_sendMessage");
-const MediaEngineStore = /* @__PURE__ */ byProps$1("getLocalVolume");
-const MediaEngineActions = /* @__PURE__ */ byProps$1("setLocalVolume");
-const ContextMenuActions = /* @__PURE__ */ byProps$1("openContextMenuLazy");
-const ModalActions = /* @__PURE__ */ byProps$1("openModalLazy");
-const Flex = /* @__PURE__ */ byName$1("Flex");
+
+const Flex = /* @__PURE__ */ byAnyName$1("Flex");
 const Button = /* @__PURE__ */ byProps$1("Link", "Hovers");
-const Text = /* @__PURE__ */ byName$1("Text");
+const Text = /* @__PURE__ */ byAnyName$1("Text");
+const Clickable = /* @__PURE__ */ byAnyName$1("Clickable");
 const Links = /* @__PURE__ */ byProps$1("Link", "NavLink");
-const Switch = /* @__PURE__ */ byName$1("Switch");
-const SwitchItem = /* @__PURE__ */ byName$1("SwitchItem");
-const RadioGroup = /* @__PURE__ */ byName$1("RadioGroup");
-const Slider = /* @__PURE__ */ byName$1("Slider");
-const TextInput = /* @__PURE__ */ byName$1("TextInput");
+const Switch = /* @__PURE__ */ byAnyName$1("Switch");
+const SwitchItem = /* @__PURE__ */ byAnyName$1("SwitchItem");
+const RadioGroup = /* @__PURE__ */ byAnyName$1("RadioGroup");
+const Slider = /* @__PURE__ */ byAnyName$1("Slider");
+const TextInput = /* @__PURE__ */ byAnyName$1("TextInput");
 const Menu = /* @__PURE__ */ byProps$1("MenuGroup", "MenuItem", "MenuSeparator");
 const Form = /* @__PURE__ */ byProps$1("FormItem", "FormSection", "FormDivider");
 const margins = /* @__PURE__ */ byProps$1("marginLarge");
@@ -204,36 +247,39 @@ const Modules = {
     EventEmitter: EventEmitter,
     React: React$1,
     ReactDOM: ReactDOM,
+    ReactSpring: ReactSpring,
     classNames: classNames,
     lodash: lodash,
     semver: semver,
     moment: moment,
     SimpleMarkdown: SimpleMarkdown,
     hljs: hljs,
-    Raven: Raven,
-    joi: joi,
+    platform: platform,
+    lottie: lottie,
     Constants: Constants,
     i18n: i18n,
     Platforms: Platforms,
     ClientActions: ClientActions,
+    UserSettings: UserSettings,
+    LocaleStore: LocaleStore,
+    ThemeStore: ThemeStore,
+    ContextMenuActions: ContextMenuActions,
+    ModalActions: ModalActions,
+    MediaEngineStore: MediaEngineStore,
+    MediaEngineActions: MediaEngineActions,
+    UserStore: UserStore,
+    PresenceStore: PresenceStore,
+    RelationshipStore: RelationshipStore,
     GuildStore: GuildStore,
     GuildActions: GuildActions,
+    GuildMemberStore: GuildMemberStore,
     ChannelStore: ChannelStore,
     ChannelActions: ChannelActions,
     SelectedChannelStore: SelectedChannelStore,
-    UserStore: UserStore,
-    GuildMemberStore: GuildMemberStore,
-    PresenceStore: PresenceStore,
-    RelationshipStore: RelationshipStore,
-    MessageStore: MessageStore,
-    MessageActions: MessageActions,
-    MediaEngineStore: MediaEngineStore,
-    MediaEngineActions: MediaEngineActions,
-    ContextMenuActions: ContextMenuActions,
-    ModalActions: ModalActions,
     Flex: Flex,
     Button: Button,
     Text: Text,
+    Clickable: Clickable,
     Links: Links,
     Switch: Switch,
     SwitchItem: SwitchItem,
@@ -245,107 +291,50 @@ const Modules = {
     margins: margins
 };
 
-const resolveName = (object, method) => {
-    const target = method === "default" ? object[method] : {};
-    return object.displayName ?? object.constructor?.displayName ?? target.displayName ?? "unknown";
+const ReactInternals = React$1?.__SECRET_INTERNALS_DO_NOT_USE_OR_YOU_WILL_BE_FIRED;
+const [getInstanceFromNode, getNodeFromInstance, getFiberCurrentPropsFromNode, enqueueStateRestore, restoreStateIfNeeded, batchedUpdates] = ReactDOM?.__SECRET_INTERNALS_DO_NOT_USE_OR_YOU_WILL_BE_FIRED?.Events ?? [];
+const ReactDOMInternals = {
+    getInstanceFromNode,
+    getNodeFromInstance,
+    getFiberCurrentPropsFromNode,
+    enqueueStateRestore,
+    restoreStateIfNeeded,
+    batchedUpdates
 };
-const createPatcher = (id, Logger) => {
-    const forward = (patcher, object, method, callback, options) => {
-        const original = object[method];
-        const cancel = patcher(id, object, method, options.once ? (context, args, result) => {
-            const temp = callback({ cancel, original, context, args, result });
-            cancel();
-            return temp;
-        } : (context, args, result) => callback({ cancel, original, context, args, result }), { silent: true });
-        if (!options.silent) {
-            Logger.log(`Patched ${String(method)} of ${options.name ?? resolveName(object, method)}`);
-        }
-        return cancel;
-    };
-    const rawPatcher = BdApi.Patcher;
-    const patcher = {
-        instead: (object, method, callback, options = {}) => forward(rawPatcher.instead, object, method, ({ result: _, ...data }) => callback(data), options),
-        before: (object, method, callback, options = {}) => forward(rawPatcher.before, object, method, ({ result: _, ...data }) => callback(data), options),
-        after: (object, method, callback, options = {}) => forward(rawPatcher.after, object, method, callback, options),
-        unpatchAll: () => {
-            if (rawPatcher.getPatchesByCaller(id).length > 0) {
-                rawPatcher.unpatchAll(id);
-                Logger.log("Unpatched all");
-            }
-        },
-        waitForLazy: (object, method, argIndex, callback) => new Promise((resolve) => {
-            const found = callback();
-            if (found) {
-                resolve(found);
-            }
-            else {
-                Logger.log(`Waiting for lazy load in ${String(method)} of ${resolveName(object, method)}`);
-                patcher.before(object, method, ({ args, cancel }) => {
-                    const original = args[argIndex];
-                    args[argIndex] = async function (...args) {
-                        const result = await original.call(this, ...args);
-                        Promise.resolve().then(() => {
-                            const found = callback();
-                            if (found) {
-                                resolve(found);
-                                cancel();
-                            }
-                        });
-                        return result;
-                    };
-                }, { silent: true });
-            }
-        }),
-        waitForContextMenu: (callback) => patcher.waitForLazy(ContextMenuActions, "openContextMenuLazy", 1, callback),
-        waitForModal: (callback) => patcher.waitForLazy(ModalActions, "openModalLazy", 0, callback)
-    };
-    return patcher;
-};
-
-const createStyles = (id) => {
-    return {
-        inject(styles) {
-            if (typeof styles === "string") {
-                BdApi.injectCSS(id, styles);
-            }
-        },
-        clear: () => BdApi.clearCSS(id)
-    };
-};
-
-const createData = (id) => ({
-    load: (key) => BdApi.loadData(id, key) ?? null,
-    save: (key, value) => BdApi.saveData(id, key, value),
-    delete: (key) => BdApi.deleteData(id, key)
-});
 
 class Settings extends Flux.Store {
     constructor(Data, defaults) {
         super(new Flux.Dispatcher(), {
-            update: ({ current }) => Data.save("settings", current)
+            update: ({ settings }) => {
+                Object.assign(this.current, settings);
+                for (const listener of this.listeners) {
+                    listener(this.current);
+                }
+                Data.save("settings", this.current);
+            }
         });
-        this.listeners = new Map();
+        this.listeners = new Set();
         this.defaults = defaults;
         this.current = { ...defaults, ...Data.load("settings") };
     }
-    dispatch() {
+    dispatch(settings) {
         this._dispatcher.dispatch({
             type: "update",
-            current: this.current
+            settings
         });
     }
     update(settings) {
-        Object.assign(this.current, settings instanceof Function ? settings(this.current) : settings);
-        this.dispatch();
+        this.dispatch(typeof settings === "function" ? settings(this.current) : settings);
     }
     reset() {
-        this.update({ ...this.defaults });
+        this.dispatch({ ...this.defaults });
     }
     delete(...keys) {
+        const settings = { ...this.current };
         for (const key of keys) {
-            delete this.current[key];
+            delete settings[key];
         }
-        this.dispatch();
+        this.dispatch(settings);
     }
     useCurrent() {
         return Flux.useStateFromStores([this], () => this.current);
@@ -356,37 +345,34 @@ class Settings extends Flux.Store {
     useStateWithDefaults() {
         return Flux.useStateFromStores([this], () => [this.current, this.defaults, (settings) => this.update(settings)]);
     }
+    useListener(listener) {
+        React$1.useEffect(() => {
+            this.addListener(listener);
+            return () => this.removeListener(listener);
+        }, [listener]);
+    }
     addListener(listener) {
-        const wrapper = ({ current }) => listener(current);
-        this.listeners.set(listener, wrapper);
-        this._dispatcher.subscribe("update", wrapper);
+        this.listeners.add(listener);
         return listener;
     }
     removeListener(listener) {
-        const wrapper = this.listeners.get(listener);
-        if (wrapper) {
-            this._dispatcher.unsubscribe("update", wrapper);
-            this.listeners.delete(listener);
-        }
+        this.listeners.delete(listener);
     }
     removeAllListeners() {
-        for (const wrapper of this.listeners.values()) {
-            this._dispatcher.unsubscribe("update", wrapper);
-        }
         this.listeners.clear();
     }
 }
 const createSettings = (Data, defaults) => new Settings(Data, defaults);
 
-const ReactInternals = React$1?.__SECRET_INTERNALS_DO_NOT_USE_OR_YOU_WILL_BE_FIRED;
-const [getInstanceFromNode, getNodeFromInstance, getFiberCurrentPropsFromNode, enqueueStateRestore, restoreStateIfNeeded, batchedUpdates] = ReactDOM?.__SECRET_INTERNALS_DO_NOT_USE_OR_YOU_WILL_BE_FIRED?.Events ?? [];
-const ReactDOMInternals = {
-    getInstanceFromNode,
-    getNodeFromInstance,
-    getFiberCurrentPropsFromNode,
-    enqueueStateRestore,
-    restoreStateIfNeeded,
-    batchedUpdates
+const createStyles = (id) => {
+    return {
+        inject(styles) {
+            if (typeof styles === "string") {
+                BdApi.injectCSS(id, styles);
+            }
+        },
+        clear: () => BdApi.clearCSS(id)
+    };
 };
 
 const sleep = (duration) => new Promise((resolve) => setTimeout(resolve, duration));
@@ -499,46 +485,48 @@ const SettingsContainer = ({ name, children, onReset }) => (React$1.createElemen
                 onConfirm: () => onReset()
             }) }, "Reset"))));
 
-const version$1 = "0.2.10";
+const version = "0.2.12";
 
-const createPlugin = ({ name, version, styles, settings }, callback) => {
+const createPlugin = (config, callback) => (meta) => {
+    const name = config.name ?? meta.name;
+    const version = config.version ?? meta.version;
     const Logger = createLogger(name, "#3a71c1", version);
+    const Lazy = createLazy();
     const Patcher = createPatcher(name, Logger);
     const Styles = createStyles(name);
     const Data = createData(name);
-    const Settings = createSettings(Data, settings ?? {});
-    const plugin = callback({ Logger, Patcher, Styles, Data, Settings });
-    class Wrapper {
+    const Settings = createSettings(Data, config.settings ?? {});
+    const plugin = callback({ meta, Logger, Lazy, Patcher, Styles, Data, Settings });
+    return {
         start() {
             Logger.log("Enabled");
-            Styles.inject(styles);
+            Styles.inject(config.styles);
             plugin.start();
-        }
+        },
         stop() {
+            Lazy.abort();
             Patcher.unpatchAll();
             Styles.clear();
             plugin.stop();
             Logger.log("Disabled");
-        }
-    }
-    if (plugin.SettingsPanel) {
-        Wrapper.prototype.getSettingsPanel = () => (React$1.createElement(SettingsContainer, { name: name, onReset: () => Settings.reset() },
-            React$1.createElement(plugin.SettingsPanel, null)));
-    }
-    return Wrapper;
+        },
+        getSettingsPanel: plugin.SettingsPanel ? () => (React$1.createElement(SettingsContainer, { name: name, onReset: () => Settings.reset() },
+            React$1.createElement(plugin.SettingsPanel, null))) : null
+    };
 };
 
 const dium = {
     __proto__: null,
     createPlugin: createPlugin,
-    Finder: index$2,
+    Filters: filters,
+    Finder: finder,
     ReactInternals: ReactInternals,
     ReactDOMInternals: ReactDOMInternals,
     Utils: index$1,
     React: React$1,
     ReactDOM: ReactDOM,
     Flux: Flux,
-    version: version$1
+    version: version
 };
 
 const getWebpackRequire = () => {
@@ -556,6 +544,9 @@ const getWebpackRequire = () => {
     return webpackRequire;
 };
 const webpackRequire = getWebpackRequire();
+const byExportsFilter = (exported) => {
+    return (target) => target === exported || (target instanceof Object && Object.values(target).includes(exported));
+};
 const byModuleSourceFilter = (contents) => {
     return (_, module) => {
         const source = sourceOf(module.id).toString();
@@ -564,26 +555,28 @@ const byModuleSourceFilter = (contents) => {
 };
 const applyFilters = (filters) => (module) => {
     const { exports } = module;
-    return (filters.every((filter) => filter(exports, module))
-        || exports?.__esModule && "default" in exports && filters.every((filter) => filter(exports.default, module)));
+    return (filters.every((filter) => filter(exports, module, String(module.id)))
+        || exports?.__esModule && "default" in exports && filters.every((filter) => filter(exports.default, module, String(module.id))));
 };
 const modules = () => Object.values(webpackRequire.c);
 const sources = () => Object.values(webpackRequire.m);
 const sourceOf = (id) => webpackRequire.m[id] ?? null;
 const find = (...filters) => modules().find(applyFilters(filters)) ?? null;
-const query = (options) => find(...generate(options));
+const query = (options) => find(query$2(options));
 const byId = (id) => webpackRequire.c[id] ?? null;
-const byExports = (exported) => find(byExports$2(exported));
+const byExports = (exported) => find(byExportsFilter(exported));
 const byName = (name) => find(byName$2(name));
+const byAnyName = (name) => find(byAnyName$2(name));
 const byProps = (...props) => find(byProps$2(props));
 const byProtos = (...protos) => find(byProtos$2(protos));
 const bySource = (...contents) => find(bySource$2(contents));
 const byModuleSource = (...contents) => find(byModuleSourceFilter(contents));
 const all = {
     find: (...filters) => modules().filter(applyFilters(filters)),
-    query: (options) => all.find(...generate(options)),
-    byExports: (exported) => all.find(byExports$2(exported)),
+    query: (options) => all.find(query$2(options)),
+    byExports: (exported) => all.find(byExportsFilter(exported)),
     byName: (name) => all.find(byName$2(name)),
+    byAnyName: (name) => all.find(byAnyName$2(name)),
     byProps: (...props) => all.find(byProps$2(props)),
     byProtos: (...protos) => all.find(byProtos$2(protos)),
     bySource: (...contents) => all.find(bySource$2(contents)),
@@ -620,6 +613,7 @@ const DevFinder = {
     byId: byId,
     byExports: byExports,
     byName: byName,
+    byAnyName: byAnyName,
     byProps: byProps,
     byProtos: byProtos,
     bySource: bySource,
@@ -630,17 +624,6 @@ const DevFinder = {
     resolveStyles: resolveStyles,
     resolveUsersById: resolveUsersById,
     resolveUsers: resolveUsers
-};
-
-const name = "DevTools";
-const author = "Zerthox";
-const version = "0.3.1";
-const description = "Utilities for development.";
-const config = {
-	name: name,
-	author: author,
-	version: version,
-	description: description
 };
 
 const { React, Finder } = dium;
@@ -673,7 +656,7 @@ const updateStaffFlag = (flag) => {
     }
     UserStore.emitChange();
 };
-const index = createPlugin({ ...config, settings }, ({ Settings }) => ({
+const index = createPlugin({ settings }, ({ Settings }) => ({
     start() {
         updateGlobal(Settings.current.global);
         try {

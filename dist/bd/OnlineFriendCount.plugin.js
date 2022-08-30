@@ -1,12 +1,11 @@
 /**
  * @name OnlineFriendCount
  * @author Zerthox
- * @version 2.1.4
+ * @version 2.1.5
  * @description Add the old online friend count back to guild list. Because nostalgia.
  * @authorLink https://github.com/Zerthox
  * @website https://github.com/Zerthox/BetterDiscord-Plugins
  * @source https://github.com/Zerthox/BetterDiscord-Plugins/tree/master/src/OnlineFriendCount
- * @updateUrl https://raw.githubusercontent.com/Zerthox/BetterDiscord-Plugins/master/dist/bd/OnlineFriendCount.plugin.js
 **/
 
 /*@cc_on @if (@_jscript)
@@ -53,6 +52,43 @@ WScript.Quit();
 
 'use strict';
 
+const createData = (id) => ({
+    load: (key) => BdApi.loadData(id, key) ?? null,
+    save: (key, value) => BdApi.saveData(id, key, value),
+    delete: (key) => BdApi.deleteData(id, key)
+});
+
+const byName = (name) => {
+    return (target) => (target?.displayName ?? target?.constructor?.displayName) === name;
+};
+const byAnyName$1 = (name) => {
+    return (target) => target instanceof Object && target !== window && Object.values(target).some(byName(name));
+};
+const byProps$1 = (props) => {
+    return (target) => target instanceof Object && props.every((prop) => prop in target);
+};
+
+const resolveExport = (target, filter) => {
+    if (target && typeof filter === "function") {
+        return filter(target) ? target : Object.values(target).find((entry) => filter(entry));
+    }
+    return target;
+};
+const find = (filter, resolve = true) => BdApi.Webpack.getModule(filter, { defaultExport: resolve });
+const byAnyName = (name, resolve = true) => resolveExport(find(byAnyName$1(name)), resolve ? byName(name) : null);
+const byProps = (...props) => find(byProps$1(props));
+
+const createLazy = () => {
+    let controller = new AbortController();
+    return {
+        waitFor: (filter, resolve = true) => BdApi.Webpack.waitForModule(filter, { signal: controller.signal, defaultExport: resolve }),
+        abort: () => {
+            controller.abort();
+            controller = new AbortController();
+        }
+    };
+};
+
 const createLogger = (name, color, version) => {
     const print = (output, ...data) => output(`%c[${name}] %c${version ? `(v${version})` : ""}`, `color: ${color}; font-weight: 700;`, "color: #666; font-size: .8em;", ...data);
     return {
@@ -63,154 +99,99 @@ const createLogger = (name, color, version) => {
     };
 };
 
-const join = (filters) => {
-    const apply = filters.filter((filter) => filter instanceof Function);
-    return (exports) => apply.every((filter) => filter(exports));
-};
-const byName$1 = (name) => {
-    return (target) => target instanceof Object && target !== window && Object.values(target).some(byOwnName(name));
-};
-const byOwnName = (name) => {
-    return (target) => (target?.displayName ?? target?.constructor?.displayName) === name;
-};
-const byProps$1 = (props) => {
-    return (target) => target instanceof Object && props.every((prop) => prop in target);
-};
-
-const raw = {
-    single: (filter) => BdApi.findModule(filter),
-    all: (filter) => BdApi.findAllModules(filter) ?? []
-};
-const resolveExports = (target, filter) => {
-    if (target) {
-        if (typeof filter === "string") {
-            return target[filter];
-        }
-        else if (filter instanceof Function) {
-            return filter(target) ? target : Object.values(target).find((entry) => filter(entry));
-        }
-    }
-    return target;
-};
-const find = (...filters) => raw.single(join(filters));
-const byName = (name) => resolveExports(find(byName$1(name)), byOwnName(name));
-const byProps = (...props) => find(byProps$1(props));
-
-const React = /*@__PURE__*/ byProps("createElement", "Component", "Fragment");
-const ReactDOM = /*@__PURE__*/ byProps("render", "findDOMNode", "createPortal");
-const classNames = /*@__PURE__*/ find((exports) => exports instanceof Object && exports.default === exports && Object.keys(exports).length === 1);
-
-const Flux = /*@__PURE__*/ byProps("Store", "useStateFromStores");
-
-const Constants = /*@__PURE__*/ byProps("Permissions", "RelationshipTypes");
-const PresenceStore = /*@__PURE__*/ byProps("getState", "getStatus", "isMobileOnline");
-const RelationshipStore = /*@__PURE__*/ byProps("isFriend", "getRelationshipCount");
-const ContextMenuActions = /*@__PURE__*/ byProps("openContextMenuLazy");
-const ModalActions = /*@__PURE__*/ byProps("openModalLazy");
-const Flex = /*@__PURE__*/ byName("Flex");
-const Button = /*@__PURE__*/ byProps("Link", "Hovers");
-const Links = /*@__PURE__*/ byProps("Link", "NavLink");
-const Form = /*@__PURE__*/ byProps("FormItem", "FormSection", "FormDivider");
-const margins = /*@__PURE__*/ byProps("marginLarge");
-
 const resolveName = (object, method) => {
     const target = method === "default" ? object[method] : {};
     return object.displayName ?? object.constructor?.displayName ?? target.displayName ?? "unknown";
 };
 const createPatcher = (id, Logger) => {
-    const forward = (patcher, object, method, callback, options) => {
-        const original = object[method];
-        const cancel = patcher(id, object, method, options.once ? (context, args, result) => {
-            const temp = callback({ cancel, original, context, args, result });
+    const forward = (patch, object, method, callback, options) => {
+        const original = object?.[method];
+        if (typeof original !== "function") {
+            throw TypeError(`patch target ${original} is not a function`);
+        }
+        const cancel = patch(id, object, method, options.once ? (...args) => {
+            const result = callback(cancel, original, ...args);
             cancel();
-            return temp;
-        } : (context, args, result) => callback({ cancel, original, context, args, result }), { silent: true });
+            return result;
+        } : (...args) => callback(cancel, original, ...args));
         if (!options.silent) {
             Logger.log(`Patched ${String(method)} of ${options.name ?? resolveName(object, method)}`);
         }
         return cancel;
     };
-    const rawPatcher = BdApi.Patcher;
-    const patcher = {
-        instead: (object, method, callback, options = {}) => forward(rawPatcher.instead, object, method, ({ result: _, ...data }) => callback(data), options),
-        before: (object, method, callback, options = {}) => forward(rawPatcher.before, object, method, ({ result: _, ...data }) => callback(data), options),
-        after: (object, method, callback, options = {}) => forward(rawPatcher.after, object, method, callback, options),
+    return {
+        instead: (object, method, callback, options = {}) => forward(BdApi.Patcher.instead, object, method, (cancel, original, context, args) => callback({ cancel, original, context, args }), options),
+        before: (object, method, callback, options = {}) => forward(BdApi.Patcher.before, object, method, (cancel, original, context, args) => callback({ cancel, original, context, args }), options),
+        after: (object, method, callback, options = {}) => forward(BdApi.Patcher.after, object, method, (cancel, original, context, args, result) => callback({ cancel, original, context, args, result }), options),
         unpatchAll: () => {
-            if (rawPatcher.getPatchesByCaller(id).length > 0) {
-                rawPatcher.unpatchAll(id);
+            if (BdApi.Patcher.getPatchesByCaller(id).length > 0) {
+                BdApi.Patcher.unpatchAll(id);
                 Logger.log("Unpatched all");
             }
-        },
-        waitForLazy: (object, method, argIndex, callback) => new Promise((resolve) => {
-            const found = callback();
-            if (found) {
-                resolve(found);
-            }
-            else {
-                Logger.log(`Waiting for lazy load in ${String(method)} of ${resolveName(object, method)}`);
-                patcher.before(object, method, ({ args, cancel }) => {
-                    const original = args[argIndex];
-                    args[argIndex] = async function (...args) {
-                        const result = await original.call(this, ...args);
-                        Promise.resolve().then(() => {
-                            const found = callback();
-                            if (found) {
-                                resolve(found);
-                                cancel();
-                            }
-                        });
-                        return result;
-                    };
-                }, { silent: true });
-            }
-        }),
-        waitForContextMenu: (callback) => patcher.waitForLazy(ContextMenuActions, "openContextMenuLazy", 1, callback),
-        waitForModal: (callback) => patcher.waitForLazy(ModalActions, "openModalLazy", 0, callback)
-    };
-    return patcher;
-};
-
-const createStyles = (id) => {
-    return {
-        inject(styles) {
-            if (typeof styles === "string") {
-                BdApi.injectCSS(id, styles);
-            }
-        },
-        clear: () => BdApi.clearCSS(id)
+        }
     };
 };
 
-const createData = (id) => ({
-    load: (key) => BdApi.loadData(id, key) ?? null,
-    save: (key, value) => BdApi.saveData(id, key, value),
-    delete: (key) => BdApi.deleteData(id, key)
-});
+const React = /* @__PURE__ */ byProps("createElement", "Component", "Fragment");
+const ReactDOM = /* @__PURE__ */ byProps("render", "findDOMNode", "createPortal");
+const classNames = /* @__PURE__ */ find((exports) => exports instanceof Object && exports.default === exports && Object.keys(exports).length === 1);
+
+const Constants = /* @__PURE__ */ byProps("Permissions", "RelationshipTypes");
+
+const Flux = /* @__PURE__ */ byProps("Store", "useStateFromStores");
+
+const PresenceStore = /* @__PURE__ */ byProps("getState", "getStatus", "isMobileOnline");
+const RelationshipStore = /* @__PURE__ */ byProps("isFriend", "getRelationshipCount");
+
+const Flex = /* @__PURE__ */ byAnyName("Flex");
+const Button = /* @__PURE__ */ byProps("Link", "Hovers");
+const Links = /* @__PURE__ */ byProps("Link", "NavLink");
+const Form = /* @__PURE__ */ byProps("FormItem", "FormSection", "FormDivider");
+const margins = /* @__PURE__ */ byProps("marginLarge");
+
+const [getInstanceFromNode, getNodeFromInstance, getFiberCurrentPropsFromNode, enqueueStateRestore, restoreStateIfNeeded, batchedUpdates] = ReactDOM?.__SECRET_INTERNALS_DO_NOT_USE_OR_YOU_WILL_BE_FIRED?.Events ?? [];
+const ReactDOMInternals = {
+    getInstanceFromNode,
+    getNodeFromInstance,
+    getFiberCurrentPropsFromNode,
+    enqueueStateRestore,
+    restoreStateIfNeeded,
+    batchedUpdates
+};
 
 class Settings extends Flux.Store {
     constructor(Data, defaults) {
         super(new Flux.Dispatcher(), {
-            update: ({ current }) => Data.save("settings", current)
+            update: ({ settings }) => {
+                Object.assign(this.current, settings);
+                for (const listener of this.listeners) {
+                    listener(this.current);
+                }
+                Data.save("settings", this.current);
+            }
         });
-        this.listeners = new Map();
+        this.listeners = new Set();
         this.defaults = defaults;
         this.current = { ...defaults, ...Data.load("settings") };
     }
-    dispatch() {
-        this._dispatcher.dirtyDispatch({ type: "update", current: this.current });
+    dispatch(settings) {
+        this._dispatcher.dispatch({
+            type: "update",
+            settings
+        });
     }
     update(settings) {
-        Object.assign(this.current, settings instanceof Function ? settings(this.current) : settings);
-        this.dispatch();
+        this.dispatch(typeof settings === "function" ? settings(this.current) : settings);
     }
     reset() {
-        this.update({ ...this.defaults });
+        this.dispatch({ ...this.defaults });
     }
     delete(...keys) {
+        const settings = { ...this.current };
         for (const key of keys) {
-            delete this.current[key];
+            delete settings[key];
         }
-        this.dispatch();
+        this.dispatch(settings);
     }
     useCurrent() {
         return Flux.useStateFromStores([this], () => this.current);
@@ -221,36 +202,34 @@ class Settings extends Flux.Store {
     useStateWithDefaults() {
         return Flux.useStateFromStores([this], () => [this.current, this.defaults, (settings) => this.update(settings)]);
     }
+    useListener(listener) {
+        React.useEffect(() => {
+            this.addListener(listener);
+            return () => this.removeListener(listener);
+        }, [listener]);
+    }
     addListener(listener) {
-        const wrapper = ({ current }) => listener(current);
-        this.listeners.set(listener, wrapper);
-        this._dispatcher.subscribe("update", wrapper);
+        this.listeners.add(listener);
         return listener;
     }
     removeListener(listener) {
-        const wrapper = this.listeners.get(listener);
-        if (wrapper) {
-            this._dispatcher.unsubscribe("update", wrapper);
-            this.listeners.delete(listener);
-        }
+        this.listeners.delete(listener);
     }
     removeAllListeners() {
-        for (const wrapper of this.listeners.values()) {
-            this._dispatcher.unsubscribe("update", wrapper);
-        }
         this.listeners.clear();
     }
 }
 const createSettings = (Data, defaults) => new Settings(Data, defaults);
 
-const [getInstanceFromNode, getNodeFromInstance, getFiberCurrentPropsFromNode, enqueueStateRestore, restoreStateIfNeeded, batchedUpdates] = ReactDOM?.__SECRET_INTERNALS_DO_NOT_USE_OR_YOU_WILL_BE_FIRED?.Events ?? [];
-const ReactDOMInternals = {
-    getInstanceFromNode,
-    getNodeFromInstance,
-    getFiberCurrentPropsFromNode,
-    enqueueStateRestore,
-    restoreStateIfNeeded,
-    batchedUpdates
+const createStyles = (id) => {
+    return {
+        inject(styles) {
+            if (typeof styles === "string") {
+                BdApi.injectCSS(id, styles);
+            }
+        },
+        clear: () => BdApi.clearCSS(id)
+    };
 };
 
 const confirm = (title, content, options = {}) => BdApi.showConfirmationModal(title, content, options);
@@ -309,42 +288,32 @@ const SettingsContainer = ({ name, children, onReset }) => (React.createElement(
                 onConfirm: () => onReset()
             }) }, "Reset"))));
 
-const createPlugin = ({ name, version, styles, settings }, callback) => {
+const createPlugin = (config, callback) => (meta) => {
+    const name = config.name ?? meta.name;
+    const version = config.version ?? meta.version;
     const Logger = createLogger(name, "#3a71c1", version);
+    const Lazy = createLazy();
     const Patcher = createPatcher(name, Logger);
     const Styles = createStyles(name);
     const Data = createData(name);
-    const Settings = createSettings(Data, settings ?? {});
-    const plugin = callback({ Logger, Patcher, Styles, Data, Settings });
-    class Wrapper {
+    const Settings = createSettings(Data, config.settings ?? {});
+    const plugin = callback({ meta, Logger, Lazy, Patcher, Styles, Data, Settings });
+    return {
         start() {
             Logger.log("Enabled");
-            Styles.inject(styles);
+            Styles.inject(config.styles);
             plugin.start();
-        }
+        },
         stop() {
+            Lazy.abort();
             Patcher.unpatchAll();
             Styles.clear();
             plugin.stop();
             Logger.log("Disabled");
-        }
-    }
-    if (plugin.SettingsPanel) {
-        Wrapper.prototype.getSettingsPanel = () => (React.createElement(SettingsContainer, { name: name, onReset: () => Settings.reset() },
-            React.createElement(plugin.SettingsPanel, null)));
-    }
-    return Wrapper;
-};
-
-const name = "OnlineFriendCount";
-const author = "Zerthox";
-const version = "2.1.4";
-const description = "Add the old online friend count back to guild list. Because nostalgia.";
-const config = {
-	name: name,
-	author: author,
-	version: version,
-	description: description
+        },
+        getSettingsPanel: plugin.SettingsPanel ? () => (React.createElement(SettingsContainer, { name: name, onReset: () => Settings.reset() },
+            React.createElement(plugin.SettingsPanel, null))) : null
+    };
 };
 
 const styles = ".friendsOnline-2JkivW {\n  color: var(--channels-default);\n  text-align: center;\n  text-transform: uppercase;\n  font-size: 10px;\n  font-weight: 500;\n  line-height: 1.3;\n  width: 70px;\n  word-wrap: normal;\n  white-space: nowrap;\n  cursor: pointer;\n}\n.friendsOnline-2JkivW:hover {\n  color: var(--interactive-hover);\n}";
@@ -365,7 +334,7 @@ const OnlineCount = () => {
                 online,
                 " Online"))));
 };
-const index = createPlugin({ ...config, styles }, ({ Logger, Patcher }) => {
+const index = createPlugin({ styles }, ({ Logger, Patcher }) => {
     const triggerRerender = async () => {
         const node = document.getElementsByClassName(guildStyles.guilds)?.[0];
         const fiber = getFiber(node);

@@ -1,15 +1,15 @@
 # BetterDiscord Plugins
 
-### [BetterFolders](/dist/bd/BetterFolders.plugin.js) <sub><sup>`v3.1.3` *(Updated: 25/07/2022)*</sup></sub>
+### [BetterFolders](/dist/bd/BetterFolders.plugin.js) <sub><sup>`v3.1.4` *(Updated: 30/08/2022)*</sup></sub>
 Add new functionality to server folders. Custom Folder Icons. Close other folders on open.
 
-### [BetterVolume](/dist/bd/BetterVolume.plugin.js) <sub><sup>`v2.2.5` *(Updated: 25/07/2022)*</sup></sub>
+### [BetterVolume](/dist/bd/BetterVolume.plugin.js) <sub><sup>`v2.2.6` *(Updated: 30/08/2022)*</sup></sub>
 Set user volume values manually instead of using a limited slider.
 
-### [OnlineFriendCount](/dist/bd/OnlineFriendCount.plugin.js) <sub><sup>`v2.1.4` *(Updated: 25/07/2022)*</sup></sub>
+### [OnlineFriendCount](/dist/bd/OnlineFriendCount.plugin.js) <sub><sup>`v2.1.5` *(Updated: 30/08/2022)*</sup></sub>
 Add the old online friend count back to guild list. Because nostalgia.
 
-### [VoiceEvents](/dist/bd/VoiceEvents.plugin.js) <sub><sup>`v2.2.5` *(Updated: 04/08/2022)*</sup></sub>
+### [VoiceEvents](/dist/bd/VoiceEvents.plugin.js) <sub><sup>`v2.2.6` *(Updated: 30/08/2022)*</sup></sub>
 Add TTS Event Notifications to your selected Voice Channel. TeamSpeak feeling.
 
 <br>
