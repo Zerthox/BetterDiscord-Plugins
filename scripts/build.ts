@@ -44,7 +44,7 @@ if (inputPaths.length === 0) {
 // resolve output directory
 const outDir = args.dev ? path.resolve(
     process.platform === "win32" ? process.env.APPDATA
-        : process.platform === "darwin" ? path.resolve(process.env.HOME, "Library/Preferences")
+        : process.platform === "darwin" ? path.resolve(process.env.HOME, "Library/Application Support")
             : path.resolve(process.env.HOME, ".config"),
     "BetterDiscord/plugins"
 ) : path.resolve(__dirname, "../dist/bd");
