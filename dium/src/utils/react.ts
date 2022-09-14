@@ -110,8 +110,8 @@ export interface OwnerFiber extends Fiber {
 }
 
 /** Finds the owner in the parents of a fiber node. */
-export const findOwner = (fiber: Fiber): OwnerFiber | null => {
-    return queryFiber(fiber, (node) => node?.stateNode instanceof React.Component, Direction.Up, 50);
+export const findOwner = (fiber: Fiber, depth = 50): OwnerFiber | null => {
+    return queryFiber(fiber, (node) => node?.stateNode instanceof React.Component, Direction.Up, depth);
 };
 
 /** Triggers a force update on the fiber node's owner. */
