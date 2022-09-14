@@ -12,6 +12,7 @@ import {
     Lazy,
     createLazy
 } from "./api";
+import {checkForUpdate} from "./updater";
 import {React} from "./modules";
 import {SettingsContainer} from "./components";
 import type * as BD from "betterdiscord";
@@ -68,6 +69,9 @@ export interface Config<Settings extends Record<string, any>> {
     /** Plugin version. */
     version?: string;
 
+    /** BetterDiscord site update id. */
+    updateId?: number;
+
     /**
      * Plugin styles.
      *
@@ -113,6 +117,8 @@ export const createPlugin = <
     const Styles = createStyles(name);
     const Data = createData<DataType>(name);
     const Settings = createSettings(Data, config.settings ?? {} as SettingsType);
+
+    checkForUpdate(name, version, config.updateId);
 
     // get plugin info
     const plugin = callback({meta, Logger, Lazy, Patcher, Styles, Data, Settings});
