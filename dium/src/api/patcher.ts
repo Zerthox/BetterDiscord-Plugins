@@ -69,7 +69,7 @@ export const createPatcher = (id: string, Logger: Logger): Patcher => {
         patch: BD.Patcher["before" | "after" | "instead"],
         object: Module,
         method: Key,
-        callback: (cancel: BD.CancelPatch, original: Module[Key], ...args: any) => any,
+        callback: (cancel: Cancel, original: Module[Key], ...args: any) => any,
         options: Options
     ) => {
         const original = object?.[method];
