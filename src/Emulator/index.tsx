@@ -4,7 +4,7 @@ import {Platforms} from "dium/modules";
 const {PlatformTypes} = Platforms;
 const OverlayBridgeStore = Finder.byProps("initialize", "isSupported", "getFocusedPID");
 
-const RadioGroup = Finder.byAnyName("RadioGroup");
+const RadioGroup = Finder.byName("RadioGroup");
 
 const settings = {
     platform: null // TODO: get platform

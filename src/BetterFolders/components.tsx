@@ -1,8 +1,7 @@
 import {Finder, React} from "dium";
-import {Flex, Button, SwitchItem, Form, margins} from "dium/components";
+import {Flex, Button, SwitchItem, FormText, margins} from "dium/components";
 
-const {FormText} = Form;
-const ImageInput = Finder.byAnyName("ImageInput");
+const ImageInput = Finder.byName("ImageInput");
 
 export interface FolderData {
     icon: string;

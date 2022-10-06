@@ -1,9 +1,7 @@
 import {createPlugin, Finder, Utils, React, Flux} from "dium";
-import {Constants, PresenceStore, RelationshipStore} from "dium/modules";
+import {PresenceStore, RelationshipStore, RelationshipType, StatusType} from "dium/modules";
 import {Links} from "dium/components";
 import styles from "./styles.scss";
-
-const {RelationshipTypes, StatusTypes} = Constants;
 
 const HomeButtonModule = Finder.byProps("HomeButton") as {HomeButton: React.FunctionComponent<any>};
 const {Link} = Links;
@@ -15,7 +13,7 @@ const friendsOnline = "friendsOnline-2JkivW";
 const OnlineCount = () => {
     const online = Flux.useStateFromStores([PresenceStore, RelationshipStore], () => (
         Object.entries(RelationshipStore.getRelationships())
-            .filter(([id, type]) => type === RelationshipTypes.FRIEND && PresenceStore.getStatus(id) !== StatusTypes.OFFLINE)
+            .filter(([id, type]) => type === RelationshipType.FRIEND && PresenceStore.getStatus(id) !== StatusType.OFFLINE)
             .length
     ));
 

@@ -1,13 +1,10 @@
 import * as dium from "dium";
-import {Constants, UserStore} from "dium/modules";
+import {React} from "dium";
+import {UserStore, UserFlag} from "dium/modules";
 import {SwitchItem} from "dium/components";
 import * as Modules from "dium/modules";
 import * as Components from "dium/components";
 import * as DevFinder from "./finder";
-
-const {React, Finder} = dium;
-
-const {UserFlags} = Constants;
 
 const settings = {
     global: true,
@@ -18,7 +15,7 @@ const settings = {
 // add extensions
 const diumGlobal = {
     ...dium,
-    Finder: {...Finder, dev: DevFinder},
+    Finder: {...dium.Finder, dev: DevFinder},
     Modules,
     Components
 };
@@ -40,9 +37,9 @@ const updateGlobal = (expose: boolean) => {
 const updateStaffFlag = (flag: boolean) => {
     const user = UserStore.getCurrentUser();
     if (flag) {
-        user.flags |= UserFlags.STAFF;
+        user.flags |= UserFlag.STAFF;
     } else {
-        user.flags &= ~UserFlags.STAFF;
+        user.flags &= ~UserFlag.STAFF;
     }
     UserStore.emitChange();
 };
@@ -50,25 +47,11 @@ const updateStaffFlag = (flag: boolean) => {
 export default dium.createPlugin({settings}, ({Settings}) => ({
     start() {
         // expose global
-        updateGlobal(Settings.current.global);
-
-        try {
-            // update flag
-            updateStaffFlag(Settings.current.staff);
-        } catch (err) {
-            console.error(err);
-        }
+        updateGlobal(true);
     },
     stop() {
         // remove global
         updateGlobal(false);
-
-        try {
-            // reset flag
-            updateStaffFlag(false);
-        } catch (err) {
-            console.error(err);
-        }
     },
     SettingsPanel: () => {
         const [settings, setSettings] = Settings.useState();

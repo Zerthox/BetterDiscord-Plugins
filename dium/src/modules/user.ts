@@ -60,6 +60,28 @@ export interface User {
     toString(): string;
 }
 
+export const enum UserFlag {
+    STAFF = 2**0,
+    PARTNER = 2**1,
+    HYPESQUAD = 2**2,
+    BUG_HUNTER_LEVEL_1 = 2**3,
+    MFA_SMS = 2**4,
+    PREMIUM_PROMO_DISMISSED = 2**5,
+    HYPESQUAD_ONLINE_HOUSE_1 = 2**6,
+    HYPESQUAD_ONLINE_HOUSE_2 = 2**7,
+    HYPESQUAD_ONLINE_HOUSE_3 = 2**8,
+    PREMIUM_EARLY_SUPPORTER = 2**9,
+    HAS_UNREAD_URGENT_MESSAGES = 2**13,
+    BUG_HUNTER_LEVEL_2 = 2**15,
+    VERIFIED_BOT = 2**16,
+    VERIFIED_DEVELOPER = 2**17,
+    CERTIFIED_MODERATOR = 2**18,
+    BOT_HTTP_INTERACTIONS = 2**19,
+    SPAMMER = 2**20,
+    DISABLE_PREMIUM = 2**21,
+    QUARANTINED = 2**44
+}
+
 export interface UserStore extends Store {
     filter(predicate: (user: User) => boolean, sorted?: boolean): User[];
     findByTag(username: string, discriminator: string): User;
@@ -110,12 +132,12 @@ export interface PresenceStore extends Store {
 export const PresenceStore: PresenceStore = /* @__PURE__ */ Finder.byName("PresenceStore");
 
 export const enum RelationshipType {
-    BLOCKED = 2,
-    FRIEND = 1,
-    IMPLICIT = 5,
     NONE = 0,
+    FRIEND = 1,
+    BLOCKED = 2,
     PENDING_INCOMING = 3,
-    PENDING_OUTGOING = 4
+    PENDING_OUTGOING = 4,
+    IMPLICIT = 5
 }
 
 export interface RelationshipStore extends Store {

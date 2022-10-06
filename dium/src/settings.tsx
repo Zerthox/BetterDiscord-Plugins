@@ -1,5 +1,5 @@
 import {React, classNames} from "./modules";
-import {Flex, Button, Form, margins} from "./components";
+import {Flex, Button, FormSection, FormDivider, margins} from "./components";
 import {confirm} from "./utils";
 
 export interface SettingsContainerProps {
@@ -9,9 +9,9 @@ export interface SettingsContainerProps {
 }
 
 export const SettingsContainer = ({name, children, onReset}: SettingsContainerProps): JSX.Element => (
-    <Form.FormSection>
+    <FormSection>
         {children}
-        <Form.FormDivider className={classNames(margins.marginTop20, margins.marginBottom20)}/>
+        <FormDivider className={classNames(margins.marginTop20, margins.marginBottom20)}/>
         <Flex justify={Flex.Justify.END}>
             <Button
                 size={Button.Sizes.SMALL}
@@ -20,5 +20,5 @@ export const SettingsContainer = ({name, children, onReset}: SettingsContainerPr
                 })}
             >Reset</Button>
         </Flex>
-    </Form.FormSection>
+    </FormSection>
 );

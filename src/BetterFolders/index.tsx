@@ -1,14 +1,13 @@
 import {createPlugin, Finder, Filters, Utils, React, Flux} from "dium";
 import {ClientActions} from "dium/modules";
-import {RadioGroup, SwitchItem, Form} from "dium/components";
+import {RadioGroup, SwitchItem, FormItem} from "dium/components";
 import {BetterFolderIcon, BetterFolderUploader, FolderData} from "./components";
 import styles from "./styles.scss";
 
 const SortedGuildStore = Finder.byProps("getGuildsTree");
 const ExpandedGuildFolderStore = Finder.byProps("getExpandedFolders");
 
-const {FormItem} = Form;
-const FolderHeader = Finder.byAnyName("FolderHeader", false) as {default: React.FunctionComponent<any>};
+const FolderHeader = Finder.byName("FolderHeader", false) as {default: React.FunctionComponent<any>};
 
 let FolderIcon = null;
 

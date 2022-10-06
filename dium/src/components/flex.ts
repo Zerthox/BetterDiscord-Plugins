@@ -43,7 +43,7 @@ export interface Flex extends React.FunctionComponent<FlexProps> {
         grow: 1;
         basis: "auto";
     };
-    Child: React.ComponentType<any>;
+    Child: React.FunctionComponent<any>;
 }
 
 export const Flex: Flex = /* @__PURE__ */ Finder.byProps("Child", "Justify");

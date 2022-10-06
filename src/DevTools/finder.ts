@@ -1,5 +1,5 @@
 import * as Filters from "dium/api/filters";
-import {Query, Filter} from "dium/api/filters";
+import {Query, Filter, TypeOrPredicate} from "dium/api/filters";
 import {Require, Module, WebpackId, Exports, ModuleFunction} from "dium/api/require";
 
 // finder extensions for development
@@ -74,9 +74,6 @@ export const byExports = (exported: Exports): Module => find(byExportsFilter(exp
 /** Finds a raw module using the name of its export.  */
 export const byName = (name: string): Module => find(Filters.byName(name));
 
-/** Finds a raw module using the name of any value within its export.  */
-export const byAnyName = (name: string): Module => find(Filters.byAny(Filters.byName(name)));
-
 /** Finds a raw module using property names of its export. */
 export const byProps = (...props: string[]): Module => find(Filters.byProps(...props));
 
@@ -84,7 +81,7 @@ export const byProps = (...props: string[]): Module => find(Filters.byProps(...p
 export const byProtos = (...protos: string[]): Module => find(Filters.byProtos(...protos));
 
 /** Finds a module using source code contents of its export entries. */
-export const bySource = (...contents: string[]): Module => find(Filters.bySource(...contents));
+export const bySource = (...contents: TypeOrPredicate<string>[]): Module => find(Filters.bySource(...contents));
 
 /** Finds a module using source code contents of its entire source code. */
 export const byModuleSource = (...contents: string[]): Module => find(byModuleSourceFilter(contents));
@@ -103,9 +100,6 @@ export const all = {
     /** Finds all modules using the name of its export. */
     byName: (name: string): Module[] => all.find(Filters.byName(name)),
 
-    /** Finds all modules using the name of any value within its export. */
-    byAnyName: (name: string): Module[] => all.find(Filters.byAny(Filters.byName(name))),
-
     /** Finds all modules using property names of its export. */
     byProps: (...props: string[]): Module[] => all.find(Filters.byProps(...props)),
 
@@ -113,7 +107,7 @@ export const all = {
     byProtos: (...protos: string[]): Module[] => all.find(Filters.byProtos(...protos)),
 
     /** Finds all modules using source code contents of its export entries. */
-    bySource: (...contents: string[]): Module[] => all.find(Filters.bySource(...contents)),
+    bySource: (...contents: TypeOrPredicate<string>[]): Module[] => all.find(Filters.bySource(...contents)),
 
     /** Finds all modules using source code contents of its entire source code. */
     byModuleSource: (...contents: string[]): Module[] => all.find(byModuleSourceFilter(contents))

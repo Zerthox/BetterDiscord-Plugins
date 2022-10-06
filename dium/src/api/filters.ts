@@ -2,6 +2,8 @@ import type {Module, Exports} from "./require";
 
 export type Filter = (exports: Exports, module?: Module, id?: string) => boolean;
 
+export type TypeOrPredicate<T> = T | ((data: T) => boolean);
+
 export interface Query {
     filter?: Filter | Filter[];
     name?: string;
@@ -47,8 +49,8 @@ export const byProtos = (...protos: string[]): Filter => {
 };
 
 /** Creates a filter searching by function source fragments. */
-export const bySource = (...contents: (string | RegExp)[]): Filter => {
-    return (target) => target instanceof Function && contents.every((content) => (
-        typeof content === "string" ? target.toString().includes(content) : content.test(target.toString())
+export const bySource = (...fragments: TypeOrPredicate<string>[]): Filter => {
+    return (target) => target instanceof Function && fragments.every((fragment) => (
+        typeof fragment === "string" ? target.toString().includes(fragment) : fragment(target.toString())
     ));
 };
