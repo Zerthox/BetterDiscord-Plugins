@@ -47,7 +47,8 @@ export const byProtos = (...protos: string[]): Filter => {
 };
 
 /** Creates a filter searching by function source fragments. */
-// TODO: allow regex?
-export const bySource = (...contents: string[]): Filter => {
-    return (target) => target instanceof Function && contents.every((content) => target.toString().includes(content));
+export const bySource = (...contents: (string | RegExp)[]): Filter => {
+    return (target) => target instanceof Function && contents.every((content) => (
+        typeof content === "string" ? target.toString().includes(content) : content.test(target.toString())
+    ));
 };
