@@ -7,10 +7,9 @@ export type TypeOrPredicate<T> = T | ((data: T) => boolean);
 export interface Query {
     filter?: Filter | Filter[];
     name?: string;
-    anyName?: string;
     keys?: string[];
     protos?: string[];
-    source?: string[];
+    source?: TypeOrPredicate<string>[];
 }
 
 /** Joins multiple filters together. */
@@ -19,10 +18,9 @@ export const join = (...filters: Filter[]): Filter => {
 };
 
 /** Creates a filter from query options. */
-export const query = ({filter, name, anyName, keys, protos, source}: Query): Filter => join(...[
+export const query = ({filter, name, keys, protos, source}: Query): Filter => join(...[
     ...[filter].flat(),
     typeof name === "string" ? byName(name) : null,
-    typeof anyName === "string" ? byAny(byName(anyName)) : null,
     keys instanceof Array ? byProps(...keys) : null,
     protos instanceof Array ? byProtos(...protos) : null,
     source instanceof Array ? bySource(...source) : null
