@@ -31,9 +31,7 @@ export const byAny = (filter: Filter): Filter => {
     return (target, module, id) => target instanceof Object && target !== window && Object.values(target).some((value) => filter(value, module, id));
 };
 
-/**
- * Creates a filter searching by `displayName`.
- */
+/** Creates a filter searching by `displayName`. */
 export const byName = (name: string): Filter => {
     return (target: any) => (target?.displayName ?? target?.constructor?.displayName) === name;
 };

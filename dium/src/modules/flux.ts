@@ -176,7 +176,7 @@ type FluxPolyfill = Pick<FluxHooks, "default" | "Store" | "Dispatcher" | "useSta
 
 export const Flux: FluxPolyfill = {
     default: OldFlux,
-    Store: OldFlux.Store,
+    Store: OldFlux?.Store,
     Dispatcher: /* @__PURE__ */ Finder.byProtos("dispatch", "unsubscribe"),
     useStateFromStores: /* @__PURE__ */ Finder.bySource("useStateFromStores")
 };

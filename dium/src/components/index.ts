@@ -39,4 +39,5 @@ interface Margins {
     marginSmall: "8px";
     marginXSmall: "4px";
 }
+
 export const margins: Margins = /* @__PURE__ */ Finder.byProps("marginLarge");
