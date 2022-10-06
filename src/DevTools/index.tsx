@@ -1,5 +1,6 @@
 import * as dium from "dium";
-import {Constants, UserStore, SwitchItem} from "dium/modules";
+import {Constants, UserStore} from "dium/modules";
+import {SwitchItem} from "dium/components";
 import * as Modules from "dium/modules";
 import * as Components from "dium/components";
 import * as DevFinder from "./finder";
