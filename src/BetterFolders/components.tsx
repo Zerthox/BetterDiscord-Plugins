@@ -65,7 +65,7 @@ export const BetterFolderUploader = ({icon, always, folderNode, onChange, Folder
             hideBorder
             className={margins.marginTop8}
             value={always}
-            onChange={(checked: boolean) => onChange({icon, always: checked})}
+            onChange={(checked) => onChange({icon, always: checked})}
         >Always display icon</SwitchItem>
     </>
 );

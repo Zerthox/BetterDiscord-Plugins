@@ -173,7 +173,7 @@ export default createPlugin({styles, settings}, ({Logger, Lazy, Patcher, Data, S
                     note="Close other folders when opening a new folder"
                     hideBorder
                     value={closeOnOpen}
-                    onChange={(checked: boolean) => {
+                    onChange={(checked) => {
                         if (checked) {
                             // close all folders except one
                             for (const id of Array.from(ExpandedGuildFolderStore.getExpandedFolders()).slice(1)) {

@@ -86,7 +86,7 @@ export default createPlugin({styles, settings}, ({Patcher, Settings}) => {
                     note="Collapse all embeds &amp; attachments initially."
                     hideBorder
                     value={hideByDefault}
-                    onChange={(checked: boolean) => setSettings({hideByDefault: checked})}
+                    onChange={(checked) => setSettings({hideByDefault: checked})}
                 >Collapse by default</SwitchItem>
             );
         }

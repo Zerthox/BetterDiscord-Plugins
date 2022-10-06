@@ -154,21 +154,21 @@ export const SettingsPanel = ({current, defaults, onChange, speak}: SettingsPane
             <FormItem>
                 <SwitchItem
                     value={filterNames}
-                    onChange={(checked: boolean) => onChange({filterNames: checked})}
+                    onChange={(checked) => onChange({filterNames: checked})}
                     note="Limit user & channel names to alphanumeric characters."
                 >Enable Name Filter</SwitchItem>
             </FormItem>
             <FormItem>
                 <SwitchItem
                     value={filterBots}
-                    onChange={(checked: boolean) => onChange({filterBots: checked})}
+                    onChange={(checked) => onChange({filterBots: checked})}
                     note="Disable notifications for bot users in voice."
                 >Enable Bot Filter</SwitchItem>
             </FormItem>
             <FormItem>
                 <SwitchItem
                     value={filterStages}
-                    onChange={(checked: boolean) => onChange({filterStages: checked})}
+                    onChange={(checked) => onChange({filterStages: checked})}
                     note="Disable notifications for stage voice channels."
                 >Enable Stage Filter</SwitchItem>
             </FormItem>

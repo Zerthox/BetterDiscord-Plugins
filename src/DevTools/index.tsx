@@ -60,7 +60,7 @@ export default dium.createPlugin({settings}, ({Settings}) => ({
             <>
                 <SwitchItem
                     value={settings.global}
-                    onChange={(checked: boolean) => {
+                    onChange={(checked) => {
                         setSettings({global: checked});
                         updateGlobal(checked);
                     }}
@@ -73,7 +73,7 @@ export default dium.createPlugin({settings}, ({Settings}) => ({
                 >Enable Developer Experiments</SwitchItem>
                 <SwitchItem
                     value={settings.staff}
-                    onChange={(checked: boolean) => {
+                    onChange={(checked) => {
                         setSettings({staff: checked});
                         updateStaffFlag(checked);
                     }}

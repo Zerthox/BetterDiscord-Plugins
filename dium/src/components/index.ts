@@ -4,6 +4,7 @@ import {Untyped} from "../modules";
 export * from "./flex";
 export * from "./button";
 export * from "./form";
+export * from "./switch";
 
 type UntypedComponent = Untyped<React.ComponentType<any>>;
 
@@ -11,8 +12,6 @@ export const Text: UntypedComponent = /* @__PURE__ */ Finder.byName("Text");
 export const Clickable: React.ComponentClass<any, any> = /* @__PURE__ */ Finder.byName("Clickable");
 export const Links: UntypedComponent = /* @__PURE__ */ Finder.byProps("Link", "NavLink");
 
-export const Switch: UntypedComponent = /* @__PURE__ */ Finder.byName("Switch");
-export const SwitchItem: UntypedComponent = /* @__PURE__ */ Finder.byName("SwitchItem");
 export const RadioGroup: UntypedComponent = /* @__PURE__ */ Finder.byName("RadioGroup");
 export const Slider: UntypedComponent = /* @__PURE__ */ Finder.byName("Slider");
 export const TextInput: UntypedComponent = /* @__PURE__ */ Finder.byName("TextInput");
