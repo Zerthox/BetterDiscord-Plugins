@@ -135,7 +135,7 @@ export interface MediaEngineStore extends Untyped<Store> {
     isSelfMute(context?: MediaEngineContext): boolean;
 }
 
-export const MediaEngineStore: MediaEngineStore = /* @__PURE__ */ Finder.byProps("getLocalVolume");
+export const MediaEngineStore: MediaEngineStore = /* @__PURE__ */ Finder.byName("MediaEngineStore");
 
 export interface MediaEngineActions extends ActionModule {
     setLocalPan(userId: Snowflake, left: number, right: number, context?: MediaEngineContext): void;

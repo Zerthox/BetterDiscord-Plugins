@@ -113,7 +113,7 @@ export interface GuildStore extends Store {
     __getLocalVars(): any;
 }
 
-export const GuildStore: GuildStore = /* @__PURE__ */ Finder.byProps("getGuild");
+export const GuildStore: GuildStore = /* @__PURE__ */ Finder.byName("GuildStore");
 
 export const GuildActions: ActionModule = /* @__PURE__ */ Finder.byProps("requestMembers");
 
@@ -132,4 +132,4 @@ export interface GuildMemberStore extends Store {
     __getLocalVars();
 }
 
-export const GuildMemberStore: GuildMemberStore = /* @__PURE__ */ Finder.byProps("getMember", "isMember");
+export const GuildMemberStore: GuildMemberStore = /* @__PURE__ */ Finder.byName("GuildMemberStore");

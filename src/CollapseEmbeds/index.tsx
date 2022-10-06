@@ -1,5 +1,6 @@
 import {createPlugin, Finder, React} from "dium";
-import {classNames, Flex, Clickable, Text, SwitchItem} from "dium/modules";
+import {classNames} from "dium/modules";
+import {Flex, Clickable, Text, SwitchItem} from "dium/components";
 import styles from "./styles.scss";
 
 const Embed = Finder.byAnyName("Embed") as typeof React.Component<any, any>;

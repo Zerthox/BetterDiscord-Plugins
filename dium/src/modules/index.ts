@@ -8,6 +8,4 @@ export * from "./guild";
 export * from "./channel";
 export * from "./experiment";
 
-export * from "./components";
-
 export type Untyped<T> = T & Record<string, any>;

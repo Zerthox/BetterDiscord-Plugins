@@ -13,7 +13,7 @@ import {
     createLazy
 } from "./api";
 import {React} from "./modules";
-import {SettingsContainer} from "./components";
+import {SettingsContainer} from "./settings";
 import type * as BD from "betterdiscord";
 
 export {Filters, Finder, ReactInternals, ReactDOMInternals} from "./api";

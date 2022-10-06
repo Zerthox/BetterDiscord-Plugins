@@ -25,16 +25,16 @@ export const query = (options: QueryWithResolve): any => find(Filters.query(opti
 export const byName = (name: string, resolve = true): any => find(Filters.byName(name), resolve);
 
 /** Finds a module using the name of any value within its export. */
-export const byAnyName = (name: string, resolve = true): any => resolveExport(find(Filters.byAnyName(name)), resolve ? Filters.byName(name) : null);
+export const byAnyName = (name: string, resolve = true): any => resolveExport(find(Filters.byAny(Filters.byName(name))), resolve ? Filters.byName(name) : null);
 
 /** Finds a module using property names of its export. */
-export const byProps = (...props: string[]): any => find(Filters.byProps(props));
+export const byProps = (...props: string[]): any => find(Filters.byProps(...props));
 
 /** Finds a module using prototype names of its export. */
-export const byProtos = (...protos: string[]): any => find(Filters.byProtos(protos));
+export const byProtos = (...protos: string[]): any => find(Filters.byProtos(...protos));
 
 /** Finds a module using source code contents of its export entries. */
-export const bySource = (...contents: string[]): any => find(Filters.bySource(contents));
+export const bySource = (...contents: string[]): any => find(Filters.bySource(...contents));
 
 /** Returns all module results. */
 export const all = {
@@ -48,14 +48,14 @@ export const all = {
     byName: (name: string, resolve = true): any[] => all.find(Filters.byName(name), resolve),
 
     /** Finds all modules using the name of any value within its export. */
-    byAnyName: (name: string, resolve = true): any[] => all.find(Filters.byAnyName(name)).map((entry) => resolveExport(entry, resolve ? Filters.byName(name) : null)),
+    byAnyName: (name: string, resolve = true): any[] => all.find(Filters.byAny(Filters.byName(name))).map((entry) => resolveExport(entry, resolve ? Filters.byName(name) : null)),
 
     /** Finds all modules using property names of its export. */
-    byProps: (...props: string[]): any[] => all.find(Filters.byProps(props)),
+    byProps: (...props: string[]): any[] => all.find(Filters.byProps(...props)),
 
     /** Finds all modules using prototype names of it export. */
-    byProtos: (...protos: string[]): any[] => all.find(Filters.byProtos(protos)),
+    byProtos: (...protos: string[]): any[] => all.find(Filters.byProtos(...protos)),
 
     /** Finds all modules using source code contents of its export entries. */
-    bySource: (...contents: string[]): any[] => all.find(Filters.bySource(contents))
+    bySource: (...contents: string[]): any[] => all.find(Filters.bySource(...contents))
 };

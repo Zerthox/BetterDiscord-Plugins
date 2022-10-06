@@ -1,5 +1,6 @@
-import {React, classNames, Flex, Button, Form, margins} from "../modules";
-import {confirm} from "../utils";
+import {React, classNames} from "./modules";
+import {Flex, Button, Form, margins} from "./components";
+import {confirm} from "./utils";
 
 export interface SettingsContainerProps {
     name: string;

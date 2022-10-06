@@ -1,40 +1,22 @@
-import {createPlugin, Finder, Filters, Utils, React} from "dium";
+import {createPlugin, Filters, Utils, React} from "dium";
 import {
     Dispatcher,
     ChannelStore,
     SelectedChannelStore,
     UserStore,
     GuildMemberStore,
-    MediaEngineStore,
-    Text,
-    Menu,
-    Untyped,
-    Store
+    VoiceStateStore,
+    MediaEngineStore
 } from "dium/modules";
-import type {Snowflake, User, Channel} from "dium/modules";
+import {Text, Menu} from "dium/components";
+import type {User, Channel, VoiceState} from "dium/modules";
 import {settings, SettingsPanel, NotificationType} from "./settings";
-
-const VoiceStateStore = Finder.byProps("getVoiceStates", "hasVideo") as Untyped<Store>;
 
 const {MenuItem} = Menu;
 
 interface VoiceStateUpdatesAction {
     type: "VOICE_STATE_UPDATES";
     voiceStates: VoiceState[];
-}
-
-interface VoiceState {
-    channelId: Snowflake;
-    userId: Snowflake;
-    sessionId: string;
-    deaf: boolean;
-    mute: boolean;
-    selfMute: boolean;
-    selfDeaf: boolean;
-    selfVideo: boolean;
-    selfStream: boolean;
-    suppress: boolean;
-    requestToSpeakTimestamp?: any;
 }
 
 let prevStates: Record<string, VoiceState> = {};

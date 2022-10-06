@@ -1,5 +1,6 @@
 import {createPlugin, Finder, Filters, Utils, React, Flux} from "dium";
-import {ClientActions, RadioGroup, SwitchItem, Form} from "dium/modules";
+import {ClientActions} from "dium/modules";
+import {RadioGroup, SwitchItem, Form} from "dium/components";
 import {BetterFolderIcon, BetterFolderUploader, FolderData} from "./components";
 import styles from "./styles.scss";
 

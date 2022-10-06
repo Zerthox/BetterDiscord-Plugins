@@ -1,5 +1,5 @@
 import {Finder, React} from "dium";
-import {Flex, Button, SwitchItem, Form, margins} from "dium/modules";
+import {Flex, Button, SwitchItem, Form, margins} from "dium/components";
 
 const {FormText} = Form;
 const ImageInput = Finder.byAnyName("ImageInput");

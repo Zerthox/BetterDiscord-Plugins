@@ -16,9 +16,9 @@ import type lottieInstance from "lottie-web";
 
 export const EventEmitter: NodeJS.EventEmitter = /* @__PURE__ */ Finder.byProps("subscribe", "emit");
 
-export const React: typeof ReactInstance = /* @__PURE__ */ Finder.byProps("createElement", "Component", "Fragment");
+export const React: typeof ReactInstance = /* @__PURE__ */ BdApi.React;
 
-export const ReactDOM: typeof ReactDOMInstance = /* @__PURE__ */ Finder.byProps("render", "findDOMNode", "createPortal");
+export const ReactDOM: typeof ReactDOMInstance = /* @__PURE__ */ BdApi.ReactDOM;
 
 export const ReactSpring: typeof ReactSpringInstance = /* @__PURE__ */ Finder.byProps("SpringContext", "animated");
 

@@ -1,5 +1,6 @@
 import * as Finder from "../api/finder";
-import type {Snowflake, Store, ActionModule} from ".";
+import type {Snowflake, ActionModule} from "./general";
+import type {Store} from "./flux";
 
 /** A Channel. */
 export interface Channel {
@@ -108,7 +109,7 @@ export interface ChannelStore extends Store {
     __getLocalVars();
 }
 
-export const ChannelStore: ChannelStore = /* @__PURE__ */ Finder.byProps("getChannel", "hasChannel");
+export const ChannelStore: ChannelStore = /* @__PURE__ */ Finder.byName("ChannelStore");
 
 export const ChannelActions: ActionModule = /* @__PURE__ */ Finder.byProps("selectChannel");
 
@@ -123,4 +124,42 @@ export interface SelectedChannelStore extends Store {
     __getLocalVars();
 }
 
-export const SelectedChannelStore: SelectedChannelStore = /* @__PURE__ */ Finder.byProps("getChannelId", "getVoiceChannelId");
+export const SelectedChannelStore: SelectedChannelStore = /* @__PURE__ */ Finder.byName("SelectedChannelStore");
+
+export interface VoiceState {
+    channelId: Snowflake;
+    userId: Snowflake;
+    sessionId: string;
+    deaf: boolean;
+    mute: boolean;
+    selfMute: boolean;
+    selfDeaf: boolean;
+    selfVideo: boolean;
+    selfStream: boolean;
+    suppress: boolean;
+    requestToSpeakTimestamp?: any;
+}
+
+export interface VoiceStateStore extends Store {
+    getAllVoiceStates(): Record<Snowflake | "@me", Record<Snowflake, VoiceState>>;
+    getVoiceStates(id?: string): Record<Snowflake, VoiceState>;
+    getVoiceStatesForChannel(channelId: Snowflake): Record<Snowflake, VoiceState>;
+    getVideoVoiceStatesForChannel(channelId: Snowflake): any;
+
+    getVoiceState(id: string, userId: Snowflake): VoiceState;
+    getVoiceStateForChannel(channelId: Snowflake, userId?: Snowflake): VoiceState;
+    getVoiceStateForSession(userId: Snowflake, session?: string): VoiceState;
+    getVoiceStateForUser(userId: Snowflake): VoiceState;
+
+    getCurrentClientVoiceChannelId(id: string): Snowflake;
+    getUserVoiceChannelId(id: string, userId: Snowflake): Snowflake;
+
+    hasVideo(userId: Snowflake): boolean;
+    isCurrentClientInVoiceChannel(): boolean;
+    isInChannel(channelId: Snowflake, userId?: Snowflake): boolean;
+
+    get userHasBeenMovedVersion(): number;
+    __getLocalVars(): any;
+}
+
+export const VoiceStateStore: VoiceStateStore = /* @__PURE__ */ Finder.byName("VoiceStateStore");

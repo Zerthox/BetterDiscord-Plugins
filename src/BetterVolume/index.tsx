@@ -1,5 +1,6 @@
 import {createPlugin, Finder, Filters, React} from "dium";
-import {MediaEngineStore, MediaEngineActions, MediaEngineContext, Menu} from "dium/modules";
+import {MediaEngineStore, MediaEngineActions, MediaEngineContext} from "dium/modules";
+import {Menu} from "dium/components";
 import type {Snowflake} from "dium/modules";
 import styles from "./styles.scss";
 

@@ -1,5 +1,6 @@
 import {createPlugin, Finder, Utils, React, Flux} from "dium";
-import {Constants, PresenceStore, RelationshipStore, Links} from "dium/modules";
+import {Constants, PresenceStore, RelationshipStore} from "dium/modules";
+import {Links} from "dium/components";
 import styles from "./styles.scss";
 
 const {RelationshipTypes, StatusTypes} = Constants;

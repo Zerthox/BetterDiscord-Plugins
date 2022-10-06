@@ -70,7 +70,7 @@ export interface UserStore extends Store {
     __getLocalVars(): any;
 }
 
-export const UserStore: UserStore = /* @__PURE__ */ Finder.byProps("getUser", "getCurrentUser");
+export const UserStore: UserStore = /* @__PURE__ */ Finder.byName("UserStore");
 
 export const enum StatusType {
     DND = "dnd",
@@ -107,7 +107,7 @@ export interface PresenceStore extends Store {
     __getLocalVars();
 }
 
-export const PresenceStore: PresenceStore = /* @__PURE__ */ Finder.byProps("getState", "getStatus", "isMobileOnline");
+export const PresenceStore: PresenceStore = /* @__PURE__ */ Finder.byName("PresenceStore");
 
 export const enum RelationshipType {
     BLOCKED = 2,
@@ -130,4 +130,4 @@ export interface RelationshipStore extends Store {
     __getLocalVars();
 }
 
-export const RelationshipStore: RelationshipStore = /* @__PURE__ */ Finder.byProps("isFriend", "getRelationshipCount");
+export const RelationshipStore: RelationshipStore = /* @__PURE__ */ Finder.byName("RelationshipStore");
