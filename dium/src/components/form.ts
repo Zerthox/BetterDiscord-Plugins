@@ -1,5 +1,5 @@
 import React from "react";
-import * as Finder from "../api/finder";
+import * as Finder from "../finder";
 
 // TODO: module also has "form notice"...?
 

@@ -1,4 +1,4 @@
-import * as Finder from "../api/finder";
+import * as Finder from "../finder";
 
 export const EventEmitter: NodeJS.EventEmitter = /* @__PURE__ */ Finder.byProps("subscribe", "emit");
 

@@ -1,10 +1,6 @@
 export {createData, Data} from "./data";
-export * as Filters from "./filters";
-export * as Finder from "./finder";
 export {createLazy, Lazy} from "./lazy";
 export {createLogger, Logger} from "./logger";
 export {createPatcher, Patcher} from "./patcher";
-export {ReactInternals, ReactDOMInternals} from "./react";
-export * as Webpack from "./require";
 export {createSettings, Settings} from "./settings";
 export {createStyles, Styles} from "./styles";

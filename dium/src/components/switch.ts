@@ -1,5 +1,4 @@
-import React from "react";
-import * as Finder from "../api/finder";
+import * as Finder from "../finder";
 
 interface SwitchItemProps {
     value: boolean;

@@ -1,9 +1,9 @@
-export type WebpackId = number;
+export type Id = number;
 
 export type Exports = Record<string, any>;
 
 export interface Module {
-    id: WebpackId;
+    id: Id;
     loaded: boolean;
     exports: Exports;
 }
@@ -11,7 +11,7 @@ export interface Module {
 export type ModuleFunction = (this: Exports, module: Module, exports: Exports, require: Require) => void;
 
 export interface Require {
-    (id: WebpackId): any;
+    (id: Id): any;
 
     /** Modules object. */
     m: Record<string, ModuleFunction>;
@@ -35,10 +35,10 @@ export interface Require {
     d(exports: any, definition: any): any;
 
     /** Ensure chunk. */
-    e(chunkId: WebpackId): Promise<any>;
+    e(chunkId: Id): Promise<any>;
 
     /** Get chunk filename. */
-    u(chunkId: WebpackId): any;
+    u(chunkId: Id): any;
 
     /** Global. */
     g(): typeof globalThis;
@@ -47,7 +47,7 @@ export interface Require {
     o(obj: any, prop: any): any;
 
     /** Load script. */
-    l(url: any, done: any, key: any, chunkId: WebpackId): any;
+    l(url: any, done: any, key: any, chunkId: Id): any;
 
     /** Make namespace object. */
     r(exports: any): any;

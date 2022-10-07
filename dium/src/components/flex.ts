@@ -1,4 +1,4 @@
-import * as Finder from "../api/finder";
+import * as Finder from "../finder";
 
 interface FlexProps {
     children?: React.ReactNode;

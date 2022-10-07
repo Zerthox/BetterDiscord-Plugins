@@ -1,4 +1,4 @@
-import {React, ReactDOM} from "../modules";
+import {React, ReactDOM} from "./modules";
 import type {Fiber, ReactContext} from "react-reconciler";
 
 export type {Fiber} from "react-reconciler";

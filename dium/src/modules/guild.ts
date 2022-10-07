@@ -1,4 +1,4 @@
-import * as Finder from "../api/finder";
+import * as Finder from "../finder";
 import type {Snowflake, Store, ActionModule} from ".";
 
 /** A Guild (server). */

@@ -13,15 +13,18 @@ import {
     createLazy
 } from "./api";
 import {React} from "./modules";
-import {SettingsContainer} from "./settings";
+import {SettingsContainer} from "./settings-container";
 import type * as BD from "betterdiscord";
 
-export {Filters, Finder, ReactInternals, ReactDOMInternals} from "./api";
+export * as Filters from "./filters";
+export * as Finder from "./finder";
+export {ReactInternals, ReactDOMInternals} from "./react-internals";
 export * as Utils from "./utils";
+export * as Webpack from "./require";
 export {React, ReactDOM, Flux} from "./modules";
 export {version} from "../package.json";
 
-export type {Logger, Lazy, Patcher, Styles, Data, Settings, Webpack} from "./api";
+export type {Logger, Lazy, Patcher, Styles, Data, Settings} from "./api";
 
 export interface Api<
     SettingsType extends Record<string, any>,

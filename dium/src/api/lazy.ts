@@ -1,4 +1,4 @@
-import {Filter} from "./filters";
+import {Filter} from "../filters";
 
 export interface Lazy {
     /** Waits for a lazy loaded module. */
