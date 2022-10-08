@@ -4,14 +4,14 @@ import {RadioGroup, SwitchItem, FormItem} from "dium/components";
 import {BetterFolderIcon, BetterFolderUploader, FolderData} from "./components";
 import styles from "./styles.scss";
 
-const SortedGuildStore = Finder.byProps("getGuildsTree");
-const ExpandedGuildFolderStore = Finder.byProps("getExpandedFolders");
+const SortedGuildStore = Finder.byProps(["getGuildsTree"]);
+const ExpandedGuildFolderStore = Finder.byProps(["getExpandedFolders"]);
 
 const FolderHeader = Finder.byName("FolderHeader", false) as {default: React.FunctionComponent<any>};
 
 let FolderIcon = null;
 
-const guildStyles = Finder.byProps("guilds", "base");
+const guildStyles = Finder.byProps(["guilds", "base"]);
 
 const settings = {
     closeOnOpen: false,

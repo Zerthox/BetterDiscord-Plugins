@@ -170,15 +170,15 @@ export interface FluxHooks {
     statesWillNeverBeEqual: Comparator<unknown>;
 }
 
-const OldFlux: Flux = /* @__PURE__ */ Finder.byProps("Store");
+const OldFlux: Flux = /* @__PURE__ */ Finder.byProps(["Store"]);
 
 type FluxPolyfill = Pick<FluxHooks, "default" | "Store" | "Dispatcher" | "useStateFromStores">;
 
 export const Flux: FluxPolyfill = {
     default: OldFlux,
     Store: OldFlux?.Store,
-    Dispatcher: /* @__PURE__ */ Finder.byProtos("dispatch", "unsubscribe"),
-    useStateFromStores: /* @__PURE__ */ Finder.bySource("useStateFromStores")
+    Dispatcher: /* @__PURE__ */ Finder.byProtos(["dispatch", "unsubscribe"]),
+    useStateFromStores: /* @__PURE__ */ Finder.bySource(["useStateFromStores"])
 };
 
-export const Dispatcher: Dispatcher = /* @__PURE__ */ Finder.byProps("dispatch", "subscribe");
+export const Dispatcher: Dispatcher = /* @__PURE__ */ Finder.byProps(["dispatch", "subscribe"]);

@@ -83,4 +83,4 @@ export interface Button extends React.FunctionComponent<ButtonProps> {
     Link: React.FunctionComponent<any>;
 }
 
-export const Button: Button = /* @__PURE__ */ Finder.byProps("Colors", "Link");
+export const Button: Button = /* @__PURE__ */ Finder.byProps(["Colors", "Link"]);

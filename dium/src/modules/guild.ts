@@ -115,7 +115,7 @@ export interface GuildStore extends Store {
 
 export const GuildStore: GuildStore = /* @__PURE__ */ Finder.byName("GuildStore");
 
-export const GuildActions: ActionModule = /* @__PURE__ */ Finder.byProps("requestMembers");
+export const GuildActions: ActionModule = /* @__PURE__ */ Finder.byProps(["requestMembers"]);
 
 export interface GuildMemberStore extends Store {
     getCommunicationDisabledUserMap();

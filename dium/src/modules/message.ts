@@ -109,4 +109,4 @@ export interface Message {
 
 export const MessageStore: Untyped<Store> = /* @__PURE__ */ Finder.byName("MessageStore");
 
-export const MessageActions: ActionModule = /* @__PURE__ */ Finder.byProps("jumpToMessage", "_sendMessage");
+export const MessageActions: ActionModule = /* @__PURE__ */ Finder.byProps(["jumpToMessage", "_sendMessage"]);

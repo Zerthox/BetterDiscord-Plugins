@@ -3,11 +3,11 @@ import {PresenceStore, RelationshipStore, RelationshipType, StatusType} from "di
 import {Links} from "dium/components";
 import styles from "./styles.scss";
 
-const HomeButtonModule = Finder.byProps("HomeButton") as {HomeButton: React.FunctionComponent<any>};
+const HomeButtonModule = Finder.byProps(["HomeButton"]) as {HomeButton: React.FunctionComponent<any>};
 const {Link} = Links;
 
-const guildStyles = Finder.byProps("guilds", "base");
-const listStyles = Finder.byProps("listItem");
+const guildStyles = Finder.byProps(["guilds", "base"]);
+const listStyles = Finder.byProps(["listItem"]);
 const friendsOnline = "friendsOnline-2JkivW";
 
 const OnlineCount = () => {

@@ -13,7 +13,7 @@ interface SwitchItemProps {
     children?: React.ReactNode;
 }
 
-export const SwitchItem: React.FunctionComponent<SwitchItemProps> = /* @__PURE__ */ Finder.bySource(".helpdeskArticleId");
+export const SwitchItem: React.FunctionComponent<SwitchItemProps> = /* @__PURE__ */ Finder.bySource([".helpdeskArticleId"]);
 
 interface SwitchProps {
     id?: any;
@@ -25,4 +25,4 @@ interface SwitchProps {
     innerRef?: any;
 }
 
-export const Switch: React.FunctionComponent<SwitchProps> = /* @__PURE__ */ Finder.bySource(".onChange", ".focusProps");
+export const Switch: React.FunctionComponent<SwitchProps> = /* @__PURE__ */ Finder.bySource([".onChange", ".focusProps"]);

@@ -26,7 +26,7 @@ export interface Platforms {
     isWindows(): boolean;
 }
 
-export const Platforms: Platforms = /* @__PURE__ */ Finder.byProps("getPlatform", "isWindows", "isWeb", "PlatformTypes");
+export const Platforms: Platforms = /* @__PURE__ */ Finder.byProps(["getPlatform", "isWindows", "isWeb", "PlatformTypes"]);
 
 export interface ClientActions {
     selectGuild(e);
@@ -70,7 +70,7 @@ export interface ClientActions {
     setCommunicationDisabledUntil(e, t, n, i, o);
 }
 
-export const ClientActions: ClientActions = /* @__PURE__ */ Finder.byProps("toggleGuildFolderExpand");
+export const ClientActions: ClientActions = /* @__PURE__ */ Finder.byProps(["toggleGuildFolderExpand"]);
 
 export interface UserSetting<T> {
     getSetting(): T;
@@ -80,7 +80,7 @@ export interface UserSetting<T> {
 
 export type UserSettings = Record<string, UserSetting<any>>;
 
-export const UserSettings: UserSettings = /* @__PURE__ */ Finder.byProps("MessageDisplayCompact");
+export const UserSettings: UserSettings = /* @__PURE__ */ Finder.byProps(["MessageDisplayCompact"]);
 
 export interface LocaleStore extends Store {
     get locale(): any;
@@ -103,7 +103,7 @@ export interface ContextMenuActions {
     closeContextMenu(): any;
 }
 
-export const ContextMenuActions: ContextMenuActions = /* @__PURE__ */ Finder.byProps("openContextMenuLazy");
+export const ContextMenuActions: ContextMenuActions = /* @__PURE__ */ Finder.byProps(["openContextMenuLazy"]);
 
 export interface ModalActions {
     openModal(e: any, t: any, n: any): any;
@@ -118,7 +118,7 @@ export interface ModalActions {
     useModalsStore(e: any, n: any): any;
 }
 
-export const ModalActions: ModalActions = /* @__PURE__ */ Finder.byProps("openModalLazy");
+export const ModalActions: ModalActions = /* @__PURE__ */ Finder.byProps(["openModalLazy"]);
 
 export type MediaEngineContext = any;
 
@@ -149,4 +149,4 @@ export interface MediaEngineActions extends ActionModule {
     toggleLocalMute(userId: Snowflake, context?: MediaEngineContext): void;
 }
 
-export const MediaEngineActions: MediaEngineActions = /* @__PURE__ */ Finder.byProps("setLocalVolume");
+export const MediaEngineActions: MediaEngineActions = /* @__PURE__ */ Finder.byProps(["setLocalVolume"]);

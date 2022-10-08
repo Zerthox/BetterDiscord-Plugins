@@ -9,7 +9,7 @@ interface AudioConvert {
     perceptualToAmplitude(perceptual: number): number;
 }
 
-const AudioConvert = Finder.byProps("perceptualToAmplitude") as AudioConvert;
+const AudioConvert: AudioConvert = Finder.byProps(["perceptualToAmplitude"]);
 
 const {MenuItem} = Menu;
 

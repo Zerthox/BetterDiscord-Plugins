@@ -2,7 +2,7 @@ import {createPlugin, Finder, Utils, React} from "dium";
 import {Platforms} from "dium/modules";
 
 const {PlatformTypes} = Platforms;
-const OverlayBridgeStore = Finder.byProps("initialize", "isSupported", "getFocusedPID");
+const OverlayBridgeStore = Finder.byName("OverlayBridgeStore");
 
 const RadioGroup = Finder.byName("RadioGroup");
 

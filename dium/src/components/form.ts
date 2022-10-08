@@ -28,7 +28,7 @@ export interface FormSection extends React.FunctionComponent<FormSectionProps> {
     Tags: typeof FormTag;
 }
 
-export const FormSection: FormSection = /* @__PURE__ */ Finder.bySource(".titleClassName", ".sectionTitle");
+export const FormSection: FormSection = /* @__PURE__ */ Finder.bySource([".titleClassName", ".sectionTitle"]);
 
 interface FormItemProps {
     children?: React.ReactNode;
@@ -46,7 +46,7 @@ export interface FormItem extends React.FunctionComponent<FormItemProps> {
     Tags: typeof FormTag;
 }
 
-export const FormItem: FormItem = /* @__PURE__ */ Finder.bySource(".titleClassName", ".required");
+export const FormItem: FormItem = /* @__PURE__ */ Finder.bySource([".titleClassName", ".required"]);
 
 interface FormTitleProps {
     tag?: string;
@@ -62,7 +62,7 @@ export interface FormTitle extends React.FunctionComponent<FormTitleProps> {
     Tags: typeof FormTag;
 }
 
-export const FormTitle: FormTitle = /* @__PURE__ */ Finder.bySource(".faded", ".required");
+export const FormTitle: FormTitle = /* @__PURE__ */ Finder.bySource([".faded", ".required"]);
 
 interface FormTextProps {
     type?: string;
@@ -89,4 +89,4 @@ export interface FormText extends React.FunctionComponent<FormTextProps> {
 
 export const FormText: FormText = /* @__PURE__ */ Finder.find((target) => target.Types?.INPUT_PLACEHOLDER);
 
-export const FormDivider: React.FunctionComponent<any> = /* @__PURE__ */ Finder.bySource(".divider", ".style", "\"div\"");
+export const FormDivider: React.FunctionComponent<any> = /* @__PURE__ */ Finder.bySource([".divider", ".style", "\"div\""]);
