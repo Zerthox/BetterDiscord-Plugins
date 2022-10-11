@@ -79,7 +79,7 @@ export const demangle = <M extends Mapping>(mapping: M, required?: (keyof M)[], 
     return resolve ? Object.fromEntries(
         Object.entries(mapping).map(([key, filter]) => [
             key,
-            typeof filter === "string" ? found[filter] : Object.values(found).find(filter as any)
+            typeof filter === "string" ? found?.[filter] : Object.values(found ?? {}).find(filter as any)
         ])
     ) as any : found;
 };
