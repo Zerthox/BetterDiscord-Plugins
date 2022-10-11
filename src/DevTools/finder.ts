@@ -1,6 +1,4 @@
-import {Filters, Webpack} from "dium";
-
-type Filter = Filters.Filter;
+import {Filters, Webpack, Finder} from "dium";
 
 // finder extensions for development
 
@@ -27,18 +25,18 @@ const getWebpackRequire = (): Webpack.Require => {
 const webpackRequire = getWebpackRequire();
 export {webpackRequire as require};
 
-const byExportsFilter = (exported: Webpack.Exports): Filter => {
+const byExportsFilter = (exported: Webpack.Exports): Finder.Filter => {
     return (target) => target === exported || (target instanceof Object && Object.values(target).includes(exported));
 };
 
-const byModuleSourceFilter = (contents: string[]): Filter => {
+const byModuleSourceFilter = (contents: string[]): Finder.Filter => {
     return (_, module) => {
         const source = sourceOf(module.id).toString();
         return contents.every((content) => source.includes(content));
     };
 };
 
-const applyFilters = (filters: Filter[]) => (module: Webpack.Module) => {
+const applyFilters = (filters: Finder.Filter[]) => (module: Webpack.Module) => {
     const {exports} = module;
     return (
         filters.every((filter) => filter(exports, module, String(module.id)))
@@ -56,7 +54,7 @@ export const sources = (): Webpack.ModuleFunction[] => Object.values(webpackRequ
 export const sourceOf = (id: Webpack.Id | string): Webpack.ModuleFunction => webpackRequire.m[id] ?? null;
 
 /** Finds a raw module using a set of filter functions. */
-export const find = (...filters: Filter[]): Webpack.Module => modules().find(applyFilters(filters)) ?? null;
+export const find = (...filters: Finder.Filter[]): Webpack.Module => modules().find(applyFilters(filters)) ?? null;
 
 /** Finds a raw module using query options. */
 export const query = (query: Filters.Query): Webpack.Module => find(Filters.query(query));
@@ -89,7 +87,7 @@ export const byModuleSource = (...contents: string[]): Webpack.Module => find(by
 /** Returns all module results. */
 export const all = {
     /** Finds all modules using a set of filter functions. */
-    find: (...filters: Filter[]): Webpack.Module[] => modules().filter(applyFilters(filters)),
+    find: (...filters: Finder.Filter[]): Webpack.Module[] => modules().filter(applyFilters(filters)),
 
     /** Finds all modules using query options. */
     query: (query: Filters.Query): Webpack.Module[] => all.find(Filters.query(query)),

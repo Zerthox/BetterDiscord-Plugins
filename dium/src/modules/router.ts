@@ -14,4 +14,4 @@ export interface Router extends Pick<typeof import("react-router"), Exclude<keyo
     RouterContext: React.Context<any>;
 }
 
-export const Router: Router = Finder.demangle(mapping, ["withRouter"]);
+export const Router: Router = /* @__PURE__ */ Finder.demangle(mapping, ["withRouter"]);

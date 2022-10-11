@@ -1,5 +1,8 @@
 import * as Filters from "./filters";
-import type {Filter, Query, TypeOrPredicate} from "./filters";
+import type {Query, TypeOrPredicate} from "./filters";
+import type {Module, Exports} from "./require";
+
+export type Filter = (exports: Exports, module: Module, id: string) => boolean;
 
 export interface FindOptions {
     /** Whether to resolve the matching export or return the whole exports object. */
@@ -55,21 +58,28 @@ export const all = {
     bySource: (contents: TypeOrPredicate<string>[], options?: FindOptions): any[] => all.find(Filters.bySource(...contents), options)
 };
 
-type Mapping = Record<string, Filter>;
+type Mapping = Record<string, ((entry: any, key?: string) => boolean) | string>;
 type Mapped<M extends Mapping> = {[K in keyof M]: any};
 
 /** Finds a module and demangles its export entries by applying filters. */
-export const demangle = <M extends Mapping>(mapping: M, required?: (keyof M)[]): Mapped<M> => {
+export const demangle = <M extends Mapping>(mapping: M, required?: (keyof M)[], resolve = true): Mapped<M> => {
     const req = required ?? Object.keys(mapping);
 
     const found = find((exports) => (
         exports instanceof Object
         && exports !== window
-        && req.every((key) => Object.values(exports).some((value) => mapping[key](value)))
+        && req.every((req) => {
+            const filter = mapping[req];
+            return typeof filter === "string"
+                ? filter in exports
+                : Object.entries(exports).some(([key, value]) => filter(value, key));
+        })
     ));
 
-    return Object.fromEntries(
-        Object.entries(mapping)
-            .map(([key, filter]) => [key, Object.values(found).find(filter as any)])
-    ) as any;
+    return resolve ? Object.fromEntries(
+        Object.entries(mapping).map(([key, filter]) => [
+            key,
+            typeof filter === "string" ? found[filter] : Object.values(found).find(filter as any)
+        ])
+    ) as any : found;
 };
