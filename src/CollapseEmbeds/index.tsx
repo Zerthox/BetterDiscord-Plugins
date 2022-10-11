@@ -4,7 +4,7 @@ import {Flex, Clickable, Text, SwitchItem} from "dium/components";
 import styles from "./styles.scss";
 
 const Embed = Finder.byName("Embed") as typeof React.Component<any, any>;
-const MessageAttachment = Finder.byName("MessageAttachment", false) as {default: React.FunctionComponent<any>};
+const MessageAttachment = Finder.byName("MessageAttachment", {resolve: false}) as {default: React.FunctionComponent<any>};
 const ArrowDropDown = Finder.byName("ArrowDropDown") as React.FunctionComponent<any>;
 const ArrowDropUp = Finder.byName("ArrowDropUp") as React.FunctionComponent<any>;
 

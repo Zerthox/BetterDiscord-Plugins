@@ -7,7 +7,7 @@ import styles from "./styles.scss";
 const SortedGuildStore = Finder.byProps(["getGuildsTree"]);
 const ExpandedGuildFolderStore = Finder.byProps(["getExpandedFolders"]);
 
-const FolderHeader = Finder.byName("FolderHeader", false) as {default: React.FunctionComponent<any>};
+const FolderHeader = Finder.byName("FolderHeader", {resolve: false}) as {default: React.FunctionComponent<any>};
 
 let FolderIcon = null;
 

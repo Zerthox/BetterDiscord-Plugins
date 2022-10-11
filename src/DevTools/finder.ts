@@ -59,7 +59,7 @@ export const sourceOf = (id: Webpack.Id | string): Webpack.ModuleFunction => web
 export const find = (...filters: Filter[]): Webpack.Module => modules().find(applyFilters(filters)) ?? null;
 
 /** Finds a raw module using query options. */
-export const query = (options: Filters.Query): Webpack.Module => find(Filters.query(options));
+export const query = (query: Filters.Query): Webpack.Module => find(Filters.query(query));
 
 /**
  * Finds a raw module using its id.
@@ -92,7 +92,7 @@ export const all = {
     find: (...filters: Filter[]): Webpack.Module[] => modules().filter(applyFilters(filters)),
 
     /** Finds all modules using query options. */
-    query: (options: Filters.Query): Webpack.Module[] => all.find(Filters.query(options)),
+    query: (query: Filters.Query): Webpack.Module[] => all.find(Filters.query(query)),
 
     /** Finds all modules using the exports. */
     byExports: (exported: Webpack.Exports): Webpack.Module[] => all.find(byExportsFilter(exported)),

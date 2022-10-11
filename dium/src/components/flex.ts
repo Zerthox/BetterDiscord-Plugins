@@ -46,4 +46,4 @@ export interface Flex extends React.FunctionComponent<FlexProps> {
     Child: React.FunctionComponent<any>;
 }
 
-export const Flex: Flex = /* @__PURE__ */ Finder.byProps(["Child", "Justify"]);
+export const Flex: Flex = /* @__PURE__ */ Finder.byProps(["Child", "Justify"], {entries: true});
