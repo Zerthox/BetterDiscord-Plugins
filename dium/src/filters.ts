@@ -25,7 +25,7 @@ export const query = ({filter, name, props, protos, source}: Query): Filter => j
 ].filter(Boolean));
 
 /** Creates a filter matching on any value in the exported object. */
-export const byAny = (filter: Filter): Filter => {
+export const byEntry = (filter: Filter): Filter => {
     return (target, ...args) => target instanceof Object && target !== window && Object.values(target).some((value) => filter(value, ...args));
 };
 
