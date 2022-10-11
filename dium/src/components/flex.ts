@@ -10,7 +10,7 @@ interface FlexProps {
     shrink?: number;
     grow?: number;
     basis?: string;
-    style?: any;
+    style?: React.CSSProperties;
 }
 
 export interface Flex extends React.FunctionComponent<FlexProps> {

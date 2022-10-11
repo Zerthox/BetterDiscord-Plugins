@@ -5,6 +5,7 @@ export * from "./flex";
 export * from "./button";
 export * from "./form";
 export * from "./radio";
+export * from "./slider";
 export * from "./switch";
 export * from "./text";
 
@@ -13,7 +14,6 @@ type UntypedComponent = Untyped<React.ComponentType<any>>;
 export const Clickable: React.ComponentClass<any, any> = /* @__PURE__ */ Finder.byName("Clickable");
 export const Links: UntypedComponent = /* @__PURE__ */ Finder.byProps(["Link", "NavLink"]);
 
-export const Slider: UntypedComponent = /* @__PURE__ */ Finder.byName("Slider");
 export const TextInput: UntypedComponent = /* @__PURE__ */ Finder.byName("TextInput");
 
 export const Menu: Record<string, UntypedComponent> = /* @__PURE__ */ Finder.byProps(["MenuGroup", "MenuItem", "MenuSeparator"]);

@@ -1,6 +1,8 @@
 import * as Finder from "../finder";
 
-interface ButtonProps extends Pick<React.ComponentProps<"button">, "onClick" | "onDoubleClick" | "onMouseDown" | "onMouseUp" | "onMouseEnter" | "onMouseLeave" | "onKeyDown"> {
+type Handlers = Pick<React.ComponentProps<"button">, "onClick" | "onDoubleClick" | "onMouseDown" | "onMouseUp" | "onMouseEnter" | "onMouseLeave" | "onKeyDown">;
+
+interface ButtonProps extends Handlers {
     look?: string;
     color?: string;
     borderColor?: string;
@@ -83,4 +85,4 @@ export interface Button extends React.FunctionComponent<ButtonProps> {
     Link: React.FunctionComponent<any>;
 }
 
-export const Button: Button = /* @__PURE__ */ Finder.byProps(["Colors", "Link"]);
+export const Button: Button = /* @__PURE__ */ Finder.byProps(["Colors", "Link"], {entries: true});
