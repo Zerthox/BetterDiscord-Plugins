@@ -1,8 +1,9 @@
 import {Filter} from "../filters";
+import type {FindOptions} from "../finder";
 
 export interface Lazy {
     /** Waits for a lazy loaded module. */
-    waitFor(filter: Filter, resolve?: boolean): Promise<any>;
+    waitFor(filter: Filter, options?: FindOptions): Promise<any>;
 
     /** Aborts search for any lazy loaded modules. */
     abort(): void;
@@ -15,7 +16,11 @@ export const createLazy = (): Lazy => {
     let controller = new AbortController();
 
     return {
-        waitFor: (filter: Filter, resolve = true) => BdApi.Webpack.waitForModule(filter, {signal: controller.signal, defaultExport: resolve}),
+        waitFor: (filter, {resolve = true, entries = false}) => BdApi.Webpack.waitForModule(filter, {
+            signal: controller.signal,
+            defaultExport: resolve,
+            searchExports: entries
+        } as any),
         abort: () => {
             // abort current controller
             controller.abort();
