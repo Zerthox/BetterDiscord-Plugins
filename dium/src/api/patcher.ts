@@ -59,24 +59,20 @@ export interface Patcher {
     unpatchAll(): void;
 }
 
-const resolveName = <Module, Key extends keyof Module>(object: Module, method: Key) => {
-    const target: any = method === "default" ? object[method] : {};
-    return (object as any).displayName ?? (object as any).constructor?.displayName ?? target.displayName ?? "unknown";
-};
-
 export const createPatcher = (id: string, Logger: Logger): Patcher => {
     const forward = <Module, Key extends keyof Module>(
-        patch: BD.Patcher["before" | "after" | "instead"],
+        patcher: BD.Patcher,
+        type: "before" | "after" | "instead",
         object: Module,
         method: Key,
         callback: (cancel: Cancel, original: Module[Key], ...args: any) => any,
         options: Options
     ) => {
         const original = object?.[method];
-        if (typeof original !== "function") {
+        if (!(original instanceof Function)) {
             throw TypeError(`patch target ${original} is not a function`);
         }
-        const cancel = patch(
+        const cancel = patcher[type](
             id,
             object,
             method,
@@ -87,28 +83,31 @@ export const createPatcher = (id: string, Logger: Logger): Patcher => {
             } : (...args: any) => callback(cancel, original, ...args)
         );
         if (!options.silent) {
-            Logger.log(`Patched ${String(method)} of ${options.name ?? resolveName(object, method)}`);
+            Logger.log(`Patched ${options.name ?? String(method)}`);
         }
         return cancel;
     };
 
     return {
         instead: (object, method, callback, options = {}) => forward(
-            BdApi.Patcher.instead,
+            BdApi.Patcher,
+            "instead",
             object,
             method,
             (cancel, original, context, args) => callback({cancel, original, context, args}),
             options
         ),
         before: (object, method, callback, options = {}) => forward(
-            BdApi.Patcher.before,
+            BdApi.Patcher,
+            "before",
             object,
             method,
             (cancel, original, context, args) => callback({cancel, original, context, args}),
             options
         ),
         after: (object, method, callback, options = {}) => forward(
-            BdApi.Patcher.after,
+            BdApi.Patcher,
+            "after",
             object,
             method,
             (cancel, original, context, args, result) => callback({cancel, original, context, args, result}),
