@@ -12,7 +12,7 @@ export * from "./text";
 type UntypedComponent = Untyped<React.ComponentType<any>>;
 
 export const Clickable: React.ComponentClass<any, any> = /* @__PURE__ */ Finder.byName("Clickable");
-export const Links: UntypedComponent = /* @__PURE__ */ Finder.byProps(["Link", "NavLink"]);
+export const Links: Record<string, UntypedComponent> = /* @__PURE__ */ Finder.byProps(["Link", "NavLink"]);
 
 export const TextInput: UntypedComponent = /* @__PURE__ */ Finder.byName("TextInput");
 
