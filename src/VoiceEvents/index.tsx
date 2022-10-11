@@ -12,8 +12,6 @@ import {Text, Menu} from "dium/components";
 import type {User, Channel, VoiceState} from "dium/modules";
 import {settings, SettingsPanel, NotificationType} from "./settings";
 
-const {MenuItem} = Menu;
-
 interface VoiceStateUpdatesAction {
     type: "VOICE_STATE_UPDATES";
     voiceStates: VoiceState[];
@@ -181,7 +179,7 @@ export default createPlugin({settings}, ({meta, Logger, Lazy, Patcher, Settings}
     };
 
     return {
-        async start() {
+        start() {
             // save initial voice states
             saveStates();
 
@@ -196,23 +194,23 @@ export default createPlugin({settings}, ({meta, Logger, Lazy, Patcher, Settings}
             Logger.log("Subscribed to self deaf actions");
 
             // wait for context menu lazy load
-            const useChannelHideNamesItem = await Lazy.waitFor(Filters.byName("useChannelHideNamesItem"), false) as {default: (channel: Channel) => JSX.Element};
-
-            // add queue clear item
-            Patcher.after(useChannelHideNamesItem, "default", ({result}) => {
-                if (result) {
-                    return (
-                        <>
-                            {result}
-                            <MenuItem
-                                isFocused={false}
-                                id="voiceevents-clear"
-                                label="Clear VoiceEvents queue"
-                                action={() => speechSynthesis.cancel()}
-                            />
-                        </>
-                    );
-                }
+            Lazy.waitFor(Filters.byName("useChannelHideNamesItem"), {resolve: false}).then((useChannelHideNamesItem: Record<string, (channel: Channel) => JSX.Element>) => {
+                // add queue clear item
+                Patcher.after(useChannelHideNamesItem, "default", ({result}) => {
+                    if (result) {
+                        return (
+                            <>
+                                {result}
+                                <Menu.Item
+                                    isFocused={false}
+                                    id="voiceevents-clear"
+                                    label="Clear VoiceEvents queue"
+                                    action={() => speechSynthesis.cancel()}
+                                />
+                            </>
+                        );
+                    }
+                });
             });
         },
         stop() {

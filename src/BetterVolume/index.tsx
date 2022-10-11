@@ -11,8 +11,6 @@ interface AudioConvert {
 
 const AudioConvert: AudioConvert = Finder.byProps(["perceptualToAmplitude"]);
 
-const {MenuItem} = Menu;
-
 const limit = (input: number, min: number, max: number): number => Math.min(Math.max(input, min), max);
 
 interface NumberInputProps {
@@ -69,7 +67,7 @@ export default createPlugin({styles}, ({Lazy, Patcher}) => ({
                 return (
                     <>
                         {result}
-                        <MenuItem
+                        <Menu.Item
                             id="user-volume-input"
                             render={() => (
                                 <NumberInput

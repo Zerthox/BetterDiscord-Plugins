@@ -4,6 +4,7 @@ import {Untyped} from "../modules";
 export * from "./flex";
 export * from "./button";
 export * from "./form";
+export * from "./menu";
 export * from "./radio";
 export * from "./slider";
 export * from "./switch";
@@ -15,8 +16,6 @@ export const Clickable: React.ComponentClass<any, any> = /* @__PURE__ */ Finder.
 export const Links: Record<string, UntypedComponent> = /* @__PURE__ */ Finder.byProps(["Link", "NavLink"]);
 
 export const TextInput: UntypedComponent = /* @__PURE__ */ Finder.byName("TextInput");
-
-export const Menu: Record<string, UntypedComponent> = /* @__PURE__ */ Finder.byProps(["MenuGroup", "MenuItem", "MenuSeparator"]);
 
 interface Margins {
     marginBottom4: string;
