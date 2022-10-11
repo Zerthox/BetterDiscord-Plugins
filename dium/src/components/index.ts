@@ -5,10 +5,10 @@ export * from "./flex";
 export * from "./button";
 export * from "./form";
 export * from "./switch";
+export * from "./text";
 
 type UntypedComponent = Untyped<React.ComponentType<any>>;
 
-export const Text: UntypedComponent = /* @__PURE__ */ Finder.byName("Text");
 export const Clickable: React.ComponentClass<any, any> = /* @__PURE__ */ Finder.byName("Clickable");
 export const Links: UntypedComponent = /* @__PURE__ */ Finder.byProps(["Link", "NavLink"]);
 

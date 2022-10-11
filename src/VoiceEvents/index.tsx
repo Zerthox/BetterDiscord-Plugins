@@ -46,7 +46,7 @@ export default createPlugin({settings}, ({meta, Logger, Lazy, Patcher, Settings}
             Logger.error("No speech synthesis voices available");
             Utils.alert(
                 meta.name,
-                <Text color={Text.Colors.STANDARD}>
+                <Text color="text-normal">
                     Electron does not have any Speech Synthesis Voices available on your system.
                     <br/>
                     The plugin will be unable to function properly.
