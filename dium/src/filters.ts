@@ -1,6 +1,6 @@
 import type {Module, Exports} from "./require";
 
-export type Filter = (exports: Exports, module?: Module, id?: string) => boolean;
+export type Filter = (exports: Exports | any, module?: Module, id?: string) => boolean;
 
 export type TypeOrPredicate<T> = T | ((data: T) => boolean);
 
