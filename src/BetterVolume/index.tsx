@@ -1,7 +1,6 @@
 import {createPlugin, Finder, Filters, React} from "dium";
-import {MediaEngineStore, MediaEngineActions, MediaEngineContext} from "dium/modules";
+import {Snowflake, MediaEngineStore, MediaEngineActions, MediaEngineContext} from "dium/modules";
 import {Menu} from "dium/components";
-import type {Snowflake} from "dium/modules";
 import styles from "./styles.scss";
 
 interface AudioConvert {
@@ -9,7 +8,10 @@ interface AudioConvert {
     perceptualToAmplitude(perceptual: number): number;
 }
 
-const AudioConvert: AudioConvert = Finder.byProps(["perceptualToAmplitude"]);
+const AudioConvert: AudioConvert = Finder.demangle({
+    amplitudeToPerceptual: Filters.bySource("Math.log10"),
+    perceptualToAmplitude: Filters.bySource("Math.pow(10")
+});
 
 const limit = (input: number, min: number, max: number): number => Math.min(Math.max(input, min), max);
 
@@ -52,13 +54,16 @@ const NumberInput = ({value, min, max, fallback, onChange}: NumberInputProps): J
     );
 };
 
+type UseUserVolumeItem = (userId: Snowflake, context: MediaEngineContext) => JSX.Element;
+
 export default createPlugin({styles}, ({Lazy, Patcher}) => ({
     async start() {
         // wait for context menu lazy load
-        const useUserVolumeItem = await Lazy.waitFor(Filters.byName("useUserVolumeItem"), false) as {default: (userId: Snowflake, context: MediaEngineContext) => JSX.Element};
+        const useUserVolumeItem = await Lazy.waitFor(Filters.bySource("user-volume"), {resolve: false}) as Record<string, UseUserVolumeItem>;
+        const key = Object.keys(useUserVolumeItem)[0];
 
         // add number input
-        Patcher.after(useUserVolumeItem, "default", ({args: [userId, context], result}) => {
+        Patcher.after(useUserVolumeItem, key, ({args: [userId, context], result}) => {
             // check for original render
             if (result) {
                 // we can read this directly, the original has a hook to ensure updates
@@ -86,7 +91,7 @@ export default createPlugin({styles}, ({Lazy, Patcher}) => ({
                     </>
                 );
             }
-        });
+        }, {name: "useUserVolumeItem"});
     },
     stop() {}
 }));
