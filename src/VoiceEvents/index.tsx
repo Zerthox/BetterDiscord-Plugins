@@ -8,7 +8,7 @@ import {
     VoiceStateStore,
     MediaEngineStore
 } from "dium/modules";
-import {Text, Menu} from "dium/components";
+import {Text, MenuItem} from "dium/components";
 import type {User, Channel, VoiceState} from "dium/modules";
 import {settings, SettingsPanel, NotificationType} from "./settings";
 
@@ -201,7 +201,7 @@ export default createPlugin({settings}, ({meta, Logger, Lazy, Patcher, Settings}
                         return (
                             <>
                                 {result}
-                                <Menu.Item
+                                <MenuItem
                                     isFocused={false}
                                     id="voiceevents-clear"
                                     label="Clear VoiceEvents queue"

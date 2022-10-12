@@ -1,6 +1,6 @@
 import {createPlugin, Finder, Filters, React} from "dium";
 import {Snowflake, MediaEngineStore, MediaEngineActions, MediaEngineContext} from "dium/modules";
-import {Menu} from "dium/components";
+import {MenuItem} from "dium/components";
 import styles from "./styles.scss";
 
 interface AudioConvert {
@@ -72,7 +72,7 @@ export default createPlugin({styles}, ({Lazy, Patcher}) => ({
                 return (
                     <>
                         {result}
-                        <Menu.Item
+                        <MenuItem
                             id="user-volume-input"
                             render={() => (
                                 <NumberInput
