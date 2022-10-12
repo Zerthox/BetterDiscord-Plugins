@@ -58,7 +58,7 @@ export const all = {
     bySource: (contents: TypeOrPredicate<string>[], options?: FindOptions): any[] => all.find(Filters.bySource(...contents), options)
 };
 
-type Mapping = Record<string, ((entry: any, key?: string) => boolean) | string>;
+type Mapping = Record<string, ((entry: any) => boolean) | string>;
 type Mapped<M extends Mapping> = {[K in keyof M]: any};
 
 /** Finds a module and demangles its export entries by applying filters. */
@@ -72,14 +72,14 @@ export const demangle = <M extends Mapping>(mapping: M, required?: (keyof M)[], 
             const filter = mapping[req];
             return typeof filter === "string"
                 ? filter in exports
-                : Object.entries(exports).some(([key, value]) => filter(value, key));
+                : Object.values(exports).some((value) => filter(value));
         })
     ));
 
     return resolve ? Object.fromEntries(
         Object.entries(mapping).map(([key, filter]) => [
             key,
-            typeof filter === "string" ? found?.[filter] : Object.values(found ?? {}).find(filter as any)
+            typeof filter === "string" ? found?.[filter] : Object.values(found ?? {}).find((value) => filter(value))
         ])
-    ) as any : found;
+    ) : found;
 };
