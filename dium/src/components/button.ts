@@ -13,7 +13,7 @@ interface ButtonProps extends Handlers {
     disabled?: boolean;
     submitting?: any;
     type?: any;
-    style?: any;
+    style?: React.CSSProperties;
     wrapperClassName?: string;
     className?: string;
     innerClassName?: string;

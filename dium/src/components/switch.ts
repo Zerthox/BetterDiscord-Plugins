@@ -7,7 +7,7 @@ interface SwitchItemProps {
     tooltipNote?: any;
     onChange?: (checked: boolean) => void;
     className?: string;
-    style?: any;
+    style?: React.CSSProperties;
     note?: any;
     helpdeskArticleId?: any;
     children?: React.ReactNode;

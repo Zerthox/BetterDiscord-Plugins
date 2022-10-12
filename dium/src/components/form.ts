@@ -1,6 +1,5 @@
 import * as Finder from "../finder";
-
-// TODO: module also has "form notice"...?
+import * as Filters from "../filters";
 
 export const enum FormTag {
     H1 = "h1",
@@ -27,8 +26,6 @@ export interface FormSection extends React.FunctionComponent<FormSectionProps> {
     Tags: typeof FormTag;
 }
 
-export const FormSection: FormSection = /* @__PURE__ */ Finder.bySource([".titleClassName", ".sectionTitle"], {entries: true});
-
 interface FormItemProps {
     children?: React.ReactNode;
     disabled?: boolean;
@@ -36,7 +33,7 @@ interface FormItemProps {
     titleClassName?: string;
     tag?: string;
     required?: boolean;
-    style?: any;
+    style?: React.CSSProperties;
     title?: any;
     error?: any;
 }
@@ -44,8 +41,6 @@ interface FormItemProps {
 export interface FormItem extends React.FunctionComponent<FormItemProps> {
     Tags: typeof FormTag;
 }
-
-export const FormItem: FormItem = /* @__PURE__ */ Finder.bySource([".titleClassName", ".required"], {entries: true});
 
 interface FormTitleProps {
     tag?: string;
@@ -61,15 +56,13 @@ export interface FormTitle extends React.FunctionComponent<FormTitleProps> {
     Tags: typeof FormTag;
 }
 
-export const FormTitle: FormTitle = /* @__PURE__ */ Finder.bySource([".faded", ".required"], {entries: true});
-
 interface FormTextProps {
     type?: string;
     className?: string;
     disabled?: boolean;
     selectable?: boolean;
     children?: React.ReactNode;
-    style?: any;
+    style?: React.CSSProperties;
 }
 
 export const enum FormTextType {
@@ -86,6 +79,57 @@ export interface FormText extends React.FunctionComponent<FormTextProps> {
     Types: typeof FormTextType;
 }
 
-export const FormText: FormText = /* @__PURE__ */ Finder.find((target) => target.Types?.INPUT_PLACEHOLDER);
+export const enum FormNoticeType {
+    BRAND = "cardBrand",
+    CUSTOM = "card",
+    DANGER = "cardDanger",
+    PRIMARY = "cardPrimary",
+    SUCCESS = "cardSuccess",
+    WARNING = "cardWarning"
+}
 
-export const FormDivider: React.FunctionComponent<any> = /* @__PURE__ */ Finder.bySource([".divider", ".style", "\"div\""], {entries: true});
+interface FormNoticeProps {
+    type?: string;
+    imageData?: {
+        src: string;
+        height?: number;
+        width?: number;
+        position?: "left" | "right";
+    };
+    button?: any;
+    className?: string;
+    iconClassName?: string;
+    title?: React.ReactChild;
+    body?: React.ReactChild;
+    style?: React.CSSProperties;
+    align?: string;
+}
+
+export interface FormNotice extends React.FunctionComponent<FormNoticeProps> {
+    Types: typeof FormNoticeType;
+}
+
+interface Form {
+    FormSection: FormSection;
+    FormItem: FormItem;
+    FormTitle: FormTitle;
+    FormText: FormText;
+    FormDivider: React.FunctionComponent<any>;
+    FormNotice: FormNotice;
+}
+
+export const {
+    FormSection,
+    FormItem,
+    FormTitle,
+    FormText,
+    FormDivider,
+    FormNotice
+}: Form = /* @__PURE__ */ Finder.demangle({
+    FormSection: Filters.bySource(".titleClassName", ".sectionTitle"),
+    FormItem: Filters.bySource(".titleClassName", ".required"),
+    FormTitle: Filters.bySource(".faded", ".required"),
+    FormText: (target) => target.Types?.INPUT_PLACEHOLDER,
+    FormDivider: Filters.bySource(".divider", ".style", "\"div\""),
+    FormNotice: Filters.bySource(".imageData", "formNotice")
+} as const, ["FormSection", "FormItem", "FormText"]);
