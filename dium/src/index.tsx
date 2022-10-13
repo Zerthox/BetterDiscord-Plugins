@@ -15,16 +15,17 @@ import {
 import {React} from "./modules";
 import {SettingsContainer} from "./settings-container";
 import type * as BD from "betterdiscord";
+import type * as Webpack from "./require";
 
 export * as Filters from "./filters";
 export * as Finder from "./finder";
 export {ReactInternals, ReactDOMInternals} from "./react-internals";
 export * as Utils from "./utils";
-export * as Webpack from "./require";
 export {React, ReactDOM, Flux} from "./modules";
 export {version} from "../package.json";
 
 export type {Logger, Lazy, Patcher, PatchData, PatchDataWithResult, Styles, Data, Settings} from "./api";
+export type {Webpack};
 
 export interface Api<
     SettingsType extends Record<string, any>,

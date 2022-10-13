@@ -563,10 +563,6 @@ const SettingsContainer = ({ name, children, onReset }) => (React.createElement(
                 onConfirm: () => onReset()
             }) }, "Reset"))));
 
-const require$1 = {
-    __proto__: null
-};
-
 const version = "0.3.0";
 
 const createPlugin = (config, callback) => (meta) => {
@@ -605,7 +601,6 @@ const dium = {
     ReactInternals,
     ReactDOMInternals,
     Utils: index$1,
-    Webpack: require$1,
     React,
     ReactDOM,
     Flux,
