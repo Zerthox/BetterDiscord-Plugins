@@ -1,16 +1,16 @@
 import * as Finder from "../finder";
 
-export const EventEmitter: NodeJS.EventEmitter = /* @__PURE__ */ Finder.byProps(["subscribe", "emit"]);
+export const {React} = BdApi;
 
-export const React: typeof import("react") = /* @__PURE__ */ BdApi.React;
-
-export const ReactDOM: typeof import("react-dom") = /* @__PURE__ */ BdApi.ReactDOM;
+export const {ReactDOM} = BdApi;
 
 export const ReactSpring: typeof import("@react-spring/web") = /* @__PURE__ */ Finder.byProps(["SpringContext", "animated"]);
 
 export const classNames: typeof import("classnames") = /* @__PURE__ */ Finder.find(
     (exports: any) => exports instanceof Object && exports.default === exports && Object.keys(exports).length === 1
 );
+
+export const EventEmitter: NodeJS.EventEmitter = /* @__PURE__ */ Finder.byProps(["subscribe", "emit"]);
 
 export const lodash: typeof import("lodash") = /* @__PURE__ */ Finder.byProps(["cloneDeep", "flattenDeep"]);
 
