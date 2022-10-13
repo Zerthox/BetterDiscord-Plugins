@@ -106,7 +106,7 @@ async function watch(inputPath: string, outputPath: string) {
             ...genOutputOptions(config, outputPath)
         },
         plugins: [
-            ...plugins,
+            plugins,
             {
                 name: "config-watcher",
                 buildStart() {

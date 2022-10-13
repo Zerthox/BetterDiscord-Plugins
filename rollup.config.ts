@@ -8,7 +8,11 @@ const config: RollupOptions = {
     output: {
         format: "cjs",
         exports: "default",
-        preferConst: true,
+        generatedCode: {
+            constBindings: true,
+            objectShorthand: true,
+            symbols: true
+        },
         freeze: false
     },
     plugins: [
