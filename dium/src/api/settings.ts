@@ -1,17 +1,11 @@
 import {React, Flux} from "../modules";
 import type {Data} from "./data";
-import type {Action} from "../modules/flux";
 
 export type Listener<Data> = (data: Data) => void;
 
 export type Update<Data> = Partial<Data> | ((current: Data) => Partial<Data>);
 
 export type Setter<Data> = (update: Update<Data>) => void;
-
-interface SettingsAction<SettingsType> extends Action {
-    type: "update";
-    settings: Partial<SettingsType>;
-}
 
 class Settings<
     SettingsType extends Record<string, any>,
@@ -27,8 +21,7 @@ class Settings<
 
     constructor(Data: Data<DataType>, defaults: SettingsType) {
         super(new Flux.Dispatcher(), {
-            update: ({settings}: SettingsAction<SettingsType>) => {
-                Object.assign(this.current, settings);
+            update: () => {
                 for (const listener of this.listeners) {
                     listener(this.current);
                 }
@@ -42,11 +35,8 @@ class Settings<
     }
 
     /** Dispatches a settings update. */
-    dispatch(settings: Partial<SettingsType>): void {
-        this._dispatcher.dispatch<SettingsAction<SettingsType>>({
-            type: "update",
-            settings
-        });
+    _dispatch(): void {
+        this._dispatcher.dispatch({type: "update"});
     }
 
     /**
@@ -55,21 +45,22 @@ class Settings<
      * Similar interface to React's `setState()`.
      */
     update(settings: Update<SettingsType>): void {
-        this.dispatch(typeof settings === "function" ? settings(this.current) : settings);
+        Object.assign(this.current, typeof settings === "function" ? settings(this.current) : settings);
+        this._dispatch();
     }
 
     /** Resets all settings to their defaults. */
     reset(): void {
-        this.dispatch({...this.defaults});
+        this.current = {...this.defaults};
+        this._dispatch();
     }
 
     /** Deletes settings using their keys. */
     delete(...keys: string[]): void {
-        const settings = {...this.current};
         for (const key of keys) {
-            delete settings[key];
+            delete this.current[key];
         }
-        this.dispatch(settings);
+        this._dispatch();
     }
 
     /**
