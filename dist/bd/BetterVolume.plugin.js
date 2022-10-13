@@ -1,7 +1,7 @@
 /**
  * @name BetterVolume
  * @author Zerthox
- * @version 2.2.6
+ * @version 2.3.0
  * @description Set user volume values manually instead of using a limited slider.
  * @authorLink https://github.com/Zerthox
  * @website https://github.com/Zerthox/BetterDiscord-Plugins
@@ -53,35 +53,19 @@ WScript.Quit();
 'use strict';
 
 const createData = (id) => ({
-    load: (key) => BdApi.loadData(id, key) ?? null,
-    save: (key, value) => BdApi.saveData(id, key, value),
-    delete: (key) => BdApi.deleteData(id, key)
+    load: (key) => BdApi.Data.load(id, key) ?? null,
+    save: (key, value) => BdApi.Data.save(id, key, value),
+    delete: (key) => BdApi.Data.delete(id, key)
 });
-
-const byName = (name) => {
-    return (target) => (target?.displayName ?? target?.constructor?.displayName) === name;
-};
-const byAnyName$1 = (name) => {
-    return (target) => target instanceof Object && target !== window && Object.values(target).some(byName(name));
-};
-const byProps$1 = (props) => {
-    return (target) => target instanceof Object && props.every((prop) => prop in target);
-};
-
-const resolveExport = (target, filter) => {
-    if (target && typeof filter === "function") {
-        return filter(target) ? target : Object.values(target).find((entry) => filter(entry));
-    }
-    return target;
-};
-const find = (filter, resolve = true) => BdApi.Webpack.getModule(filter, { defaultExport: resolve });
-const byAnyName = (name, resolve = true) => resolveExport(find(byAnyName$1(name)), resolve ? byName(name) : null);
-const byProps = (...props) => find(byProps$1(props));
 
 const createLazy = () => {
     let controller = new AbortController();
     return {
-        waitFor: (filter, resolve = true) => BdApi.Webpack.waitForModule(filter, { signal: controller.signal, defaultExport: resolve }),
+        waitFor: (filter, { resolve = true, entries = false }) => BdApi.Webpack.waitForModule(filter, {
+            signal: controller.signal,
+            defaultExport: resolve,
+            searchExports: entries
+        }),
         abort: () => {
             controller.abort();
             controller = new AbortController();
@@ -99,30 +83,26 @@ const createLogger = (name, color, version) => {
     };
 };
 
-const resolveName = (object, method) => {
-    const target = method === "default" ? object[method] : {};
-    return object.displayName ?? object.constructor?.displayName ?? target.displayName ?? "unknown";
-};
 const createPatcher = (id, Logger) => {
-    const forward = (patch, object, method, callback, options) => {
+    const forward = (patcher, type, object, method, callback, options) => {
         const original = object?.[method];
-        if (typeof original !== "function") {
+        if (!(original instanceof Function)) {
             throw TypeError(`patch target ${original} is not a function`);
         }
-        const cancel = patch(id, object, method, options.once ? (...args) => {
+        const cancel = patcher[type](id, object, method, options.once ? (...args) => {
             const result = callback(cancel, original, ...args);
             cancel();
             return result;
         } : (...args) => callback(cancel, original, ...args));
         if (!options.silent) {
-            Logger.log(`Patched ${String(method)} of ${options.name ?? resolveName(object, method)}`);
+            Logger.log(`Patched ${options.name ?? String(method)}`);
         }
         return cancel;
     };
     return {
-        instead: (object, method, callback, options = {}) => forward(BdApi.Patcher.instead, object, method, (cancel, original, context, args) => callback({ cancel, original, context, args }), options),
-        before: (object, method, callback, options = {}) => forward(BdApi.Patcher.before, object, method, (cancel, original, context, args) => callback({ cancel, original, context, args }), options),
-        after: (object, method, callback, options = {}) => forward(BdApi.Patcher.after, object, method, (cancel, original, context, args, result) => callback({ cancel, original, context, args, result }), options),
+        instead: (object, method, callback, options = {}) => forward(BdApi.Patcher, "instead", object, method, (cancel, original, context, args) => callback({ cancel, original, context, args }), options),
+        before: (object, method, callback, options = {}) => forward(BdApi.Patcher, "before", object, method, (cancel, original, context, args) => callback({ cancel, original, context, args }), options),
+        after: (object, method, callback, options = {}) => forward(BdApi.Patcher, "after", object, method, (cancel, original, context, args, result) => callback({ cancel, original, context, args, result }), options),
         unpatchAll: () => {
             if (BdApi.Patcher.getPatchesByCaller(id).length > 0) {
                 BdApi.Patcher.unpatchAll(id);
@@ -132,25 +112,70 @@ const createPatcher = (id, Logger) => {
     };
 };
 
-const React = /* @__PURE__ */ byProps("createElement", "Component", "Fragment");
+const byName$1 = (name) => {
+    return (target) => (target?.displayName ?? target?.constructor?.displayName) === name;
+};
+const byProps$1 = (...props) => {
+    return (target) => target instanceof Object && props.every((prop) => prop in target);
+};
+const byProtos$1 = (...protos) => {
+    return (target) => target instanceof Object && target.prototype instanceof Object && protos.every((proto) => proto in target.prototype);
+};
+const bySource$1 = (...fragments) => {
+    return (target) => {
+        if (target instanceof Function) {
+            const source = target.toString();
+            const renderSource = target.prototype?.render?.toString();
+            return fragments.every((fragment) => (typeof fragment === "string" ? (source.includes(fragment) || renderSource?.includes(fragment)) : (fragment(source) || renderSource && fragment(renderSource))));
+        }
+        else {
+            return false;
+        }
+    };
+};
+
+const find = (filter, { resolve = true, entries = false } = {}) => BdApi.Webpack.getModule(filter, {
+    defaultExport: resolve,
+    searchExports: entries
+});
+const byName = (name, options) => find(byName$1(name), options);
+const byProps = (props, options) => find(byProps$1(...props), options);
+const byProtos = (protos, options) => find(byProtos$1(...protos), options);
+const bySource = (contents, options) => find(bySource$1(...contents), options);
+const demangle = (mapping, required, resolve = true) => {
+    const req = required ?? Object.keys(mapping);
+    const found = find((exports) => (exports instanceof Object
+        && exports !== window
+        && req.every((req) => {
+            const filter = mapping[req];
+            return typeof filter === "string"
+                ? filter in exports
+                : Object.values(exports).some((value) => filter(value));
+        })));
+    return resolve ? Object.fromEntries(Object.entries(mapping).map(([key, filter]) => [
+        key,
+        typeof filter === "string" ? found?.[filter] : Object.values(found ?? {}).find((value) => filter(value))
+    ])) : found;
+};
+
+const MediaEngineStore = /* @__PURE__ */ byName("MediaEngineStore");
+const MediaEngineActions = /* @__PURE__ */ byProps(["setLocalVolume"]);
+
+const OldFlux = /* @__PURE__ */ byProps(["Store"]);
+const Flux = {
+    default: OldFlux,
+    Store: OldFlux?.Store,
+    Dispatcher: /* @__PURE__ */ byProtos(["dispatch", "unsubscribe"], { entries: true }),
+    useStateFromStores: /* @__PURE__ */ bySource(["useStateFromStores"], { entries: true })
+};
+
+const { React } = BdApi;
 const classNames = /* @__PURE__ */ find((exports) => exports instanceof Object && exports.default === exports && Object.keys(exports).length === 1);
-
-const Flux = /* @__PURE__ */ byProps("Store", "useStateFromStores");
-
-const MediaEngineStore = /* @__PURE__ */ byProps("getLocalVolume");
-const MediaEngineActions = /* @__PURE__ */ byProps("setLocalVolume");
-
-const Flex = /* @__PURE__ */ byAnyName("Flex");
-const Button = /* @__PURE__ */ byProps("Link", "Hovers");
-const Menu = /* @__PURE__ */ byProps("MenuGroup", "MenuItem", "MenuSeparator");
-const Form = /* @__PURE__ */ byProps("FormItem", "FormSection", "FormDivider");
-const margins = /* @__PURE__ */ byProps("marginLarge");
 
 class Settings extends Flux.Store {
     constructor(Data, defaults) {
         super(new Flux.Dispatcher(), {
-            update: ({ settings }) => {
-                Object.assign(this.current, settings);
+            update: () => {
                 for (const listener of this.listeners) {
                     listener(this.current);
                 }
@@ -161,24 +186,22 @@ class Settings extends Flux.Store {
         this.defaults = defaults;
         this.current = { ...defaults, ...Data.load("settings") };
     }
-    dispatch(settings) {
-        this._dispatcher.dispatch({
-            type: "update",
-            settings
-        });
+    _dispatch() {
+        this._dispatcher.dispatch({ type: "update" });
     }
     update(settings) {
-        this.dispatch(typeof settings === "function" ? settings(this.current) : settings);
+        Object.assign(this.current, typeof settings === "function" ? settings(this.current) : settings);
+        this._dispatch();
     }
     reset() {
-        this.dispatch({ ...this.defaults });
+        this.current = { ...this.defaults };
+        this._dispatch();
     }
     delete(...keys) {
-        const settings = { ...this.current };
         for (const key of keys) {
-            delete settings[key];
+            delete this.current[key];
         }
-        this.dispatch(settings);
+        this._dispatch();
     }
     useCurrent() {
         return Flux.useStateFromStores([this], () => this.current);
@@ -212,18 +235,35 @@ const createStyles = (id) => {
     return {
         inject(styles) {
             if (typeof styles === "string") {
-                BdApi.injectCSS(id, styles);
+                BdApi.DOM.addStyle(id, styles);
             }
         },
-        clear: () => BdApi.clearCSS(id)
+        clear: () => BdApi.DOM.removeStyle(id)
     };
 };
 
-const confirm = (title, content, options = {}) => BdApi.showConfirmationModal(title, content, options);
+const Flex = /* @__PURE__ */ byProps(["Child", "Justify"], { entries: true });
 
-const SettingsContainer = ({ name, children, onReset }) => (React.createElement(Form.FormSection, null,
+const Button = /* @__PURE__ */ byProps(["Colors", "Link"], { entries: true });
+
+const { FormSection, FormItem, FormTitle, FormText, FormDivider, FormNotice } = /* @__PURE__ */ demangle({
+    FormSection: bySource$1(".titleClassName", ".sectionTitle"),
+    FormItem: bySource$1(".titleClassName", ".required"),
+    FormTitle: bySource$1(".faded", ".required"),
+    FormText: (target) => target.Types?.INPUT_PLACEHOLDER,
+    FormDivider: bySource$1(".divider", ".style", "\"div\""),
+    FormNotice: bySource$1(".imageData", "formNotice")
+}, ["FormSection", "FormItem", "FormText"]);
+
+const { Menu: Menu, Group: MenuGroup, Item: MenuItem, Separator: MenuSeparator, CheckboxItem: MenuCheckboxItem, RadioItem: MenuRadioItem, ControlItem: MenuControlItem } = BdApi.ContextMenu;
+
+const margins = /* @__PURE__ */ byProps(["marginLarge"]);
+
+const confirm = (title, content, options = {}) => BdApi.UI.showConfirmationModal(title, content, options);
+
+const SettingsContainer = ({ name, children, onReset }) => (React.createElement(FormSection, null,
     children,
-    React.createElement(Form.FormDivider, { className: classNames(margins.marginTop20, margins.marginBottom20) }),
+    React.createElement(FormDivider, { className: classNames(margins.marginTop20, margins.marginBottom20) }),
     React.createElement(Flex, { justify: Flex.Justify.END },
         React.createElement(Button, { size: Button.Sizes.SMALL, onClick: () => confirm(name, "Reset all settings?", {
                 onConfirm: () => onReset()
@@ -259,8 +299,10 @@ const createPlugin = (config, callback) => (meta) => {
 
 const styles = ".container-BetterVolume {\n  margin: 0 8px;\n  padding: 3px 6px;\n  background: var(--background-primary);\n  border-radius: 3px;\n  display: flex;\n}\n\n.input-BetterVolume {\n  margin-right: 2px;\n  flex-grow: 1;\n  background: transparent;\n  border: none;\n  color: var(--interactive-normal);\n  font-weight: 500;\n}\n.input-BetterVolume:hover::-webkit-inner-spin-button {\n  appearance: auto;\n}";
 
-const AudioConvert = byProps("perceptualToAmplitude");
-const { MenuItem } = Menu;
+const AudioConvert = demangle({
+    amplitudeToPerceptual: bySource$1("Math.log10"),
+    perceptualToAmplitude: bySource$1("Math.pow(10")
+});
 const limit = (input, min, max) => Math.min(Math.max(input, min), max);
 const NumberInput = ({ value, min, max, fallback, onChange }) => {
     const [isEmpty, setEmpty] = React.useState(false);
@@ -282,15 +324,16 @@ const NumberInput = ({ value, min, max, fallback, onChange }) => {
 };
 const index = createPlugin({ styles }, ({ Lazy, Patcher }) => ({
     async start() {
-        const useUserVolumeItem = await Lazy.waitFor(byName("useUserVolumeItem"), false);
-        Patcher.after(useUserVolumeItem, "default", ({ args: [userId, context], result }) => {
+        const useUserVolumeItem = await Lazy.waitFor(bySource$1("user-volume"), { resolve: false });
+        const key = Object.keys(useUserVolumeItem)[0];
+        Patcher.after(useUserVolumeItem, key, ({ args: [userId, context], result }) => {
             if (result) {
                 const volume = MediaEngineStore.getLocalVolume(userId, context);
                 return (React.createElement(React.Fragment, null,
                     result,
                     React.createElement(MenuItem, { id: "user-volume-input", render: () => (React.createElement(NumberInput, { value: AudioConvert.amplitudeToPerceptual(volume), min: 0, max: 999999, fallback: 100, onChange: (value) => MediaEngineActions.setLocalVolume(userId, AudioConvert.perceptualToAmplitude(value), context) })) })));
             }
-        });
+        }, { name: "useUserVolumeItem" });
     },
     stop() { }
 }));
