@@ -87,79 +87,95 @@ export default createPlugin({styles, settings}, ({Logger, Lazy, Patcher, Data, S
 
             triggerRerender();
 
-            // wait for modal lazy load
-            const GuildFolderSettingsModal = await Lazy.waitFor(Filters.byName("GuildFolderSettingsModal")) as typeof React.Component<any, any>;
+            interface GuildFolderSettingsModalProps extends Record<string, any> {
+                folderId: number;
+            }
+
+            const enum IconType {
+                Default = "default",
+                Custom = "custom"
+            }
+
+            interface GuildFolderSettingsModalState extends Record<string, any> {
+                iconType: IconType;
+                icon?: string;
+                always?: boolean;
+            }
+
+            type GuildFolderSettingsModal = typeof React.Component<GuildFolderSettingsModalProps, GuildFolderSettingsModalState>;
 
             // patch folder settings render
-            Patcher.after(GuildFolderSettingsModal.prototype, "render", ({context, result}) => {
-                const {folderId} = context.props;
-                const {state} = context;
+            Lazy.waitFor(Filters.byName("GuildFolderSettingsModal")).then((GuildFolderSettingsModal: GuildFolderSettingsModal) => {
+                Patcher.after(GuildFolderSettingsModal.prototype as InstanceType<GuildFolderSettingsModal>, "render", ({context, result}) => {
+                    const {folderId} = context.props;
+                    const {state} = context;
 
-                // find form
-                const form = Utils.queryTree(result as JSX.Element, (node) => node?.type === "form");
-                if (!form) {
-                    Logger.warn("Unable to find form");
-                    return;
-                }
+                    // find form
+                    const form = Utils.queryTree(result as JSX.Element, (node) => node?.type === "form");
+                    if (!form) {
+                        Logger.warn("Unable to find form");
+                        return;
+                    }
 
-                // add custom state
-                if (!state.iconType) {
-                    const {icon = null, always = false} = getFolder(folderId) ?? {};
-                    Object.assign(state, {
-                        iconType: icon ? "custom" : "default",
-                        icon,
-                        always
-                    });
-                }
+                    // add custom state
+                    if (!state.iconType) {
+                        const {icon = null, always = false} = getFolder(folderId) ?? {};
+                        Object.assign(state, {
+                            iconType: icon ? IconType.Custom : IconType.Default,
+                            icon,
+                            always
+                        });
+                    }
 
-                // render icon select
-                const {children} = form.props;
-                const {className} = children[0].props;
-                children.push(
-                    <FormItem title="Icon" className={className}>
-                        <RadioGroup
-                            value={state.iconType}
-                            options={[
-                                {value: "default", name: "Default Icon"},
-                                {value: "custom", name: "Custom Icon"}
-                            ]}
-                            onChange={({value}) => context.setState({iconType: value})}
-                        />
-                    </FormItem>
-                );
-
-                if (state.iconType === "custom") {
-                    // render custom icon options
-                    const tree = SortedGuildStore.getGuildsTree();
+                    // render icon select
+                    const {children} = form.props;
+                    const {className} = children[0].props;
                     children.push(
-                        <FormItem title="Custom Icon" className={className}>
-                            <BetterFolderUploader
-                                icon={state.icon}
-                                always={state.always}
-                                folderNode={tree.nodes[folderId]}
-                                onChange={({icon, always}) => context.setState({icon, always})}
-                                FolderIcon={FolderIcon}
+                        <FormItem title="Icon" className={className}>
+                            <RadioGroup
+                                value={state.iconType}
+                                options={[
+                                    {value: IconType.Default, name: "Default Icon"},
+                                    {value: IconType.Custom, name: "Custom Icon"}
+                                ]}
+                                onChange={({value}) => context.setState({iconType: value})}
                             />
                         </FormItem>
                     );
-                }
 
-                // override submit onclick
-                const button = Utils.queryTree(result as JSX.Element, (node) => node?.props?.type === "submit");
-                const original = button.props.onClick;
-                button.props.onClick = (...args: any[]) => {
-                    original(...args);
-
-                    // update folders if necessary
-                    const {folders} = Settings.current;
-                    if (state.iconType === "custom" && state.icon) {
-                        folders[folderId] = {icon: state.icon, always: state.always};
-                        Settings.update({folders});
-                    } else if ((state.iconType === "default" || !state.icon) && folders[folderId]) {
-                        delete folders[folderId];
-                        Settings.update({folders});
+                    if (state.iconType === IconType.Custom) {
+                        // render custom icon options
+                        const tree = SortedGuildStore.getGuildsTree();
+                        children.push(
+                            <FormItem title="Custom Icon" className={className}>
+                                <BetterFolderUploader
+                                    icon={state.icon}
+                                    always={state.always}
+                                    folderNode={tree.nodes[folderId]}
+                                    onChange={({icon, always}) => context.setState({icon, always})}
+                                    FolderIcon={FolderIcon}
+                                />
+                            </FormItem>
+                        );
                     }
-                };
+
+                    // override submit onclick
+                    const button = Utils.queryTree(result as JSX.Element, (node) => node?.props?.type === "submit");
+                    const original = button.props.onClick;
+                    button.props.onClick = (...args: any[]) => {
+                        original(...args);
+
+                        // update folders if necessary
+                        const {folders} = Settings.current;
+                        if (state.iconType === IconType.Custom && state.icon) {
+                            folders[folderId] = {icon: state.icon, always: state.always};
+                            Settings.update({folders});
+                        } else if ((state.iconType === IconType.Default || !state.icon) && folders[folderId]) {
+                            delete folders[folderId];
+                            Settings.update({folders});
+                        }
+                    };
+                });
             });
         },
         stop() {

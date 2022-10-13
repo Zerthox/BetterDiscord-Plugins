@@ -1,6 +1,6 @@
 import * as Finder from "../finder";
 
-interface RadioOption<T> {
+export interface RadioGroupOption<T> {
     name: React.ReactNode;
     value: T;
     desc?: React.ReactNode;
@@ -13,9 +13,9 @@ interface RadioGroupProps<T> {
     className?: string;
     value?: T;
     size?: string;
-    onChange?: (option: RadioOption<T>) => void;
+    onChange?: (option: RadioGroupOption<T>) => void;
     disabled?: boolean;
-    options?: RadioOption<T>[];
+    options?: RadioGroupOption<T>[];
     "aria-labelledby"?: any;
     orientation?: any;
     withTransparentBackground?: any;

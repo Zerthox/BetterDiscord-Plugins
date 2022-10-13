@@ -24,7 +24,7 @@ export * as Webpack from "./require";
 export {React, ReactDOM, Flux} from "./modules";
 export {version} from "../package.json";
 
-export type {Logger, Lazy, Patcher, Styles, Data, Settings} from "./api";
+export type {Logger, Lazy, Patcher, PatchData, PatchDataWithResult, Styles, Data, Settings} from "./api";
 
 export interface Api<
     SettingsType extends Record<string, any>,

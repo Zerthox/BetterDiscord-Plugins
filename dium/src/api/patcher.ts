@@ -9,15 +9,23 @@ export interface Options {
 
 export type Cancel = () => void;
 
-export interface Data<Original> {
+type Args<T> = T extends (...args: any) => any ? Parameters<T> : IArguments;
+
+type Return<T> = T extends (...args: any) => any ? ReturnType<T> : any;
+
+type This<T, P> = ThisParameterType<T> extends unknown ? (
+    P extends React.Component<any, any> ? P : any
+) : ThisParameterType<T>;
+
+export interface PatchData<Original, Parent = any> {
     cancel: Cancel;
     original: Original;
-    context: ThisParameterType<Original> extends unknown ? any : ThisParameterType<Original>;
-    args: Original extends (...args: any) => any ? Parameters<Original> : IArguments;
+    context: This<Original, Parent>;
+    args: Args<Original>;
 }
 
-export interface DataWithResult<Original> extends Data<Original> {
-    result: Original extends (...args: any) => any ? ReturnType<Original> : any;
+export interface PatchDataWithResult<Original, Parent = any> extends PatchData<Original, Parent> {
+    result: Return<Original>;
 }
 
 export interface Patcher {
@@ -25,7 +33,7 @@ export interface Patcher {
     instead<Module, Key extends keyof Module>(
         object: Module,
         method: Key,
-        callback: (data: Data<Module[Key]>) => unknown,
+        callback: (data: PatchData<Module[Key], Module>) => unknown,
         options?: Options
     ): Cancel;
 
@@ -37,7 +45,7 @@ export interface Patcher {
     before<Module, Key extends keyof Module>(
         object: Module,
         method: Key,
-        callback: (data: Data<Module[Key]>) => unknown,
+        callback: (data: PatchData<Module[Key], Module>) => unknown,
         options?: Options
     ): Cancel;
 
@@ -51,7 +59,7 @@ export interface Patcher {
     after<Module, Key extends keyof Module>(
         object: Module,
         method: Key,
-        callback: (data: DataWithResult<Module[Key]>) => unknown,
+        callback: (data: PatchDataWithResult<Module[Key], Module>) => unknown,
         options?: Options
     ): Cancel;
 
