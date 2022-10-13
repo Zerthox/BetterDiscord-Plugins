@@ -10,9 +10,9 @@ export const createStyles = (id: string): Styles => {
     return {
         inject(styles) {
             if (typeof styles === "string") {
-                BdApi.injectCSS(id, styles);
+                BdApi.DOM.addStyle(id, styles);
             }
         },
-        clear: () => BdApi.clearCSS(id)
+        clear: () => BdApi.DOM.removeStyle(id)
     };
 };
