@@ -1,5 +1,4 @@
 import * as Finder from "../finder";
-import {Untyped} from "../modules";
 
 export * from "./flex";
 export * from "./button";
@@ -8,14 +7,11 @@ export * from "./menu";
 export * from "./radio";
 export * from "./slider";
 export * from "./switch";
+export * from "./text-input";
 export * from "./text";
 
-type UntypedComponent = Untyped<React.ComponentType<any>>;
-
 export const Clickable: React.ComponentClass<any, any> = /* @__PURE__ */ Finder.byName("Clickable");
-export const Links: Record<string, UntypedComponent> = /* @__PURE__ */ Finder.byProps(["Link", "NavLink"]);
-
-export const TextInput: UntypedComponent = /* @__PURE__ */ Finder.byName("TextInput");
+export const Links: Record<string, React.ComponentType<any>> = /* @__PURE__ */ Finder.byProps(["Link", "NavLink"]);
 
 interface Margins {
     marginBottom4: string;
