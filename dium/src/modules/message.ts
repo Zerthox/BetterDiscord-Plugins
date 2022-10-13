@@ -1,7 +1,7 @@
 import * as Finder from "../finder";
 import type {Untyped, Snowflake, Store, User, ActionModule} from ".";
 
-export const enum MessageType {
+export const enum MessageTypes {
     Default = 0,
     RecipientAdd = 1,
     RecipientRemove = 2,
@@ -28,7 +28,7 @@ export const enum MessageType {
     ContextMenuCommand = 23
 }
 
-export const enum MessageState {
+export const enum MessageStates {
     Sending = "SENDING",
     SendFailed = "SEND_FAILED",
     Sent = "SENT"
@@ -49,13 +49,13 @@ export const enum MessageFlags {
 
 /** A message. */
 export interface Message {
-    type: MessageType;
+    type: MessageTypes;
     author: User;
     content: string;
 
     timestamp: import("moment").Moment;
     editedTimestamp?: any;
-    state: MessageState;
+    state: MessageStates;
 
     /** Message ID of parent. */
     nonce?: Snowflake;

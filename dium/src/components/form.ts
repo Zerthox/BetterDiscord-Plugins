@@ -1,7 +1,7 @@
 import * as Finder from "../finder";
 import * as Filters from "../filters";
 
-export const enum FormTag {
+export const enum FormTags {
     H1 = "h1",
     H2 = "h2",
     H3 = "h3",
@@ -23,7 +23,7 @@ interface FormSectionProps {
 }
 
 export interface FormSection extends React.FunctionComponent<FormSectionProps> {
-    Tags: typeof FormTag;
+    Tags: typeof FormTags;
 }
 
 interface FormItemProps {
@@ -39,7 +39,7 @@ interface FormItemProps {
 }
 
 export interface FormItem extends React.FunctionComponent<FormItemProps> {
-    Tags: typeof FormTag;
+    Tags: typeof FormTags;
 }
 
 interface FormTitleProps {
@@ -53,7 +53,7 @@ interface FormTitleProps {
 }
 
 export interface FormTitle extends React.FunctionComponent<FormTitleProps> {
-    Tags: typeof FormTag;
+    Tags: typeof FormTags;
 }
 
 interface FormTextProps {
@@ -65,7 +65,7 @@ interface FormTextProps {
     style?: React.CSSProperties;
 }
 
-export const enum FormTextType {
+export const enum FormTextTypes {
     INPUT_PLACEHOLDER = "placeholder",
     DESCRIPTION = "description",
     LABEL_BOLD = "labelBold",
@@ -76,10 +76,10 @@ export const enum FormTextType {
 }
 
 export interface FormText extends React.FunctionComponent<FormTextProps> {
-    Types: typeof FormTextType;
+    Types: typeof FormTextTypes;
 }
 
-export const enum FormNoticeType {
+export const enum FormNoticeTypes {
     BRAND = "cardBrand",
     CUSTOM = "card",
     DANGER = "cardDanger",
@@ -106,7 +106,7 @@ interface FormNoticeProps {
 }
 
 export interface FormNotice extends React.FunctionComponent<FormNoticeProps> {
-    Types: typeof FormNoticeType;
+    Types: typeof FormNoticeTypes;
 }
 
 interface Form {

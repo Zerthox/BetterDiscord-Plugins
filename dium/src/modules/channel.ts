@@ -6,7 +6,7 @@ import type {Store} from "./flux";
 export interface Channel {
     id: Snowflake;
     name: string;
-    type: ChannelType;
+    type: ChannelTypes;
     topic: string;
 
     bitrate: number;
@@ -73,7 +73,7 @@ export interface Channel {
 }
 
 /** Types of Channels. */
-export const enum ChannelType {
+export const enum ChannelTypes {
     GuildText = 0,
     DM = 1,
     GuildVoice = 2,

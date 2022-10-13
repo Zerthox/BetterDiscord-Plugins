@@ -60,7 +60,7 @@ export interface User {
     toString(): string;
 }
 
-export const enum UserFlag {
+export const enum UserFlags {
     STAFF = 2**0,
     PARTNER = 2**1,
     HYPESQUAD = 2**2,
@@ -94,7 +94,7 @@ export interface UserStore extends Store {
 
 export const UserStore: UserStore = /* @__PURE__ */ Finder.byName("UserStore");
 
-export const enum StatusType {
+export const enum StatusTypes {
     DND = "dnd",
     IDLE = "idle",
     INVISIBLE = "invisible",
@@ -105,8 +105,8 @@ export const enum StatusType {
 }
 
 export interface PresenceStoreState {
-    statuses: Record<Snowflake, StatusType>;
-    clientStatuses: Record<Snowflake, {desktop?: StatusType; mobile?: StatusType}>;
+    statuses: Record<Snowflake, StatusTypes>;
+    clientStatuses: Record<Snowflake, {desktop?: StatusTypes; mobile?: StatusTypes}>;
     activities: Record<Snowflake, any[]>;
     activityMetadata: Record<any, any>;
 
@@ -122,7 +122,7 @@ export interface PresenceStore extends Store {
     getApplicationActivity(e, t, n);
     getPrimaryActivity(e, t);
     getState(): PresenceStoreState;
-    getStatus(user: Snowflake, t?, n?): StatusType;
+    getStatus(user: Snowflake, t?, n?): StatusTypes;
     getUserIds(): Snowflake[];
     isMobileOnline(user: Snowflake): boolean;
     setCurrentUserOnConnectionOpen(e, t);
@@ -131,7 +131,7 @@ export interface PresenceStore extends Store {
 
 export const PresenceStore: PresenceStore = /* @__PURE__ */ Finder.byName("PresenceStore");
 
-export const enum RelationshipType {
+export const enum RelationshipTypes {
     NONE = 0,
     FRIEND = 1,
     BLOCKED = 2,
@@ -145,8 +145,8 @@ export interface RelationshipStore extends Store {
     getNickname(arg: any): any;
     getPendingCount(): number;
     getRelationshipCount(): number;
-    getRelationshipType(user: Snowflake): RelationshipType;
-    getRelationships(): Record<Snowflake, RelationshipType>;
+    getRelationshipType(user: Snowflake): RelationshipTypes;
+    getRelationships(): Record<Snowflake, RelationshipTypes>;
     isBlocked(user: Snowflake): boolean;
     isFriend(user: Snowflake): boolean;
     __getLocalVars();
