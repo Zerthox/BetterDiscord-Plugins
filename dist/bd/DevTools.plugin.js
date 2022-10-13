@@ -1,7 +1,7 @@
 /**
  * @name DevTools
  * @author Zerthox
- * @version 0.3.3
+ * @version 0.4.0
  * @description Utilities for development.
  * @authorLink https://github.com/Zerthox
  * @website https://github.com/Zerthox/BetterDiscord-Plugins
@@ -53,88 +53,19 @@ WScript.Quit();
 'use strict';
 
 const createData = (id) => ({
-    load: (key) => BdApi.loadData(id, key) ?? null,
-    save: (key, value) => BdApi.saveData(id, key, value),
-    delete: (key) => BdApi.deleteData(id, key)
+    load: (key) => BdApi.Data.load(id, key) ?? null,
+    save: (key, value) => BdApi.Data.save(id, key, value),
+    delete: (key) => BdApi.Data.delete(id, key)
 });
-
-const join = (filters) => {
-    return (target) => filters.every((filter) => filter(target));
-};
-const query$2 = ({ filter, name, anyName, props, protos, source }) => join([
-    ...[filter].flat(),
-    typeof name === "string" ? byName$2(name) : null,
-    typeof anyName === "string" ? byAnyName$2(anyName) : null,
-    props instanceof Array ? byProps$2(props) : null,
-    protos instanceof Array ? byProtos$2(protos) : null,
-    source instanceof Array ? bySource$2(source) : null
-].filter(Boolean));
-const byName$2 = (name) => {
-    return (target) => (target?.displayName ?? target?.constructor?.displayName) === name;
-};
-const byAnyName$2 = (name) => {
-    return (target) => target instanceof Object && target !== window && Object.values(target).some(byName$2(name));
-};
-const byProps$2 = (props) => {
-    return (target) => target instanceof Object && props.every((prop) => prop in target);
-};
-const byProtos$2 = (protos) => {
-    return (target) => target instanceof Object && target.prototype instanceof Object && protos.every((proto) => proto in target.prototype);
-};
-const bySource$2 = (contents) => {
-    return (target) => target instanceof Function && contents.every((content) => target.toString().includes(content));
-};
-
-const filters = {
-    __proto__: null,
-    join: join,
-    query: query$2,
-    byName: byName$2,
-    byAnyName: byAnyName$2,
-    byProps: byProps$2,
-    byProtos: byProtos$2,
-    bySource: bySource$2
-};
-
-const resolveExport = (target, filter) => {
-    if (target && typeof filter === "function") {
-        return filter(target) ? target : Object.values(target).find((entry) => filter(entry));
-    }
-    return target;
-};
-const find$1 = (filter, resolve = true) => BdApi.Webpack.getModule(filter, { defaultExport: resolve });
-const query$1 = (options) => find$1(query$2(options), options.resolve);
-const byName$1 = (name, resolve = true) => find$1(byName$2(name), resolve);
-const byAnyName$1 = (name, resolve = true) => resolveExport(find$1(byAnyName$2(name)), resolve ? byName$2(name) : null);
-const byProps$1 = (...props) => find$1(byProps$2(props));
-const byProtos$1 = (...protos) => find$1(byProtos$2(protos));
-const bySource$1 = (...contents) => find$1(bySource$2(contents));
-const all$1 = {
-    find: (filter, resolve = true) => BdApi.Webpack.getModule(filter, { first: false, defaultExport: resolve }) ?? [],
-    query: (options) => all$1.find(query$2(options), options.resolve),
-    byName: (name, resolve = true) => all$1.find(byName$2(name), resolve),
-    byAnyName: (name, resolve = true) => all$1.find(byAnyName$2(name)).map((entry) => resolveExport(entry, resolve ? byName$2(name) : null)),
-    byProps: (...props) => all$1.find(byProps$2(props)),
-    byProtos: (...protos) => all$1.find(byProtos$2(protos)),
-    bySource: (...contents) => all$1.find(bySource$2(contents))
-};
-
-const finder = {
-    __proto__: null,
-    find: find$1,
-    query: query$1,
-    byName: byName$1,
-    byAnyName: byAnyName$1,
-    byProps: byProps$1,
-    byProtos: byProtos$1,
-    bySource: bySource$1,
-    all: all$1
-};
 
 const createLazy = () => {
     let controller = new AbortController();
     return {
-        waitFor: (filter, resolve = true) => BdApi.Webpack.waitForModule(filter, { signal: controller.signal, defaultExport: resolve }),
+        waitFor: (filter, { resolve = true, entries = false }) => BdApi.Webpack.waitForModule(filter, {
+            signal: controller.signal,
+            defaultExport: resolve,
+            searchExports: entries
+        }),
         abort: () => {
             controller.abort();
             controller = new AbortController();
@@ -152,30 +83,26 @@ const createLogger = (name, color, version) => {
     };
 };
 
-const resolveName = (object, method) => {
-    const target = method === "default" ? object[method] : {};
-    return object.displayName ?? object.constructor?.displayName ?? target.displayName ?? "unknown";
-};
 const createPatcher = (id, Logger) => {
-    const forward = (patch, object, method, callback, options) => {
+    const forward = (patcher, type, object, method, callback, options) => {
         const original = object?.[method];
-        if (typeof original !== "function") {
+        if (!(original instanceof Function)) {
             throw TypeError(`patch target ${original} is not a function`);
         }
-        const cancel = patch(id, object, method, options.once ? (...args) => {
+        const cancel = patcher[type](id, object, method, options.once ? (...args) => {
             const result = callback(cancel, original, ...args);
             cancel();
             return result;
         } : (...args) => callback(cancel, original, ...args));
         if (!options.silent) {
-            Logger.log(`Patched ${String(method)} of ${options.name ?? resolveName(object, method)}`);
+            Logger.log(`Patched ${options.name ?? String(method)}`);
         }
         return cancel;
     };
     return {
-        instead: (object, method, callback, options = {}) => forward(BdApi.Patcher.instead, object, method, (cancel, original, context, args) => callback({ cancel, original, context, args }), options),
-        before: (object, method, callback, options = {}) => forward(BdApi.Patcher.before, object, method, (cancel, original, context, args) => callback({ cancel, original, context, args }), options),
-        after: (object, method, callback, options = {}) => forward(BdApi.Patcher.after, object, method, (cancel, original, context, args, result) => callback({ cancel, original, context, args, result }), options),
+        instead: (object, method, callback, options = {}) => forward(BdApi.Patcher, "instead", object, method, (cancel, original, context, args) => callback({ cancel, original, context, args }), options),
+        before: (object, method, callback, options = {}) => forward(BdApi.Patcher, "before", object, method, (cancel, original, context, args) => callback({ cancel, original, context, args }), options),
+        after: (object, method, callback, options = {}) => forward(BdApi.Patcher, "after", object, method, (cancel, original, context, args, result) => callback({ cancel, original, context, args, result }), options),
         unpatchAll: () => {
             if (BdApi.Patcher.getPatchesByCaller(id).length > 0) {
                 BdApi.Patcher.unpatchAll(id);
@@ -185,128 +112,208 @@ const createPatcher = (id, Logger) => {
     };
 };
 
-const EventEmitter = /* @__PURE__ */ byProps$1("subscribe", "emit");
-const React$1 = /* @__PURE__ */ byProps$1("createElement", "Component", "Fragment");
-const ReactDOM = /* @__PURE__ */ byProps$1("render", "findDOMNode", "createPortal");
-const ReactSpring = /* @__PURE__ */ byProps$1("SpringContext", "animated");
-const classNames = /* @__PURE__ */ find$1((exports) => exports instanceof Object && exports.default === exports && Object.keys(exports).length === 1);
-const lodash = /* @__PURE__ */ byProps$1("cloneDeep", "flattenDeep");
-const semver = /* @__PURE__ */ byProps$1("SemVer");
-const moment = /* @__PURE__ */ byProps$1("utc", "months");
-const SimpleMarkdown = /* @__PURE__ */ byProps$1("parseBlock", "parseInline");
-const hljs = /* @__PURE__ */ byProps$1("highlight", "highlightBlock");
-const platform = /* @__PURE__ */ byProps$1("os", "manufacturer");
-const lottie = /* @__PURE__ */ byProps$1("setSubframeRendering");
+const join = (...filters) => {
+    return (...args) => filters.every((filter) => filter(...args));
+};
+const query$2 = ({ filter, name, props, protos, source }) => join(...[
+    ...[filter].flat(),
+    typeof name === "string" ? byName$2(name) : null,
+    props instanceof Array ? byProps$2(...props) : null,
+    protos instanceof Array ? byProtos$2(...protos) : null,
+    source instanceof Array ? bySource$2(...source) : null
+].filter(Boolean));
+const byEntry = (filter) => {
+    return (target, ...args) => target instanceof Object && target !== window && Object.values(target).some((value) => filter(value, ...args));
+};
+const byName$2 = (name) => {
+    return (target) => (target?.displayName ?? target?.constructor?.displayName) === name;
+};
+const byProps$2 = (...props) => {
+    return (target) => target instanceof Object && props.every((prop) => prop in target);
+};
+const byProtos$2 = (...protos) => {
+    return (target) => target instanceof Object && target.prototype instanceof Object && protos.every((proto) => proto in target.prototype);
+};
+const bySource$2 = (...fragments) => {
+    return (target) => {
+        if (target instanceof Function) {
+            const source = target.toString();
+            const renderSource = target.prototype?.render?.toString();
+            return fragments.every((fragment) => (typeof fragment === "string" ? (source.includes(fragment) || renderSource?.includes(fragment)) : (fragment(source) || renderSource && fragment(renderSource))));
+        }
+        else {
+            return false;
+        }
+    };
+};
 
-const Constants = /* @__PURE__ */ byProps$1("Permissions", "RelationshipTypes");
-const i18n = /* @__PURE__ */ byProps$1("languages", "getLocale");
+const filters = {
+    __proto__: null,
+    join,
+    query: query$2,
+    byEntry,
+    byName: byName$2,
+    byProps: byProps$2,
+    byProtos: byProtos$2,
+    bySource: bySource$2
+};
 
-const Flux = /* @__PURE__ */ byProps$1("Store", "useStateFromStores");
-const Dispatcher = /* @__PURE__ */ byProps$1("dispatch", "subscribe");
+const find$1 = (filter, { resolve = true, entries = false } = {}) => BdApi.Webpack.getModule(filter, {
+    defaultExport: resolve,
+    searchExports: entries
+});
+const query$1 = (query, options) => find$1(query$2(query), options);
+const byName$1 = (name, options) => find$1(byName$2(name), options);
+const byProps$1 = (props, options) => find$1(byProps$2(...props), options);
+const byProtos$1 = (protos, options) => find$1(byProtos$2(...protos), options);
+const bySource$1 = (contents, options) => find$1(bySource$2(...contents), options);
+const all$1 = {
+    find: (filter, { resolve = true, entries = false } = {}) => BdApi.Webpack.getModule(filter, {
+        first: false,
+        defaultExport: resolve,
+        searchExports: entries
+    }) ?? [],
+    query: (query, options) => all$1.find(query$2(query), options),
+    byName: (name, options) => all$1.find(byName$2(name), options),
+    byProps: (props, options) => all$1.find(byProps$2(...props), options),
+    byProtos: (protos, options) => all$1.find(byProtos$2(...protos), options),
+    bySource: (contents, options) => all$1.find(bySource$2(...contents), options)
+};
+const demangle = (mapping, required, resolve = true) => {
+    const req = required ?? Object.keys(mapping);
+    const found = find$1((exports) => (exports instanceof Object
+        && exports !== window
+        && req.every((req) => {
+            const filter = mapping[req];
+            return typeof filter === "string"
+                ? filter in exports
+                : Object.values(exports).some((value) => filter(value));
+        })));
+    return resolve ? Object.fromEntries(Object.entries(mapping).map(([key, filter]) => [
+        key,
+        typeof filter === "string" ? found?.[filter] : Object.values(found ?? {}).find((value) => filter(value))
+    ])) : found;
+};
 
-const Platforms = /* @__PURE__ */ byProps$1("getPlatform", "isWindows", "isWeb", "PlatformTypes");
-const ClientActions = /* @__PURE__ */ byProps$1("toggleGuildFolderExpand");
-const UserSettings = /* @__PURE__ */ byProps$1("MessageDisplayCompact");
+const finder = {
+    __proto__: null,
+    find: find$1,
+    query: query$1,
+    byName: byName$1,
+    byProps: byProps$1,
+    byProtos: byProtos$1,
+    bySource: bySource$1,
+    all: all$1,
+    demangle
+};
+
+const ChannelStore = /* @__PURE__ */ byName$1("ChannelStore");
+const ChannelActions = /* @__PURE__ */ byProps$1(["selectChannel"]);
+const SelectedChannelStore = /* @__PURE__ */ byName$1("SelectedChannelStore");
+const VoiceStateStore = /* @__PURE__ */ byName$1("VoiceStateStore");
+
+const Platforms = /* @__PURE__ */ byProps$1(["getPlatform", "isWindows", "isWeb", "PlatformTypes"]);
+const ClientActions = /* @__PURE__ */ byProps$1(["toggleGuildFolderExpand"]);
+const UserSettings = /* @__PURE__ */ byProps$1(["MessageDisplayCompact"]);
 const LocaleStore = /* @__PURE__ */ byName$1("LocaleStore");
 const ThemeStore = /* @__PURE__ */ byName$1("ThemeStore");
-const ContextMenuActions = /* @__PURE__ */ byProps$1("openContextMenuLazy");
-const ModalActions = /* @__PURE__ */ byProps$1("openModalLazy");
-const MediaEngineStore = /* @__PURE__ */ byProps$1("getLocalVolume");
-const MediaEngineActions = /* @__PURE__ */ byProps$1("setLocalVolume");
+const ContextMenuActions = /* @__PURE__ */ byProps$1(["openContextMenuLazy"]);
+const ModalActions = /* @__PURE__ */ byProps$1(["openModalLazy"]);
+const MediaEngineStore = /* @__PURE__ */ byName$1("MediaEngineStore");
+const MediaEngineActions = /* @__PURE__ */ byProps$1(["setLocalVolume"]);
 
-const UserStore = /* @__PURE__ */ byProps$1("getUser", "getCurrentUser");
-const PresenceStore = /* @__PURE__ */ byProps$1("getState", "getStatus", "isMobileOnline");
-const RelationshipStore = /* @__PURE__ */ byProps$1("isFriend", "getRelationshipCount");
+const OldFlux = /* @__PURE__ */ byProps$1(["Store"]);
+const Flux = {
+    default: OldFlux,
+    Store: OldFlux?.Store,
+    Dispatcher: /* @__PURE__ */ byProtos$1(["dispatch", "unsubscribe"], { entries: true }),
+    useStateFromStores: /* @__PURE__ */ bySource$1(["useStateFromStores"], { entries: true })
+};
+const Dispatcher = /* @__PURE__ */ byProps$1(["dispatch", "subscribe"]);
 
-const GuildStore = /* @__PURE__ */ byProps$1("getGuild");
-const GuildActions = /* @__PURE__ */ byProps$1("requestMembers");
-const GuildMemberStore = /* @__PURE__ */ byProps$1("getMember", "isMember");
+const Constants = /* @__PURE__ */ byProps$1(["Permissions", "RelationshipTypes"]);
+const i18n = /* @__PURE__ */ byProps$1(["languages", "getLocale"]);
 
-const ChannelStore = /* @__PURE__ */ byProps$1("getChannel", "hasChannel");
-const ChannelActions = /* @__PURE__ */ byProps$1("selectChannel");
-const SelectedChannelStore = /* @__PURE__ */ byProps$1("getChannelId", "getVoiceChannelId");
+const GuildStore = /* @__PURE__ */ byName$1("GuildStore");
+const GuildActions = /* @__PURE__ */ byProps$1(["requestMembers"]);
+const GuildMemberStore = /* @__PURE__ */ byName$1("GuildMemberStore");
 
-const Flex = /* @__PURE__ */ byAnyName$1("Flex");
-const Button = /* @__PURE__ */ byProps$1("Link", "Hovers");
-const Text = /* @__PURE__ */ byAnyName$1("Text");
-const Clickable = /* @__PURE__ */ byAnyName$1("Clickable");
-const Links = /* @__PURE__ */ byProps$1("Link", "NavLink");
-const Switch = /* @__PURE__ */ byAnyName$1("Switch");
-const SwitchItem = /* @__PURE__ */ byAnyName$1("SwitchItem");
-const RadioGroup = /* @__PURE__ */ byAnyName$1("RadioGroup");
-const Slider = /* @__PURE__ */ byAnyName$1("Slider");
-const TextInput = /* @__PURE__ */ byAnyName$1("TextInput");
-const Menu = /* @__PURE__ */ byProps$1("MenuGroup", "MenuItem", "MenuSeparator");
-const Form = /* @__PURE__ */ byProps$1("FormItem", "FormSection", "FormDivider");
-const margins = /* @__PURE__ */ byProps$1("marginLarge");
+const MessageStore = /* @__PURE__ */ byName$1("MessageStore");
+const MessageActions = /* @__PURE__ */ byProps$1(["jumpToMessage", "_sendMessage"]);
+
+const { React } = BdApi;
+const { ReactDOM } = BdApi;
+const ReactSpring = /* @__PURE__ */ byProps$1(["SpringContext", "animated"]);
+const classNames = /* @__PURE__ */ find$1((exports) => exports instanceof Object && exports.default === exports && Object.keys(exports).length === 1);
+const EventEmitter = /* @__PURE__ */ byProps$1(["subscribe", "emit"]);
+const lodash = /* @__PURE__ */ byProps$1(["cloneDeep", "flattenDeep"]);
+const semver = /* @__PURE__ */ byProps$1(["SemVer"]);
+const moment = /* @__PURE__ */ byProps$1(["utc", "months"]);
+const SimpleMarkdown = /* @__PURE__ */ byProps$1(["parseBlock", "parseInline"]);
+const hljs = /* @__PURE__ */ byProps$1(["highlight", "highlightBlock"]);
+const platform = /* @__PURE__ */ byProps$1(["os", "manufacturer"]);
+const lottie = /* @__PURE__ */ byProps$1(["setSubframeRendering"]);
+
+const mapping = {
+    Redirect: bySource$2(".computedMatch", ".to"),
+    Route: bySource$2(".computedMatch", ".location"),
+    Router: byProps$2("computeRootMatch"),
+    Switch: bySource$2(".cloneElement"),
+    withRouter: bySource$2("withRouter("),
+    RouterContext: byName$2("Router")
+};
+const Router = /* @__PURE__ */ demangle(mapping, ["withRouter"]);
+
+const UserStore = /* @__PURE__ */ byName$1("UserStore");
+const PresenceStore = /* @__PURE__ */ byName$1("PresenceStore");
+const RelationshipStore = /* @__PURE__ */ byName$1("RelationshipStore");
 
 const Modules = {
     __proto__: null,
-    Flux: Flux,
-    Dispatcher: Dispatcher,
-    EventEmitter: EventEmitter,
-    React: React$1,
-    ReactDOM: ReactDOM,
-    ReactSpring: ReactSpring,
-    classNames: classNames,
-    lodash: lodash,
-    semver: semver,
-    moment: moment,
-    SimpleMarkdown: SimpleMarkdown,
-    hljs: hljs,
-    platform: platform,
-    lottie: lottie,
-    Constants: Constants,
-    i18n: i18n,
-    Platforms: Platforms,
-    ClientActions: ClientActions,
-    UserSettings: UserSettings,
-    LocaleStore: LocaleStore,
-    ThemeStore: ThemeStore,
-    ContextMenuActions: ContextMenuActions,
-    ModalActions: ModalActions,
-    MediaEngineStore: MediaEngineStore,
-    MediaEngineActions: MediaEngineActions,
-    UserStore: UserStore,
-    PresenceStore: PresenceStore,
-    RelationshipStore: RelationshipStore,
-    GuildStore: GuildStore,
-    GuildActions: GuildActions,
-    GuildMemberStore: GuildMemberStore,
-    ChannelStore: ChannelStore,
-    ChannelActions: ChannelActions,
-    SelectedChannelStore: SelectedChannelStore,
-    Flex: Flex,
-    Button: Button,
-    Text: Text,
-    Clickable: Clickable,
-    Links: Links,
-    Switch: Switch,
-    SwitchItem: SwitchItem,
-    RadioGroup: RadioGroup,
-    Slider: Slider,
-    TextInput: TextInput,
-    Menu: Menu,
-    Form: Form,
-    margins: margins
-};
-
-const ReactInternals = React$1?.__SECRET_INTERNALS_DO_NOT_USE_OR_YOU_WILL_BE_FIRED;
-const [getInstanceFromNode, getNodeFromInstance, getFiberCurrentPropsFromNode, enqueueStateRestore, restoreStateIfNeeded, batchedUpdates] = ReactDOM?.__SECRET_INTERNALS_DO_NOT_USE_OR_YOU_WILL_BE_FIRED?.Events ?? [];
-const ReactDOMInternals = {
-    getInstanceFromNode,
-    getNodeFromInstance,
-    getFiberCurrentPropsFromNode,
-    enqueueStateRestore,
-    restoreStateIfNeeded,
-    batchedUpdates
+    Flux,
+    Dispatcher,
+    ChannelStore,
+    ChannelActions,
+    SelectedChannelStore,
+    VoiceStateStore,
+    Platforms,
+    ClientActions,
+    UserSettings,
+    LocaleStore,
+    ThemeStore,
+    ContextMenuActions,
+    ModalActions,
+    MediaEngineStore,
+    MediaEngineActions,
+    Constants,
+    i18n,
+    GuildStore,
+    GuildActions,
+    GuildMemberStore,
+    MessageStore,
+    MessageActions,
+    React,
+    ReactDOM,
+    ReactSpring,
+    classNames,
+    EventEmitter,
+    lodash,
+    semver,
+    moment,
+    SimpleMarkdown,
+    hljs,
+    platform,
+    lottie,
+    Router,
+    UserStore,
+    PresenceStore,
+    RelationshipStore
 };
 
 class Settings extends Flux.Store {
     constructor(Data, defaults) {
         super(new Flux.Dispatcher(), {
-            update: ({ settings }) => {
-                Object.assign(this.current, settings);
+            update: () => {
                 for (const listener of this.listeners) {
                     listener(this.current);
                 }
@@ -317,24 +324,22 @@ class Settings extends Flux.Store {
         this.defaults = defaults;
         this.current = { ...defaults, ...Data.load("settings") };
     }
-    dispatch(settings) {
-        this._dispatcher.dispatch({
-            type: "update",
-            settings
-        });
+    _dispatch() {
+        this._dispatcher.dispatch({ type: "update" });
     }
     update(settings) {
-        this.dispatch(typeof settings === "function" ? settings(this.current) : settings);
+        Object.assign(this.current, typeof settings === "function" ? settings(this.current) : settings);
+        this._dispatch();
     }
     reset() {
-        this.dispatch({ ...this.defaults });
+        this.current = { ...this.defaults };
+        this._dispatch();
     }
     delete(...keys) {
-        const settings = { ...this.current };
         for (const key of keys) {
-            delete settings[key];
+            delete this.current[key];
         }
-        this.dispatch(settings);
+        this._dispatch();
     }
     useCurrent() {
         return Flux.useStateFromStores([this], () => this.current);
@@ -346,7 +351,7 @@ class Settings extends Flux.Store {
         return Flux.useStateFromStores([this], () => [this.current, this.defaults, (settings) => this.update(settings)]);
     }
     useListener(listener) {
-        React$1.useEffect(() => {
+        React.useEffect(() => {
             this.addListener(listener);
             return () => this.removeListener(listener);
         }, [listener]);
@@ -368,17 +373,90 @@ const createStyles = (id) => {
     return {
         inject(styles) {
             if (typeof styles === "string") {
-                BdApi.injectCSS(id, styles);
+                BdApi.DOM.addStyle(id, styles);
             }
         },
-        clear: () => BdApi.clearCSS(id)
+        clear: () => BdApi.DOM.removeStyle(id)
     };
 };
 
+const Flex = /* @__PURE__ */ byProps$1(["Child", "Justify"], { entries: true });
+
+const Button = /* @__PURE__ */ byProps$1(["Colors", "Link"], { entries: true });
+
+const { FormSection, FormItem, FormTitle, FormText, FormDivider, FormNotice } = /* @__PURE__ */ demangle({
+    FormSection: bySource$2(".titleClassName", ".sectionTitle"),
+    FormItem: bySource$2(".titleClassName", ".required"),
+    FormTitle: bySource$2(".faded", ".required"),
+    FormText: (target) => target.Types?.INPUT_PLACEHOLDER,
+    FormDivider: bySource$2(".divider", ".style", "\"div\""),
+    FormNotice: bySource$2(".imageData", "formNotice")
+}, ["FormSection", "FormItem", "FormText"]);
+
+const { Menu: Menu, Group: MenuGroup, Item: MenuItem, Separator: MenuSeparator, CheckboxItem: MenuCheckboxItem, RadioItem: MenuRadioItem, ControlItem: MenuControlItem } = BdApi.ContextMenu;
+
+const RadioGroup = /* @__PURE__ */ bySource$1([".radioItemClassName", ".options"], { entries: true });
+
+const Slider = /* @__PURE__ */ bySource$1([".asValueChanges"], { entries: true });
+
+const SwitchItem = /* @__PURE__ */ bySource$1([".helpdeskArticleId"], { entries: true });
+const Switch = /* @__PURE__ */ bySource$1([".onChange", ".focusProps"], { entries: true });
+
+const { TextInput, TextInputError } = /* @__PURE__ */ demangle({
+    TextInput: (target) => target.defaultProps?.type === "text",
+    TextInputError: bySource$2(".error", "text-danger")
+}, ["TextInput"]);
+
+const Text = /* @__PURE__ */ bySource$1([".lineClamp", ".variant"], { entries: true });
+
+const Clickable = /* @__PURE__ */ byName$1("Clickable");
+const Links = /* @__PURE__ */ byProps$1(["Link", "NavLink"]);
+const margins = /* @__PURE__ */ byProps$1(["marginLarge"]);
+
+const Components = {
+    __proto__: null,
+    Clickable,
+    Links,
+    margins,
+    Flex,
+    Button,
+    FormSection,
+    FormItem,
+    FormTitle,
+    FormText,
+    FormDivider,
+    FormNotice,
+    Menu,
+    MenuGroup,
+    MenuItem,
+    MenuSeparator,
+    MenuCheckboxItem,
+    MenuRadioItem,
+    MenuControlItem,
+    RadioGroup,
+    Slider,
+    SwitchItem,
+    Switch,
+    TextInput,
+    TextInputError,
+    Text
+};
+
 const sleep = (duration) => new Promise((resolve) => setTimeout(resolve, duration));
-const alert = (title, content) => BdApi.alert(title, content);
-const confirm = (title, content, options = {}) => BdApi.showConfirmationModal(title, content, options);
-const toast = (content, options) => BdApi.showToast(content, options);
+const alert = (title, content) => BdApi.UI.alert(title, content);
+const confirm = (title, content, options = {}) => BdApi.UI.showConfirmationModal(title, content, options);
+const toast = (content, options) => BdApi.UI.showToast(content, options);
+
+const ReactInternals = React?.__SECRET_INTERNALS_DO_NOT_USE_OR_YOU_WILL_BE_FIRED;
+const [getInstanceFromNode, getNodeFromInstance, getFiberCurrentPropsFromNode, enqueueStateRestore, restoreStateIfNeeded, batchedUpdates] = ReactDOM?.__SECRET_INTERNALS_DO_NOT_USE_OR_YOU_WILL_BE_FIRED?.Events ?? [];
+const ReactDOMInternals = {
+    getInstanceFromNode,
+    getNodeFromInstance,
+    getFiberCurrentPropsFromNode,
+    enqueueStateRestore,
+    restoreStateIfNeeded,
+    batchedUpdates
+};
 
 const queryTree = (node, predicate) => {
     const worklist = [node];
@@ -433,8 +511,8 @@ const queryFiber = (fiber, predicate, direction = "up" , depth = 30, current = 0
     }
     return null;
 };
-const findOwner = (fiber) => {
-    return queryFiber(fiber, (node) => node?.stateNode instanceof React$1.Component, "up" , 50);
+const findOwner = (fiber, depth = 50) => {
+    return queryFiber(fiber, (node) => node?.stateNode instanceof React.Component, "up" , depth);
 };
 const forceUpdateOwner = (fiber) => new Promise((resolve) => {
     const owner = findOwner(fiber);
@@ -464,28 +542,32 @@ const forceFullRerender = (fiber) => new Promise((resolve) => {
 
 const index$1 = {
     __proto__: null,
-    sleep: sleep,
-    alert: alert,
-    confirm: confirm,
-    toast: toast,
-    queryTree: queryTree,
-    queryTreeAll: queryTreeAll,
-    getFiber: getFiber,
-    queryFiber: queryFiber,
-    findOwner: findOwner,
-    forceUpdateOwner: forceUpdateOwner,
-    forceFullRerender: forceFullRerender
+    sleep,
+    alert,
+    confirm,
+    toast,
+    queryTree,
+    queryTreeAll,
+    getFiber,
+    queryFiber,
+    findOwner,
+    forceUpdateOwner,
+    forceFullRerender
 };
 
-const SettingsContainer = ({ name, children, onReset }) => (React$1.createElement(Form.FormSection, null,
+const SettingsContainer = ({ name, children, onReset }) => (React.createElement(FormSection, null,
     children,
-    React$1.createElement(Form.FormDivider, { className: classNames(margins.marginTop20, margins.marginBottom20) }),
-    React$1.createElement(Flex, { justify: Flex.Justify.END },
-        React$1.createElement(Button, { size: Button.Sizes.SMALL, onClick: () => confirm(name, "Reset all settings?", {
+    React.createElement(FormDivider, { className: classNames(margins.marginTop20, margins.marginBottom20) }),
+    React.createElement(Flex, { justify: Flex.Justify.END },
+        React.createElement(Button, { size: Button.Sizes.SMALL, onClick: () => confirm(name, "Reset all settings?", {
                 onConfirm: () => onReset()
             }) }, "Reset"))));
 
-const version = "0.2.12";
+const require$1 = {
+    __proto__: null
+};
+
+const version = "0.3.0";
 
 const createPlugin = (config, callback) => (meta) => {
     const name = config.name ?? meta.name;
@@ -510,23 +592,24 @@ const createPlugin = (config, callback) => (meta) => {
             plugin.stop();
             Logger.log("Disabled");
         },
-        getSettingsPanel: plugin.SettingsPanel ? () => (React$1.createElement(SettingsContainer, { name: name, onReset: () => Settings.reset() },
-            React$1.createElement(plugin.SettingsPanel, null))) : null
+        getSettingsPanel: plugin.SettingsPanel ? () => (React.createElement(SettingsContainer, { name: name, onReset: () => Settings.reset() },
+            React.createElement(plugin.SettingsPanel, null))) : null
     };
 };
 
 const dium = {
     __proto__: null,
-    createPlugin: createPlugin,
+    createPlugin,
     Filters: filters,
     Finder: finder,
-    ReactInternals: ReactInternals,
-    ReactDOMInternals: ReactDOMInternals,
+    ReactInternals,
+    ReactDOMInternals,
     Utils: index$1,
-    React: React$1,
-    ReactDOM: ReactDOM,
-    Flux: Flux,
-    version: version
+    Webpack: require$1,
+    React,
+    ReactDOM,
+    Flux,
+    version
 };
 
 const getWebpackRequire = () => {
@@ -562,24 +645,22 @@ const modules = () => Object.values(webpackRequire.c);
 const sources = () => Object.values(webpackRequire.m);
 const sourceOf = (id) => webpackRequire.m[id] ?? null;
 const find = (...filters) => modules().find(applyFilters(filters)) ?? null;
-const query = (options) => find(query$2(options));
+const query = (query) => find(query$2(query));
 const byId = (id) => webpackRequire.c[id] ?? null;
 const byExports = (exported) => find(byExportsFilter(exported));
 const byName = (name) => find(byName$2(name));
-const byAnyName = (name) => find(byAnyName$2(name));
-const byProps = (...props) => find(byProps$2(props));
-const byProtos = (...protos) => find(byProtos$2(protos));
-const bySource = (...contents) => find(bySource$2(contents));
+const byProps = (...props) => find(byProps$2(...props));
+const byProtos = (...protos) => find(byProtos$2(...protos));
+const bySource = (...contents) => find(bySource$2(...contents));
 const byModuleSource = (...contents) => find(byModuleSourceFilter(contents));
 const all = {
     find: (...filters) => modules().filter(applyFilters(filters)),
-    query: (options) => all.find(query$2(options)),
+    query: (query) => all.find(query$2(query)),
     byExports: (exported) => all.find(byExportsFilter(exported)),
     byName: (name) => all.find(byName$2(name)),
-    byAnyName: (name) => all.find(byAnyName$2(name)),
-    byProps: (...props) => all.find(byProps$2(props)),
-    byProtos: (...protos) => all.find(byProtos$2(protos)),
-    bySource: (...contents) => all.find(bySource$2(contents)),
+    byProps: (...props) => all.find(byProps$2(...props)),
+    byProtos: (...protos) => all.find(byProtos$2(...protos)),
+    bySource: (...contents) => all.find(bySource$2(...contents)),
     byModuleSource: (...contents) => all.find(byModuleSourceFilter(contents))
 };
 const resolveImportIds = (module) => {
@@ -605,89 +686,38 @@ const resolveUsers = (module) => resolveUsersById(module.id);
 const DevFinder = {
     __proto__: null,
     require: webpackRequire,
-    modules: modules,
-    sources: sources,
-    sourceOf: sourceOf,
-    find: find,
-    query: query,
-    byId: byId,
-    byExports: byExports,
-    byName: byName,
-    byAnyName: byAnyName,
-    byProps: byProps,
-    byProtos: byProtos,
-    bySource: bySource,
-    byModuleSource: byModuleSource,
-    all: all,
-    resolveImportIds: resolveImportIds,
-    resolveImports: resolveImports,
-    resolveStyles: resolveStyles,
-    resolveUsersById: resolveUsersById,
-    resolveUsers: resolveUsers
+    modules,
+    sources,
+    sourceOf,
+    find,
+    query,
+    byId,
+    byExports,
+    byName,
+    byProps,
+    byProtos,
+    bySource,
+    byModuleSource,
+    all,
+    resolveImportIds,
+    resolveImports,
+    resolveStyles,
+    resolveUsersById,
+    resolveUsers
 };
 
-const { React, Finder } = dium;
-const { UserFlags } = Constants;
-const settings = {
-    global: true,
-    developer: false,
-    staff: false
-};
 const diumGlobal = {
     ...dium,
-    Finder: { ...Finder, dev: DevFinder },
-    Modules
+    Finder: { ...finder, dev: DevFinder },
+    Modules,
+    Components
 };
-const updateGlobal = (expose) => {
-    if (expose) {
-        window.dium = diumGlobal;
-    }
-    else {
-        delete window.dium;
-    }
-};
-const updateStaffFlag = (flag) => {
-    const user = UserStore.getCurrentUser();
-    if (flag) {
-        user.flags |= UserFlags.STAFF;
-    }
-    else {
-        user.flags &= ~UserFlags.STAFF;
-    }
-    UserStore.emitChange();
-};
-const index = createPlugin({ settings }, ({ Settings }) => ({
+const index = createPlugin({}, () => ({
     start() {
-        updateGlobal(Settings.current.global);
-        try {
-            updateStaffFlag(Settings.current.staff);
-        }
-        catch (err) {
-            console.error(err);
-        }
+        window.dium = diumGlobal;
     },
     stop() {
-        updateGlobal(false);
-        try {
-            updateStaffFlag(false);
-        }
-        catch (err) {
-            console.error(err);
-        }
-    },
-    SettingsPanel: () => {
-        const [settings, setSettings] = Settings.useState();
-        return (React.createElement(React.Fragment, null,
-            React.createElement(SwitchItem, { value: settings.global, onChange: (checked) => {
-                    setSettings({ global: checked });
-                    updateGlobal(checked);
-                }, note: "Expose dium as global for development." }, "Dium Global"),
-            React.createElement(SwitchItem, { disabled
-                : true, value: false, note: "Enable experiments & other developer tabs in settings. Reopen to see them." }, "Enable Developer Experiments"),
-            React.createElement(SwitchItem, { value: settings.staff, onChange: (checked) => {
-                    setSettings({ staff: checked });
-                    updateStaffFlag(checked);
-                }, note: "Add the Staff flag to the current user.", hideBorder: true }, "Enable Staff flag")));
+        delete window.dium;
     }
 }));
 

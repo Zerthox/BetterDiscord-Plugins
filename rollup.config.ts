@@ -10,8 +10,7 @@ const config: RollupOptions = {
         exports: "default",
         generatedCode: {
             constBindings: true,
-            objectShorthand: true,
-            symbols: true
+            objectShorthand: true
         },
         freeze: false
     },
