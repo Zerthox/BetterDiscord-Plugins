@@ -1,5 +1,5 @@
 import {createPlugin, Finder, Utils, React, Flux} from "dium";
-import {PresenceStore, RelationshipStore, RelationshipType, StatusType} from "dium/modules";
+import {PresenceStore, RelationshipStore, RelationshipTypes, StatusTypes} from "dium/modules";
 import {Links} from "dium/components";
 import styles from "./styles.scss";
 
@@ -13,7 +13,7 @@ const friendsOnline = "friendsOnline-2JkivW";
 const OnlineCount = () => {
     const online = Flux.useStateFromStores([PresenceStore, RelationshipStore], () => (
         Object.entries(RelationshipStore.getRelationships())
-            .filter(([id, type]) => type === RelationshipType.FRIEND && PresenceStore.getStatus(id) !== StatusType.OFFLINE)
+            .filter(([id, type]) => type === RelationshipTypes.FRIEND && PresenceStore.getStatus(id) !== StatusTypes.OFFLINE)
             .length
     ));
 
