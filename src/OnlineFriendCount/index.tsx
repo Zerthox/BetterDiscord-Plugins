@@ -3,9 +3,10 @@ import {PresenceStore, RelationshipStore, RelationshipTypes, StatusTypes} from "
 import {Link} from "dium/components";
 import styles from "./styles.scss";
 
-const HomeButtonModule = Finder.byProps(["HomeButton"]) as {HomeButton: React.FunctionComponent<any>};
+const GuildsNav = Finder.bySource(["guildsnav"], {entries: true}) as React.MemoExoticComponent<React.FunctionComponent<any>>;
 
 const guildStyles = Finder.byProps(["guilds", "base"]);
+const treeStyles = Finder.byProps(["tree", "scroller"]);
 const listStyles = Finder.byProps(["listItem"]);
 const friendsOnline = "friendsOnline-2JkivW";
 
@@ -18,7 +19,7 @@ const OnlineCount = () => {
 
     return (
         <div className={listStyles.listItem}>
-            <Link to={{pathname: "/channels/@me"}}>
+            <Link to="/channels/@me">
                 <div className={friendsOnline}>{online} Online</div>
             </Link>
         </div>
@@ -38,12 +39,27 @@ export default createPlugin({styles}, ({Logger, Patcher}) => {
 
     return {
         start() {
-            Patcher.instead(HomeButtonModule, "HomeButton", ({original: HomeButton, args: [props]}) => (
-                <>
-                    <HomeButton {...props}/>
-                    <OnlineCount/>
-                </>
-            ));
+            // patch guilds nav
+            Patcher.after(GuildsNav, "type", ({result}) => {
+                const target = Utils.queryTree(result, (node) => node?.props?.className === guildStyles.guilds) as React.ReactElement<any, React.FunctionComponent<any>>;
+                if (!target) {
+                    return Logger.error("Unable to find chain patch target");
+                }
+
+                // chain patch into the component
+                Utils.hookFunctionComponent(target, (result) => {
+                    // find scroller
+                    const scroller = Utils.queryTree(result, (node) => node?.props?.className === treeStyles.scroller);
+                    if (!scroller) {
+                        return Logger.error("Unable to find scroller");
+                    }
+
+                    // insert after home button
+                    const {children} = scroller.props as {children: JSX.Element[]};
+                    const homeButtonIndex = children.findIndex((child) => typeof child?.props?.isOnOtherSidebarRoute === "boolean");
+                    children.splice(homeButtonIndex + 1, 0, <OnlineCount/>);
+                });
+            });
 
             triggerRerender();
         },
