@@ -71,7 +71,7 @@ export const bySource = (...fragments: TypeOrPredicate<string>[]): Filter => {
                 )
             ));
         } else if (target instanceof Object && "$$typeof" in target) {
-            const source = target.render?.toString();
+            const source = (target.render ?? target.type)?.toString();
             return source && fragments.every((fragment) => typeof fragment === "string" ? source.includes(fragment) : fragment(source));
         } else {
             return false;
