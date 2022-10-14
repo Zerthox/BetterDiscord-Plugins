@@ -1,4 +1,5 @@
 import * as Finder from "../finder";
+import * as Filters from "../filters";
 import type {ActionModule, Snowflake, Store, Untyped} from ".";
 
 export interface Platforms {
@@ -26,7 +27,8 @@ export interface Platforms {
     isWindows(): boolean;
 }
 
-export const Platforms: Platforms = /* @__PURE__ */ Finder.byProps(["getPlatform", "isWindows", "isWeb", "PlatformTypes"]);
+// TODO: demangle
+export const Platforms: Platforms = /* @__PURE__ */ Finder.find(Filters.byEntry(Filters.byProps("WINDOWS", "WEB")));
 
 export interface ClientActions {
     selectGuild(e);
@@ -80,7 +82,7 @@ export interface UserSetting<T> {
 
 export type UserSettings = Record<string, UserSetting<any>>;
 
-export const UserSettings: UserSettings = /* @__PURE__ */ Finder.byProps(["MessageDisplayCompact"]);
+export const UserSettings: UserSettings = /* @__PURE__ */ Finder.find(Filters.byEntry(Filters.byProps("updateSetting"), true));
 
 export interface LocaleStore extends Store {
     get locale(): any;
@@ -96,29 +98,6 @@ export interface ThemeStore extends Store {
 }
 
 export const ThemeStore: ThemeStore = /* @__PURE__ */ Finder.byName("ThemeStore");
-
-export interface ContextMenuActions {
-    openContextMenu(e: any, t: any, n: any, r: any): any;
-    openContextMenuLazy(event: React.MouseEvent, resolver: (...args: any[]) => Promise<any>, unknown: any): any;
-    closeContextMenu(): any;
-}
-
-export const ContextMenuActions: ContextMenuActions = /* @__PURE__ */ Finder.byProps(["openContextMenuLazy"]);
-
-export interface ModalActions {
-    openModal(e: any, t: any, n: any): any;
-    openModalLazy(resolver: (...args: any[]) => Promise<any>, unknown: any): any;
-    updateModal(e: any, t: any, n: any, r: any, i: any): any;
-    closeAllModals(): any;
-    closeModal(e: any, t: any): any;
-    hasAnyModalOpen(): any;
-    hasAnyModalOpenSelector(e: any): any;
-    hasModalOpen(e: any, t: any): any;
-    hasModalOpenSelector(e: any, t: any, n: any): any;
-    useModalsStore(e: any, n: any): any;
-}
-
-export const ModalActions: ModalActions = /* @__PURE__ */ Finder.byProps(["openModalLazy"]);
 
 export type MediaEngineContext = any;
 

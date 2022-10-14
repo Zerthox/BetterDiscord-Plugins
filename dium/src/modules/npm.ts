@@ -27,4 +27,3 @@ export const platform: typeof import("platform") = /* @__PURE__ */ Finder.byProp
 export const lottie: typeof import("lottie-web") = /* @__PURE__ */ Finder.byProps(["setSubframeRendering"]);
 
 // joi & raven seem to have been removed
-// platform.js is still there!
