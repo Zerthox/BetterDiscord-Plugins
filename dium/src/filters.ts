@@ -54,7 +54,8 @@ export const byProtos = (...protos: string[]): Filter => {
 /**
  * Creates a filter searching by function source fragments.
  *
- * Also searches a potential `render()` method on the prototype in order to handle React class components.
+ * Also searches a potential `render()` function on the prototype in order to handle React class components.
+ * For ForwardRef or Memo exotic components the `render` function is checked.
  */
 export const bySource = (...fragments: TypeOrPredicate<string>[]): Filter => {
     return (target) => {
@@ -69,6 +70,9 @@ export const bySource = (...fragments: TypeOrPredicate<string>[]): Filter => {
                     fragment(source) || renderSource && fragment(renderSource)
                 )
             ));
+        } else if (target instanceof Object && "$$typeof" in target) {
+            const source = target.render?.toString();
+            return source && fragments.every((fragment) => typeof fragment === "string" ? source.includes(fragment) : fragment(source));
         } else {
             return false;
         }
