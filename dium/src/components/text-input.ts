@@ -49,6 +49,6 @@ interface TextInputModule {
 }
 
 export const {TextInput, TextInputError}: TextInputModule = /* @__PURE__ */ Finder.demangle({
-    TextInput: (target) => target.defaultProps?.type === "text",
+    TextInput: (target) => target?.defaultProps?.type === "text",
     TextInputError: Filters.bySource(".error", "text-danger")
 } as const, ["TextInput"]);
