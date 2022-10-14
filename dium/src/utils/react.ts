@@ -8,7 +8,7 @@ interface FCHookProps<P> {
     callbacks: FCHookCallback<P>[];
 }
 
-/**  Utility component hooking into a function component. */
+/** Utility component hooking into a function component. */
 const FCHook = <P>({children: {type, props}, callbacks: callbacks}: FCHookProps<P>): JSX.Element => {
     let result = type(props);
     for (const callback of callbacks) {
@@ -17,7 +17,7 @@ const FCHook = <P>({children: {type, props}, callbacks: callbacks}: FCHookProps<
     return result;
 };
 
-/**  Hooks into a function component, allowing to modify the rendered elements. */
+/** Hooks into a function component, allowing to modify the rendered elements. */
 export const hookFunctionComponent = <P>(
     target: React.ReactElement<P, React.FunctionComponent<P>>,
     callback: FCHookCallback<P>
