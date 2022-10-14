@@ -122,8 +122,16 @@ const query$2 = ({ filter, name, props, protos, source }) => join(...[
     protos instanceof Array ? byProtos$2(...protos) : null,
     source instanceof Array ? bySource$2(...source) : null
 ].filter(Boolean));
-const byEntry = (filter) => {
-    return (target, ...args) => target instanceof Object && target !== window && Object.values(target).some((value) => filter(value, ...args));
+const byEntry = (filter, every = false) => {
+    return (target, ...args) => {
+        if (target instanceof Object && target !== window) {
+            const values = Object.values(target);
+            return values.length > 0 && values[every ? "every" : "some"]((value) => filter(value, ...args));
+        }
+        else {
+            return false;
+        }
+    };
 };
 const byName$2 = (name) => {
     return (target) => (target?.displayName ?? target?.constructor?.displayName) === name;
@@ -140,6 +148,10 @@ const bySource$2 = (...fragments) => {
             const source = target.toString();
             const renderSource = target.prototype?.render?.toString();
             return fragments.every((fragment) => (typeof fragment === "string" ? (source.includes(fragment) || renderSource?.includes(fragment)) : (fragment(source) || renderSource && fragment(renderSource))));
+        }
+        else if (target instanceof Object && "$$typeof" in target) {
+            const source = (target.render ?? target.type)?.toString();
+            return source && fragments.every((fragment) => typeof fragment === "string" ? source.includes(fragment) : fragment(source));
         }
         else {
             return false;
@@ -212,13 +224,11 @@ const ChannelActions = /* @__PURE__ */ byProps$1(["selectChannel"]);
 const SelectedChannelStore = /* @__PURE__ */ byName$1("SelectedChannelStore");
 const VoiceStateStore = /* @__PURE__ */ byName$1("VoiceStateStore");
 
-const Platforms = /* @__PURE__ */ byProps$1(["getPlatform", "isWindows", "isWeb", "PlatformTypes"]);
+const Platforms = /* @__PURE__ */ find$1(byEntry(byProps$2("WINDOWS", "WEB")));
 const ClientActions = /* @__PURE__ */ byProps$1(["toggleGuildFolderExpand"]);
-const UserSettings = /* @__PURE__ */ byProps$1(["MessageDisplayCompact"]);
+const UserSettings = /* @__PURE__ */ find$1(byEntry(byProps$2("updateSetting"), true));
 const LocaleStore = /* @__PURE__ */ byName$1("LocaleStore");
 const ThemeStore = /* @__PURE__ */ byName$1("ThemeStore");
-const ContextMenuActions = /* @__PURE__ */ byProps$1(["openContextMenuLazy"]);
-const ModalActions = /* @__PURE__ */ byProps$1(["openModalLazy"]);
 const MediaEngineStore = /* @__PURE__ */ byName$1("MediaEngineStore");
 const MediaEngineActions = /* @__PURE__ */ byProps$1(["setLocalVolume"]);
 
@@ -230,9 +240,6 @@ const Flux = {
     useStateFromStores: /* @__PURE__ */ bySource$1(["useStateFromStores"], { entries: true })
 };
 const Dispatcher = /* @__PURE__ */ byProps$1(["dispatch", "subscribe"]);
-
-const Constants = /* @__PURE__ */ byProps$1(["Permissions", "RelationshipTypes"]);
-const i18n = /* @__PURE__ */ byProps$1(["languages", "getLocale"]);
 
 const GuildStore = /* @__PURE__ */ byName$1("GuildStore");
 const GuildActions = /* @__PURE__ */ byProps$1(["requestMembers"]);
@@ -281,12 +288,8 @@ const Modules = {
     UserSettings,
     LocaleStore,
     ThemeStore,
-    ContextMenuActions,
-    ModalActions,
     MediaEngineStore,
     MediaEngineActions,
-    Constants,
-    i18n,
     GuildStore,
     GuildActions,
     GuildMemberStore,
@@ -380,9 +383,11 @@ const createStyles = (id) => {
     };
 };
 
-const Flex = /* @__PURE__ */ byProps$1(["Child", "Justify"], { entries: true });
-
 const Button = /* @__PURE__ */ byProps$1(["Colors", "Link"], { entries: true });
+
+const Clickable = /* @__PURE__ */ bySource$1([".ignoreKeyPress"], { entries: true });
+
+const Flex = /* @__PURE__ */ byProps$1(["Child", "Justify"], { entries: true });
 
 const { FormSection, FormItem, FormTitle, FormText, FormDivider, FormNotice } = /* @__PURE__ */ demangle({
     FormSection: bySource$2(".titleClassName", ".sectionTitle"),
@@ -392,6 +397,12 @@ const { FormSection, FormItem, FormTitle, FormText, FormDivider, FormNotice } = 
     FormDivider: bySource$2(".divider", ".style", "\"div\""),
     FormNotice: bySource$2(".imageData", "formNotice")
 }, ["FormSection", "FormItem", "FormText"]);
+
+const { Link, NavLink, LinkRouter } = /* @__PURE__ */ demangle({
+    NavLink: bySource$2(".sensitive", ".to"),
+    Link: bySource$2(".component"),
+    LinkRouter: bySource$2("this.history")
+}, ["NavLink", "Link"]);
 
 const { Menu: Menu, Group: MenuGroup, Item: MenuItem, Separator: MenuSeparator, CheckboxItem: MenuCheckboxItem, RadioItem: MenuRadioItem, ControlItem: MenuControlItem } = BdApi.ContextMenu;
 
@@ -403,29 +414,29 @@ const SwitchItem = /* @__PURE__ */ bySource$1([".helpdeskArticleId"], { entries:
 const Switch = /* @__PURE__ */ bySource$1([".onChange", ".focusProps"], { entries: true });
 
 const { TextInput, TextInputError } = /* @__PURE__ */ demangle({
-    TextInput: (target) => target.defaultProps?.type === "text",
+    TextInput: (target) => target?.defaultProps?.type === "text",
     TextInputError: bySource$2(".error", "text-danger")
 }, ["TextInput"]);
 
 const Text = /* @__PURE__ */ bySource$1([".lineClamp", ".variant"], { entries: true });
 
-const Clickable = /* @__PURE__ */ byName$1("Clickable");
-const Links = /* @__PURE__ */ byProps$1(["Link", "NavLink"]);
 const margins = /* @__PURE__ */ byProps$1(["marginLarge"]);
 
 const Components = {
     __proto__: null,
-    Clickable,
-    Links,
     margins,
-    Flex,
     Button,
+    Clickable,
+    Flex,
     FormSection,
     FormItem,
     FormTitle,
     FormText,
     FormDivider,
     FormNotice,
+    Link,
+    NavLink,
+    LinkRouter,
     Menu,
     MenuGroup,
     MenuItem,
@@ -458,6 +469,31 @@ const ReactDOMInternals = {
     batchedUpdates
 };
 
+const FCHook = ({ children: { type, props }, callbacks: callbacks }) => {
+    let result = type(props);
+    for (const callback of callbacks) {
+        result = callback(result, props) ?? result;
+    }
+    return result;
+};
+const hookFunctionComponent = (target, callback) => {
+    if (target.type === FCHook) {
+        target.props.callbacks.push(callback);
+    }
+    else {
+        const props = {
+            children: {
+                key: target.key,
+                props: target.props,
+                type: target.type
+            },
+            callbacks: [callback]
+        };
+        target.props = props;
+        target.type = FCHook;
+    }
+    return target;
+};
 const queryTree = (node, predicate) => {
     const worklist = [node];
     while (worklist.length !== 0) {
@@ -546,6 +582,7 @@ const index$1 = {
     alert,
     confirm,
     toast,
+    hookFunctionComponent,
     queryTree,
     queryTreeAll,
     getFiber,
