@@ -28,11 +28,7 @@ export const hookFunctionComponent = <P>(
     } else {
         // replace original with hook component, move target element to children
         const props: FCHookProps<P> = {
-            children: {
-                key: target.key,
-                props: target.props,
-                type: target.type
-            },
+            children: {...target},
             callbacks: [callback]
         };
         target.props = props as any;
