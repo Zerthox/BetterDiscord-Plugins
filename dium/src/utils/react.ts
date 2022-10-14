@@ -1,6 +1,47 @@
 import {React} from "../modules";
 import {ReactDOMInternals, Fiber} from "../react-internals";
 
+export type FCHookCallback<P> = (result: JSX.Element, targetProps: P) => JSX.Element | void;
+
+interface FCHookProps<P> {
+    children: React.ReactElement<P, React.FunctionComponent<P>>;
+    callbacks: FCHookCallback<P>[];
+}
+
+/**  Utility component hooking into a function component. */
+const FCHook = <P>({children: {type, props}, callbacks: callbacks}: FCHookProps<P>): JSX.Element => {
+    let result = type(props);
+    for (const callback of callbacks) {
+        result = callback(result, props) as JSX.Element ?? result;
+    }
+    return result;
+};
+
+/**  Hooks into a function component, allowing to modify the rendered elements. */
+export const hookFunctionComponent = <P>(
+    target: React.ReactElement<P, React.FunctionComponent<P>>,
+    callback: FCHookCallback<P>
+): JSX.Element => {
+    if (target.type as any === FCHook) {
+        // already hooked, add callback
+        (target.props as FCHookProps<P>).callbacks.push(callback);
+    } else {
+        // replace original with hook component, move target element to children
+        const props: FCHookProps<P> = {
+            children: {
+                key: target.key,
+                props: target.props,
+                type: target.type
+            },
+            callbacks: [callback]
+        };
+        target.props = props as any;
+        target.type = FCHook as any;
+    }
+
+    return target;
+};
+
 export type Predicate<Arg> = (arg: Arg) => boolean;
 
 /**

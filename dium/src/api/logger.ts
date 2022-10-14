@@ -21,6 +21,7 @@ export const createLogger = (name: string, color: string, version: string): Logg
         "color: #666; font-size: .8em;",
         ...data
     );
+
     return {
         print,
         log: (...data) => print(console.log, ...data),
