@@ -1,10 +1,9 @@
 import {createPlugin, Finder, Utils, React, Flux} from "dium";
 import {PresenceStore, RelationshipStore, RelationshipTypes, StatusTypes} from "dium/modules";
-import {Links} from "dium/components";
+import {Link} from "dium/components";
 import styles from "./styles.scss";
 
 const HomeButtonModule = Finder.byProps(["HomeButton"]) as {HomeButton: React.FunctionComponent<any>};
-const {Link} = Links;
 
 const guildStyles = Finder.byProps(["guilds", "base"]);
 const listStyles = Finder.byProps(["listItem"]);

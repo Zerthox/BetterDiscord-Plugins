@@ -1,17 +1,16 @@
 import * as Finder from "../finder";
 
-export * from "./flex";
 export * from "./button";
+export * from "./clickable";
+export * from "./flex";
 export * from "./form";
+export * from "./link";
 export * from "./menu";
 export * from "./radio";
 export * from "./slider";
 export * from "./switch";
 export * from "./text-input";
 export * from "./text";
-
-export const Clickable: React.ComponentClass<any, any> = /* @__PURE__ */ Finder.byName("Clickable");
-export const Links: Record<string, React.ComponentType<any>> = /* @__PURE__ */ Finder.byProps(["Link", "NavLink"]);
 
 interface Margins {
     marginBottom4: string;
