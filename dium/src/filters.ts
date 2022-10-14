@@ -24,9 +24,16 @@ export const query = ({filter, name, props, protos, source}: Query): Filter => j
     source instanceof Array ? bySource(...source) : null
 ].filter(Boolean));
 
-/** Creates a filter matching on any value in the exported object. */
-export const byEntry = (filter: Filter): Filter => {
-    return (target, ...args) => target instanceof Object && target !== window && Object.values(target).some((value) => filter(value, ...args));
+/** Creates a filter matching on values in the exported object. */
+export const byEntry = (filter: Filter, every = false): Filter => {
+    return (target, ...args) => {
+        if (target instanceof Object && target !== window) {
+            const values = Object.values(target);
+            return values.length > 0 && values[every ? "every" : "some"]((value) => filter(value, ...args));
+        } else {
+            return false;
+        }
+    };
 };
 
 /** Creates a filter searching by `displayName`. */
