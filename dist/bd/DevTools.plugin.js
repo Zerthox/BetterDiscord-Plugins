@@ -1,7 +1,7 @@
 /**
  * @name DevTools
  * @author Zerthox
- * @version 0.4.0
+ * @version 0.4.1
  * @description Utilities for development.
  * @authorLink https://github.com/Zerthox
  * @website https://github.com/Zerthox/BetterDiscord-Plugins
@@ -232,14 +232,17 @@ const ThemeStore = /* @__PURE__ */ byName$1("ThemeStore");
 const MediaEngineStore = /* @__PURE__ */ byName$1("MediaEngineStore");
 const MediaEngineActions = /* @__PURE__ */ byProps$1(["setLocalVolume"]);
 
-const OldFlux = /* @__PURE__ */ byProps$1(["Store"]);
-const Flux = {
-    default: OldFlux,
-    Store: OldFlux?.Store,
-    Dispatcher: /* @__PURE__ */ byProtos$1(["dispatch", "unsubscribe"], { entries: true }),
-    useStateFromStores: /* @__PURE__ */ bySource$1(["useStateFromStores"], { entries: true })
-};
 const Dispatcher = /* @__PURE__ */ byProps$1(["dispatch", "subscribe"]);
+const Flux = /* @__PURE__ */ demangle({
+    default: byProps$2("Store", "connectStores"),
+    Dispatcher: byProtos$2("dispatch"),
+    Store: byProtos$2("emitChange"),
+    BatchedStoreListener: byProtos$2("attach", "detach"),
+    useStateFromStores: bySource$2("useStateFromStores")
+}, ["Store", "Dispatcher", "useStateFromStores"]);
+
+const Constants = /* @__PURE__ */ byProps$1(["Permissions", "RelationshipTypes"]);
+const i18n = /* @__PURE__ */ byProps$1(["languages", "getLocale"]);
 
 const GuildStore = /* @__PURE__ */ byName$1("GuildStore");
 const GuildActions = /* @__PURE__ */ byProps$1(["requestMembers"]);
@@ -277,8 +280,6 @@ const RelationshipStore = /* @__PURE__ */ byName$1("RelationshipStore");
 
 const Modules = {
     __proto__: null,
-    Flux,
-    Dispatcher,
     ChannelStore,
     ChannelActions,
     SelectedChannelStore,
@@ -290,6 +291,10 @@ const Modules = {
     ThemeStore,
     MediaEngineStore,
     MediaEngineActions,
+    Dispatcher,
+    Flux,
+    Constants,
+    i18n,
     GuildStore,
     GuildActions,
     GuildMemberStore,
@@ -482,11 +487,7 @@ const hookFunctionComponent = (target, callback) => {
     }
     else {
         const props = {
-            children: {
-                key: target.key,
-                props: target.props,
-                type: target.type
-            },
+            children: { ...target },
             callbacks: [callback]
         };
         target.props = props;
@@ -744,14 +745,29 @@ const diumGlobal = {
     Modules,
     Components
 };
-const index = createPlugin({}, () => ({
-    start() {
-        window.dium = diumGlobal;
-    },
-    stop() {
-        delete window.dium;
-    }
-}));
+const index = createPlugin({}, ({ Logger }) => {
+    const checkForMissing = (type, toCheck) => {
+        const missing = Object.entries(toCheck)
+            .filter(([, value]) => value === undefined || value === null)
+            .map(([key]) => key);
+        if (missing.length > 0) {
+            Logger.warn(`Missing ${type}: ${missing.join(", ")}`);
+        }
+        else {
+            Logger.log(`All ${type} found`);
+        }
+    };
+    return {
+        start() {
+            window.dium = diumGlobal;
+            checkForMissing("modules", Modules);
+            checkForMissing("components", Components);
+        },
+        stop() {
+            delete window.dium;
+        }
+    };
+});
 
 module.exports = index;
 
