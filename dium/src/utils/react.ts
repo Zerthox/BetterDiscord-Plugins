@@ -91,6 +91,31 @@ export const queryTreeAll = (node: JSX.Element, predicate: Predicate<JSX.Element
     return result;
 };
 
+type ElementWithChildren = React.ReactElement<{children: JSX.Element[]} & Record<string, any>>;
+
+/**
+ * Searches a React element tree for an element whose children are in an array and one child matches the predicate.
+ *
+ * Returns the parent node and the index.
+ */
+export const queryTreeForParent = (tree: JSX.Element, predicate: Predicate<JSX.Element>): [ElementWithChildren | null, number] => {
+    let childIndex = -1;
+
+    const parent = queryTree(tree, (node) => {
+        const children = node?.props?.children;
+        if (children instanceof Array) {
+            const index = children.findIndex(predicate);
+
+            if (index > -1) {
+                childIndex = index;
+                return true;
+            }
+        }
+    });
+
+    return [parent, childIndex];
+};
+
 /** Returns the React fiber node corresponding to a DOM node. */
 export const getFiber = (node: Node): Fiber => ReactDOMInternals.getInstanceFromNode(node ?? {} as Node);
 
@@ -107,7 +132,13 @@ export const enum Direction {
  * This uses a depth first search (DFS) with a maxiumum depth.
  * Parent nodes are searched first when searching both directions.
  */
-export const queryFiber = (fiber: Fiber, predicate: Predicate<Fiber>, direction: Direction | null = Direction.Up, depth = 30, current = 0): Fiber | null => {
+export const queryFiber = (
+    fiber: Fiber,
+    predicate: Predicate<Fiber>,
+    direction: Direction | null = Direction.Up,
+    depth = 30,
+    current = 0
+): Fiber | null => {
     // check depth
     if (current > depth) {
         return null;
