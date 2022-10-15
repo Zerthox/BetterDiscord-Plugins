@@ -7,21 +7,21 @@ export interface Action {
     type: ActionType;
 }
 
-export type Handler<A extends Action = any> = (action: A) => void;
+export type ActionHandler<A extends Action = any> = (action: A) => void;
 
-export type HandlerRecord = {
-    [A in ActionType]: Handler<{type: A}>;
+type ActionHandlerRecord = {
+    [A in ActionType]: ActionHandler<{type: A}>;
 };
 
-export type Token = string;
+export type DispatchToken = string;
 
-export type StoreDidChange = (arg: any) => boolean;
+type StoreDidChange = (arg: any) => boolean;
 
-export interface DepGraph {
-    nodes: Record<Token, any>;
-    incomingEdges: Record<Token, Token[]>;
-    outgoingEdges: Record<Token, Token[]>;
-    circular?: any;
+interface DepGraph {
+    nodes: Record<DispatchToken, DepGraphNode>;
+    incomingEdges: Record<DispatchToken, DispatchToken[]>;
+    outgoingEdges: Record<DispatchToken, DispatchToken[]>;
+    circular: any;
 
     size(): number;
     clone(): DepGraph;
@@ -39,48 +39,55 @@ export interface DepGraph {
     removeDependency(e: any, t: any): any;
 }
 
-export interface DepGraphNode {
+interface DepGraphNode {
     name: string;
-    actionHandler: HandlerRecord;
+    actionHandler: ActionHandlerRecord;
     storeDidChange: StoreDidChange;
 }
 
-export interface HandlerEntry {
+interface HandlerEntry {
     name: string;
-    actionHandler: Handler;
+    actionHandler: ActionHandler;
     storeDidChange: StoreDidChange;
+}
+
+interface ActionHandlers {
+    _dependencyGraph: DepGraph;
+    _lastID: number;
+    _orderedActionHandlers: Record<string, HandlerEntry[]>;
+    _orderedCallbackTokens: DispatchToken[];
+
+    _computeOrderedActionHandlers(actionType: ActionType): HandlerEntry[];
+    _computeOrderedCallbackTokens(): DispatchToken[];
+    _invalidateCaches(): void;
+
+    register: Dispatcher["register"];
+    addDependencies(arg1: any, arg2: any): void;
+    getOrderedActionHandlers(actionType: ActionType): HandlerEntry[];
 }
 
 export interface Dispatcher {
-    // private
-    _currentDispatchActionType?: any;
-    _dependencyGraph: DepGraph;
-    _lastID?: number;
-    _orderedActionHandlers: Record<string, HandlerEntry[]>;
-    _orderedCallbackTokens: Token[];
+    _currentDispatchActionType: any;
+    _actionHandlers: ActionHandlers;
+    _subscriptions: Record<string, any>;
     _processingWaitQueue: boolean;
-    _subscriptions: Record<string, Set<Handler>>;
     _waitQueue: any[];
     _interceptor: (arg: any) => any;
 
-    _computeOrderedActionHandlers(actionType: ActionType): HandlerEntry[];
-    _computeOrderedCallbackTokens(): Token[];
     _dispatch<A extends Action>(action: A): void;
     _dispatchWithDevtools<A extends Action>(action: A): void;
     _dispatchWithLogging<A extends Action>(action: A): void;
-    _invalidateCaches(): void;
-    _processWaitQueue(): void;
 
     dispatch<A extends Action>(action: A): void;
-    maybeDispatch<A extends Action>(action: A): any;
     isDispatching(): boolean;
+    flushWaitQueue(): void;
 
-    register(name: string, actionHandler: HandlerRecord, storeDidChange: StoreDidChange): Token;
+    register(name: string, actionHandler: ActionHandlerRecord, storeDidChange: StoreDidChange): DispatchToken;
     addDependencies(arg1: any, arg2: any): void;
     setInterceptor(interceptor: any): void;
 
-    subscribe<A extends Action>(action: A["type"], handler: Handler<A>): void;
-    unsubscribe<A extends Action>(action: A["type"], handler: Handler<A>): void;
+    subscribe<A extends Action>(action: A["type"], handler: ActionHandler<A>): void;
+    unsubscribe<A extends Action>(action: A["type"], handler: ActionHandler<A>): void;
 
     wait<T>(callback: () => T): T | void;
 }
@@ -89,42 +96,47 @@ export interface DispatcherConstructor {
     new(): Dispatcher;
 }
 
-export type Callback = () => void;
+type Callback = () => void;
+
+interface Callbacks {
+    listeners: Set<Callback>;
+    add(callback: Callback): void;
+    addConditional(callback: Callback, condition: boolean): void;
+    remove(callback: Callback);
+    has(callback: Callback): boolean;
+    hasAny(): boolean;
+    invokeAll(): void;
+}
 
 declare class Store {
-    constructor(dispatcher: Dispatcher, actions: HandlerRecord);
+    constructor(dispatcher: Dispatcher, actions: ActionHandlerRecord);
 
     static destroy(): any;
-    static emitChanges(): any;
     static getAll(): any;
-    static getChangeSentinel(): any;
     static initialize(): any;
     static initialized: Promise<any>;
-    static injectBatchEmitChanges(arg: unknown): any;
-    static isPaused(): boolean;
-    static pauseEmittingChanges(arg: unknown): any;
-    static resumeEmittingChanges(arg: unknown): any;
 
     // private
-    _changeCallbacks: Set<Handler>;
-    _dispatchToken: Token;
     _isInitialized: boolean;
+    _dispatchToken: DispatchToken;
     _dispatcher: Dispatcher;
+    _changeCallbacks: Callbacks;
 
     initialize(): void;
     initializeIfNeeded(): void;
+    getDispatchToken(): DispatchToken;
+    getName(): string;
 
-    getDispatchToken(): Token;
+    emitChange(): void;
+    mustEmitChanges(func?: () => boolean): void;
+    syncWith(stores: Store[], func: () => boolean, timeout?: number): any;
+    waitFor(...stores: Store[]): void;
 
     addChangeListener(listener: Callback): void;
     addConditionalChangeListener(listener: Callback, condition: boolean): void;
+    addReactChangeListener(listener: Callback): void;
     removeChangeListener(listener: Callback): void;
-    hasChangeCallbacks(): boolean;
-
-    emitChange(): void;
-    mustEmitChanges(func: () => boolean): void;
-    syncWith(stores: Store[], func: () => boolean, timeout?: number): any;
-    waitFor(...stores: Store[]): void;
+    removeReactChangeListener(listener: Callback): void;
 }
 
 declare class BatchedStoreListener {

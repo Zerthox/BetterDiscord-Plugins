@@ -1,7 +1,7 @@
 export * from "./channel";
 export * from "./client";
 export * from "./experiment";
-export {Flux, Dispatcher, Store} from "./flux";
+export * from "./flux";
 export * from "./general";
 export * from "./guild";
 export * from "./message";
