@@ -63,6 +63,13 @@ export interface Patcher {
         options?: Options
     ): Cancel;
 
+    /** Patches a context menu using its "navId". */
+    contextMenu(
+        navId: string,
+        callback: (result: JSX.Element) => JSX.Element | void,
+        options?: Options
+    ): Cancel;
+
     /** Reverts all patches done by this patcher. */
     unpatchAll(): void;
 }
@@ -80,6 +87,7 @@ export const createPatcher = (id: string, Logger: Logger): Patcher => {
         if (!(original instanceof Function)) {
             throw TypeError(`patch target ${original} is not a function`);
         }
+
         const cancel = patcher[type](
             id,
             object,
@@ -90,11 +98,15 @@ export const createPatcher = (id: string, Logger: Logger): Patcher => {
                 return result;
             } : (...args: any) => callback(cancel, original, ...args)
         );
+
         if (!options.silent) {
             Logger.log(`Patched ${options.name ?? String(method)}`);
         }
+
         return cancel;
     };
+
+    let menuPatches: Cancel[] = [];
 
     return {
         instead: (object, method, callback, options = {}) => forward(
@@ -121,8 +133,26 @@ export const createPatcher = (id: string, Logger: Logger): Patcher => {
             (cancel, original, context, args, result) => callback({cancel, original, context, args, result}),
             options
         ),
-        unpatchAll: () => {
-            if (BdApi.Patcher.getPatchesByCaller(id).length > 0) {
+        contextMenu(navId, callback, options = {}) {
+            const cancel = BdApi.ContextMenu.patch(navId, options.once ? (tree) => {
+                const result = callback(tree);
+                cancel();
+                return result;
+            } : callback);
+            menuPatches.push(cancel);
+
+            if (!options.silent) {
+                Logger.log(`Patched ${options.name ?? `"${navId}"`} context menu`);
+            }
+
+            return cancel;
+        },
+        unpatchAll() {
+            if (menuPatches.length + BdApi.Patcher.getPatchesByCaller(id).length > 0) {
+                for (const cancel of menuPatches) {
+                    cancel();
+                }
+                menuPatches = [];
                 BdApi.Patcher.unpatchAll(id);
                 Logger.log("Unpatched all");
             }
