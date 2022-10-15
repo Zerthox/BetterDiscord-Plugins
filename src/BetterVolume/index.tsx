@@ -1,6 +1,6 @@
 import {createPlugin, Finder, Filters, React} from "dium";
-import {Snowflake, MediaEngineStore, MediaEngineActions, MediaEngineContext} from "dium/modules";
-import {MenuItem} from "dium/components";
+import {Snowflake, MediaEngineStore, MediaEngineActions, MediaEngineContext} from "@dium/modules";
+import {MenuItem} from "@dium/components";
 import styles from "./styles.scss";
 
 interface AudioConvert {

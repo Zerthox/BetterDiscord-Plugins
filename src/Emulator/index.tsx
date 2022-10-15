@@ -1,5 +1,5 @@
 import {createPlugin, Finder, Utils, React} from "dium";
-import {Platforms} from "dium/modules";
+import {Platforms} from "@dium/modules";
 
 const {PlatformTypes} = Platforms;
 const OverlayBridgeStore = Finder.byName("OverlayBridgeStore");

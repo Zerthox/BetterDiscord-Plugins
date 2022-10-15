@@ -1,5 +1,5 @@
 import {Finder, React} from "dium";
-import {classNames} from "dium/modules";
+import {classNames} from "@dium/modules";
 import {
     Flex,
     Button,
@@ -14,7 +14,7 @@ import {
     FormText,
     FormDivider,
     margins
-} from "dium/components";
+} from "@dium/components";
 
 const SingleSelect = Finder.byName("SingleSelect") as React.ComponentType<any>;
 

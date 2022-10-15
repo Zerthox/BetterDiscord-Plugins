@@ -7,7 +7,7 @@
         "resolveJsonModule": true,
         "baseUrl": ".",
         "paths": {
-            "dium/*": ["./dium/src/*"]
+            "@dium/*": ["./dium/src/*"]
         }
     },
     "ts-node": {

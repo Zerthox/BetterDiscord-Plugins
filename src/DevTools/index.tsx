@@ -1,6 +1,6 @@
 import * as dium from "dium";
-import * as Modules from "dium/modules";
-import * as Components from "dium/components";
+import * as Modules from "@dium/modules";
+import * as Components from "@dium/components";
 import * as DevFinder from "./finder";
 
 // add extensions

@@ -1,6 +1,6 @@
 import {createPlugin, Finder, Utils, React, Flux} from "dium";
-import {PresenceStore, RelationshipStore, RelationshipTypes, StatusTypes} from "dium/modules";
-import {Link} from "dium/components";
+import {PresenceStore, RelationshipStore, RelationshipTypes, StatusTypes} from "@dium/modules";
+import {Link} from "@dium/components";
 import styles from "./styles.scss";
 
 const GuildsNav = Finder.bySource(["guildsnav"], {entries: true}) as React.MemoExoticComponent<React.FunctionComponent<any>>;

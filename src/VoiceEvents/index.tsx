@@ -1,15 +1,17 @@
 import {createPlugin, Filters, Utils, React} from "dium";
 import {
     Dispatcher,
+    Channel,
     ChannelStore,
     SelectedChannelStore,
+    User,
     UserStore,
     GuildMemberStore,
+    VoiceState,
     VoiceStateStore,
     MediaEngineStore
-} from "dium/modules";
-import {Text, MenuItem} from "dium/components";
-import type {User, Channel, VoiceState} from "dium/modules";
+} from "@dium/modules";
+import {Text, MenuItem} from "@dium/components";
 import {settings, SettingsPanel, NotificationType} from "./settings";
 
 interface VoiceStateUpdatesAction {
