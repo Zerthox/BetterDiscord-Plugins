@@ -1,7 +1,7 @@
 /**
  * @name OnlineFriendCount
  * @author Zerthox
- * @version 2.2.0
+ * @version 2.2.1
  * @description Add the old online friend count back to guild list. Because nostalgia.
  * @authorLink https://github.com/Zerthox
  * @website https://github.com/Zerthox/BetterDiscord-Plugins
@@ -293,11 +293,7 @@ const hookFunctionComponent = (target, callback) => {
     }
     else {
         const props = {
-            children: {
-                key: target.key,
-                props: target.props,
-                type: target.type
-            },
+            children: { ...target },
             callbacks: [callback]
         };
         target.props = props;
@@ -431,12 +427,12 @@ const index = createPlugin({ styles }, ({ Logger, Patcher }) => {
     return {
         start() {
             Patcher.after(GuildsNav, "type", ({ result }) => {
-                const target = queryTree(result, (node) => node?.props?.className === guildStyles.guilds);
+                const target = queryTree(result, (node) => node?.props?.className?.split(" ").includes(guildStyles.guilds));
                 if (!target) {
                     return Logger.error("Unable to find chain patch target");
                 }
                 hookFunctionComponent(target, (result) => {
-                    const scroller = queryTree(result, (node) => node?.props?.className === treeStyles.scroller);
+                    const scroller = queryTree(result, (node) => node?.props?.className?.split(" ").includes(treeStyles.scroller));
                     if (!scroller) {
                         return Logger.error("Unable to find scroller");
                     }

@@ -41,7 +41,7 @@ export default createPlugin({styles}, ({Logger, Patcher}) => {
         start() {
             // patch guilds nav
             Patcher.after(GuildsNav, "type", ({result}) => {
-                const target = Utils.queryTree(result, (node) => node?.props?.className === guildStyles.guilds) as React.ReactElement<any, React.FunctionComponent<any>>;
+                const target = Utils.queryTree(result, (node) => node?.props?.className?.split(" ").includes(guildStyles.guilds));
                 if (!target) {
                     return Logger.error("Unable to find chain patch target");
                 }
@@ -49,7 +49,7 @@ export default createPlugin({styles}, ({Logger, Patcher}) => {
                 // chain patch into the component
                 Utils.hookFunctionComponent(target, (result) => {
                     // find scroller
-                    const scroller = Utils.queryTree(result, (node) => node?.props?.className === treeStyles.scroller);
+                    const scroller = Utils.queryTree(result, (node) => node?.props?.className?.split(" ").includes(treeStyles.scroller));
                     if (!scroller) {
                         return Logger.error("Unable to find scroller");
                     }
