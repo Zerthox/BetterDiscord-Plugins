@@ -1,4 +1,5 @@
 import * as Finder from "../finder";
+import * as Filters from "../filters";
 
 export type ActionType = string;
 
@@ -135,7 +136,7 @@ declare class BatchedStoreListener {
 
 export type {Store, BatchedStoreListener};
 
-export interface Flux {
+export interface OldFlux {
     Store: typeof Store;
     CachedStore: any;
     PersistedStore: any;
@@ -156,13 +157,11 @@ export interface Flux {
 export type Comparator<T> = (a: T, b: T) => boolean;
 
 export interface FluxHooks {
-    default: Flux;
+    default: OldFlux;
 
     Store: typeof Store;
     Dispatcher: DispatcherConstructor;
     BatchedStoreListener: typeof BatchedStoreListener;
-    ActionBase: any;
-    ActionHandlers: any;
 
     useStateFromStores<T>(stores: Store[], callback: () => T, deps?: unknown[], compare?: Comparator<T>): T;
     useStateFromStoresArray<T>(stores: Store[], callback: () => T, deps?: unknown[]): T;
@@ -170,15 +169,14 @@ export interface FluxHooks {
     statesWillNeverBeEqual: Comparator<unknown>;
 }
 
-const OldFlux: Flux = /* @__PURE__ */ Finder.byProps(["Store"]);
-
-type FluxPolyfill = Pick<FluxHooks, "default" | "Store" | "Dispatcher" | "useStateFromStores">;
-
-export const Flux: FluxPolyfill = {
-    default: OldFlux,
-    Store: OldFlux?.Store,
-    Dispatcher: /* @__PURE__ */ Finder.byProtos(["dispatch", "unsubscribe"], {entries: true}),
-    useStateFromStores: /* @__PURE__ */ Finder.bySource(["useStateFromStores"], {entries: true})
-};
-
 export const Dispatcher: Dispatcher = /* @__PURE__ */ Finder.byProps(["dispatch", "subscribe"]);
+
+export type Flux = Pick<FluxHooks, "default" | "Store" | "Dispatcher" | "BatchedStoreListener" | "useStateFromStores">;
+
+export const Flux: Flux = /* @__PURE__ */ Finder.demangle({
+    default: Filters.byProps("Store", "connectStores"),
+    Dispatcher: Filters.byProtos("dispatch"),
+    Store: Filters.byProtos("emitChange"),
+    BatchedStoreListener: Filters.byProtos("attach", "detach"),
+    useStateFromStores: Filters.bySource("useStateFromStores")
+}, ["Store", "Dispatcher", "useStateFromStores"]);
