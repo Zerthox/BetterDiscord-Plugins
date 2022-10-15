@@ -1,4 +1,4 @@
-import {Finder, React} from "dium";
+import {React} from "dium";
 import {classNames} from "@dium/modules";
 import {
     Flex,
@@ -13,10 +13,9 @@ import {
     FormItem,
     FormText,
     FormDivider,
+    SingleSelect,
     margins
 } from "@dium/components";
-
-const SingleSelect = Finder.byName("SingleSelect") as React.ComponentType<any>;
 
 export const settings = {
     voice: null as string,
@@ -97,12 +96,6 @@ const VoiceLabel = ({name, lang}: VoiceLabelProps): JSX.Element => (
     </Flex>
 );
 
-interface VoiceSelectOption {
-    value: string;
-    label: string;
-    lang: string;
-}
-
 export interface SettingsPanelProps {
     current: SettingsType;
     defaults: SettingsType;
@@ -119,14 +112,14 @@ export const SettingsPanel = ({current, defaults, onChange, speak}: SettingsPane
                 <FormTitle>TTS Voice</FormTitle>
                 <SingleSelect
                     value={voice}
-                    onChange={(value: string) => onChange({voice: value})}
                     options={speechSynthesis.getVoices().map(({name, lang, voiceURI}) => ({
                         value: voiceURI,
                         label: name,
                         lang
-                    })) as VoiceSelectOption[]}
-                    renderOptionLabel={({label, lang}: VoiceSelectOption) => <VoiceLabel name={label} lang={lang}/>}
-                    renderOptionValue={([{label, lang}]: VoiceSelectOption[]) => <VoiceLabel name={label} lang={lang}/>}
+                    }))}
+                    onChange={(value) => onChange({voice: value})}
+                    renderOptionLabel={({label, lang}) => <VoiceLabel name={label} lang={lang}/>}
+                    renderOptionValue={([{label, lang}]) => <VoiceLabel name={label} lang={lang}/>}
                 />
             </FormItem>
             <FormItem className={margins.marginBottom20}>

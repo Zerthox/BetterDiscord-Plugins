@@ -1,7 +1,7 @@
 /**
  * @name VoiceEvents
  * @author Zerthox
- * @version 2.2.6
+ * @version 2.3.0
  * @description Add TTS Event Notifications to your selected Voice Channel. TeamSpeak feeling.
  * @authorLink https://github.com/Zerthox
  * @website https://github.com/Zerthox/BetterDiscord-Plugins
@@ -53,35 +53,19 @@ WScript.Quit();
 'use strict';
 
 const createData = (id) => ({
-    load: (key) => BdApi.loadData(id, key) ?? null,
-    save: (key, value) => BdApi.saveData(id, key, value),
-    delete: (key) => BdApi.deleteData(id, key)
+    load: (key) => BdApi.Data.load(id, key) ?? null,
+    save: (key, value) => BdApi.Data.save(id, key, value),
+    delete: (key) => BdApi.Data.delete(id, key)
 });
-
-const byName = (name) => {
-    return (target) => (target?.displayName ?? target?.constructor?.displayName) === name;
-};
-const byAnyName$1 = (name) => {
-    return (target) => target instanceof Object && target !== window && Object.values(target).some(byName(name));
-};
-const byProps$1 = (props) => {
-    return (target) => target instanceof Object && props.every((prop) => prop in target);
-};
-
-const resolveExport = (target, filter) => {
-    if (target && typeof filter === "function") {
-        return filter(target) ? target : Object.values(target).find((entry) => filter(entry));
-    }
-    return target;
-};
-const find = (filter, resolve = true) => BdApi.Webpack.getModule(filter, { defaultExport: resolve });
-const byAnyName = (name, resolve = true) => resolveExport(find(byAnyName$1(name)), resolve ? byName(name) : null);
-const byProps = (...props) => find(byProps$1(props));
 
 const createLazy = () => {
     let controller = new AbortController();
     return {
-        waitFor: (filter, resolve = true) => BdApi.Webpack.waitForModule(filter, { signal: controller.signal, defaultExport: resolve }),
+        waitFor: (filter, { resolve = true, entries = false }) => BdApi.Webpack.waitForModule(filter, {
+            signal: controller.signal,
+            defaultExport: resolve,
+            searchExports: entries
+        }),
         abort: () => {
             controller.abort();
             controller = new AbortController();
@@ -99,32 +83,45 @@ const createLogger = (name, color, version) => {
     };
 };
 
-const resolveName = (object, method) => {
-    const target = method === "default" ? object[method] : {};
-    return object.displayName ?? object.constructor?.displayName ?? target.displayName ?? "unknown";
-};
 const createPatcher = (id, Logger) => {
-    const forward = (patch, object, method, callback, options) => {
+    const forward = (patcher, type, object, method, callback, options) => {
         const original = object?.[method];
-        if (typeof original !== "function") {
+        if (!(original instanceof Function)) {
             throw TypeError(`patch target ${original} is not a function`);
         }
-        const cancel = patch(id, object, method, options.once ? (...args) => {
+        const cancel = patcher[type](id, object, method, options.once ? (...args) => {
             const result = callback(cancel, original, ...args);
             cancel();
             return result;
         } : (...args) => callback(cancel, original, ...args));
         if (!options.silent) {
-            Logger.log(`Patched ${String(method)} of ${options.name ?? resolveName(object, method)}`);
+            Logger.log(`Patched ${options.name ?? String(method)}`);
         }
         return cancel;
     };
+    let menuPatches = [];
     return {
-        instead: (object, method, callback, options = {}) => forward(BdApi.Patcher.instead, object, method, (cancel, original, context, args) => callback({ cancel, original, context, args }), options),
-        before: (object, method, callback, options = {}) => forward(BdApi.Patcher.before, object, method, (cancel, original, context, args) => callback({ cancel, original, context, args }), options),
-        after: (object, method, callback, options = {}) => forward(BdApi.Patcher.after, object, method, (cancel, original, context, args, result) => callback({ cancel, original, context, args, result }), options),
-        unpatchAll: () => {
-            if (BdApi.Patcher.getPatchesByCaller(id).length > 0) {
+        instead: (object, method, callback, options = {}) => forward(BdApi.Patcher, "instead", object, method, (cancel, original, context, args) => callback({ cancel, original, context, args }), options),
+        before: (object, method, callback, options = {}) => forward(BdApi.Patcher, "before", object, method, (cancel, original, context, args) => callback({ cancel, original, context, args }), options),
+        after: (object, method, callback, options = {}) => forward(BdApi.Patcher, "after", object, method, (cancel, original, context, args, result) => callback({ cancel, original, context, args, result }), options),
+        contextMenu(navId, callback, options = {}) {
+            const cancel = BdApi.ContextMenu.patch(navId, options.once ? (tree) => {
+                const result = callback(tree);
+                cancel();
+                return result;
+            } : callback);
+            menuPatches.push(cancel);
+            if (!options.silent) {
+                Logger.log(`Patched ${options.name ?? `"${navId}"`} context menu`);
+            }
+            return cancel;
+        },
+        unpatchAll() {
+            if (menuPatches.length + BdApi.Patcher.getPatchesByCaller(id).length > 0) {
+                for (const cancel of menuPatches) {
+                    cancel();
+                }
+                menuPatches = [];
                 BdApi.Patcher.unpatchAll(id);
                 Logger.log("Unpatched all");
             }
@@ -132,37 +129,81 @@ const createPatcher = (id, Logger) => {
     };
 };
 
-const React = /* @__PURE__ */ byProps("createElement", "Component", "Fragment");
+const byName$1 = (name) => {
+    return (target) => (target?.displayName ?? target?.constructor?.displayName) === name;
+};
+const byProps$1 = (...props) => {
+    return (target) => target instanceof Object && props.every((prop) => prop in target);
+};
+const byProtos = (...protos) => {
+    return (target) => target instanceof Object && target.prototype instanceof Object && protos.every((proto) => proto in target.prototype);
+};
+const bySource$1 = (...fragments) => {
+    return (target) => {
+        if (target instanceof Function) {
+            const source = target.toString();
+            const renderSource = target.prototype?.render?.toString();
+            return fragments.every((fragment) => (typeof fragment === "string" ? (source.includes(fragment) || renderSource?.includes(fragment)) : (fragment(source) || renderSource && fragment(renderSource))));
+        }
+        else if (target instanceof Object && "$$typeof" in target) {
+            const source = (target.render ?? target.type)?.toString();
+            return source && fragments.every((fragment) => typeof fragment === "string" ? source.includes(fragment) : fragment(source));
+        }
+        else {
+            return false;
+        }
+    };
+};
+
+const find = (filter, { resolve = true, entries = false } = {}) => BdApi.Webpack.getModule(filter, {
+    defaultExport: resolve,
+    searchExports: entries
+});
+const byName = (name, options) => find(byName$1(name), options);
+const byProps = (props, options) => find(byProps$1(...props), options);
+const bySource = (contents, options) => find(bySource$1(...contents), options);
+const demangle = (mapping, required, resolve = true) => {
+    const req = required ?? Object.keys(mapping);
+    const found = find((exports) => (exports instanceof Object
+        && exports !== window
+        && req.every((req) => {
+            const filter = mapping[req];
+            return typeof filter === "string"
+                ? filter in exports
+                : Object.values(exports).some((value) => filter(value));
+        })));
+    return resolve ? Object.fromEntries(Object.entries(mapping).map(([key, filter]) => [
+        key,
+        typeof filter === "string" ? found?.[filter] : Object.values(found ?? {}).find((value) => filter(value))
+    ])) : found;
+};
+
+const ChannelStore = /* @__PURE__ */ byName("ChannelStore");
+const SelectedChannelStore = /* @__PURE__ */ byName("SelectedChannelStore");
+const VoiceStateStore = /* @__PURE__ */ byName("VoiceStateStore");
+
+const MediaEngineStore = /* @__PURE__ */ byName("MediaEngineStore");
+
+const Dispatcher = /* @__PURE__ */ byProps(["dispatch", "subscribe"]);
+const Flux = /* @__PURE__ */ demangle({
+    default: byProps$1("Store", "connectStores"),
+    Dispatcher: byProtos("dispatch"),
+    Store: byProtos("emitChange"),
+    BatchedStoreListener: byProtos("attach", "detach"),
+    useStateFromStores: bySource$1("useStateFromStores")
+}, ["Store", "Dispatcher", "useStateFromStores"]);
+
+const GuildMemberStore = /* @__PURE__ */ byName("GuildMemberStore");
+
+const { React } = BdApi;
 const classNames = /* @__PURE__ */ find((exports) => exports instanceof Object && exports.default === exports && Object.keys(exports).length === 1);
 
-const Flux = /* @__PURE__ */ byProps("Store", "useStateFromStores");
-const Dispatcher = /* @__PURE__ */ byProps("dispatch", "subscribe");
-
-const MediaEngineStore = /* @__PURE__ */ byProps("getLocalVolume");
-
-const UserStore = /* @__PURE__ */ byProps("getUser", "getCurrentUser");
-
-const GuildMemberStore = /* @__PURE__ */ byProps("getMember", "isMember");
-
-const ChannelStore = /* @__PURE__ */ byProps("getChannel", "hasChannel");
-const SelectedChannelStore = /* @__PURE__ */ byProps("getChannelId", "getVoiceChannelId");
-
-const Flex = /* @__PURE__ */ byAnyName("Flex");
-const Button = /* @__PURE__ */ byProps("Link", "Hovers");
-const Text = /* @__PURE__ */ byAnyName("Text");
-const Switch = /* @__PURE__ */ byAnyName("Switch");
-const SwitchItem = /* @__PURE__ */ byAnyName("SwitchItem");
-const Slider = /* @__PURE__ */ byAnyName("Slider");
-const TextInput = /* @__PURE__ */ byAnyName("TextInput");
-const Menu = /* @__PURE__ */ byProps("MenuGroup", "MenuItem", "MenuSeparator");
-const Form = /* @__PURE__ */ byProps("FormItem", "FormSection", "FormDivider");
-const margins = /* @__PURE__ */ byProps("marginLarge");
+const UserStore = /* @__PURE__ */ byName("UserStore");
 
 class Settings extends Flux.Store {
     constructor(Data, defaults) {
         super(new Flux.Dispatcher(), {
-            update: ({ settings }) => {
-                Object.assign(this.current, settings);
+            update: () => {
                 for (const listener of this.listeners) {
                     listener(this.current);
                 }
@@ -173,24 +214,22 @@ class Settings extends Flux.Store {
         this.defaults = defaults;
         this.current = { ...defaults, ...Data.load("settings") };
     }
-    dispatch(settings) {
-        this._dispatcher.dispatch({
-            type: "update",
-            settings
-        });
+    _dispatch() {
+        this._dispatcher.dispatch({ type: "update" });
     }
     update(settings) {
-        this.dispatch(typeof settings === "function" ? settings(this.current) : settings);
+        Object.assign(this.current, typeof settings === "function" ? settings(this.current) : settings);
+        this._dispatch();
     }
     reset() {
-        this.dispatch({ ...this.defaults });
+        this.current = { ...this.defaults };
+        this._dispatch();
     }
     delete(...keys) {
-        const settings = { ...this.current };
         for (const key of keys) {
-            delete settings[key];
+            delete this.current[key];
         }
-        this.dispatch(settings);
+        this._dispatch();
     }
     useCurrent() {
         return Flux.useStateFromStores([this], () => this.current);
@@ -224,19 +263,81 @@ const createStyles = (id) => {
     return {
         inject(styles) {
             if (typeof styles === "string") {
-                BdApi.injectCSS(id, styles);
+                BdApi.DOM.addStyle(id, styles);
             }
         },
-        clear: () => BdApi.clearCSS(id)
+        clear: () => BdApi.DOM.removeStyle(id)
     };
 };
 
-const alert = (title, content) => BdApi.alert(title, content);
-const confirm = (title, content, options = {}) => BdApi.showConfirmationModal(title, content, options);
+const Button = /* @__PURE__ */ byProps(["Colors", "Link"], { entries: true });
 
-const SettingsContainer = ({ name, children, onReset }) => (React.createElement(Form.FormSection, null,
+const Flex = /* @__PURE__ */ byProps(["Child", "Justify"], { entries: true });
+
+const { FormSection, FormItem, FormTitle, FormText, FormDivider, FormNotice } = /* @__PURE__ */ demangle({
+    FormSection: bySource$1(".titleClassName", ".sectionTitle"),
+    FormItem: bySource$1(".titleClassName", ".required"),
+    FormTitle: bySource$1(".faded", ".required"),
+    FormText: (target) => target.Types?.INPUT_PLACEHOLDER,
+    FormDivider: bySource$1(".divider", ".style", "\"div\""),
+    FormNotice: bySource$1(".imageData", "formNotice")
+}, ["FormSection", "FormItem", "FormText"]);
+
+const { Menu: Menu, Group: MenuGroup, Item: MenuItem, Separator: MenuSeparator, CheckboxItem: MenuCheckboxItem, RadioItem: MenuRadioItem, ControlItem: MenuControlItem } = BdApi.ContextMenu;
+
+const { Select, SingleSelect } = demangle({
+    Select: bySource$1(".renderOptionValue", ".renderOptionLabel"),
+    SingleSelect: bySource$1(".onChange", ".createElement")
+});
+
+const Slider = /* @__PURE__ */ bySource([".asValueChanges"], { entries: true });
+
+const SwitchItem = /* @__PURE__ */ bySource([".helpdeskArticleId"], { entries: true });
+const Switch = /* @__PURE__ */ bySource([".onChange", ".focusProps"], { entries: true });
+
+const { TextInput, TextInputError } = /* @__PURE__ */ demangle({
+    TextInput: (target) => target?.defaultProps?.type === "text",
+    TextInputError: bySource$1(".error", "text-danger")
+}, ["TextInput"]);
+
+const Text = /* @__PURE__ */ bySource([".lineClamp", ".variant"], { entries: true });
+
+const margins = /* @__PURE__ */ byProps(["marginLarge"]);
+
+const alert = (title, content) => BdApi.UI.alert(title, content);
+const confirm = (title, content, options = {}) => BdApi.UI.showConfirmationModal(title, content, options);
+
+const queryTree = (node, predicate) => {
+    const worklist = [node];
+    while (worklist.length !== 0) {
+        const node = worklist.shift();
+        if (predicate(node)) {
+            return node;
+        }
+        if (node?.props?.children) {
+            worklist.push(...[node.props.children].flat());
+        }
+    }
+    return null;
+};
+const queryTreeForParent = (tree, predicate) => {
+    let childIndex = -1;
+    const parent = queryTree(tree, (node) => {
+        const children = node?.props?.children;
+        if (children instanceof Array) {
+            const index = children.findIndex(predicate);
+            if (index > -1) {
+                childIndex = index;
+                return true;
+            }
+        }
+    });
+    return [parent, childIndex];
+};
+
+const SettingsContainer = ({ name, children, onReset }) => (React.createElement(FormSection, null,
     children,
-    React.createElement(Form.FormDivider, { className: classNames(margins.marginTop20, margins.marginBottom20) }),
+    React.createElement(FormDivider, { className: classNames(margins.marginTop20, margins.marginBottom20) }),
     React.createElement(Flex, { justify: Flex.Justify.END },
         React.createElement(Button, { size: Button.Sizes.SMALL, onClick: () => confirm(name, "Reset all settings?", {
                 onConfirm: () => onReset()
@@ -270,8 +371,6 @@ const createPlugin = (config, callback) => (meta) => {
     };
 };
 
-const { FormSection, FormTitle, FormItem, FormText, FormDivider } = Form;
-const SingleSelect = byAnyName("SingleSelect");
 const settings = {
     voice: null,
     volume: 100,
@@ -338,11 +437,11 @@ const SettingsPanel = ({ current, defaults, onChange, speak }) => {
     return (React.createElement(React.Fragment, null,
         React.createElement(FormItem, { className: margins.marginBottom20 },
             React.createElement(FormTitle, null, "TTS Voice"),
-            React.createElement(SingleSelect, { value: voice, onChange: (value) => onChange({ voice: value }), options: speechSynthesis.getVoices().map(({ name, lang, voiceURI }) => ({
+            React.createElement(SingleSelect, { value: voice, options: speechSynthesis.getVoices().map(({ name, lang, voiceURI }) => ({
                     value: voiceURI,
                     label: name,
                     lang
-                })), renderOptionLabel: ({ label, lang }) => React.createElement(VoiceLabel, { name: label, lang: lang }), renderOptionValue: ([{ label, lang }]) => React.createElement(VoiceLabel, { name: label, lang: lang }) })),
+                })), onChange: (value) => onChange({ voice: value }), renderOptionLabel: ({ label, lang }) => React.createElement(VoiceLabel, { name: label, lang: lang }), renderOptionValue: ([{ label, lang }]) => React.createElement(VoiceLabel, { name: label, lang: lang }) })),
         React.createElement(FormItem, { className: margins.marginBottom20 },
             React.createElement(FormTitle, null, "TTS Volume"),
             React.createElement(Slider, { initialValue: volume, maxValue: 100, minValue: 0, asValueChanges: (value) => onChange({ volume: value }) })),
@@ -389,13 +488,11 @@ const SettingsPanel = ({ current, defaults, onChange, speak }) => {
                     React.createElement(Button, { size: Button.Sizes.SMALL, onClick: () => speak(settings.unknownChannel) }, "Test"))))));
 };
 
-const VoiceStateStore = byProps("getVoiceStates", "hasVideo");
-const { MenuItem } = Menu;
 let prevStates = {};
 const saveStates = () => {
     prevStates = { ...VoiceStateStore.getVoiceStatesForChannel(SelectedChannelStore.getVoiceChannelId()) };
 };
-const index = createPlugin({ settings }, ({ meta, Logger, Lazy, Patcher, Settings }) => {
+const index = createPlugin({ settings }, ({ meta, Logger, Patcher, Settings }) => {
     const loaded = Settings.current;
     for (const [key, value] of Object.entries(Settings.defaults.notifs)) {
         if (typeof loaded[key] === "string") {
@@ -413,7 +510,7 @@ const index = createPlugin({ settings }, ({ meta, Logger, Lazy, Patcher, Setting
         const voices = speechSynthesis.getVoices();
         if (voices.length === 0) {
             Logger.error("No speech synthesis voices available");
-            alert(meta.name, React.createElement(Text, { color: Text.Colors.STANDARD },
+            alert(meta.name, React.createElement(Text, { color: "text-normal" },
                 "Electron does not have any Speech Synthesis Voices available on your system.",
                 React.createElement("br", null),
                 "The plugin will be unable to function properly."));
@@ -519,7 +616,7 @@ const index = createPlugin({ settings }, ({ meta, Logger, Lazy, Patcher, Setting
         }
     };
     return {
-        async start() {
+        start() {
             saveStates();
             Dispatcher.subscribe("VOICE_STATE_UPDATES", voiceStateHandler);
             Logger.log("Subscribed to voice state actions");
@@ -527,12 +624,10 @@ const index = createPlugin({ settings }, ({ meta, Logger, Lazy, Patcher, Setting
             Logger.log("Subscribed to self mute actions");
             Dispatcher.subscribe("AUDIO_TOGGLE_SELF_DEAF", selfDeafHandler);
             Logger.log("Subscribed to self deaf actions");
-            const useChannelHideNamesItem = await Lazy.waitFor(byName("useChannelHideNamesItem"), false);
-            Patcher.after(useChannelHideNamesItem, "default", ({ result }) => {
-                if (result) {
-                    return (React.createElement(React.Fragment, null,
-                        result,
-                        React.createElement(MenuItem, { isFocused: false, id: "voiceevents-clear", label: "Clear VoiceEvents queue", action: () => speechSynthesis.cancel() })));
+            Patcher.contextMenu("channel-context", (result) => {
+                const [parent, index] = queryTreeForParent(result, (child) => child?.props?.id === "hide-voice-names");
+                if (parent) {
+                    parent.props.children.splice(index + 1, 0, (React.createElement(MenuItem, { isFocused: false, id: "voiceevents-clear", label: "Clear VoiceEvents queue", action: () => speechSynthesis.cancel() })));
                 }
             });
         },

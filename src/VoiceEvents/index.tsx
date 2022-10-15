@@ -1,4 +1,4 @@
-import {createPlugin, Filters, Utils, React} from "dium";
+import {createPlugin, Utils, React} from "dium";
 import {
     Dispatcher,
     Channel,
@@ -24,7 +24,7 @@ const saveStates = () => {
     prevStates = {...VoiceStateStore.getVoiceStatesForChannel(SelectedChannelStore.getVoiceChannelId())};
 };
 
-export default createPlugin({settings}, ({meta, Logger, Lazy, Patcher, Settings}) => {
+export default createPlugin({settings}, ({meta, Logger, Patcher, Settings}) => {
     // backwards compatibility for settings
     const loaded = Settings.current as any;
     for (const [key, value] of Object.entries(Settings.defaults.notifs)) {
@@ -195,24 +195,19 @@ export default createPlugin({settings}, ({meta, Logger, Lazy, Patcher, Settings}
             Dispatcher.subscribe("AUDIO_TOGGLE_SELF_DEAF", selfDeafHandler);
             Logger.log("Subscribed to self deaf actions");
 
-            // wait for context menu lazy load
-            Lazy.waitFor(Filters.byName("useChannelHideNamesItem"), {resolve: false}).then((useChannelHideNamesItem: Record<string, (channel: Channel) => JSX.Element>) => {
-                // add queue clear item
-                Patcher.after(useChannelHideNamesItem, "default", ({result}) => {
-                    if (result) {
-                        return (
-                            <>
-                                {result}
-                                <MenuItem
-                                    isFocused={false}
-                                    id="voiceevents-clear"
-                                    label="Clear VoiceEvents queue"
-                                    action={() => speechSynthesis.cancel()}
-                                />
-                            </>
-                        );
-                    }
-                });
+            // patch channel context menu
+            Patcher.contextMenu("channel-context", (result) => {
+                const [parent, index] = Utils.queryTreeForParent(result, (child) => child?.props?.id === "hide-voice-names");
+                if (parent) {
+                    parent.props.children.splice(index + 1, 0, (
+                        <MenuItem
+                            isFocused={false}
+                            id="voiceevents-clear"
+                            label="Clear VoiceEvents queue"
+                            action={() => speechSynthesis.cancel()}
+                        />
+                    ));
+                }
             });
         },
         stop() {
