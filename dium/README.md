@@ -24,7 +24,7 @@ import {
     ReactDOMInternals,
     Flux
 } from "dium";
-import {classNames, lodash} from "dium/modules";
+import {classNames, lodash} from "@dium/modules";
 
 const config = {
     name: "Example",
