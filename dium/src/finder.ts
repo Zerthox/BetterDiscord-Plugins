@@ -1,4 +1,5 @@
 import * as Filters from "./filters";
+import {mappedProxy} from "./utils/general";
 import type {Query, TypeOrPredicate} from "./filters";
 import type {Module, Exports} from "./require";
 
@@ -20,6 +21,9 @@ export const find = (filter: Filter, {resolve = true, entries = false}: FindOpti
 
 /** Finds a module using query options. */
 export const query = (query: Query, options?: FindOptions): any => find(Filters.query(query), options);
+
+/** Finds a module using filters matching its entries. */
+export const byEntries = (...filters: Filter[]): any => find(Filters.join(...filters.map((filter) => Filters.byEntry(filter))));
 
 /** Finds a module using the name of its export.  */
 export const byName = (name: string, options?: FindOptions): any => find(Filters.byName(name), options);
@@ -58,28 +62,38 @@ export const all = {
     bySource: (contents: TypeOrPredicate<string>[], options?: FindOptions): any[] => all.find(Filters.bySource(...contents), options)
 };
 
-type Mapping = Record<string, ((entry: any) => boolean) | string>;
+type Mapping = Record<string, ((entry: any) => boolean)>;
 type Mapped<M extends Mapping> = {[K in keyof M]: any};
 
-/** Finds a module and demangles its export entries by applying filters. */
-export const demangle = <M extends Mapping>(mapping: M, required?: (keyof M)[], resolve = true): Mapped<M> => {
+/**
+ * Finds a module and demangles its export entries by applying filters.
+ *
+ * Keys in `required` are the filters required to match a module.
+ * By default all filters are required.
+ *
+ * Using `proxy` the result can be wrapped a proxy making it compatible with e.g. patching.
+ */
+export const demangle = <M extends Mapping>(mapping: M, required?: (keyof M)[], proxy = false): Mapped<M> => {
     const req = required ?? Object.keys(mapping);
 
-    const found = find((exports) => (
-        exports instanceof Object
-        && exports !== window
+    const found = find((target) => (
+        target instanceof Object
+        && target !== window
         && req.every((req) => {
             const filter = mapping[req];
             return typeof filter === "string"
-                ? filter in exports
-                : Object.values(exports).some((value) => filter(value));
+                ? filter in target
+                : Object.values(target).some((value) => filter(value));
         })
     ));
 
-    return resolve ? Object.fromEntries(
+    return proxy ? mappedProxy(found, Object.fromEntries(Object.entries(mapping).map(([key, filter]) => [
+        key,
+        Object.entries(found ?? {}).find(([, value]) => filter(value))?.[0]
+    ]))) : Object.fromEntries(
         Object.entries(mapping).map(([key, filter]) => [
             key,
-            typeof filter === "string" ? found?.[filter] : Object.values(found ?? {}).find((value) => filter(value))
+            Object.values(found ?? {}).find((value) => filter(value))
         ])
-    ) : found;
+    ) as any;
 };
