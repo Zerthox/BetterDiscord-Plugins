@@ -1,5 +1,6 @@
 export * from "./channel";
 export * from "./client";
+export * from "./component-dispatch";
 export * from "./experiment";
 export * from "./flux";
 export * from "./general";
