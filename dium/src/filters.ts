@@ -11,8 +11,8 @@ export interface Query {
 }
 
 /** Joins multiple filters together. */
-export const join = (...filters: Filter[]): Filter => {
-    return (...args) => filters.every((filter) => filter(...args));
+export const join = <F extends (...args: any) => boolean>(...filters: F[]): F => {
+    return ((...args) => filters.every((filter) => filter(...args))) as any;
 };
 
 /** Creates a filter from query options. */
@@ -25,15 +25,15 @@ export const query = ({filter, name, props, protos, source}: Query): Filter => j
 ].filter(Boolean));
 
 /** Creates a filter matching on values in the exported object. */
-export const byEntry = (filter: Filter, every = false): Filter => {
-    return (target, ...args) => {
+export const byEntry = <F extends (data: any, ...args: any) => boolean>(filter: F, every = false): F => {
+    return ((target, ...args) => {
         if (target instanceof Object && target !== window) {
             const values = Object.values(target);
             return values.length > 0 && values[every ? "every" : "some"]((value) => filter(value, ...args));
         } else {
             return false;
         }
-    };
+    }) as any;
 };
 
 /** Creates a filter searching by `displayName`. */
