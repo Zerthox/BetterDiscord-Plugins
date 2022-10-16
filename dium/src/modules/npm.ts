@@ -10,7 +10,9 @@ export const classNames: typeof import("classnames") = /* @__PURE__ */ Finder.fi
     (exports: any) => exports instanceof Object && exports.default === exports && Object.keys(exports).length === 1
 );
 
-export const EventEmitter: NodeJS.EventEmitter = /* @__PURE__ */ Finder.byProps(["subscribe", "emit"]);
+export const EventEmitter: typeof import ("node:events") = /* @__PURE__ */ Finder.find(
+    (exports) => exports.prototype instanceof Object && Object.prototype.hasOwnProperty.call(exports.prototype, "prependOnceListener")
+);
 
 export const lodash: typeof import("lodash") = /* @__PURE__ */ Finder.byProps(["cloneDeep", "flattenDeep"]);
 
