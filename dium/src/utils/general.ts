@@ -26,3 +26,44 @@ export interface ToastOptions extends BD.ToastOptions {
 
 /** Shows a toast notification. */
 export const toast = (content: string, options: ToastOptions): void => BdApi.UI.showToast(content, options);
+
+export type MappedProxy<
+    T extends Record<any, any>,
+    M extends Record<any, keyof T>
+> = {
+    [K in keyof M | keyof T]: T[M[K] extends never ? K : M[K]];
+};
+
+/** Creates a proxy mapping additional properties to other properties on the original. */
+export const mappedProxy = <
+    T extends Record<any, any>,
+    M extends Record<any, keyof T>
+>(target: T, mapping: M): MappedProxy<T, M> => {
+    const map = new Map(Object.entries(mapping));
+    return new Proxy(target, {
+        get(target, prop) {
+            return target[map.get(prop as any) ?? prop];
+        },
+        set(target, prop, value) {
+            target[map.get(prop as any) ?? prop] = value;
+            return true;
+        },
+        deleteProperty(target, prop) {
+            delete target[map.get(prop as any) ?? prop];
+            return true;
+        },
+        has(target, prop) {
+            return map.has(prop as any) || prop in target;
+        },
+        ownKeys() {
+            return [...map.keys(), ...Object.keys(target)];
+        },
+        getOwnPropertyDescriptor(target, prop) {
+            return Object.getOwnPropertyDescriptor(target, map.get(prop as any) ?? prop);
+        },
+        defineProperty(target, prop, attributes) {
+            Object.defineProperty(target, map.get(prop as any) ?? prop, attributes);
+            return true;
+        }
+    }) as any;
+};
