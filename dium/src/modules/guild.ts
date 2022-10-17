@@ -128,8 +128,83 @@ export interface GuildMemberStore extends Store {
     getNicknameGuildsMapping(user: Snowflake): Record<string, Snowflake[]>;
     getNicknames(user: Snowflake): string[];
     isMember(guild: Snowflake, user: Snowflake): boolean;
-    memberOf(e);
-    __getLocalVars();
+    memberOf(arg: any): any;
+    __getLocalVars(): any;
 }
 
 export const GuildMemberStore: GuildMemberStore = /* @__PURE__ */ Finder.byName("GuildMemberStore");
+
+export interface GuildsTreeNodeBase {
+    id: number | string;
+    type?: string;
+}
+
+export interface GuildsTreeGuild extends GuildsTreeNodeBase {
+    type: "guild";
+    id: string;
+    parentId: number;
+    unavailable: boolean;
+}
+
+export interface GuildsTreeFolder extends GuildsTreeNodeBase {
+    type: "folder";
+    id: number;
+    color: number;
+    name: string;
+    children: GuildsTreeGuild[];
+    muteConfig: any;
+    expanded: boolean;
+}
+
+type GuildsTreeNode = GuildsTreeGuild | GuildsTreeFolder;
+
+export interface GuildsTreeRoot {
+    type: "root";
+    children: GuildsTreeNode[];
+}
+
+export interface GuildsTree {
+    nodes: Record<string, GuildsTreeNode>;
+    root: GuildsTreeRoot;
+    version: number;
+    get size(): number;
+
+    addNode(node: GuildsTreeNodeBase);
+    allNodes(): GuildsTreeNode[];
+    convertToFolder(node: GuildsTreeNodeBase);
+    getNode(nodeId: number);
+    getRoots(): GuildsTreeNode[];
+    moveInto(node: GuildsTreeNodeBase, parent: GuildsTreeNodeBase);
+    moveNextTo(node: GuildsTreeNodeBase, sibling: GuildsTreeNodeBase);
+    removeNode(node: GuildsTreeNodeBase);
+    replaceNode(node: GuildsTreeNodeBase, toReplace: GuildsTreeNode);
+    sortedGuildNodes(): GuildsTreeGuild[];
+    _pluckNode(node: GuildsTreeNodeBase);
+}
+
+export interface CompatibleGuildFolder {
+    expanded: boolean;
+    folderColor: number;
+    folderId: number;
+    folderName: string;
+    guildIds: Snowflake[];
+}
+
+export interface SortedGuildStore extends Store {
+    getCompatibleGuildFolders(): CompatibleGuildFolder[];
+    getFlattenedGuildIds(): Snowflake[];
+    getFlattenedGuilds(): GuildsTreeGuild[];
+    getGuildsTree(): GuildsTree;
+    __getLocalVars(): any;
+}
+
+export const SortedGuildStore: SortedGuildStore = /* @__PURE__ */ Finder.byName("SortedGuildStore");
+
+export interface ExpandedGuildFolderStore extends Store {
+    getExpandedFolders(): Set<number>;
+    getState(): {expandedFolders: number[]};
+    isFolderExpanded(folderId: number): boolean;
+    __getLocalVars(): any;
+}
+
+export const ExpandedGuildFolderStore: ExpandedGuildFolderStore = /* @__PURE__ */ Finder.byName("ExpandedGuildFolderStore");
