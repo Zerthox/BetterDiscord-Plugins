@@ -5,35 +5,37 @@ export type FCHookCallback<P> = (result: JSX.Element, targetProps: P) => JSX.Ele
 
 interface FCHookProps<P> {
     children: React.ReactElement<P, React.FunctionComponent<P>>;
-    callbacks: FCHookCallback<P>[];
+    callback: FCHookCallback<P>;
+    once?: boolean;
 }
 
 /** Utility component hooking into a function component. */
-const FCHook = <P>({children: {type, props}, callbacks: callbacks}: FCHookProps<P>): JSX.Element => {
-    let result = type(props);
-    for (const callback of callbacks) {
-        result = callback(result, props) as JSX.Element ?? result;
+const FCHook = <P>({children: {type, props}, callback, once = false}: FCHookProps<P>): JSX.Element => {
+    const called = React.useRef(false);
+    const result = type(props);
+
+    if (once && called.current) {
+        return result;
+    } else {
+        called.current = true;
+        return callback(result, props) as JSX.Element ?? result;
     }
-    return result;
 };
 
 /** Hooks into a function component, allowing to modify the rendered elements. */
 export const hookFunctionComponent = <P>(
     target: React.ReactElement<P, React.FunctionComponent<P>>,
-    callback: FCHookCallback<P>
+    callback: FCHookCallback<P>,
+    once?: boolean
 ): JSX.Element => {
-    if (target.type as any === FCHook) {
-        // already hooked, add callback
-        (target.props as FCHookProps<P>).callbacks.push(callback);
-    } else {
-        // replace original with hook component, move target element to children
-        const props: FCHookProps<P> = {
-            children: {...target},
-            callbacks: [callback]
-        };
-        target.props = props as any;
-        target.type = FCHook as any;
-    }
+    // replace original with hook component, move target element to children
+    const props: FCHookProps<P> = {
+        children: {...target},
+        callback,
+        once
+    };
+    target.props = props as any;
+    target.type = FCHook as any;
 
     return target;
 };
