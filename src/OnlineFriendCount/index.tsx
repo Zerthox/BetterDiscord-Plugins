@@ -1,9 +1,7 @@
 import {createPlugin, Finder, Utils, React, Flux} from "dium";
 import {PresenceStore, RelationshipStore, RelationshipTypes, StatusTypes} from "@dium/modules";
-import {Link} from "@dium/components";
+import {Link, GuildsNav} from "@dium/components";
 import styles from "./styles.scss";
-
-const GuildsNav = Finder.bySource(["guildsnav"], {entries: true}) as React.MemoExoticComponent<React.FunctionComponent<any>>;
 
 const guildStyles = Finder.byProps(["guilds", "base"]);
 const treeStyles = Finder.byProps(["tree", "scroller"]);
@@ -59,7 +57,7 @@ export default createPlugin({styles}, ({Logger, Patcher}) => {
                     const homeButtonIndex = children.findIndex((child) => typeof child?.props?.isOnOtherSidebarRoute === "boolean");
                     children.splice(homeButtonIndex + 1, 0, <OnlineCount/>);
                 });
-            });
+            }, {name: "GuildsNav"});
 
             triggerRerender();
         },
