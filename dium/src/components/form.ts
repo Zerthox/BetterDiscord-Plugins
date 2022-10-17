@@ -130,6 +130,6 @@ export const {
     FormItem: Filters.bySource(".titleClassName", ".required"),
     FormTitle: Filters.bySource(".faded", ".required"),
     FormText: (target) => target.Types?.INPUT_PLACEHOLDER,
-    FormDivider: Filters.bySource(".divider", ".style", "\"div\""),
+    FormDivider: Filters.bySource(".divider", ".style"),
     FormNotice: Filters.bySource(".imageData", "formNotice")
-} as const, ["FormSection", "FormItem", "FormText"]);
+} as const, ["FormSection", "FormItem", "FormDivider"]);
