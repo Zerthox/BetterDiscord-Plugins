@@ -1,7 +1,10 @@
 import {Finder, React} from "dium";
+import {GuildsTreeFolder} from "@dium/modules";
 import {Flex, Button, SwitchItem, FormText, margins} from "@dium/components";
 
-const ImageInput = Finder.byName("ImageInput");
+const ImageInput: React.ComponentClass<any> = Finder.find(
+    (target) => typeof target.defaultProps?.multiple === "boolean" && typeof target.defaultProps?.maxFileSizeBytes === "number"
+);
 
 export interface FolderData {
     icon: string;
@@ -14,34 +17,19 @@ export interface BetterFolderIconProps extends FolderData {
 }
 
 export const BetterFolderIcon = ({icon, always, childProps, FolderIcon}: BetterFolderIconProps): JSX.Element => {
-    const result = FolderIcon(childProps);
-    if (icon && (childProps.expanded || always)) {
-        result.props.children = <div className="betterFolders-customIcon" style={{backgroundImage: `url(${icon})`}}/>;
+    if (FolderIcon) {
+        const result = FolderIcon(childProps);
+        if (icon && (childProps.expanded || always)) {
+            result.props.children = <div className="betterFolders-customIcon" style={{backgroundImage: `url(${icon})`}}/>;
+        }
+        return result;
+    } else {
+        return null;
     }
-    return result;
 };
 
-export interface GuildNode {
-    type: "guild";
-    id: number;
-    parentId: number;
-    unavailable: boolean;
-}
-
-export interface FolderNode {
-    type: "folder";
-    id: number;
-    color: number;
-    name: string;
-    children: GuildNode[];
-    muteConfig?: any;
-    expanded: boolean;
-}
-
-export type TreeNode = GuildNode | FolderNode;
-
 export interface BetterFolderUploaderProps extends FolderData {
-    folderNode: FolderNode;
+    folderNode: GuildsTreeFolder;
     onChange(data: FolderData): void;
     FolderIcon(props: any): JSX.Element;
 }

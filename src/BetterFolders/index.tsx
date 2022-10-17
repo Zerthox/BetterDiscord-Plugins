@@ -1,15 +1,8 @@
 import {createPlugin, Finder, Filters, Utils, React, Flux} from "dium";
-import {ClientActions} from "@dium/modules";
-import {RadioGroup, SwitchItem, FormItem} from "@dium/components";
+import {ClientActions, SortedGuildStore, ExpandedGuildFolderStore, GuildsTreeFolder} from "@dium/modules";
+import {RadioGroup, SwitchItem, FormItem, GuildsNav} from "@dium/components";
 import {BetterFolderIcon, BetterFolderUploader, FolderData} from "./components";
 import styles from "./styles.scss";
-
-const SortedGuildStore = Finder.byProps(["getGuildsTree"]);
-const ExpandedGuildFolderStore = Finder.byProps(["getExpandedFolders"]);
-
-const FolderHeader = Finder.byName("FolderHeader", {resolve: false}) as {default: React.FunctionComponent<any>};
-
-let FolderIcon = null;
 
 const guildStyles = Finder.byProps(["guilds", "base"]);
 
@@ -49,30 +42,65 @@ export default createPlugin({styles, settings}, ({Logger, Lazy, Patcher, Data, S
         }
     };
 
+    let FolderIcon = null;
+
     return {
-        async start() {
-            // patch folder icon render
-            Patcher.after(FolderHeader, "default", ({args: [props], result}) => {
-                // find icon container
-                const iconContainer = Utils.queryTree(result, (node) => node?.props?.children?.type?.displayName === "FolderIconContent");
-                if (!iconContainer) {
-                    Logger.warn("Unable to find folder icon container");
-                    return;
+        start() {
+            // find folder within guilds nav
+            Patcher.after(GuildsNav, "type", ({result, cancel}) => {
+                const target = Utils.queryTree(result, (node) => node?.props?.className?.split(" ").includes(guildStyles.guilds));
+                if (!target) {
+                    return Logger.error("Unable to find chain patch target");
                 }
 
-                // save icon component
-                const icon = iconContainer.props.children;
-                if (!FolderIcon) {
-                    FolderIcon = icon.type;
-                }
+                // chain patch into the component
+                Utils.hookFunctionComponent(target, (result) => {
+                    const guildItem = Utils.queryTree(result, (node) => node?.props?.folderNode);
+                    if (!guildItem) {
+                        return Logger.error("Unable to find guild item component");
+                    }
 
-                // replace icon with own component
-                iconContainer.props.children = <ConnectedBetterFolderIcon
-                    folderId={props.folderNode.id}
-                    childProps={icon.props}
-                    FolderIcon={FolderIcon}
-                />;
-            });
+                    // guild item component found, cancel parent patch
+                    cancel();
+                    Logger.log("Unpatched GuildsNav");
+
+                    // patch guild item component instead
+                    Patcher.after(guildItem.type, "type", ({args: [props], result}) => {
+                        // not a folder
+                        if (!props.folderNode) {
+                            return;
+                        }
+
+                        Utils.hookFunctionComponent<any>(result, (result, props) => {
+                            // find icon
+                            const iconContainer = Utils.queryTree(result, (node) => "folderIconContent" in (node?.props ?? {}));
+                            if (!iconContainer) {
+                                return Logger.error("Unable to find folder icon container component");
+                            }
+
+                            Utils.hookFunctionComponent(iconContainer, (result) => {
+                                const iconParent = Utils.queryTree(result, (node) => node?.props?.children?.props?.folderNode);
+                                if (!iconParent) {
+                                    return Logger.error("Unable to find folder icon component");
+                                }
+                                const icon = iconParent.props.children as React.ReactElement<any, React.FunctionComponent<any>>;
+
+                                // save icon component
+                                if (!FolderIcon) {
+                                    FolderIcon = icon.type;
+                                }
+
+                                // replace icon with own component
+                                iconParent.props.children = <ConnectedBetterFolderIcon
+                                    folderId={props.folderNode.id}
+                                    childProps={icon.props}
+                                    FolderIcon={FolderIcon}
+                                />;
+                            });
+                        });
+                    }, {name: "GuildItem"});
+                }, true);
+            }, {name: "GuildsNav"});
 
             // patch folder expand
             Patcher.after(ClientActions, "toggleGuildFolderExpand", ({original, args: [folderId]}) => {
@@ -87,8 +115,12 @@ export default createPlugin({styles, settings}, ({Logger, Lazy, Patcher, Data, S
 
             triggerRerender();
 
-            interface GuildFolderSettingsModalProps extends Record<string, any> {
+            interface GuildFolderSettingsModalProps {
                 folderId: number;
+                folderName: string;
+                folderColor: number;
+                onClose: () => void;
+                transitionState: number;
             }
 
             const enum IconType {
@@ -96,16 +128,21 @@ export default createPlugin({styles, settings}, ({Logger, Lazy, Patcher, Data, S
                 Custom = "custom"
             }
 
-            interface GuildFolderSettingsModalState extends Record<string, any> {
+            interface GuildFolderSettingsModalState {
+                name: string;
+                color: number;
+            }
+
+            interface PatchedGuildFolderSettingsModalState extends GuildFolderSettingsModalState {
                 iconType: IconType;
                 icon?: string;
                 always?: boolean;
             }
 
-            type GuildFolderSettingsModal = typeof React.Component<GuildFolderSettingsModalProps, GuildFolderSettingsModalState>;
+            type GuildFolderSettingsModal = typeof React.Component<GuildFolderSettingsModalProps, PatchedGuildFolderSettingsModalState>;
 
             // patch folder settings render
-            Lazy.waitFor(Filters.byName("GuildFolderSettingsModal")).then((GuildFolderSettingsModal: GuildFolderSettingsModal) => {
+            Lazy.waitFor(Filters.bySource("GUILD_FOLDER_NAME"), {entries: true}).then((GuildFolderSettingsModal: GuildFolderSettingsModal) => {
                 Patcher.after(GuildFolderSettingsModal.prototype as InstanceType<GuildFolderSettingsModal>, "render", ({context, result}) => {
                     const {folderId} = context.props;
                     const {state} = context;
@@ -151,7 +188,7 @@ export default createPlugin({styles, settings}, ({Logger, Lazy, Patcher, Data, S
                                 <BetterFolderUploader
                                     icon={state.icon}
                                     always={state.always}
-                                    folderNode={tree.nodes[folderId]}
+                                    folderNode={tree.nodes[folderId] as GuildsTreeFolder}
                                     onChange={({icon, always}) => context.setState({icon, always})}
                                     FolderIcon={FolderIcon}
                                 />
@@ -175,7 +212,7 @@ export default createPlugin({styles, settings}, ({Logger, Lazy, Patcher, Data, S
                             Settings.update({folders});
                         }
                     };
-                });
+                }, {name: "GuildFolderSettingsModal"});
             });
         },
         stop() {
