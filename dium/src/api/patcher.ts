@@ -65,7 +65,7 @@ export const instead = <Module, Key extends keyof Module>(
     object: Module,
     method: Key,
     callback: (data: PatchData<Module[Key], Module>) => unknown,
-    options?: Options
+    options: Options = {}
 ): Cancel => forward(
     "instead",
     object,
@@ -83,7 +83,7 @@ export const before = <Module, Key extends keyof Module>(
     object: Module,
     method: Key,
     callback: (data: PatchData<Module[Key], Module>) => unknown,
-    options?: Options
+    options: Options = {}
 ): Cancel => forward(
     "before",
     object,
@@ -103,7 +103,7 @@ export const after = <Module, Key extends keyof Module>(
     object: Module,
     method: Key,
     callback: (data: PatchDataWithResult<Module[Key], Module>) => unknown,
-    options?: Options
+    options: Options = {}
 ): Cancel => forward(
     "after",
     object,
@@ -116,7 +116,7 @@ export const after = <Module, Key extends keyof Module>(
 export const contextMenu = (
     navId: string,
     callback: (result: JSX.Element) => JSX.Element | void,
-    options?: Options
+    options: Options = {}
 ): Cancel => {
     const cancel = BdApi.ContextMenu.patch(navId, options.once ? (tree) => {
         const result = callback(tree);
