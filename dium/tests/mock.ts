@@ -3,5 +3,8 @@
 (global as any).BdApi = {
     Webpack: {
         getModule: () => null
+    },
+    Plugins: {
+        get: () => ({})
     }
 } as any;
