@@ -1,4 +1,4 @@
-import {createPlugin, Finder, Filters, React} from "dium";
+import {createPlugin, Finder, Filters, Lazy, Patcher, React} from "dium";
 import {Snowflake, MediaEngineStore, MediaEngineActions, MediaEngineContext} from "@dium/modules";
 import {MenuItem} from "@dium/components";
 import styles from "./styles.scss";
@@ -56,7 +56,7 @@ const NumberInput = ({value, min, max, fallback, onChange}: NumberInputProps): J
 
 type UseUserVolumeItem = (userId: Snowflake, context: MediaEngineContext) => JSX.Element;
 
-export default createPlugin({styles}, ({Lazy, Patcher}) => ({
+export default createPlugin({styles}, () => ({
     async start() {
         // wait for context menu lazy load
         const useUserVolumeItem = await Lazy.waitFor(Filters.bySource("user-volume"), {resolve: false}) as Record<string, UseUserVolumeItem>;

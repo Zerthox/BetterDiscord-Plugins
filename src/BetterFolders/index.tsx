@@ -1,4 +1,4 @@
-import {createPlugin, Finder, Filters, Utils, React, Flux, Fiber} from "dium";
+import {createPlugin, Logger, Filters, Finder, Lazy, Patcher, Data, Utils, React, Flux, Fiber} from "dium";
 import {ClientActions, SortedGuildStore, ExpandedGuildFolderStore, GuildsTreeFolder} from "@dium/modules";
 import {RadioGroup, SwitchItem, FormItem, GuildsNav} from "@dium/components";
 import {BetterFolderIcon, BetterFolderUploader, FolderData} from "./components";
@@ -11,11 +11,11 @@ const settings = {
     folders: {} as Record<number, FolderData>
 };
 
-export default createPlugin({styles, settings}, ({Logger, Lazy, Patcher, Data, Settings}) => {
+export default createPlugin({styles, settings}, ({Settings}) => {
     // backwards compatibility for old bd version
     const oldFolders = Data.load("folders");
     if (oldFolders) {
-        Data.delete("folders");
+        Data.deleteEntry("folders");
         Settings.update({folders: oldFolders as Record<number, FolderData>});
     }
 

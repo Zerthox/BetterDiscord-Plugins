@@ -1,4 +1,4 @@
-import {createPlugin, Finder, Utils, React} from "dium";
+import {createPlugin, Logger, Finder, Patcher, Utils, React} from "dium";
 import {Platforms} from "@dium/modules";
 
 const {PlatformTypes} = Platforms;
@@ -10,7 +10,7 @@ const settings = {
     platform: null // TODO: get platform
 };
 
-export default createPlugin({settings}, ({Logger, Patcher, Settings}) => {
+export default createPlugin({settings}, ({Settings}) => {
     const notify = (message: string, options: Utils.ToastOptions) => {
         Logger.log(message);
         Utils.toast(message, options);
