@@ -1,5 +1,4 @@
-import * as Finder from "../finder";
-import * as Filters from "../filters";
+import {Filters, Finder} from "../api";
 
 interface LinkProps extends Record<string, any> {
     component?: any;

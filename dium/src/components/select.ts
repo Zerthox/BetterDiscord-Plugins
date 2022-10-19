@@ -1,6 +1,4 @@
-import * as Finder from "../finder";
-import * as Filters from "../filters";
-import React from "react";
+import {Filters, Finder} from "../api";
 
 export interface SelectOption<T> {
     label: React.ReactChild;

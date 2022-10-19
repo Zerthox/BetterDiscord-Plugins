@@ -1,6 +1,8 @@
-export {createData, Data} from "./data";
-export {createLazy, Lazy} from "./lazy";
-export {createLogger, Logger} from "./logger";
-export {createPatcher, Patcher, PatchData, PatchDataWithResult} from "./patcher";
-export {createSettings, Settings} from "./settings";
-export {createStyles, Styles} from "./styles";
+export * as Data from "./data";
+export * as Filters from "./filters";
+export * as Finder from "./finder";
+export * as Lazy from "./lazy";
+export * as Logger from "./logger";
+export * as Patcher from "./patcher";
+export {createSettings, SettingsStore} from "./settings";
+export * as Styles from "./styles";

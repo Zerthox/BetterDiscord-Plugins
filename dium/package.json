@@ -1,6 +1,6 @@
 {
     "name": "dium",
-    "version": "0.3.0",
+    "version": "0.4.0",
     "description": "Framework for Discord plugins.",
     "author": "Zerthox",
     "license": "MIT",

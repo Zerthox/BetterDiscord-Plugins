@@ -1,4 +1,4 @@
-import * as Finder from "../finder";
+import {Finder} from "../api";
 
 export const {React} = BdApi;
 

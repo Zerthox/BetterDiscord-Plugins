@@ -1,7 +1,7 @@
 import * as Filters from "./filters";
-import {mappedProxy} from "./utils/general";
+import {mappedProxy} from "../utils/general";
 import type {Query, TypeOrPredicate} from "./filters";
-import type {Module, Exports} from "./require";
+import type {Module, Exports} from "../require";
 
 export type Filter = (exports: Exports, module: Module, id: string) => boolean;
 

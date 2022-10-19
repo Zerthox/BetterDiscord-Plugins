@@ -1,4 +1,4 @@
-import * as Finder from "../finder";
+import {Finder} from "../api";
 import type {Snowflake, Store} from ".";
 
 /** A User. */

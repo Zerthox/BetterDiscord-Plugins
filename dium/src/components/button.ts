@@ -1,4 +1,4 @@
-import * as Finder from "../finder";
+import {Finder} from "../api";
 
 type Handlers = Pick<React.ComponentProps<"button">, "onClick" | "onDoubleClick" | "onMouseDown" | "onMouseUp" | "onMouseEnter" | "onMouseLeave" | "onKeyDown">;
 

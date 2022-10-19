@@ -1,4 +1,4 @@
-import * as Finder from "../finder";
+import {Finder} from "../api";
 import type {Snowflake, ActionModule} from "./general";
 import type {Store} from "./flux";
 

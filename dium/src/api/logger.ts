@@ -1,31 +1,22 @@
+import {meta} from "../meta";
+
 export type Output = (...data: any[]) => void;
 
-export interface Logger {
-    /** Prints data to a custom output. */
-    print(output: Output, ...data: any[]): void;
+const COLOR = "#3a71c1";
 
-    /** Logs a message to the console. */
-    log: Output;
+/** Prints data to a custom output. */
+export const print = (output: Output, ...data: any[]): void => output(
+    `%c[${meta.name}] %c${meta.version ? `(v${meta.version})` : ""}`,
+    `color: ${COLOR}; font-weight: 700;`,
+    "color: #666; font-size: .8em;",
+    ...data
+);
 
-    /** Logs a warning to the console. */
-    warn: Output;
+/** Logs a message to the console. */
+export const log = (...data: any[]): void => print(console.log, ...data);
 
-    /** Logs an error to the console. */
-    error: Output;
-}
+/** Logs a warning to the console. */
+export const warn = (...data: any[]): void => print(console.warn, ...data);
 
-export const createLogger = (name: string, color: string, version: string): Logger => {
-    const print = (output: Output, ...data: any[]) => output(
-        `%c[${name}] %c${version ? `(v${version})` : ""}`,
-        `color: ${color}; font-weight: 700;`,
-        "color: #666; font-size: .8em;",
-        ...data
-    );
-
-    return {
-        print,
-        log: (...data) => print(console.log, ...data),
-        warn: (...data) => print(console.warn, ...data),
-        error: (...data) => print(console.error, ...data)
-    };
-};
+/** Logs an error to the console. */
+export const error = (...data: any[]): void => print(console.error, ...data);

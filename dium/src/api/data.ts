@@ -1,18 +1,10 @@
-export interface Data<
-    Content extends Record<string, any>
-> {
-    /** Loads a data from a key. */
-    load<K extends string>(key: K): Content[K];
+import {ID} from "../meta";
 
-    /** Saves data to a key. */
-    save<K extends string>(key: K, value: Content[K]): void;
+/** Loads a data from a key. */
+export const load = (key: string): any => BdApi.Data.load(ID, key);
 
-    /** Deletes data stored under a key. */
-    delete<K extends string>(key: K): void;
-}
+/** Saves data to a key. */
+export const save = (key: string, value: unknown): void => BdApi.Data.save(ID, key, value);
 
-export const createData = <Content>(id: string): Data<Content> => ({
-    load: (key) => BdApi.Data.load(id, key) ?? null,
-    save: (key, value) => BdApi.Data.save(id, key, value),
-    delete: (key) => BdApi.Data.delete(id, key)
-});
+/** Deletes data stored under a key. */
+export const deleteEntry = (key: string): void => BdApi.Data.delete(ID, key);

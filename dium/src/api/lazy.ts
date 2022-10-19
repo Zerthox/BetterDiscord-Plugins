@@ -1,31 +1,21 @@
-import {Filter} from "../filters";
-import type {FindOptions} from "../finder";
+import type {Filter} from "./filters";
+import type {FindOptions} from "./finder";
 
-export interface Lazy {
-    /** Waits for a lazy loaded module. */
-    waitFor(filter: Filter, options?: FindOptions): Promise<any>;
+let controller = new AbortController();
 
-    /** Aborts search for any lazy loaded modules. */
-    abort(): void;
-}
-
+/** Waits for a lazy loaded module. */
 // TODO: waitFor with callback that is skipped when aborted?
+export const waitFor = (filter: Filter, {resolve = true, entries = false}: FindOptions = {}): Promise<any> => BdApi.Webpack.waitForModule(filter, {
+    signal: controller.signal,
+    defaultExport: resolve,
+    searchExports: entries
+} as any);
 
-export const createLazy = (): Lazy => {
-    let controller = new AbortController();
+/** Aborts search for any lazy loaded modules. */
+export const abort = (): void => {
+    // abort current controller
+    controller.abort();
 
-    return {
-        waitFor: (filter, {resolve = true, entries = false}) => BdApi.Webpack.waitForModule(filter, {
-            signal: controller.signal,
-            defaultExport: resolve,
-            searchExports: entries
-        } as any),
-        abort: () => {
-            // abort current controller
-            controller.abort();
-
-            // new controller for future
-            controller = new AbortController();
-        }
-    };
+    // new controller for future
+    controller = new AbortController();
 };

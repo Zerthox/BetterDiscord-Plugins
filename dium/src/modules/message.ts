@@ -1,4 +1,4 @@
-import * as Finder from "../finder";
+import {Finder} from "../api";
 import type {Untyped, Snowflake, Store, User, ActionModule} from ".";
 
 export const enum MessageTypes {

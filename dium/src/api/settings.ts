@@ -1,25 +1,22 @@
 import {React, Flux} from "../modules";
-import type {Data} from "./data";
+import * as Data from "./data";
 
-export type Listener<Data> = (data: Data) => void;
+export type Listener<T> = (data: T) => void;
 
-export type Update<Data> = Partial<Data> | ((current: Data) => Partial<Data>);
+export type Update<T> = Partial<T> | ((current: T) => Partial<T>);
 
-export type Setter<Data> = (update: Update<Data>) => void;
+export type Setter<T> = (update: Update<T>) => void;
 
-class Settings<
-    SettingsType extends Record<string, any>,
-    DataType extends {settings: SettingsType}
-> extends Flux.Store {
+export class SettingsStore<T extends Record<string, any>> extends Flux.Store {
     /** Default settings values. */
-    defaults: SettingsType;
+    defaults: T;
 
     /** Current settings state. */
-    current: SettingsType;
+    current: T;
 
-    protected listeners: Set<Listener<SettingsType>>;
+    protected listeners: Set<Listener<T>>;
 
-    constructor(Data: Data<DataType>, defaults: SettingsType) {
+    constructor(defaults: T) {
         super(new Flux.Dispatcher(), {
             update: () => {
                 for (const listener of this.listeners) {
@@ -44,7 +41,7 @@ class Settings<
      *
      * Similar interface to React's `setState()`.
      */
-    update(settings: Update<SettingsType>): void {
+    update(settings: Update<T>): void {
         Object.assign(this.current, typeof settings === "function" ? settings(this.current) : settings);
         this._dispatch();
     }
@@ -70,7 +67,7 @@ class Settings<
      * const currentSettings = Settings.useCurrent();
      * ```
      */
-    useCurrent(): SettingsType {
+    useCurrent(): T {
         return Flux.useStateFromStores(
             [this],
             () => this.current
@@ -84,7 +81,7 @@ class Settings<
      * const [currentSettings, setSettings] = Settings.useState();
      * ```
      */
-    useState(): [SettingsType, Setter<SettingsType>] {
+    useState(): [T, Setter<T>] {
         return Flux.useStateFromStores(
             [this],
             () => [this.current, (settings) => this.update(settings)]
@@ -98,7 +95,7 @@ class Settings<
      * const [currentSettings, defaultSettings, setSettings] = Settings.useStateWithDefaults();
      * ```
      */
-    useStateWithDefaults(): [SettingsType, SettingsType, Setter<SettingsType>] {
+    useStateWithDefaults(): [T, T, Setter<T>] {
         return Flux.useStateFromStores(
             [this],
             () => [this.current, this.defaults, (settings) => this.update(settings)]
@@ -106,7 +103,7 @@ class Settings<
     }
 
     /** Adds a new listener from within a component. */
-    useListener(listener: Listener<SettingsType>): void {
+    useListener(listener: Listener<T>): void {
         React.useEffect(() => {
             this.addListener(listener);
             return () => this.removeListener(listener);
@@ -114,13 +111,13 @@ class Settings<
     }
 
     /** Registers a new listener to be called on settings state changes. */
-    addListener(listener: Listener<SettingsType>): Listener<SettingsType> {
+    addListener(listener: Listener<T>): Listener<T> {
         this.listeners.add(listener);
         return listener;
     }
 
     /** Removes a previously added settings change listener. */
-    removeListener(listener: Listener<SettingsType>): void {
+    removeListener(listener: Listener<T>): void {
         this.listeners.delete(listener);
     }
 
@@ -130,9 +127,4 @@ class Settings<
     }
 }
 
-export type {Settings};
-
-export const createSettings = <
-    SettingsType extends Record<string, any>,
-    DataType extends {settings: SettingsType}
->(Data: Data<DataType>, defaults: SettingsType): Settings<SettingsType, DataType> => new Settings(Data, defaults);
+export const createSettings = <T extends Record<string, any>>(defaults: T): SettingsStore<T> => new SettingsStore(defaults);

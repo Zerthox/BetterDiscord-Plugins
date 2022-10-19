@@ -1,18 +1,11 @@
-export interface Styles {
-    /** Inject CSS. */
-    inject(styles?: string): void;
+import {ID} from "../meta";
 
-    /** Clear previously injected CSS. */
-    clear(): void;
-}
-
-export const createStyles = (id: string): Styles => {
-    return {
-        inject(styles) {
-            if (typeof styles === "string") {
-                BdApi.DOM.addStyle(id, styles);
-            }
-        },
-        clear: () => BdApi.DOM.removeStyle(id)
-    };
+/** Inject CSS. */
+export const inject = (styles?: string): void => {
+    if (typeof styles === "string") {
+        BdApi.DOM.addStyle(ID, styles);
+    }
 };
+
+/** Clear previously injected CSS. */
+export const clear = (): void => BdApi.DOM.removeStyle(ID);
