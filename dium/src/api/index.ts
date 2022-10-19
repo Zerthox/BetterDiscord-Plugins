@@ -4,5 +4,4 @@ export * as Finder from "./finder";
 export * as Lazy from "./lazy";
 export * as Logger from "./logger";
 export * as Patcher from "./patcher";
-export {createSettings, SettingsStore} from "./settings";
 export * as Styles from "./styles";

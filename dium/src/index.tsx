@@ -1,13 +1,16 @@
-import {Logger, Styles, Patcher, Lazy, SettingsStore} from "./api";
+import {Logger, Styles, Patcher, Lazy} from "./api";
+import {SettingsStore} from "./settings";
 import {React} from "./modules";
 import {SettingsContainer} from "./settings-container";
 import type * as BD from "betterdiscord";
 import type * as Webpack from "./require";
 
 export * from "./api";
+export {createSettings, SettingsStore, SettingsType} from "./settings";
 export {ReactInternals, ReactDOMInternals, Fiber} from "./react-internals";
 export * as Utils from "./utils";
 export {React, ReactDOM, Flux} from "./modules";
+export {meta} from "./meta";
 export {version} from "../package.json";
 export type {Webpack};
 

@@ -1,11 +1,13 @@
-import {React, Flux} from "../modules";
-import * as Data from "./data";
+import {React, Flux} from "./modules";
+import * as Data from "./api/data";
 
 export type Listener<T> = (data: T) => void;
 
 export type Update<T> = Partial<T> | ((current: T) => Partial<T>);
 
 export type Setter<T> = (update: Update<T>) => void;
+
+export type SettingsType<S extends SettingsStore<any>> = S["defaults"];
 
 export class SettingsStore<T extends Record<string, any>> extends Flux.Store {
     /** Default settings values. */
