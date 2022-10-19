@@ -60,6 +60,10 @@ export default createPlugin({styles}, ({Lazy, Patcher}) => ({
     async start() {
         // wait for context menu lazy load
         const useUserVolumeItem = await Lazy.waitFor(Filters.bySource("user-volume"), {resolve: false}) as Record<string, UseUserVolumeItem>;
+        if (!useUserVolumeItem) {
+            return;
+        }
+
         const key = Object.keys(useUserVolumeItem)[0];
 
         // add number input
