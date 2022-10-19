@@ -19,7 +19,7 @@ import type * as Webpack from "./require";
 
 export * as Filters from "./filters";
 export * as Finder from "./finder";
-export {ReactInternals, ReactDOMInternals} from "./react-internals";
+export {ReactInternals, ReactDOMInternals, Fiber} from "./react-internals";
 export * as Utils from "./utils";
 export {React, ReactDOM, Flux} from "./modules";
 export {version} from "../package.json";

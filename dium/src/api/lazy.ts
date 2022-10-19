@@ -10,7 +10,6 @@ export interface Lazy {
 }
 
 // TODO: waitFor with callback that is skipped when aborted?
-// when bd makes the promise reject on abort like fetch, we can also just add an error handler to filter out the abort error
 
 export const createLazy = (): Lazy => {
     let controller = new AbortController();
