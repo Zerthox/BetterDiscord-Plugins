@@ -15,8 +15,13 @@ Eventually, this might be moved to its own repository.
 
 import {
     createPlugin,
+    Logger,
     Finder,
     Filters,
+    Lazy,
+    Patcher,
+    Styles,
+    Data,
     Utils,
     React,
     ReactInternals,
@@ -27,8 +32,6 @@ import {
 import {classNames, lodash} from "@dium/modules";
 
 const config = {
-    name: "Example",
-    version: "0.1.0",
     styles: `.example-clickable {
         color: red;
         cursor: pointer;
@@ -38,7 +41,7 @@ const config = {
     }
 };
 
-export default createPlugin(config, ({Logger, Lazy, Patcher, Styles, Data, Settings}) => {
+export default createPlugin(config, ({meta, Settings}) => {
     return {
         start: async () => {
             // do something on plugin start
