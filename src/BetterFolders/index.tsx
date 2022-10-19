@@ -1,4 +1,4 @@
-import {createPlugin, Finder, Filters, Utils, React, Flux} from "dium";
+import {createPlugin, Finder, Filters, Utils, React, Flux, Fiber} from "dium";
 import {ClientActions, SortedGuildStore, ExpandedGuildFolderStore, GuildsTreeFolder} from "@dium/modules";
 import {RadioGroup, SwitchItem, FormItem, GuildsNav} from "@dium/components";
 import {BetterFolderIcon, BetterFolderUploader, FolderData} from "./components";
@@ -32,10 +32,10 @@ export default createPlugin({styles, settings}, ({Logger, Lazy, Patcher, Data, S
         ({folderId}: OuterIconProps) => ({...getFolder(folderId)})
     )(BetterFolderIcon);
 
-    const triggerRerender = async () => {
-        const node = document.getElementsByClassName(guildStyles.guilds)?.[0];
-        const fiber = Utils.getFiber(node);
-        if (await Utils.forceFullRerender(fiber)) {
+    const getGuildsOwner = () => Utils.findOwner(Utils.getFiber(document.getElementsByClassName(guildStyles.guilds)?.[0]));
+
+    const triggerRerender = async (guildsFiber: Fiber) => {
+        if (await Utils.forceFullRerender(guildsFiber)) {
             Logger.log("Rerendered guilds");
         } else {
             Logger.warn("Unable to rerender guilds");
@@ -46,6 +46,8 @@ export default createPlugin({styles, settings}, ({Logger, Lazy, Patcher, Data, S
 
     return {
         start() {
+            const guildsOwner = getGuildsOwner();
+
             // find folder within guilds nav
             Patcher.after(GuildsNav, "type", ({result, cancel}) => {
                 const target = Utils.queryTree(result, (node) => node?.props?.className?.split(" ").includes(guildStyles.guilds));
@@ -99,6 +101,9 @@ export default createPlugin({styles, settings}, ({Logger, Lazy, Patcher, Data, S
                             });
                         });
                     }, {name: "GuildItem"});
+
+                    // rerender again
+                    triggerRerender(guildsOwner);
                 }, true);
             }, {name: "GuildsNav"});
 
@@ -113,9 +118,9 @@ export default createPlugin({styles, settings}, ({Logger, Lazy, Patcher, Data, S
                 }
             });
 
-            triggerRerender();
+            triggerRerender(guildsOwner);
 
-            interface GuildFolderSettingsModalProps {
+            interface FolderSettingsModalProps {
                 folderId: number;
                 folderName: string;
                 folderColor: number;
@@ -123,27 +128,31 @@ export default createPlugin({styles, settings}, ({Logger, Lazy, Patcher, Data, S
                 transitionState: number;
             }
 
+            interface FolderSettingsModalState {
+                name: string;
+                color: number;
+            }
+
             const enum IconType {
                 Default = "default",
                 Custom = "custom"
             }
 
-            interface GuildFolderSettingsModalState {
-                name: string;
-                color: number;
-            }
-
-            interface PatchedGuildFolderSettingsModalState extends GuildFolderSettingsModalState {
+            interface PatchedFolderSettingsModalState extends FolderSettingsModalState {
                 iconType: IconType;
                 icon?: string;
                 always?: boolean;
             }
 
-            type GuildFolderSettingsModal = typeof React.Component<GuildFolderSettingsModalProps, PatchedGuildFolderSettingsModalState>;
+            type FolderSettingsModal = typeof React.Component<FolderSettingsModalProps, PatchedFolderSettingsModalState>;
 
             // patch folder settings render
-            Lazy.waitFor(Filters.bySource("GUILD_FOLDER_NAME"), {entries: true}).then((GuildFolderSettingsModal: GuildFolderSettingsModal) => {
-                Patcher.after(GuildFolderSettingsModal.prototype as InstanceType<GuildFolderSettingsModal>, "render", ({context, result}) => {
+            Lazy.waitFor(Filters.bySource("GUILD_FOLDER_NAME"), {entries: true}).then((FolderSettingsModal: FolderSettingsModal) => {
+                if (!FolderSettingsModal) {
+                    return;
+                }
+
+                Patcher.after(FolderSettingsModal.prototype as InstanceType<FolderSettingsModal>, "render", ({context, result}) => {
                     const {folderId} = context.props;
                     const {state} = context;
 
@@ -216,7 +225,7 @@ export default createPlugin({styles, settings}, ({Logger, Lazy, Patcher, Data, S
             });
         },
         stop() {
-            triggerRerender();
+            triggerRerender(getGuildsOwner());
         },
         SettingsPanel: () => {
             const [{closeOnOpen}, setSettings] = Settings.useState();
