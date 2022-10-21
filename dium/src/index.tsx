@@ -32,6 +32,7 @@ export interface CallbackData<T extends Record<string, any>> {
     Settings: SettingsStore<T>;
 }
 
+// TODO: merge with config and require manual settings construction?
 export interface Plugin {
     /** Called on plugin start. */
     start(): void | Promise<void>;
