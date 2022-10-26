@@ -40,6 +40,7 @@ export default createPlugin({
         await triggerRerender();
         notify("Stopped emulating", {type: Utils.ToastType.Info, timeout: 5000});
     },
+    Settings,
     SettingsPanel: () => {
         const {platform} = Settings.useCurrent();
 
