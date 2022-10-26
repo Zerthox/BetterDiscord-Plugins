@@ -79,71 +79,70 @@ const voiceStateHandler = (action: VoiceStateUpdatesAction) => {
     }
 };
 
-export default createPlugin({settings: Settings}, () => {
-    // backwards compatibility for settings
-    const loaded = Settings.current as any;
-    for (const [key, value] of Object.entries(Settings.defaults.notifs)) {
-        if (typeof loaded[key] === "string") {
-            const {notifs} = Settings.current;
-            notifs[key] = {...value, message: loaded[key]};
-            Settings.update({notifs});
-            Settings.delete(key);
-        }
+// backwards compatibility for settings
+const loaded = Settings.current as any;
+for (const [key, value] of Object.entries(Settings.defaults.notifs)) {
+    if (typeof loaded[key] === "string") {
+        const {notifs} = Settings.current;
+        notifs[key] = {...value, message: loaded[key]};
+        Settings.update({notifs});
+        Settings.delete(key);
     }
-    if (typeof loaded.privateCall === "string") {
-        Settings.update({unknownChannel: loaded.privateCall});
-        Settings.delete("privateCall");
-    }
+}
+if (typeof loaded.privateCall === "string") {
+    Settings.update({unknownChannel: loaded.privateCall});
+    Settings.delete("privateCall");
+}
 
-    // update default voice
-    Settings.defaults.voice = findDefaultVoice()?.voiceURI;
-    if (Settings.current.voice === null) {
-        Settings.update({voice: Settings.defaults.voice});
-    }
+// update default voice
+Settings.defaults.voice = findDefaultVoice()?.voiceURI;
+if (Settings.current.voice === null) {
+    Settings.update({voice: Settings.defaults.voice});
+}
 
-    return {
-        start() {
-            // save initial voice states
-            saveStates();
+export default createPlugin({
+    start() {
+        // save initial voice states
+        saveStates();
 
-            // listen for updates
-            Dispatcher.subscribe("VOICE_STATE_UPDATES", voiceStateHandler);
-            Logger.log("Subscribed to voice state actions");
+        // listen for updates
+        Dispatcher.subscribe("VOICE_STATE_UPDATES", voiceStateHandler);
+        Logger.log("Subscribed to voice state actions");
 
-            Dispatcher.subscribe("AUDIO_TOGGLE_SELF_MUTE", selfMuteHandler);
-            Logger.log("Subscribed to self mute actions");
+        Dispatcher.subscribe("AUDIO_TOGGLE_SELF_MUTE", selfMuteHandler);
+        Logger.log("Subscribed to self mute actions");
 
-            Dispatcher.subscribe("AUDIO_TOGGLE_SELF_DEAF", selfDeafHandler);
-            Logger.log("Subscribed to self deaf actions");
+        Dispatcher.subscribe("AUDIO_TOGGLE_SELF_DEAF", selfDeafHandler);
+        Logger.log("Subscribed to self deaf actions");
 
-            // patch channel context menu
-            Patcher.contextMenu("channel-context", (result) => {
-                const [parent, index] = Utils.queryTreeForParent(result, (child) => child?.props?.id === "hide-voice-names");
-                if (parent) {
-                    parent.props.children.splice(index + 1, 0, (
-                        <MenuItem
-                            isFocused={false}
-                            id="voiceevents-clear"
-                            label="Clear VoiceEvents queue"
-                            action={() => speechSynthesis.cancel()}
-                        />
-                    ));
-                }
-            });
-        },
-        stop() {
-            // reset
-            prevStates = {};
+        // patch channel context menu
+        Patcher.contextMenu("channel-context", (result) => {
+            const [parent, index] = Utils.queryTreeForParent(result, (child) => child?.props?.id === "hide-voice-names");
+            if (parent) {
+                parent.props.children.splice(index + 1, 0, (
+                    <MenuItem
+                        isFocused={false}
+                        id="voiceevents-clear"
+                        label="Clear VoiceEvents queue"
+                        action={() => speechSynthesis.cancel()}
+                    />
+                ));
+            }
+        });
+    },
+    stop() {
+        // reset
+        prevStates = {};
 
-            Dispatcher.unsubscribe("VOICE_STATE_UPDATES", voiceStateHandler);
-            Logger.log("Unsubscribed from voice state actions");
+        Dispatcher.unsubscribe("VOICE_STATE_UPDATES", voiceStateHandler);
+        Logger.log("Unsubscribed from voice state actions");
 
-            Dispatcher.unsubscribe("AUDIO_TOGGLE_SELF_MUTE", selfMuteHandler);
-            Logger.log("Unsubscribed from self mute actions");
+        Dispatcher.unsubscribe("AUDIO_TOGGLE_SELF_MUTE", selfMuteHandler);
+        Logger.log("Unsubscribed from self mute actions");
 
-            Dispatcher.unsubscribe("AUDIO_TOGGLE_SELF_DEAF", selfDeafHandler);
-            Logger.log("Unsubscribed from self deaf actions");
-        },
-        SettingsPanel
-    };
+        Dispatcher.unsubscribe("AUDIO_TOGGLE_SELF_DEAF", selfDeafHandler);
+        Logger.log("Unsubscribed from self deaf actions");
+    },
+    Settings,
+    SettingsPanel
 });

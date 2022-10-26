@@ -7,7 +7,7 @@ import styles from "./styles.scss";
 const Embed = Finder.byName("Embed") as typeof React.Component<any, any>;
 const MessageAttachment = Finder.byName("MessageAttachment", {resolve: false}) as {default: React.FunctionComponent<any>};
 
-export default createPlugin({styles, settings: Settings}, () => ({
+export default createPlugin({
     start() {
         Patcher.after(Embed.prototype, "render", ({result, context}) => {
             const {embed} = context.props;
@@ -22,7 +22,8 @@ export default createPlugin({styles, settings: Settings}, () => ({
             >{result}</Hider>
         ));
     },
-    stop() {},
+    styles,
+    Settings,
     SettingsPanel: () => {
         const [{hideByDefault}, setSettings] = Settings.useState();
 
@@ -35,4 +36,4 @@ export default createPlugin({styles, settings: Settings}, () => ({
             >Collapse by default</SwitchItem>
         );
     }
-}));
+});

@@ -56,7 +56,7 @@ const NumberInput = ({value, min, max, fallback, onChange}: NumberInputProps): J
 
 type UseUserVolumeItem = (userId: Snowflake, context: MediaEngineContext) => JSX.Element;
 
-export default createPlugin({styles}, () => ({
+export default createPlugin({
     async start() {
         // wait for context menu lazy load
         const useUserVolumeItem = await Lazy.waitFor(Filters.bySource("user-volume"), {resolve: false}) as Record<string, UseUserVolumeItem>;
@@ -97,5 +97,5 @@ export default createPlugin({styles}, () => ({
             }
         }, {name: "useUserVolumeItem"});
     },
-    stop() {}
-}));
+    styles
+});

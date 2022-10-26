@@ -30,7 +30,7 @@ const checkForMissing = (type: string, toCheck: Record<string, any>) => {
     }
 };
 
-export default dium.createPlugin({}, () => ({
+export default dium.createPlugin({
     start() {
         window.dium = diumGlobal;
 
@@ -40,4 +40,4 @@ export default dium.createPlugin({}, () => ({
     stop() {
         delete window.dium;
     }
-}));
+});

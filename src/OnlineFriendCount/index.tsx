@@ -34,7 +34,7 @@ const triggerRerender = async () => {
     }
 };
 
-export default createPlugin({styles}, () => ({
+export default createPlugin({
     start() {
         // patch guilds nav
         Patcher.after(GuildsNav, "type", ({result}) => {
@@ -62,5 +62,6 @@ export default createPlugin({styles}, () => ({
     },
     stop() {
         triggerRerender();
-    }
-}));
+    },
+    styles
+});
