@@ -174,9 +174,9 @@ export interface FluxHooks {
     Dispatcher: DispatcherConstructor;
     BatchedStoreListener: typeof BatchedStoreListener;
 
-    useStateFromStores<T>(stores: Store[], callback: () => T, deps?: unknown[], compare?: Comparator<T>): T;
-    useStateFromStoresArray<T>(stores: Store[], callback: () => T, deps?: unknown[]): T;
-    useStateFromStoresObject<T>(stores: Store[], callback: () => T, deps?: unknown[]): T;
+    useStateFromStores<T>(stores: Store[], callback: () => T, deps?: React.DependencyList, compare?: Comparator<T>): T;
+    useStateFromStoresArray<T>(stores: Store[], callback: () => T, deps?: React.DependencyList): T;
+    useStateFromStoresObject<T>(stores: Store[], callback: () => T, deps?: React.DependencyList): T;
     statesWillNeverBeEqual: Comparator<unknown>;
 }
 
