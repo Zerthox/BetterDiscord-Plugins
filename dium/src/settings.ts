@@ -1,4 +1,4 @@
-import {React, Flux} from "./modules";
+import {React, Flux, Comparator} from "./modules";
 import * as Data from "./api/data";
 
 export type Listener<T> = (data: T) => void;
@@ -30,7 +30,10 @@ export class SettingsStore<T extends Record<string, any>> extends Flux.Store {
 
         this.listeners = new Set();
         this.defaults = defaults;
-        this.current = {...defaults, ...Data.load("settings")};
+    }
+
+    load(): void {
+        this.current = {...this.defaults, ...Data.load("settings")};
     }
 
     /** Dispatches a settings update. */
@@ -69,11 +72,19 @@ export class SettingsStore<T extends Record<string, any>> extends Flux.Store {
      * const currentSettings = Settings.useCurrent();
      * ```
      */
-    useCurrent(): T {
-        return Flux.useStateFromStores(
-            [this],
-            () => this.current
-        );
+    useCurrent(deps?: React.DependencyList): T {
+        return Flux.useStateFromStores([this], () => this.current, deps, () => false);
+    }
+
+    /**
+     * Returns the current settings state mapped with a selector.
+     *
+     * ```js
+     * const entry = Settings.useSelector((current) => current.entry);
+     * ```
+     */
+    useSelector<R>(selector: (current: T) => R, deps?: React.DependencyList, compare?: Comparator<R>): R {
+        return Flux.useStateFromStores([this], () => selector(this.current), deps, compare);
     }
 
     /**
@@ -84,10 +95,10 @@ export class SettingsStore<T extends Record<string, any>> extends Flux.Store {
      * ```
      */
     useState(): [T, Setter<T>] {
-        return Flux.useStateFromStores(
-            [this],
-            () => [this.current, (settings) => this.update(settings)]
-        );
+        return Flux.useStateFromStores([this], () => [
+            this.current,
+            (settings) => this.update(settings)
+        ]);
     }
 
     /**
@@ -98,10 +109,11 @@ export class SettingsStore<T extends Record<string, any>> extends Flux.Store {
      * ```
      */
     useStateWithDefaults(): [T, T, Setter<T>] {
-        return Flux.useStateFromStores(
-            [this],
-            () => [this.current, this.defaults, (settings) => this.update(settings)]
-        );
+        return Flux.useStateFromStores([this], () => [
+            this.current,
+            this.defaults,
+            (settings) => this.update(settings)
+        ]);
     }
 
     /** Adds a new listener from within a component. */
