@@ -11,7 +11,7 @@ export {createSettings, SettingsStore, SettingsType} from "./settings";
 export {ReactInternals, ReactDOMInternals, Fiber} from "./react-internals";
 export * as Utils from "./utils";
 export {React, ReactDOM, Flux} from "./modules";
-export {meta, setMeta, Meta} from "./meta";
+export {getMeta, setMeta, Meta} from "./meta";
 export {version} from "../package.json";
 export type {Webpack};
 
@@ -59,6 +59,9 @@ export const createPlugin = <T extends Record<string, any>>(
 
     // get plugin info
     const {start, stop, styles, Settings, SettingsPanel} = (plugin instanceof Function ? plugin(meta) : plugin) as PluginWithSettings<T>;
+    if (Settings) {
+        Settings.load();
+    }
 
     // construct plugin
     return {

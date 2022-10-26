@@ -1,4 +1,4 @@
-import {Logger, Utils, React, meta} from "dium";
+import {Logger, Utils, React, getMeta} from "dium";
 import {Channel, ChannelStore, User, UserStore, GuildMemberStore} from "@dium/modules";
 import {Text} from "@dium/components";
 import {Settings, NotificationType} from "./settings";
@@ -8,7 +8,7 @@ export const findDefaultVoice = (): SpeechSynthesisVoice => {
     if (voices.length === 0) {
         Logger.error("No speech synthesis voices available");
         Utils.alert(
-            meta.name,
+            getMeta().name,
             <Text color="text-normal">
                 Electron does not have any Speech Synthesis Voices available on your system.
                 <br/>

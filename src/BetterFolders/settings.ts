@@ -1,4 +1,4 @@
-import {createSettings, Data} from "dium";
+import {createSettings} from "dium";
 
 export interface FolderData {
     icon: string;
@@ -9,10 +9,3 @@ export const Settings = createSettings({
     closeOnOpen: false,
     folders: {} as Record<number, FolderData>
 });
-
-// backwards compatibility for old bd version
-const oldFolders = Data.load("folders");
-if (oldFolders) {
-    Data.deleteEntry("folders");
-    Settings.update({folders: oldFolders as Record<number, FolderData>});
-}
