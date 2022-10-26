@@ -7,7 +7,7 @@ export const {ReactDOM} = BdApi;
 export const ReactSpring: typeof import("@react-spring/web") = /* @__PURE__ */ Finder.byProps(["SpringContext", "animated"]);
 
 export const classNames: typeof import("classnames") = /* @__PURE__ */ Finder.find(
-    (exports: any) => exports instanceof Object && exports.default === exports && Object.keys(exports).length === 1
+    (exports) => exports instanceof Object && exports.default === exports && Object.keys(exports).length === 1
 );
 
 export const EventEmitter: typeof import ("node:events") = /* @__PURE__ */ Finder.find(
@@ -15,6 +15,8 @@ export const EventEmitter: typeof import ("node:events") = /* @__PURE__ */ Finde
 );
 
 export const lodash: typeof import("lodash") = /* @__PURE__ */ Finder.byProps(["cloneDeep", "flattenDeep"]);
+
+export const Immutable: typeof import("immutable") = /* @__PURE__ */ Finder.byProps(["OrderedSet"]);
 
 export const semver: typeof import("semver") = /* @__PURE__ */ Finder.byProps(["SemVer"]);
 
@@ -28,4 +30,4 @@ export const platform: typeof import("platform") = /* @__PURE__ */ Finder.byProp
 
 export const lottie: typeof import("lottie-web") = /* @__PURE__ */ Finder.byProps(["setSubframeRendering"]);
 
-// joi & raven seem to have been removed
+export const stemmer: typeof import("stemmer") = /* @__PURE__ */ Finder.bySource([".test", ".exec", ".substr"]);
