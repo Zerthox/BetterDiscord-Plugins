@@ -1,8 +1,15 @@
-import path from "path";
 import type * as BD from "betterdiscord";
 
-/** Meta of this plugin. */
-export const meta: BD.Meta = BdApi.Plugins.get(path.basename(module.filename));
+export type Meta = BD.Meta;
 
-/** Id of this plugin. */
-export const ID: string = meta.name;
+/** Meta of this plugin. */
+export const meta: Meta = {} as any;
+
+/**
+ * Updates the plugin meta.
+ *
+ * This is populated with information automatically, but can be called manually as well.
+ */
+export const setMeta = (newMeta: Partial<Meta>): void => {
+    Object.assign(meta, newMeta);
+};

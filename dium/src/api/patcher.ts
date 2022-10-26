@@ -1,5 +1,5 @@
 import * as Logger from "./logger";
-import {ID} from "../meta";
+import {meta} from "../meta";
 
 export interface Options {
     silent?: boolean;
@@ -41,7 +41,7 @@ const forward = <Module, Key extends keyof Module>(
     }
 
     const cancel = BdApi.Patcher[type](
-        ID,
+        meta.name,
         object,
         method,
         options.once ? (...args: any) => {
@@ -57,8 +57,6 @@ const forward = <Module, Key extends keyof Module>(
 
     return cancel;
 };
-
-let menuPatches: Cancel[] = [];
 
 /** Patches the method, executing a callback **instead** of the original. */
 export const instead = <Module, Key extends keyof Module>(
@@ -112,6 +110,9 @@ export const after = <Module, Key extends keyof Module>(
     options
 );
 
+/** Storage for context menu patches. */
+let menuPatches: Cancel[] = [];
+
 /** Patches a context menu using its "navId". */
 export const contextMenu = (
     navId: string,
@@ -134,12 +135,12 @@ export const contextMenu = (
 
 /** Reverts all patches done by this patcher. */
 export const unpatchAll = (): void => {
-    if (menuPatches.length + BdApi.Patcher.getPatchesByCaller(ID).length > 0) {
+    if (menuPatches.length + BdApi.Patcher.getPatchesByCaller(meta.name).length > 0) {
         for (const cancel of menuPatches) {
             cancel();
         }
         menuPatches = [];
-        BdApi.Patcher.unpatchAll(ID);
+        BdApi.Patcher.unpatchAll(meta.name);
         Logger.log("Unpatched all");
     }
 };

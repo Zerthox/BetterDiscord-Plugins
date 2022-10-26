@@ -4,36 +4,18 @@ import {React} from "./modules";
 import {SettingsContainer} from "./settings-container";
 import type * as BD from "betterdiscord";
 import type * as Webpack from "./require";
+import {setMeta} from "./meta";
 
 export * from "./api";
 export {createSettings, SettingsStore, SettingsType} from "./settings";
 export {ReactInternals, ReactDOMInternals, Fiber} from "./react-internals";
 export * as Utils from "./utils";
 export {React, ReactDOM, Flux} from "./modules";
-export {meta} from "./meta";
+export {meta, setMeta, Meta} from "./meta";
 export {version} from "../package.json";
 export type {Webpack};
 
-export interface Config<T extends Record<string, any>> {
-    /**
-     * Plugin styles.
-     *
-     * Passed as CSS in string form.
-     * Injected/removed when the plugin is started/stopped.
-     */
-    styles?: string;
-
-    /** Initial plugin settings. */
-    settings?: T | SettingsStore<T>;
-}
-
-export interface CallbackData<T extends Record<string, any>> {
-    meta: BD.Meta;
-    Settings: SettingsStore<T>;
-}
-
-// TODO: merge with config and require manual settings construction?
-export interface Plugin {
+export interface BasePlugin {
     /** Called on plugin start. */
     start(): void | Promise<void>;
 
@@ -42,40 +24,59 @@ export interface Plugin {
      *
      * Be cautious when doing async work here.
      */
-    stop(): void;
+    stop?(): void;
+
+    /**
+     * Plugin styles.
+     *
+     * Passed as CSS in string form.
+     * Injected/removed when the plugin is started/stopped.
+     */
+    styles?: string;
+}
+
+export interface PluginWithoutSettings extends BasePlugin {
+    Settings?: never;
+    SettingsPanel?: never;
+}
+
+export interface PluginWithSettings<T extends Record<string, any>> extends BasePlugin {
+    /** Plugin settings store. */
+    Settings: SettingsStore<T>;
 
     /** Settings UI as React component. */
     SettingsPanel?: React.ComponentType;
 }
 
+export type Plugin<T extends Record<string, any>> = PluginWithoutSettings | PluginWithSettings<T>;
+
 /** Creates a BetterDiscord plugin. */
 export const createPlugin = <T extends Record<string, any>>(
-    {styles, settings}: Config<T>,
-    callback: (data: CallbackData<T>) => Plugin
+    plugin: Plugin<T> | ((meta: BD.Meta) => Plugin<T>)
 ): BD.PluginCallback => (meta) => {
-    // create settings store if necesary
-    const Settings = settings instanceof SettingsStore ? settings : new SettingsStore(settings);
+    // set meta
+    setMeta(meta);
 
     // get plugin info
-    const plugin = callback({meta, Settings});
+    const {start, stop, styles, Settings, SettingsPanel} = (plugin instanceof Function ? plugin(meta) : plugin) as PluginWithSettings<T>;
 
     // construct plugin
     return {
         start() {
             Logger.log("Enabled");
             Styles.inject(styles);
-            plugin.start();
+            start();
         },
         stop() {
             Lazy.abort();
             Patcher.unpatchAll();
             Styles.clear();
-            plugin.stop();
+            stop?.();
             Logger.log("Disabled");
         },
-        getSettingsPanel: plugin.SettingsPanel ? () => (
+        getSettingsPanel: SettingsPanel ? () => (
             <SettingsContainer name={meta.name} onReset={() => Settings.reset()}>
-                <plugin.SettingsPanel/>
+                <SettingsPanel/>
             </SettingsContainer>
         ) : null
     };

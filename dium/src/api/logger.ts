@@ -1,11 +1,9 @@
 import {meta} from "../meta";
 
-export type Output = (...data: any[]) => void;
-
 const COLOR = "#3a71c1";
 
 /** Prints data to a custom output. */
-export const print = (output: Output, ...data: any[]): void => output(
+export const print = (output: (...data: any[]) => void, ...data: any[]): void => output(
     `%c[${meta.name}] %c${meta.version ? `(v${meta.version})` : ""}`,
     `color: ${COLOR}; font-weight: 700;`,
     "color: #666; font-size: .8em;",
