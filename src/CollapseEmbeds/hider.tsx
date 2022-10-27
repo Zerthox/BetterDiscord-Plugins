@@ -28,32 +28,27 @@ export const Hider = ({placeholder, type, marginCorrect, children}: HiderProps):
 
     Settings.useListener(({hideByDefault}) => setShown(!hideByDefault));
 
-    const button = (
-        <Clickable
-            className={classNames(
-                "collapseEmbeds-hideButton",
-                typeClasses[type],
-                `collapseEmbeds-${shown ? "expanded" : "collapsed"}`,
-                {["collapseEmbeds-marginCorrect"]: marginCorrect}
-            )}
-            onClick={() => setShown(!shown)}
-        >
-            <Arrow open={shown} className="collapseEmbeds-icon"/>
-        </Clickable>
-    );
-
-    return shown ? (
-        <>
-            {children}
-            {button}
-        </>
-    ) : (
+    return (
         <Flex
             align={Flex.Align.CENTER}
-            className={classNames("collapseEmbeds-placeholder", typeClasses[type])}
+            className={classNames(
+                "collapseEmbeds-container",
+                typeClasses[type],
+                `collapseEmbeds-${shown ? "expanded" : "collapsed"}`
+            )}
         >
-            <Text variant="text-xs/normal">{placeholder}</Text>
-            {button}
+            <div className="collapseEmbeds-content">
+                {shown ? children : <Text variant="text-xs/normal">{placeholder}</Text>}
+            </div>
+            <Clickable
+                className={classNames(
+                    "collapseEmbeds-hideButton",
+                    {["collapseEmbeds-marginCorrect"]: marginCorrect}
+                )}
+                onClick={() => setShown(!shown)}
+            >
+                <Arrow open={shown} className="collapseEmbeds-icon"/>
+            </Clickable>
         </Flex>
     );
 };
