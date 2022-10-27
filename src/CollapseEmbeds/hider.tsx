@@ -3,8 +3,7 @@ import {classNames} from "@dium/modules";
 import {Flex, Clickable, Text} from "@dium/components";
 import {Settings} from "./settings";
 
-const ArrowDropDown = Finder.byName("ArrowDropDown") as React.FunctionComponent<any>;
-const ArrowDropUp = Finder.byName("ArrowDropUp") as React.FunctionComponent<any>;
+const Arrow = Finder.bySource(["d:\"M16.", (source) => /\.open[,;]/.test(source)]);
 
 export const enum AccessoryType {
     Embed = "embed",
@@ -22,7 +21,6 @@ const typeClasses = {
     [AccessoryType.Embed]: "collapseEmbeds-embed",
     [AccessoryType.Attachment]: "collapseEmbeds-attachment"
 };
-const iconClass = "collapseEmbeds-icon";
 
 export const Hider = ({placeholder, type, marginCorrect, children}: HiderProps): JSX.Element => {
     const {hideByDefault} = Settings.useCurrent();
@@ -49,7 +47,7 @@ export const Hider = ({placeholder, type, marginCorrect, children}: HiderProps):
                 )}
                 onClick={() => setShown(!shown)}
             >
-                {shown ? <ArrowDropUp className={iconClass}/> : <ArrowDropDown className={iconClass}/>}
+                <Arrow open={shown} className="collapseEmbeds-icon"/>
             </Clickable>
         </Flex>
     );
