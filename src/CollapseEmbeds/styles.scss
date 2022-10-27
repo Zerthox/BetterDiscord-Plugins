@@ -1,5 +1,13 @@
+.collapseEmbeds-container {
+    justify-self: stretch;
+    & > :not(.collapseEmbeds-hideButton) {
+        flex-grow: 1;
+        flex-shrink: 0;
+    }
+}
 .collapseEmbeds-hideButton {
     margin-bottom: -4px;
+    margin-right: auto;
     align-self: flex-end;
     color: var(--interactive-normal);
     cursor: pointer;

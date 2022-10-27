@@ -37,9 +37,7 @@ export const Hider = ({placeholder, type, marginCorrect, children}: HiderProps):
                 `collapseEmbeds-${shown ? "expanded" : "collapsed"}`
             )}
         >
-            <div className="collapseEmbeds-content">
-                {shown ? children : <Text variant="text-xs/normal">{placeholder}</Text>}
-            </div>
+            {shown ? children : <Text variant="text-xs/normal">{placeholder}</Text>}
             <Clickable
                 className={classNames(
                     "collapseEmbeds-hideButton",

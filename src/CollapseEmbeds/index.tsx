@@ -14,7 +14,12 @@ export default createPlugin({
     start() {
         Patcher.after(Embed.prototype as InstanceType<typeof Embed>, "render", ({result, context}) => {
             const {embed} = context.props;
-            return <Hider type={AccessoryType.Embed} placeholder={embed.provider?.name}>{result}</Hider>;
+            return (
+                <Hider
+                    type={AccessoryType.Embed}
+                    placeholder={embed.provider?.name}
+                >{result}</Hider>
+            );
         }, {name: "Embed render"});
 
         Patcher.after(MessageFooter.prototype, "renderAttachments", ({result}: PatchDataWithResult<JSX.Element>) => {
