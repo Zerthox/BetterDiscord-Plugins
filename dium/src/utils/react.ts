@@ -37,8 +37,8 @@ export type Predicate<Arg> = (arg: Arg) => boolean;
  *
  * This uses a breadth first search (BFS).
  */
-export const queryTree = (node: JSX.Element, predicate: Predicate<JSX.Element>): JSX.Element | null => {
-    const worklist = [node];
+export const queryTree = (node: JSX.Element | JSX.Element[], predicate: Predicate<JSX.Element>): JSX.Element | null => {
+    const worklist = [node].flat();
 
     while (worklist.length !== 0) {
         const node = worklist.shift();
@@ -62,9 +62,9 @@ export const queryTree = (node: JSX.Element, predicate: Predicate<JSX.Element>):
  *
  * This uses a breadth first search (BFS).
  */
-export const queryTreeAll = (node: JSX.Element, predicate: Predicate<JSX.Element>): JSX.Element[] => {
+export const queryTreeAll = (node: JSX.Element | JSX.Element[], predicate: Predicate<JSX.Element>): JSX.Element[] => {
     const result = [];
-    const worklist = [node];
+    const worklist = [node].flat();
 
     while (worklist.length !== 0) {
         const node = worklist.shift();
@@ -90,7 +90,7 @@ type ElementWithChildren = React.ReactElement<{children: JSX.Element[]} & Record
  *
  * Returns the parent node and the index.
  */
-export const queryTreeForParent = (tree: JSX.Element, predicate: Predicate<JSX.Element>): [ElementWithChildren | null, number] => {
+export const queryTreeForParent = (tree: JSX.Element | JSX.Element[], predicate: Predicate<JSX.Element>): [ElementWithChildren | null, number] => {
     let childIndex = -1;
 
     const parent = queryTree(tree, (node) => {
