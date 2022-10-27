@@ -64,7 +64,7 @@ export interface Message {
     attachments: any[];
     codedLinks: any[];
     components: any[];
-    embeds: any[];
+    embeds: Embed[];
     giftCodes: any[];
     mentionChannels: any[];
     mentionEveryone: boolean;
@@ -105,6 +105,80 @@ export interface Message {
     removeReaction(arg1: any, arg2: any): void;
     removeReactionsForEmoji(arg: any): void;
     toJS(): any;
+}
+
+export const enum EmbedTypes {
+    TEXT = "text",
+    RICH = "rich",
+    IMAGE = "image",
+    VIDEO = "video",
+    GIFV = "gifv",
+    ARTICLE = "article",
+    LINK = "link",
+    TWEET = "tweet",
+    APPLICATION_NEWS = "application_news",
+    AUTO_MODERATION_MESSAGE = "auto_moderation_message",
+    AUTO_MODERATION_NOTIFICATION = "auto_moderation_notification"
+}
+
+export interface Embed {
+    type?: EmbedTypes;
+    id?: string;
+    referenceId?: any;
+    rawTitle?: string;
+    author?: EmbedAuthor;
+    rawDescription?: string;
+    url?: string;
+    color?: number;
+    image?: EmbedMedia;
+    thumbnail?: EmbedMedia;
+    video?: EmbedMedia;
+    provider?: EmbedProvider;
+    fields?: EmbedField[];
+    footer?: EmbedFooter;
+}
+
+export interface EmbedAuthor {
+    name: string;
+    url?: string;
+    icon_url?: string;
+    proxy_icon_url?: string;
+}
+
+export interface EmbedProvider {
+    name?: string;
+    url?: string;
+}
+
+export interface EmbedMedia {
+    url: string;
+    proxy_url?: string;
+    height?: number;
+    width?: number;
+}
+
+export interface EmbedField {
+    name: string;
+    value: string;
+    inline?: boolean;
+}
+
+export interface EmbedFooter {
+    text: string;
+    icon_url?: string;
+    proxy_icon_url?: string;
+}
+
+export interface Attachment {
+    id?: string;
+    filename?: string;
+    url?: string;
+    proxy_url?: string;
+    content_type?: string;
+    height?: number;
+    width?: number;
+    size?: number;
+    spoiler?: boolean;
 }
 
 export const MessageStore: Untyped<Store> = /* @__PURE__ */ Finder.byName("MessageStore");
