@@ -25,7 +25,7 @@ module.exports = {
     rules: {
         indent: "off",
         semi: "off",
-        quotes: ["error", "double"],
+        quotes: "off",
         "comma-dangle": ["error", "never"],
         "quote-props": ["error", "as-needed"],
         "operator-linebreak": ["error", "before"],
@@ -43,6 +43,7 @@ module.exports = {
         "new-cap": "off",
         "@typescript-eslint/indent": ["error", 4],
         "@typescript-eslint/semi": "error",
+        "@typescript-eslint/quotes": ["error", "double"],
         "@typescript-eslint/member-delimiter-style": ["error"],
         "@typescript-eslint/no-unused-vars": ["error", {
             argsIgnorePattern: "^_",
