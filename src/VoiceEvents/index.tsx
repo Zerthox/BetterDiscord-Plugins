@@ -10,7 +10,7 @@ import {
 import {MenuItem} from "@dium/components";
 import {Settings} from "./settings";
 import {SettingsPanel} from "./settings-panel";
-import {findDefaultVoice, notify} from "./voice";
+import {notify} from "./voice";
 
 const selfMuteHandler = () => {
     const userId = UserStore.getCurrentUser().id;
@@ -78,27 +78,6 @@ const voiceStateHandler = (action: VoiceStateUpdatesAction) => {
         }
     }
 };
-
-// backwards compatibility for settings
-const loaded = Settings.current as any;
-for (const [key, value] of Object.entries(Settings.defaults.notifs)) {
-    if (typeof loaded[key] === "string") {
-        const {notifs} = Settings.current;
-        notifs[key] = {...value, message: loaded[key]};
-        Settings.update({notifs});
-        Settings.delete(key);
-    }
-}
-if (typeof loaded.privateCall === "string") {
-    Settings.update({unknownChannel: loaded.privateCall});
-    Settings.delete("privateCall");
-}
-
-// update default voice
-Settings.defaults.voice = findDefaultVoice()?.voiceURI;
-if (Settings.current.voice === null) {
-    Settings.update({voice: Settings.defaults.voice});
-}
 
 export default createPlugin({
     start() {
