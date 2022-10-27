@@ -2,11 +2,13 @@ import {Finder} from "../api";
 
 export * from "./button";
 export * from "./clickable";
+export * from "./embed";
 export * from "./flex";
 export * from "./form";
 export * from "./guild";
 export * from "./link";
 export * from "./menu";
+export * from "./message";
 export * from "./radio";
 export * from "./select";
 export * from "./slider";
