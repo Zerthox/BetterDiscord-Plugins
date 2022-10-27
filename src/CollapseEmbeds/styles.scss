@@ -1,6 +1,6 @@
 .collapseEmbeds-container {
     justify-self: stretch;
-    & > :not(.collapseEmbeds-hideButton) {
+    & > article {
         flex-grow: 1;
         flex-shrink: 0;
     }
