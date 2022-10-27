@@ -72,8 +72,8 @@ export class SettingsStore<T extends Record<string, any>> extends Flux.Store {
      * const currentSettings = Settings.useCurrent();
      * ```
      */
-    useCurrent(deps?: React.DependencyList): T {
-        return Flux.useStateFromStores([this], () => this.current, deps, () => false);
+    useCurrent(): T {
+        return Flux.useStateFromStores([this], () => this.current, undefined, () => false);
     }
 
     /**
