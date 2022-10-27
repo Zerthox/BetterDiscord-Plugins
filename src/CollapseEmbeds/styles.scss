@@ -1,23 +1,28 @@
 .collapseEmbeds-hideButton {
-    margin-bottom: -4px;
-    align-self: flex-end;
+    display: flex;
+    align-items: flex-end;
+    align-self: end;
     color: var(--interactive-normal);
     cursor: pointer;
     visibility: hidden;
+
     &:hover {
         color: var(--interactive-hover);
     }
-    .collapseEmbeds-expanded > & {
+
+    &.collapseEmbeds-collapsed,
+    &:hover,
+    :hover + & {
+        visibility: visible;
+    }
+
+    &.collapseEmbeds-expanded {
+        padding-top: 4px;
         margin-bottom: -6px;
+        grid-column: 2;
+
         &.collapseEmbeds-marginCorrect {
             margin-left: -20px;
         }
     }
-    .collapseEmbeds-container:hover > &,
-    .collapseEmbeds-collapsed > & {
-        visibility: visible;
-    }
-}
-.collapseEmbeds-icon {
-    margin: -2px;
 }
