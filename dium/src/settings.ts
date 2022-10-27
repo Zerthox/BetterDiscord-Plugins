@@ -1,7 +1,7 @@
 import {React, Flux, Comparator} from "./modules";
 import * as Data from "./api/data";
 
-export type Listener<T> = (data: T) => void;
+export type Listener<T> = (current: T) => void;
 
 export type Update<T> = Partial<T> | ((current: T) => Partial<T>);
 
@@ -16,9 +16,18 @@ export class SettingsStore<T extends Record<string, any>> extends Flux.Store {
     /** Current settings state. */
     current: T;
 
-    protected listeners: Set<Listener<T>>;
+    /** Settings load callback. */
+    onLoad?: () => void;
 
-    constructor(defaults: T) {
+    /** Currently registered listeners. */
+    listeners: Set<Listener<T>>;
+
+    /**
+     * Creates a new settings store.
+     * @param defaults Default settings to use initially & revert to on reset.
+     * @param onLoad Optional callback for when the settings are loaded.
+     */
+    constructor(defaults: T, onLoad?: () => void) {
         super(new Flux.Dispatcher(), {
             update: () => {
                 for (const listener of this.listeners) {
@@ -30,10 +39,13 @@ export class SettingsStore<T extends Record<string, any>> extends Flux.Store {
 
         this.listeners = new Set();
         this.defaults = defaults;
+        this.onLoad = onLoad;
     }
 
+    /** Loads settings. */
     load(): void {
         this.current = {...this.defaults, ...Data.load("settings")};
+        this.onLoad?.();
     }
 
     /** Dispatches a settings update. */
@@ -141,4 +153,9 @@ export class SettingsStore<T extends Record<string, any>> extends Flux.Store {
     }
 }
 
-export const createSettings = <T extends Record<string, any>>(defaults: T): SettingsStore<T> => new SettingsStore(defaults);
+/**
+ * Creates new settings.
+ *
+ * For details see {@link SettingsStore}.
+ */
+export const createSettings = <T extends Record<string, any>>(defaults: T, onLoad?: () => void): SettingsStore<T> => new SettingsStore(defaults, onLoad);
