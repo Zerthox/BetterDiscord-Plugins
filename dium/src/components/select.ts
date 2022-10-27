@@ -42,7 +42,7 @@ interface SelectModule {
     SingleSelect: <T, O extends SelectOption<T>>(props: SingleSelectProps<T, O>) => JSX.Element;
 }
 
-export const {Select, SingleSelect}: SelectModule = Finder.demangle({
+export const {Select, SingleSelect}: SelectModule = /* @__PURE */ Finder.demangle({
     Select: Filters.bySource(".renderOptionValue", ".renderOptionLabel"),
     SingleSelect: Filters.bySource(".onChange", ".createElement")
 });
