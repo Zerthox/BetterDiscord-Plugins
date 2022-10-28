@@ -41,9 +41,11 @@ export interface Plugin<T extends Record<string, any>> {
     SettingsPanel?: React.ComponentType;
 }
 
-export type Plugin<T extends Record<string, any>> = PluginWithoutSettings | PluginWithSettings<T>;
-
-/** Creates a BetterDiscord plugin. */
+/**
+ * Creates a BetterDiscord plugin.
+ *
+ * @param plugin Plugin or callback receiving the meta and returning a plugin.
+ */
 export const createPlugin = <T extends Record<string, any>>(
     plugin: Plugin<T> | ((meta: BD.Meta) => Plugin<T>)
 ): BD.PluginCallback => (meta) => {

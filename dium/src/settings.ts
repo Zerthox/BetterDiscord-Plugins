@@ -24,6 +24,7 @@ export class SettingsStore<T extends Record<string, any>> extends Flux.Store {
 
     /**
      * Creates a new settings store.
+     *
      * @param defaults Default settings to use initially & revert to on reset.
      * @param onLoad Optional callback for when the settings are loaded.
      */
@@ -33,7 +34,6 @@ export class SettingsStore<T extends Record<string, any>> extends Flux.Store {
                 for (const listener of this.listeners) {
                     listener(this.current);
                 }
-                Data.save("settings", this.current);
             }
         });
 
@@ -46,27 +46,43 @@ export class SettingsStore<T extends Record<string, any>> extends Flux.Store {
     load(): void {
         this.current = {...this.defaults, ...Data.load("settings")};
         this.onLoad?.();
-    }
-
-    /** Dispatches a settings update. */
-    _dispatch(): void {
-        this._dispatcher.dispatch({type: "update"});
+        this._dispatch(false);
     }
 
     /**
-     * Updates settings state partially.
+     * Dispatches a settings update.
      *
-     * Similar interface to React's `setState()`.
+     * @param save Whether to save the settings.
+     */
+    _dispatch(save: boolean): void {
+        this._dispatcher.dispatch({type: "update"});
+        if (save) {
+            Data.save("settings", this.current);
+        }
+    }
+
+    /**
+     * Updates settings state.
+     *
+     * Similar to React's `setState()`.
+     *
+     * @param settings Partial settings or callback receiving current settings and returning partial settings.
+     *
+     * @example
+     * ```js
+     * Settings.update({myKey: "foo"})
+     * Settings.update((current) => ({settingA: current.settingB}))
+     * ```
      */
     update(settings: Update<T>): void {
         Object.assign(this.current, typeof settings === "function" ? settings(this.current) : settings);
-        this._dispatch();
+        this._dispatch(true);
     }
 
     /** Resets all settings to their defaults. */
     reset(): void {
         this.current = {...this.defaults};
-        this._dispatch();
+        this._dispatch(true);
     }
 
     /** Deletes settings using their keys. */
@@ -74,12 +90,13 @@ export class SettingsStore<T extends Record<string, any>> extends Flux.Store {
         for (const key of keys) {
             delete this.current[key];
         }
-        this._dispatch();
+        this._dispatch(true);
     }
 
     /**
      * Returns the current settings state.
      *
+     * @example
      * ```js
      * const currentSettings = Settings.useCurrent();
      * ```
@@ -91,6 +108,13 @@ export class SettingsStore<T extends Record<string, any>> extends Flux.Store {
     /**
      * Returns the current settings state mapped with a selector.
      *
+     * Similar to Redux' `useSelector()`, but with optional dependencies.
+     *
+     * @param selector A function selecting a part of the current settings.
+     * @param deps Dependencies of the selector.
+     * @param compare An equality function to compare two results of the selector. Strict equality `===` by default.
+     *
+     * @example
      * ```js
      * const entry = Settings.useSelector((current) => current.entry);
      * ```
@@ -102,6 +126,9 @@ export class SettingsStore<T extends Record<string, any>> extends Flux.Store {
     /**
      * Returns the current settings state & a setter function.
      *
+     * Similar to React's `useState()`;
+     *
+     * @example
      * ```js
      * const [currentSettings, setSettings] = Settings.useState();
      * ```
@@ -116,6 +143,9 @@ export class SettingsStore<T extends Record<string, any>> extends Flux.Store {
     /**
      * Returns the current settings state, defaults & a setter function.
      *
+     * Similar to React's `useState()`, but with another entry.
+     *
+     * @example
      * ```js
      * const [currentSettings, defaultSettings, setSettings] = Settings.useStateWithDefaults();
      * ```
@@ -128,15 +158,20 @@ export class SettingsStore<T extends Record<string, any>> extends Flux.Store {
         ]);
     }
 
-    /** Adds a new listener from within a component. */
-    useListener(listener: Listener<T>): void {
+    /**
+     * Adds a new settings change listener from within a component.
+     *
+     * @param listener Listener function to be called when settings state changes.
+     * @param deps Dependencies of the listener function. Defaults to the listener function itself.
+     */
+    useListener(listener: Listener<T>, deps?: React.DependencyList): void {
         React.useEffect(() => {
             this.addListener(listener);
             return () => this.removeListener(listener);
-        }, [listener]);
+        }, deps ?? [listener]);
     }
 
-    /** Registers a new listener to be called on settings state changes. */
+    /** Registers a new settings change listener. */
     addListener(listener: Listener<T>): Listener<T> {
         this.listeners.add(listener);
         return listener;

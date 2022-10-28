@@ -1,6 +1,6 @@
 import {getMeta} from "../meta";
 
-/** Loads a data from a key. */
+/** Loads data from a key. */
 export const load = (key: string): any => BdApi.Data.load(getMeta().name, key);
 
 /** Saves data to a key. */

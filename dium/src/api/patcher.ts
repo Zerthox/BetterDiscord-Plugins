@@ -28,7 +28,7 @@ export interface PatchDataWithResult<Original, Parent = any> extends PatchData<O
     result: Return<Original>;
 }
 
-const forward = <Module, Key extends keyof Module>(
+const patch = <Module, Key extends keyof Module>(
     type: "before" | "after" | "instead",
     object: Module,
     method: Key,
@@ -64,7 +64,7 @@ export const instead = <Module, Key extends keyof Module>(
     method: Key,
     callback: (data: PatchData<Module[Key], Module>) => unknown,
     options: Options = {}
-): Cancel => forward(
+): Cancel => patch(
     "instead",
     object,
     method,
@@ -82,7 +82,7 @@ export const before = <Module, Key extends keyof Module>(
     method: Key,
     callback: (data: PatchData<Module[Key], Module>) => unknown,
     options: Options = {}
-): Cancel => forward(
+): Cancel => patch(
     "before",
     object,
     method,
@@ -102,7 +102,7 @@ export const after = <Module, Key extends keyof Module>(
     method: Key,
     callback: (data: PatchDataWithResult<Module[Key], Module>) => unknown,
     options: Options = {}
-): Cancel => forward(
+): Cancel => patch(
     "after",
     object,
     method,
