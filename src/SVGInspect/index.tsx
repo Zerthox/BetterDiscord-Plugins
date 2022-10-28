@@ -1,4 +1,4 @@
-import {createPlugin, createSettings, Finder, React} from "dium";
+import {createPlugin, Finder, React} from "dium";
 
 const components = Finder.all.bySource([".createElement(\"svg\","], {entries: true});
 
@@ -24,8 +24,6 @@ class ErrorBoundary extends React.Component<ErrorBoundaryProps, ErrorBoundarySta
 }
 
 export default createPlugin({
-    start() {},
-    Settings: createSettings({}),
     SettingsPanel: () => (
         <>
             {components.map((SVG, i) => (

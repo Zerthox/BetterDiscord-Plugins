@@ -15,9 +15,9 @@ export {getMeta, setMeta, Meta} from "./meta";
 export {version} from "../package.json";
 export type {Webpack};
 
-export interface BasePlugin {
+export interface Plugin<T extends Record<string, any>> {
     /** Called on plugin start. */
-    start(): void | Promise<void>;
+    start?(): void | Promise<void>;
 
     /**
      * Called on plugin stop.
@@ -33,16 +33,9 @@ export interface BasePlugin {
      * Injected/removed when the plugin is started/stopped.
      */
     styles?: string;
-}
 
-export interface PluginWithoutSettings extends BasePlugin {
-    Settings?: never;
-    SettingsPanel?: never;
-}
-
-export interface PluginWithSettings<T extends Record<string, any>> extends BasePlugin {
     /** Plugin settings store. */
-    Settings: SettingsStore<T>;
+    Settings?: SettingsStore<T>;
 
     /** Settings UI as React component. */
     SettingsPanel?: React.ComponentType;
@@ -58,17 +51,17 @@ export const createPlugin = <T extends Record<string, any>>(
     setMeta(meta);
 
     // get plugin info
-    const {start, stop, styles, Settings, SettingsPanel} = (plugin instanceof Function ? plugin(meta) : plugin) as PluginWithSettings<T>;
-    if (Settings) {
-        Settings.load();
-    }
+    const {start, stop, styles, Settings, SettingsPanel} = (plugin instanceof Function ? plugin(meta) : plugin);
+
+    // load settings
+    Settings?.load();
 
     // construct plugin
     return {
         start() {
             Logger.log("Enabled");
             Styles.inject(styles);
-            start();
+            start?.();
         },
         stop() {
             Lazy.abort();
@@ -78,7 +71,7 @@ export const createPlugin = <T extends Record<string, any>>(
             Logger.log("Disabled");
         },
         getSettingsPanel: SettingsPanel ? () => (
-            <SettingsContainer name={meta.name} onReset={() => Settings.reset()}>
+            <SettingsContainer name={meta.name} onReset={Settings ? () => Settings.reset() : null}>
                 <SettingsPanel/>
             </SettingsContainer>
         ) : null
