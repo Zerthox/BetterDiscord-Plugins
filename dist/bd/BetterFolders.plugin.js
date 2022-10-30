@@ -1,7 +1,7 @@
 /**
  * @name BetterFolders
  * @author Zerthox
- * @version 3.2.0
+ * @version 3.3.0
  * @description Add new functionality to server folders. Custom Folder Icons. Close other folders on open.
  * @authorLink https://github.com/Zerthox
  * @website https://github.com/Zerthox/BetterDiscord-Plugins
@@ -52,82 +52,21 @@ WScript.Quit();
 
 'use strict';
 
-const createData = (id) => ({
-    load: (key) => BdApi.Data.load(id, key) ?? null,
-    save: (key, value) => BdApi.Data.save(id, key, value),
-    delete: (key) => BdApi.Data.delete(id, key)
-});
-
-const createLazy = () => {
-    let controller = new AbortController();
-    return {
-        waitFor: (filter, { resolve = true, entries = false }) => BdApi.Webpack.waitForModule(filter, {
-            signal: controller.signal,
-            defaultExport: resolve,
-            searchExports: entries
-        }),
-        abort: () => {
-            controller.abort();
-            controller = new AbortController();
-        }
-    };
+let meta = null;
+const getMeta = () => {
+    if (meta) {
+        return meta;
+    }
+    else {
+        throw Error("Accessing meta before initialization");
+    }
+};
+const setMeta = (newMeta) => {
+    meta = newMeta;
 };
 
-const createLogger = (name, color, version) => {
-    const print = (output, ...data) => output(`%c[${name}] %c${version ? `(v${version})` : ""}`, `color: ${color}; font-weight: 700;`, "color: #666; font-size: .8em;", ...data);
-    return {
-        print,
-        log: (...data) => print(console.log, ...data),
-        warn: (...data) => print(console.warn, ...data),
-        error: (...data) => print(console.error, ...data)
-    };
-};
-
-const createPatcher = (id, Logger) => {
-    const forward = (patcher, type, object, method, callback, options) => {
-        const original = object?.[method];
-        if (!(original instanceof Function)) {
-            throw TypeError(`patch target ${original} is not a function`);
-        }
-        const cancel = patcher[type](id, object, method, options.once ? (...args) => {
-            const result = callback(cancel, original, ...args);
-            cancel();
-            return result;
-        } : (...args) => callback(cancel, original, ...args));
-        if (!options.silent) {
-            Logger.log(`Patched ${options.name ?? String(method)}`);
-        }
-        return cancel;
-    };
-    let menuPatches = [];
-    return {
-        instead: (object, method, callback, options = {}) => forward(BdApi.Patcher, "instead", object, method, (cancel, original, context, args) => callback({ cancel, original, context, args }), options),
-        before: (object, method, callback, options = {}) => forward(BdApi.Patcher, "before", object, method, (cancel, original, context, args) => callback({ cancel, original, context, args }), options),
-        after: (object, method, callback, options = {}) => forward(BdApi.Patcher, "after", object, method, (cancel, original, context, args, result) => callback({ cancel, original, context, args, result }), options),
-        contextMenu(navId, callback, options = {}) {
-            const cancel = BdApi.ContextMenu.patch(navId, options.once ? (tree) => {
-                const result = callback(tree);
-                cancel();
-                return result;
-            } : callback);
-            menuPatches.push(cancel);
-            if (!options.silent) {
-                Logger.log(`Patched ${options.name ?? `"${navId}"`} context menu`);
-            }
-            return cancel;
-        },
-        unpatchAll() {
-            if (menuPatches.length + BdApi.Patcher.getPatchesByCaller(id).length > 0) {
-                for (const cancel of menuPatches) {
-                    cancel();
-                }
-                menuPatches = [];
-                BdApi.Patcher.unpatchAll(id);
-                Logger.log("Unpatched all");
-            }
-        }
-    };
-};
+const load = (key) => BdApi.Data.load(getMeta().name, key);
+const save = (key, value) => BdApi.Data.save(getMeta().name, key, value);
 
 const byName$1 = (name) => {
     return (target) => (target?.displayName ?? target?.constructor?.displayName) === name;
@@ -212,6 +151,58 @@ const demangle = (mapping, required, proxy = false) => {
     ]));
 };
 
+let controller = new AbortController();
+const waitFor = (filter, { resolve = true, entries = false } = {}) => BdApi.Webpack.waitForModule(filter, {
+    signal: controller.signal,
+    defaultExport: resolve,
+    searchExports: entries
+});
+const abort = () => {
+    controller.abort();
+    controller = new AbortController();
+};
+
+const COLOR = "#3a71c1";
+const print = (output, ...data) => output(`%c[${getMeta().name}] %c${getMeta().version ? `(v${getMeta().version})` : ""}`, `color: ${COLOR}; font-weight: 700;`, "color: #666; font-size: .8em;", ...data);
+const log = (...data) => print(console.log, ...data);
+const warn = (...data) => print(console.warn, ...data);
+const error = (...data) => print(console.error, ...data);
+
+const patch = (type, object, method, callback, options) => {
+    const original = object?.[method];
+    if (!(original instanceof Function)) {
+        throw TypeError(`patch target ${original} is not a function`);
+    }
+    const cancel = BdApi.Patcher[type](getMeta().name, object, method, options.once ? (...args) => {
+        const result = callback(cancel, original, ...args);
+        cancel();
+        return result;
+    } : (...args) => callback(cancel, original, ...args));
+    if (!options.silent) {
+        log(`Patched ${options.name ?? String(method)}`);
+    }
+    return cancel;
+};
+const after = (object, method, callback, options = {}) => patch("after", object, method, (cancel, original, context, args, result) => callback({ cancel, original, context, args, result }), options);
+let menuPatches = [];
+const unpatchAll = () => {
+    if (menuPatches.length + BdApi.Patcher.getPatchesByCaller(getMeta().name).length > 0) {
+        for (const cancel of menuPatches) {
+            cancel();
+        }
+        menuPatches = [];
+        BdApi.Patcher.unpatchAll(getMeta().name);
+        log("Unpatched all");
+    }
+};
+
+const inject = (styles) => {
+    if (typeof styles === "string") {
+        BdApi.DOM.addStyle(getMeta().name, styles);
+    }
+};
+const clear = () => BdApi.DOM.removeStyle(getMeta().name);
+
 const ClientActions = /* @__PURE__ */ byProps(["toggleGuildFolderExpand"]);
 
 const Flux = /* @__PURE__ */ demangle({
@@ -228,76 +219,6 @@ const ExpandedGuildFolderStore = /* @__PURE__ */ byName("ExpandedGuildFolderStor
 const { React } = BdApi;
 const { ReactDOM } = BdApi;
 const classNames = /* @__PURE__ */ find((exports) => exports instanceof Object && exports.default === exports && Object.keys(exports).length === 1);
-
-class Settings extends Flux.Store {
-    constructor(Data, defaults) {
-        super(new Flux.Dispatcher(), {
-            update: () => {
-                for (const listener of this.listeners) {
-                    listener(this.current);
-                }
-                Data.save("settings", this.current);
-            }
-        });
-        this.listeners = new Set();
-        this.defaults = defaults;
-        this.current = { ...defaults, ...Data.load("settings") };
-    }
-    _dispatch() {
-        this._dispatcher.dispatch({ type: "update" });
-    }
-    update(settings) {
-        Object.assign(this.current, typeof settings === "function" ? settings(this.current) : settings);
-        this._dispatch();
-    }
-    reset() {
-        this.current = { ...this.defaults };
-        this._dispatch();
-    }
-    delete(...keys) {
-        for (const key of keys) {
-            delete this.current[key];
-        }
-        this._dispatch();
-    }
-    useCurrent() {
-        return Flux.useStateFromStores([this], () => this.current);
-    }
-    useState() {
-        return Flux.useStateFromStores([this], () => [this.current, (settings) => this.update(settings)]);
-    }
-    useStateWithDefaults() {
-        return Flux.useStateFromStores([this], () => [this.current, this.defaults, (settings) => this.update(settings)]);
-    }
-    useListener(listener) {
-        React.useEffect(() => {
-            this.addListener(listener);
-            return () => this.removeListener(listener);
-        }, [listener]);
-    }
-    addListener(listener) {
-        this.listeners.add(listener);
-        return listener;
-    }
-    removeListener(listener) {
-        this.listeners.delete(listener);
-    }
-    removeAllListeners() {
-        this.listeners.clear();
-    }
-}
-const createSettings = (Data, defaults) => new Settings(Data, defaults);
-
-const createStyles = (id) => {
-    return {
-        inject(styles) {
-            if (typeof styles === "string") {
-                BdApi.DOM.addStyle(id, styles);
-            }
-        },
-        clear: () => BdApi.DOM.removeStyle(id)
-    };
-};
 
 const Button = /* @__PURE__ */ byProps(["Colors", "Link"], { entries: true });
 
@@ -330,29 +251,21 @@ const ReactDOMInternals = {
     batchedUpdates
 };
 
-const FCHook = ({ children: { type, props }, callback, once = false }) => {
-    const called = React.useRef(false);
+const FCHook = ({ children: { type, props }, callback }) => {
     const result = type(props);
-    if (once && called.current) {
-        return result;
-    }
-    else {
-        called.current = true;
-        return callback(result, props) ?? result;
-    }
+    return callback(result, props) ?? result;
 };
-const hookFunctionComponent = (target, callback, once) => {
+const hookFunctionComponent = (target, callback) => {
     const props = {
         children: { ...target },
-        callback,
-        once
+        callback
     };
     target.props = props;
     target.type = FCHook;
     return target;
 };
 const queryTree = (node, predicate) => {
-    const worklist = [node];
+    const worklist = [node].flat();
     while (worklist.length !== 0) {
         const node = worklist.shift();
         if (predicate(node)) {
@@ -412,46 +325,121 @@ const forceFullRerender = (fiber) => new Promise((resolve) => {
 
 const SettingsContainer = ({ name, children, onReset }) => (React.createElement(FormSection, null,
     children,
-    React.createElement(FormDivider, { className: classNames(margins.marginTop20, margins.marginBottom20) }),
-    React.createElement(Flex, { justify: Flex.Justify.END },
-        React.createElement(Button, { size: Button.Sizes.SMALL, onClick: () => confirm(name, "Reset all settings?", {
-                onConfirm: () => onReset()
-            }) }, "Reset"))));
+    onReset ? (React.createElement(React.Fragment, null,
+        React.createElement(FormDivider, { className: classNames(margins.marginTop20, margins.marginBottom20) }),
+        React.createElement(Flex, { justify: Flex.Justify.END },
+            React.createElement(Button, { size: Button.Sizes.SMALL, onClick: () => confirm(name, "Reset all settings?", {
+                    onConfirm: () => onReset()
+                }) }, "Reset")))) : null));
 
-const createPlugin = (config, callback) => (meta) => {
-    const name = config.name ?? meta.name;
-    const version = config.version ?? meta.version;
-    const Logger = createLogger(name, "#3a71c1", version);
-    const Lazy = createLazy();
-    const Patcher = createPatcher(name, Logger);
-    const Styles = createStyles(name);
-    const Data = createData(name);
-    const Settings = createSettings(Data, config.settings ?? {});
-    const plugin = callback({ meta, Logger, Lazy, Patcher, Styles, Data, Settings });
+class SettingsStore extends Flux.Store {
+    constructor(defaults, onLoad) {
+        super(new Flux.Dispatcher(), {
+            update: () => {
+                for (const listener of this.listeners) {
+                    listener(this.current);
+                }
+            }
+        });
+        this.listeners = new Set();
+        this.defaults = defaults;
+        this.onLoad = onLoad;
+    }
+    load() {
+        this.current = { ...this.defaults, ...load("settings") };
+        this.onLoad?.();
+        this._dispatch(false);
+    }
+    _dispatch(save$1) {
+        this._dispatcher.dispatch({ type: "update" });
+        if (save$1) {
+            save("settings", this.current);
+        }
+    }
+    update(settings) {
+        Object.assign(this.current, typeof settings === "function" ? settings(this.current) : settings);
+        this._dispatch(true);
+    }
+    reset() {
+        this.current = { ...this.defaults };
+        this._dispatch(true);
+    }
+    delete(...keys) {
+        for (const key of keys) {
+            delete this.current[key];
+        }
+        this._dispatch(true);
+    }
+    useCurrent() {
+        return Flux.useStateFromStores([this], () => this.current, undefined, () => false);
+    }
+    useSelector(selector, deps, compare) {
+        return Flux.useStateFromStores([this], () => selector(this.current), deps, compare);
+    }
+    useState() {
+        return Flux.useStateFromStores([this], () => [
+            this.current,
+            (settings) => this.update(settings)
+        ]);
+    }
+    useStateWithDefaults() {
+        return Flux.useStateFromStores([this], () => [
+            this.current,
+            this.defaults,
+            (settings) => this.update(settings)
+        ]);
+    }
+    useListener(listener, deps) {
+        React.useEffect(() => {
+            this.addListener(listener);
+            return () => this.removeListener(listener);
+        }, deps ?? [listener]);
+    }
+    addListener(listener) {
+        this.listeners.add(listener);
+        return listener;
+    }
+    removeListener(listener) {
+        this.listeners.delete(listener);
+    }
+    removeAllListeners() {
+        this.listeners.clear();
+    }
+}
+const createSettings = (defaults, onLoad) => new SettingsStore(defaults, onLoad);
+
+const createPlugin = (plugin) => (meta) => {
+    setMeta(meta);
+    const { start, stop, styles, Settings, SettingsPanel } = (plugin instanceof Function ? plugin(meta) : plugin);
+    Settings?.load();
     return {
         start() {
-            Logger.log("Enabled");
-            Styles.inject(config.styles);
-            plugin.start();
+            log("Enabled");
+            inject(styles);
+            start?.();
         },
         stop() {
-            Lazy.abort();
-            Patcher.unpatchAll();
-            Styles.clear();
-            plugin.stop();
-            Logger.log("Disabled");
+            abort();
+            unpatchAll();
+            clear();
+            stop?.();
+            log("Disabled");
         },
-        getSettingsPanel: plugin.SettingsPanel ? () => (React.createElement(SettingsContainer, { name: name, onReset: () => Settings.reset() },
-            React.createElement(plugin.SettingsPanel, null))) : null
+        getSettingsPanel: SettingsPanel ? () => (React.createElement(SettingsContainer, { name: meta.name, onReset: Settings ? () => Settings.reset() : null },
+            React.createElement(SettingsPanel, null))) : null
     };
 };
 
-const ImageInput = find((target) => typeof target.defaultProps?.multiple === "boolean" && typeof target.defaultProps?.maxFileSizeBytes === "number");
-const BetterFolderIcon = ({ icon, always, childProps, FolderIcon }) => {
+const Settings = createSettings({
+    closeOnOpen: false,
+    folders: {}
+});
+
+const BetterFolderIcon = ({ data, childProps, FolderIcon }) => {
     if (FolderIcon) {
         const result = FolderIcon(childProps);
-        if (icon && (childProps.expanded || always)) {
-            result.props.children = React.createElement("div", { className: "betterFolders-customIcon", style: { backgroundImage: `url(${icon})` } });
+        if (data?.icon && (childProps.expanded || data.always)) {
+            result.props.children = React.createElement("div", { className: "betterFolders-customIcon", style: { backgroundImage: `url(${data.icon})` } });
         }
         return result;
     }
@@ -459,154 +447,156 @@ const BetterFolderIcon = ({ icon, always, childProps, FolderIcon }) => {
         return null;
     }
 };
+const compareFolderData = (a, b) => a?.icon === b?.icon && a?.always === b?.always;
+const ConnectedBetterFolderIcon = ({ folderId, ...props }) => {
+    const data = Settings.useSelector((current) => current.folders[folderId], [folderId], compareFolderData);
+    return React.createElement(BetterFolderIcon, { data: data, ...props });
+};
+
+const ImageInput = find((target) => typeof target.defaultProps?.multiple === "boolean" && typeof target.defaultProps?.maxFileSizeBytes === "number");
 const BetterFolderUploader = ({ icon, always, folderNode, onChange, FolderIcon }) => (React.createElement(React.Fragment, null,
     React.createElement(Flex, { align: Flex.Align.CENTER },
         React.createElement(Button, { color: Button.Colors.WHITE, look: Button.Looks.OUTLINED },
             "Upload Image",
             React.createElement(ImageInput, { onChange: (img) => onChange({ icon: img, always }) })),
         React.createElement(FormText, { type: "description", style: { margin: "0 10px 0 40px" } }, "Preview:"),
-        React.createElement(BetterFolderIcon, { icon: icon, always: true, childProps: { expanded: false, folderNode }, FolderIcon: FolderIcon })),
+        React.createElement(BetterFolderIcon, { data: { icon, always: true }, childProps: { expanded: false, folderNode }, FolderIcon: FolderIcon })),
     React.createElement(SwitchItem, { hideBorder: true, className: margins.marginTop8, value: always, onChange: (checked) => onChange({ icon, always: checked }) }, "Always display icon")));
+
+const folderModalPatch = ({ context, result }, FolderIcon) => {
+    const { folderId } = context.props;
+    const { state } = context;
+    const form = queryTree(result, (node) => node?.type === "form");
+    if (!form) {
+        warn("Unable to find form");
+        return;
+    }
+    if (!state.iconType) {
+        const { icon = null, always = false } = Settings.current.folders[folderId] ?? {};
+        Object.assign(state, {
+            iconType: icon ? "custom"  : "default" ,
+            icon,
+            always
+        });
+    }
+    const { children } = form.props;
+    const { className } = children[0].props;
+    children.push(React.createElement(FormItem, { title: "Icon", className: className },
+        React.createElement(RadioGroup, { value: state.iconType, options: [
+                { value: "default" , name: "Default Icon" },
+                { value: "custom" , name: "Custom Icon" }
+            ], onChange: ({ value }) => context.setState({ iconType: value }) })));
+    if (state.iconType === "custom" ) {
+        const tree = SortedGuildStore.getGuildsTree();
+        children.push(React.createElement(FormItem, { title: "Custom Icon", className: className },
+            React.createElement(BetterFolderUploader, { icon: state.icon, always: state.always, folderNode: tree.nodes[folderId], onChange: ({ icon, always }) => context.setState({ icon, always }), FolderIcon: FolderIcon })));
+    }
+    const button = queryTree(result, (node) => node?.props?.type === "submit");
+    const original = button.props.onClick;
+    button.props.onClick = (...args) => {
+        original(...args);
+        const { folders } = Settings.current;
+        if (state.iconType === "custom"  && state.icon) {
+            folders[folderId] = { icon: state.icon, always: state.always };
+            Settings.update({ folders });
+        }
+        else if ((state.iconType === "default"  || !state.icon) && folders[folderId]) {
+            delete folders[folderId];
+            Settings.update({ folders });
+        }
+    };
+};
 
 const styles = ".betterFolders-customIcon {\n  width: 100%;\n  height: 100%;\n  background-size: contain;\n  background-position: center;\n  background-repeat: no-repeat;\n}\n\n.betterFolders-preview {\n  margin: 0 10px;\n  background-size: contain;\n  background-position: center;\n  background-repeat: no-repeat;\n  border-radius: 16px;\n  cursor: default;\n}";
 
 const guildStyles = byProps(["guilds", "base"]);
-const settings = {
-    closeOnOpen: false,
-    folders: {}
-};
-const index = createPlugin({ styles, settings }, ({ Logger, Lazy, Patcher, Data, Settings }) => {
-    const oldFolders = Data.load("folders");
-    if (oldFolders) {
-        Data.delete("folders");
-        Settings.update({ folders: oldFolders });
+const getGuildsOwner = () => findOwner(getFiber(document.getElementsByClassName(guildStyles.guilds)?.[0]));
+const triggerRerender = async (guildsFiber) => {
+    if (await forceFullRerender(guildsFiber)) {
+        log("Rerendered guilds");
     }
-    const getFolder = (id) => Settings.current.folders[id];
-    const ConnectedBetterFolderIcon = Flux.default.connectStores([Settings], ({ folderId }) => ({ ...getFolder(folderId) }))(BetterFolderIcon);
-    const getGuildsOwner = () => findOwner(getFiber(document.getElementsByClassName(guildStyles.guilds)?.[0]));
-    const triggerRerender = async (guildsFiber) => {
-        if (await forceFullRerender(guildsFiber)) {
-            Logger.log("Rerendered guilds");
-        }
-        else {
-            Logger.warn("Unable to rerender guilds");
-        }
-    };
-    let FolderIcon = null;
-    return {
-        start() {
-            const guildsOwner = getGuildsOwner();
-            Patcher.after(GuildsNav, "type", ({ result, cancel }) => {
-                const target = queryTree(result, (node) => node?.props?.className?.split(" ").includes(guildStyles.guilds));
-                if (!target) {
-                    return Logger.error("Unable to find chain patch target");
-                }
-                hookFunctionComponent(target, (result) => {
-                    const guildItem = queryTree(result, (node) => node?.props?.folderNode);
-                    if (!guildItem) {
-                        return Logger.error("Unable to find guild item component");
-                    }
-                    cancel();
-                    Logger.log("Unpatched GuildsNav");
-                    Patcher.after(guildItem.type, "type", ({ args: [props], result }) => {
-                        if (!props.folderNode) {
-                            return;
-                        }
-                        hookFunctionComponent(result, (result, props) => {
-                            const iconContainer = queryTree(result, (node) => "folderIconContent" in (node?.props ?? {}));
-                            if (!iconContainer) {
-                                return Logger.error("Unable to find folder icon container component");
-                            }
-                            hookFunctionComponent(iconContainer, (result) => {
-                                const iconParent = queryTree(result, (node) => node?.props?.children?.props?.folderNode);
-                                if (!iconParent) {
-                                    return Logger.error("Unable to find folder icon component");
-                                }
-                                const icon = iconParent.props.children;
-                                if (!FolderIcon) {
-                                    FolderIcon = icon.type;
-                                }
-                                iconParent.props.children = React.createElement(ConnectedBetterFolderIcon, { folderId: props.folderNode.id, childProps: icon.props, FolderIcon: FolderIcon });
-                            });
-                        });
-                    }, { name: "GuildItem" });
-                    triggerRerender(guildsOwner);
-                }, true);
-            }, { name: "GuildsNav" });
-            Patcher.after(ClientActions, "toggleGuildFolderExpand", ({ original, args: [folderId] }) => {
-                if (Settings.current.closeOnOpen) {
-                    for (const id of ExpandedGuildFolderStore.getExpandedFolders()) {
-                        if (id !== folderId) {
-                            original(id);
-                        }
-                    }
-                }
-            });
-            triggerRerender(guildsOwner);
-            Lazy.waitFor(bySource$1("GUILD_FOLDER_NAME"), { entries: true }).then((FolderSettingsModal) => {
-                if (!FolderSettingsModal) {
+    else {
+        warn("Unable to rerender guilds");
+    }
+};
+const index = createPlugin({
+    start() {
+        let foundItem = false;
+        let FolderIcon = null;
+        const guildsOwner = getGuildsOwner();
+        after(GuildsNav, "type", ({ result, cancel }) => {
+            const target = queryTree(result, (node) => node?.props?.className?.split(" ").includes(guildStyles.guilds));
+            if (!target) {
+                return error("Unable to find chain patch target");
+            }
+            hookFunctionComponent(target, (result) => {
+                if (foundItem) {
                     return;
                 }
-                Patcher.after(FolderSettingsModal.prototype, "render", ({ context, result }) => {
-                    const { folderId } = context.props;
-                    const { state } = context;
-                    const form = queryTree(result, (node) => node?.type === "form");
-                    if (!form) {
-                        Logger.warn("Unable to find form");
+                const guildItem = queryTree(result, (node) => node?.props?.folderNode);
+                if (!guildItem) {
+                    return error("Unable to find guild item component");
+                }
+                foundItem = true;
+                cancel();
+                log("Unpatched GuildsNav");
+                after(guildItem.type, "type", ({ args: [props], result }) => {
+                    if (!props.folderNode) {
                         return;
                     }
-                    if (!state.iconType) {
-                        const { icon = null, always = false } = getFolder(folderId) ?? {};
-                        Object.assign(state, {
-                            iconType: icon ? "custom"  : "default" ,
-                            icon,
-                            always
+                    hookFunctionComponent(result, (result, props) => {
+                        const iconContainer = queryTree(result, (node) => "folderIconContent" in (node?.props ?? {}));
+                        if (!iconContainer) {
+                            return error("Unable to find folder icon container component");
+                        }
+                        hookFunctionComponent(iconContainer, (result) => {
+                            const iconParent = queryTree(result, (node) => node?.props?.children?.props?.folderNode);
+                            if (!iconParent) {
+                                return error("Unable to find folder icon component");
+                            }
+                            const icon = iconParent.props.children;
+                            if (!FolderIcon) {
+                                FolderIcon = icon.type;
+                            }
+                            iconParent.props.children = React.createElement(ConnectedBetterFolderIcon, { folderId: props.folderNode.id, childProps: icon.props, FolderIcon: FolderIcon });
                         });
-                    }
-                    const { children } = form.props;
-                    const { className } = children[0].props;
-                    children.push(React.createElement(FormItem, { title: "Icon", className: className },
-                        React.createElement(RadioGroup, { value: state.iconType, options: [
-                                { value: "default" , name: "Default Icon" },
-                                { value: "custom" , name: "Custom Icon" }
-                            ], onChange: ({ value }) => context.setState({ iconType: value }) })));
-                    if (state.iconType === "custom" ) {
-                        const tree = SortedGuildStore.getGuildsTree();
-                        children.push(React.createElement(FormItem, { title: "Custom Icon", className: className },
-                            React.createElement(BetterFolderUploader, { icon: state.icon, always: state.always, folderNode: tree.nodes[folderId], onChange: ({ icon, always }) => context.setState({ icon, always }), FolderIcon: FolderIcon })));
-                    }
-                    const button = queryTree(result, (node) => node?.props?.type === "submit");
-                    const original = button.props.onClick;
-                    button.props.onClick = (...args) => {
-                        original(...args);
-                        const { folders } = Settings.current;
-                        if (state.iconType === "custom"  && state.icon) {
-                            folders[folderId] = { icon: state.icon, always: state.always };
-                            Settings.update({ folders });
-                        }
-                        else if ((state.iconType === "default"  || !state.icon) && folders[folderId]) {
-                            delete folders[folderId];
-                            Settings.update({ folders });
-                        }
-                    };
-                }, { name: "GuildFolderSettingsModal" });
+                    });
+                }, { name: "GuildItem" });
+                triggerRerender(guildsOwner);
             });
-        },
-        stop() {
-            triggerRerender(getGuildsOwner());
-        },
-        SettingsPanel: () => {
-            const [{ closeOnOpen }, setSettings] = Settings.useState();
-            return (React.createElement(SwitchItem, { note: "Close other folders when opening a new folder", hideBorder: true, value: closeOnOpen, onChange: (checked) => {
-                    if (checked) {
-                        for (const id of Array.from(ExpandedGuildFolderStore.getExpandedFolders()).slice(1)) {
-                            ClientActions.toggleGuildFolderExpand(id);
-                        }
+        }, { name: "GuildsNav" });
+        after(ClientActions, "toggleGuildFolderExpand", ({ original, args: [folderId] }) => {
+            if (Settings.current.closeOnOpen) {
+                for (const id of ExpandedGuildFolderStore.getExpandedFolders()) {
+                    if (id !== folderId) {
+                        original(id);
                     }
-                    setSettings({ closeOnOpen: checked });
-                } }, "Close on open"));
-        }
-    };
+                }
+            }
+        });
+        triggerRerender(guildsOwner);
+        waitFor(bySource$1("GUILD_FOLDER_NAME"), { entries: true }).then((FolderSettingsModal) => {
+            if (FolderSettingsModal) {
+                after(FolderSettingsModal.prototype, "render", (data) => folderModalPatch(data, FolderIcon), { name: "GuildFolderSettingsModal" });
+            }
+        });
+    },
+    stop() {
+        triggerRerender(getGuildsOwner());
+    },
+    styles,
+    Settings,
+    SettingsPanel: () => {
+        const [{ closeOnOpen }, setSettings] = Settings.useState();
+        return (React.createElement(SwitchItem, { note: "Close other folders when opening a new folder", hideBorder: true, value: closeOnOpen, onChange: (checked) => {
+                if (checked) {
+                    for (const id of Array.from(ExpandedGuildFolderStore.getExpandedFolders()).slice(1)) {
+                        ClientActions.toggleGuildFolderExpand(id);
+                    }
+                }
+                setSettings({ closeOnOpen: checked });
+            } }, "Close on open"));
+    }
 });
 
 module.exports = index;
