@@ -1,13 +1,14 @@
 .collapseEmbeds-container {
-    justify-self: stretch;
-    & > article {
-        flex-grow: 1;
-        flex-shrink: 0;
+    &.collapseEmbeds-embed {
+        justify-self: stretch;
+        & > article {
+            flex-grow: 1;
+            flex-shrink: 0;
+        }
     }
 }
 .collapseEmbeds-hideButton {
     margin-bottom: -4px;
-    margin-right: auto;
     align-self: flex-end;
     color: var(--interactive-normal);
     cursor: pointer;
@@ -21,7 +22,8 @@
             margin-left: -20px;
         }
     }
-    .collapseEmbeds-container:hover > &,
+    &:hover,
+    :hover + &,
     .collapseEmbeds-collapsed > & {
         visibility: visible;
     }
