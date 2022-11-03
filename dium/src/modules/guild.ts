@@ -109,7 +109,7 @@ export interface Member {
 export interface GuildStore extends Store {
     getGuild(id: Snowflake): Guild;
     getGuildCount(): number;
-    getGuilds(): Guild[];
+    getGuilds(): Record<Snowflake, Guild>;
     __getLocalVars(): any;
 }
 
