@@ -28,7 +28,7 @@ const GuildCount = () => {
     return <Count className="guilds-onlineFriendCounter">{count} Servers</Count>;
 };
 
-const countFilteredRelationships = (filter: (relationship: {id: string; type: RelationshipTypes}) => boolean) => (
+const countFilteredRelationships = (filter: (relationship: {id: string; type: RelationshipTypes}) => boolean): number => (
     Object.entries(RelationshipStore.getRelationships()).filter(([id, type]) => filter({id, type})).length
 );
 
@@ -66,7 +66,7 @@ export const CountContainer = (): JSX.Element => {
     return (
         <div
             className="container-onlineFriendCount"
-            onContextMenu={(event) => console.log("result", BdApi.ContextMenu.open(event, CountContextMenu))}
+            onContextMenu={(event) => BdApi.ContextMenu.open(event, CountContextMenu)}
         >
             {guilds ? <GuildCount/> : null}
             {friends ? <FriendCount/> : null}
