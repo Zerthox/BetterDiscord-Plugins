@@ -3,7 +3,7 @@ import {createPlugin, Finder, React} from "dium";
 const components = Finder.all.bySource([".createElement(\"svg\","], {entries: true});
 
 interface ErrorBoundaryProps {
-    children?: React.ReactChild;
+    children?: React.ReactNode;
 }
 
 interface ErrorBoundaryState {

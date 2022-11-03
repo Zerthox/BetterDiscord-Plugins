@@ -1,7 +1,7 @@
 import {Filters, Finder} from "../api";
 
 export interface SelectOption<T> {
-    label: React.ReactChild;
+    label: React.ReactNode;
     value: T;
 }
 

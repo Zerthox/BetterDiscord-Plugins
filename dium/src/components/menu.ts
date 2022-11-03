@@ -6,7 +6,7 @@ interface MenuProps {
 }
 
 interface MenuGroupProps {
-    children: React.ReactChild;
+    children: React.ReactNode;
 }
 
 interface BaseItemProps {
@@ -19,8 +19,8 @@ interface BaseItemProps {
 
 interface MenuItemProps extends BaseItemProps {
     color?: string;
-    subtext?: React.ReactChild;
-    children?: React.ReactChild;
+    subtext?: React.ReactNode;
+    children?: React.ReactNode;
     icon?: () => JSX.Element;
     render?: () => JSX.Element;
 }

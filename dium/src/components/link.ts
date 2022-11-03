@@ -7,7 +7,7 @@ interface LinkProps extends Record<string, any> {
     innerRef?: React.Ref<any>;
     history?: any;
     location?: any;
-    children?: React.ReactChild;
+    children?: React.ReactNode;
     className?: string;
     tabIndex?: number;
 }

@@ -9,7 +9,7 @@ interface ClickableProps {
     onClick?: React.MouseEventHandler;
     onKeyPress?: React.KeyboardEventHandler;
     ignoreKeyPress?: boolean;
-    children?: React.ReactChild;
+    children?: React.ReactNode;
     focusProps?: any;
     innerRef?: React.Ref<any>;
 }

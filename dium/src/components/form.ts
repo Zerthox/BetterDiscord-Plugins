@@ -98,8 +98,8 @@ interface FormNoticeProps {
     button?: any;
     className?: string;
     iconClassName?: string;
-    title?: React.ReactChild;
-    body?: React.ReactChild;
+    title?: React.ReactNode;
+    body?: React.ReactNode;
     style?: React.CSSProperties;
     align?: string;
 }
