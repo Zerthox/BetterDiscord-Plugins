@@ -1,28 +1,11 @@
-import {createPlugin, Logger, Finder, Patcher, Utils, React, Flux} from "dium";
-import {PresenceStore, RelationshipStore, RelationshipTypes, StatusTypes} from "@dium/modules";
-import {Link, GuildsNav} from "@dium/components";
+import {createPlugin, Logger, Finder, Patcher, Utils, React} from "dium";
+import {GuildsNav} from "@dium/components";
+import {Settings} from "./settings";
+import {CountContainer} from "./count";
 import styles from "./styles.scss";
 
 const guildStyles = Finder.byProps(["guilds", "base"]);
 const treeStyles = Finder.byProps(["tree", "scroller"]);
-const listStyles = Finder.byProps(["listItem"]);
-const friendsOnline = "friendsOnline-2JkivW";
-
-const OnlineCount = () => {
-    const online = Flux.useStateFromStores([PresenceStore, RelationshipStore], () => (
-        Object.entries(RelationshipStore.getRelationships())
-            .filter(([id, type]) => type === RelationshipTypes.FRIEND && PresenceStore.getStatus(id) !== StatusTypes.OFFLINE)
-            .length
-    ));
-
-    return (
-        <div className={listStyles.listItem}>
-            <Link to="/channels/@me">
-                <div className={friendsOnline}>{online} Online</div>
-            </Link>
-        </div>
-    );
-};
 
 const triggerRerender = async () => {
     const node = document.getElementsByClassName(guildStyles.guilds)?.[0];
@@ -54,7 +37,7 @@ export default createPlugin({
                 // insert after home button
                 const {children} = scroller.props as {children: JSX.Element[]};
                 const homeButtonIndex = children.findIndex((child) => typeof child?.props?.isOnOtherSidebarRoute === "boolean");
-                children.splice(homeButtonIndex + 1, 0, <OnlineCount/>);
+                children.splice(homeButtonIndex + 1, 0, <CountContainer/>);
             });
         }, {name: "GuildsNav"});
 
@@ -63,5 +46,6 @@ export default createPlugin({
     stop() {
         triggerRerender();
     },
-    styles
+    styles,
+    Settings
 });

@@ -1,4 +1,4 @@
-.friendsOnline-2JkivW {
+.counter-onlineFriendCount {
     color: var(--channels-default);
     text-align: center;
     text-transform: uppercase;
@@ -8,6 +8,8 @@
     width: 70px;
     word-wrap: normal;
     white-space: nowrap;
+}
+.link-onlineFriendCount {
     cursor: pointer;
     &:hover {
         color: var(--interactive-hover);

@@ -1,6 +1,6 @@
 {
     "name": "OnlineFriendCount",
     "author": "Zerthox",
-    "version": "2.3.0",
-    "description": "Add the old online friend count back to guild list. Because nostalgia."
+    "version": "3.0.0",
+    "description": "Adds the old online friend count and similar counters back to guild list. Because nostalgia."
 }
