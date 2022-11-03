@@ -1,6 +1,6 @@
 import {Finder} from "../api";
 
-interface SwitchItemProps {
+export interface SwitchItemProps {
     value: boolean;
     disabled?: boolean;
     hideBorder?: boolean;
@@ -15,7 +15,7 @@ interface SwitchItemProps {
 
 export const SwitchItem: React.FunctionComponent<SwitchItemProps> = /* @__PURE__ */ Finder.bySource([".helpdeskArticleId"], {entries: true});
 
-interface SwitchProps {
+export interface SwitchProps {
     id?: any;
     onChange?: (checked: boolean) => void;
     checked?: boolean;

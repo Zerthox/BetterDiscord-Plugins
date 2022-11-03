@@ -1,11 +1,11 @@
-interface MenuProps extends Record<string, any> {
+export interface MenuProps extends Record<string, any> {
     navId: string;
     onClose: () => void;
     onSelect: () => void;
     "aria-label"?: string;
 }
 
-interface MenuGroupProps {
+export interface MenuGroupProps {
     children: React.ReactNode;
 }
 
@@ -18,7 +18,7 @@ interface BaseItemProps {
     onClose?: () => void;
 }
 
-interface MenuItemProps extends BaseItemProps {
+export interface MenuItemProps extends BaseItemProps {
     color?: string;
     hint?: any;
     children?: React.ReactNode;
@@ -29,17 +29,17 @@ interface MenuItemProps extends BaseItemProps {
     render?: () => JSX.Element;
 }
 
-interface MenuCheckboxItemProps extends BaseItemProps {
+export interface MenuCheckboxItemProps extends BaseItemProps {
     checked?: boolean;
     disabled?: boolean;
 }
 
-interface MenuRadioItemProps extends BaseItemProps {
+export interface MenuRadioItemProps extends BaseItemProps {
     checked?: boolean;
     group?: string;
 }
 
-interface MenuControlItemProps extends BaseItemProps {
+export interface MenuControlItemProps extends BaseItemProps {
     control: (props: ControlProps, ref: React.MutableRefObject<any>) => JSX.Element;
 }
 

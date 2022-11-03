@@ -6,7 +6,7 @@ export interface RadioGroupOption<T> {
     desc?: React.ReactNode;
 }
 
-interface RadioGroupProps<T> {
+export interface RadioGroupProps<T> {
     itemInfoClassName?: string;
     itemTitleClassName?: string;
     radioItemClassName?: string;

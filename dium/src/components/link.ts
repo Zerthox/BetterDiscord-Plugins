@@ -1,6 +1,6 @@
 import {Filters, Finder} from "../api";
 
-interface LinkProps extends Record<string, any> {
+export interface LinkProps extends Record<string, any> {
     component?: any;
     replace?: any;
     to?: any;

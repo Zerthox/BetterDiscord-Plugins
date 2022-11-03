@@ -1,6 +1,6 @@
 import {Finder} from "../api";
 
-interface FlexProps {
+export interface FlexProps {
     children?: React.ReactNode;
     className?: string;
     direction?: string;

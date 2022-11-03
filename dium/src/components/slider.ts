@@ -1,6 +1,6 @@
 import {Finder} from "../api";
 
-interface SliderProps extends Record<string, any> {
+export interface SliderProps extends Record<string, any> {
     initialValue?: number;
     maxValue?: number;
     minValue?: number;
@@ -30,7 +30,7 @@ interface SliderProps extends Record<string, any> {
     "aria-describedby"?: any;
 }
 
-interface SliderState extends Record<string, any> {
+export interface SliderState extends Record<string, any> {
     value: any;
     active: any;
     focused: any;

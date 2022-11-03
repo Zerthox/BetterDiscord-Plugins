@@ -10,7 +10,7 @@ export const enum FormTags {
     LEGEND = "legend"
 }
 
-interface FormSectionProps {
+export interface FormSectionProps {
     children?: React.ReactNode;
     className?: string;
     titleClassName?: string;
@@ -25,7 +25,7 @@ export interface FormSection extends React.FunctionComponent<FormSectionProps> {
     Tags: typeof FormTags;
 }
 
-interface FormItemProps {
+export interface FormItemProps {
     children?: React.ReactNode;
     disabled?: boolean;
     className?: string;
@@ -41,7 +41,7 @@ export interface FormItem extends React.FunctionComponent<FormItemProps> {
     Tags: typeof FormTags;
 }
 
-interface FormTitleProps {
+export interface FormTitleProps {
     tag?: string;
     children?: React.ReactNode;
     className?: string;
@@ -55,7 +55,7 @@ export interface FormTitle extends React.FunctionComponent<FormTitleProps> {
     Tags: typeof FormTags;
 }
 
-interface FormTextProps {
+export interface FormTextProps {
     type?: string;
     className?: string;
     disabled?: boolean;
@@ -87,7 +87,7 @@ export const enum FormNoticeTypes {
     WARNING = "cardWarning"
 }
 
-interface FormNoticeProps {
+export interface FormNoticeProps {
     type?: string;
     imageData?: {
         src: string;

@@ -5,7 +5,7 @@ export interface SelectOption<T> {
     value: T;
 }
 
-interface SelectProps<T, O extends SelectOption<T>> {
+export interface SelectProps<T, O extends SelectOption<T>> {
     options: O[];
     placeholder?: any;
     className?: string;
@@ -32,7 +32,7 @@ interface SelectProps<T, O extends SelectOption<T>> {
     "aria-labelledby"?: any;
 }
 
-interface SingleSelectProps<T, O extends SelectOption<T>> extends Omit<SelectProps<T, O>, "select" | "isSelected" | "clear"> {
+export interface SingleSelectProps<T, O extends SelectOption<T>> extends Omit<SelectProps<T, O>, "select" | "isSelected" | "clear"> {
     value: T;
     onChange?: (value: T) => void;
 }

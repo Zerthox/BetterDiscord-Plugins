@@ -1,6 +1,6 @@
 import {Finder} from "../api";
 
-interface TextProps {
+export interface TextProps {
     variant?: string;
     tag?: any;
     selectable?: boolean;

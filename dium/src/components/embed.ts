@@ -1,7 +1,7 @@
 import {Finder} from "../api";
 import {Embed as MessageEmbed} from "../modules/message";
 
-interface EmbedProps {
+export interface EmbedProps {
     embed?: MessageEmbed;
     className?: string;
     allowFullScreen?: boolean;

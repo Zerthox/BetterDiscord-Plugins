@@ -1,6 +1,6 @@
 import {Finder} from "../api";
 
-interface ClickableProps {
+export interface ClickableProps {
     role?: string;
     tabIndex?: number;
     tag?: string;

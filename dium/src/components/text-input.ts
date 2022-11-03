@@ -5,7 +5,7 @@ export const enum TextInputSizes {
     MINI = "mini"
 }
 
-interface TextInputProps {
+export interface TextInputProps {
     type?: string;
     value?: string;
     name?: string;

@@ -1,7 +1,7 @@
 import {Finder} from "../api";
 import {Channel, Message} from "../modules";
 
-interface MessageFooterProps {
+export interface MessageFooterProps {
     channel: Channel;
     message: Message;
     compact: boolean;
