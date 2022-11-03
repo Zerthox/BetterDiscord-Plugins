@@ -1,4 +1,4 @@
-interface MenuProps {
+interface MenuProps extends Record<string, any> {
     navId: string;
     onClose: () => void;
     onSelect: () => void;
@@ -11,7 +11,8 @@ interface MenuGroupProps {
 
 interface BaseItemProps {
     id: string;
-    label?: string;
+    label?: React.ReactNode;
+    subtext?: React.ReactNode;
     isFocused?: boolean;
     action?: () => void;
     onClose?: () => void;
@@ -19,14 +20,18 @@ interface BaseItemProps {
 
 interface MenuItemProps extends BaseItemProps {
     color?: string;
-    subtext?: React.ReactNode;
+    hint?: any;
     children?: React.ReactNode;
-    icon?: () => JSX.Element;
+    icon?: React.ComponentType<any>;
+    iconProps?: any;
+    showIconFirst?: boolean;
+    imageUrl?: any;
     render?: () => JSX.Element;
 }
 
 interface MenuCheckboxItemProps extends BaseItemProps {
     checked?: boolean;
+    disabled?: boolean;
 }
 
 interface MenuRadioItemProps extends BaseItemProps {
