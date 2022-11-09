@@ -62,7 +62,7 @@ export const all = {
     bySource: (contents: TypeOrPredicate<string>[], options?: FindOptions): any[] => all.find(Filters.bySource(...contents), options)
 };
 
-type Mapping = Record<string, ((entry: any) => boolean)>;
+type Mapping = Record<string, (entry: any) => boolean>;
 type Mapped<M extends Mapping> = {[K in keyof M]: any};
 
 /**
@@ -79,12 +79,7 @@ export const demangle = <M extends Mapping>(mapping: M, required?: (keyof M)[], 
     const found = find((target) => (
         target instanceof Object
         && target !== window
-        && req.every((req) => {
-            const filter = mapping[req];
-            return typeof filter === "string"
-                ? filter in target
-                : Object.values(target).some((value) => filter(value));
-        })
+        && req.every((req) => Object.values(target).some((value) => mapping[req](value)))
     ));
 
     return proxy ? mappedProxy(found, Object.fromEntries(Object.entries(mapping).map(([key, filter]) => [
