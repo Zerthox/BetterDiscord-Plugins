@@ -62,6 +62,9 @@ export const all = {
     bySource: (contents: TypeOrPredicate<string>[], options?: FindOptions): any[] => all.find(Filters.bySource(...contents), options)
 };
 
+/** Resolves the key corresponding to the value matching the filter function. */
+export const resolveKey = <T>(target: T, filter: Filters.Filter): [T, string] => [target, Object.entries(target ?? {}).find(([, value]) => filter(value))?.[0]];
+
 type Mapping = Record<string, (entry: any) => boolean>;
 type Mapped<M extends Mapping> = {[K in keyof M]: any};
 

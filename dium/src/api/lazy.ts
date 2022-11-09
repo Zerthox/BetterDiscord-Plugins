@@ -9,7 +9,7 @@ export const waitFor = (filter: Filter, {resolve = true, entries = false}: FindO
     signal: controller.signal,
     defaultExport: resolve,
     searchExports: entries
-} as any);
+});
 
 /** Aborts search for any lazy loaded modules. */
 export const abort = (): void => {

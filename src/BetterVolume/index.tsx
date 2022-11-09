@@ -59,15 +59,14 @@ type UseUserVolumeItem = (userId: Snowflake, context: MediaEngineContext) => JSX
 export default createPlugin({
     async start() {
         // wait for context menu lazy load
-        const useUserVolumeItem = await Lazy.waitFor(Filters.bySource("user-volume"), {resolve: false}) as Record<string, UseUserVolumeItem>;
-        if (!useUserVolumeItem) {
-            return;
-        }
-
-        const key = Object.keys(useUserVolumeItem)[0];
+        const filter = Filters.bySource("user-volume");
+        const useUserVolumeItem = Finder.resolveKey(
+            await Lazy.waitFor(filter, {resolve: false}) as Record<string, UseUserVolumeItem>,
+            filter
+        );
 
         // add number input
-        Patcher.after(useUserVolumeItem, key, ({args: [userId, context], result}) => {
+        Patcher.after(...useUserVolumeItem, ({args: [userId, context], result}) => {
             // check for original render
             if (result) {
                 // we can read this directly, the original has a hook to ensure updates
