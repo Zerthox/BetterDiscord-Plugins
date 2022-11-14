@@ -26,7 +26,7 @@ const webpackRequire = getWebpackRequire();
 export {webpackRequire as require};
 
 const byExportsFilter = (exported: Webpack.Exports): Finder.Filter => {
-    return (target) => target === exported || (target instanceof Object && Object.values(target).includes(exported));
+    return (target) => target === exported;
 };
 
 const byModuleSourceFilter = (contents: string[]): Finder.Filter => {
@@ -36,11 +36,13 @@ const byModuleSourceFilter = (contents: string[]): Finder.Filter => {
     };
 };
 
-const applyFilters = (filters: Finder.Filter[]) => (module: Webpack.Module) => {
+const applyFilter = (filter: Finder.Filter, keys: boolean | string[] = ["default", "Z", "ZP"]) => (module: Webpack.Module) => {
     const {exports} = module;
+    const check = keys === true ? Object.keys(exports) : (keys === false ? [] : keys);
     return (
-        filters.every((filter) => filter(exports, module, String(module.id)))
-        || exports?.__esModule && "default" in exports && filters.every((filter) => filter(exports.default, module, String(module.id)))
+        filter(exports, module, String(module.id))
+        || exports instanceof Object
+        && check.some((key) => key in exports && filter(exports[key], module, String(module.id)))
     );
 };
 
@@ -53,11 +55,11 @@ export const sources = (): Webpack.ModuleFunction[] => Object.values(webpackRequ
 /** Returns the source function for a specific module.  */
 export const sourceOf = (id: Webpack.Id | string): Webpack.ModuleFunction => webpackRequire.m[id] ?? null;
 
-/** Finds a raw module using a set of filter functions. */
-export const find = (...filters: Finder.Filter[]): Webpack.Module => modules().find(applyFilters(filters)) ?? null;
+/** Finds a raw module using a filter function. */
+export const find = (filter: Finder.Filter, keys?: string[]): Webpack.Module => modules().find(applyFilter(filter, keys)) ?? null;
 
 /** Finds a raw module using query options. */
-export const query = (query: Filters.Query): Webpack.Module => find(Filters.query(query));
+export const query = (query: Filters.Query, keys?: string[]): Webpack.Module => find(Filters.query(query), keys);
 
 /**
  * Finds a raw module using its id.
@@ -67,48 +69,48 @@ export const query = (query: Filters.Query): Webpack.Module => find(Filters.quer
 export const byId = (id: Webpack.Id | string): Webpack.Module => webpackRequire.c[id] ?? null;
 
 /** Finds a module using its exports. */
-export const byExports = (exported: Webpack.Exports): Webpack.Module => find(byExportsFilter(exported));
+export const byExports = (exported: Webpack.Exports, keys?: string[]): Webpack.Module => find(byExportsFilter(exported), keys);
 
 /** Finds a raw module using the name of its export.  */
-export const byName = (name: string): Webpack.Module => find(Filters.byName(name));
+export const byName = (name: string, keys?: string[]): Webpack.Module => find(Filters.byName(name), keys);
 
 /** Finds a raw module using property names of its export. */
-export const byProps = (...props: string[]): Webpack.Module => find(Filters.byProps(...props));
+export const byProps = (props: string[], keys?: string[]): Webpack.Module => find(Filters.byProps(...props), keys);
 
 /** Finds a raw module using prototype names of its export. */
-export const byProtos = (...protos: string[]): Webpack.Module => find(Filters.byProtos(...protos));
+export const byProtos = (protos: string[], keys?: string[]): Webpack.Module => find(Filters.byProtos(...protos), keys);
 
 /** Finds a module using source code contents of its export entries. */
-export const bySource = (...contents: Filters.TypeOrPredicate<string>[]): Webpack.Module => find(Filters.bySource(...contents));
+export const bySource = (contents: Filters.TypeOrPredicate<string>[], keys?: string[]): Webpack.Module => find(Filters.bySource(...contents), keys);
 
 /** Finds a module using source code contents of its entire source code. */
-export const byModuleSource = (...contents: string[]): Webpack.Module => find(byModuleSourceFilter(contents));
+export const byModuleSource = (contents: string[]): Webpack.Module => find(byModuleSourceFilter(contents));
 
 /** Returns all module results. */
 export const all = {
-    /** Finds all modules using a set of filter functions. */
-    find: (...filters: Finder.Filter[]): Webpack.Module[] => modules().filter(applyFilters(filters)),
+    /** Finds all modules using a filter function. */
+    find: (filter: Finder.Filter, keys?: string[]): Webpack.Module[] => modules().filter(applyFilter(filter, keys)),
 
     /** Finds all modules using query options. */
-    query: (query: Filters.Query): Webpack.Module[] => all.find(Filters.query(query)),
+    query: (query: Filters.Query, keys?: string[]): Webpack.Module[] => all.find(Filters.query(query), keys),
 
     /** Finds all modules using the exports. */
-    byExports: (exported: Webpack.Exports): Webpack.Module[] => all.find(byExportsFilter(exported)),
+    byExports: (exported: Webpack.Exports, keys?: string[]): Webpack.Module[] => all.find(byExportsFilter(exported), keys),
 
     /** Finds all modules using the name of its export. */
-    byName: (name: string): Webpack.Module[] => all.find(Filters.byName(name)),
+    byName: (name: string, keys?: string[]): Webpack.Module[] => all.find(Filters.byName(name), keys),
 
     /** Finds all modules using property names of its export. */
-    byProps: (...props: string[]): Webpack.Module[] => all.find(Filters.byProps(...props)),
+    byProps: (props: string[], keys?: string[]): Webpack.Module[] => all.find(Filters.byProps(...props), keys),
 
     /** Finds all modules using prototype names of it export. */
-    byProtos: (...protos: string[]): Webpack.Module[] => all.find(Filters.byProtos(...protos)),
+    byProtos: (protos: string[], keys?: string[]): Webpack.Module[] => all.find(Filters.byProtos(...protos), keys),
 
     /** Finds all modules using source code contents of its export entries. */
-    bySource: (...contents: Filters.TypeOrPredicate<string>[]): Webpack.Module[] => all.find(Filters.bySource(...contents)),
+    bySource: (contents: Filters.TypeOrPredicate<string>[], keys?: string[]): Webpack.Module[] => all.find(Filters.bySource(...contents), keys),
 
     /** Finds all modules using source code contents of its entire source code. */
-    byModuleSource: (...contents: string[]): Webpack.Module[] => all.find(byModuleSourceFilter(contents))
+    byModuleSource: (contents: string[]): Webpack.Module[] => all.find(byModuleSourceFilter(contents))
 };
 
 /** Returns module ids of all other modules imported in the module. */
