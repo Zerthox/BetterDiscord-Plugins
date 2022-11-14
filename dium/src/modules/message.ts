@@ -183,4 +183,41 @@ export interface Attachment {
 
 export const MessageStore: Untyped<Store> = /* @__PURE__ */ Finder.byName("MessageStore");
 
-export const MessageActions: ActionModule = /* @__PURE__ */ Finder.byProps(["jumpToMessage", "_sendMessage"]);
+export interface MessageActions extends ActionModule {
+    receiveMessage(e: any, t: any): any;
+    sendBotMessage(e: any, t: any, n: any): any;
+    sendClydeError(e: any): any;
+    truncateMessages(e: any, t: any, n: any): any;
+    clearChannel(e: any): any;
+
+    jumpToPresent(e: any, t: any): any;
+    jumpToMessage(e: any): any;
+    trackJump(e: any, t: any, n: any, r: any): any;
+    focusMessage(e: any): any;
+
+    fetchMessages(e: any): any;
+    _tryFetchMessagesCached(e: any): any;
+
+    sendMessage(e: any, t: any, n?: any, r?: any): any;
+    getSendMessageOptionsForReply(e: any): any;
+    sendInvite(e: any, t: any, n: any, r: any): any;
+    sendStickers(e: any, t: any): any;
+    sendGreetMessage(e: any, t: any): any;
+    _sendMessage(e: any, t: any, r: any): any;
+
+    startEditMessage(e: any, t: any, n: any): any;
+    updateEditMessage(e: any, t: any, n: any): any;
+    endEditMessage(e: any, t: any): any;
+    editMessage(e: any, t: any, n: any): any;
+    suppressEmbeds(e: any, t: any): any;
+    patchMessageAttachments(e: any, t: any, n: any): any;
+
+    deleteMessage(e: any, t: any): any;
+    dismissAutomatedMessage(e: any): any;
+
+    revealMessage(e: any, t: any): any;
+    crosspostMessage(e: any, t: any): any;
+    trackInvite(e: any): any;
+}
+
+export const MessageActions: MessageActions = /* @__PURE__ */ Finder.byProps(["jumpToMessage", "_sendMessage"]);
