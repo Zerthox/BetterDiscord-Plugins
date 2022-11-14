@@ -10,5 +10,5 @@ Add the old online friend count back to guild list. Because nostalgia.
 ## [OnlineFriendCount](https://betterdiscord.app/plugin/OnlineFriendCount) <sub><sup>`v2.2.1` *(Updated: 15/10/2022)*</sup></sub>
 Add the old online friend count back to guild list. Because nostalgia.
 
-## [VoiceEvents](https://betterdiscord.app/plugin/VoiceEvents) <sub><sup>`v2.3.0` *(Updated: 15/10/2022)*</sup></sub>
+## [VoiceEvents](https://betterdiscord.app/plugin/VoiceEvents) <sub><sup>`v2.4.0` *(Updated: 14/11/2022)*</sup></sub>
 Add TTS Event Notifications to your selected Voice Channel. TeamSpeak feeling.
