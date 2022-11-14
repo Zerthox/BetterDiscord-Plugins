@@ -1,6 +1,9 @@
 import {createPlugin, Finder, React} from "dium";
 
-const components = Finder.all.bySource([".createElement(\"svg\","], {entries: true});
+const components = Finder.all.bySource(
+    [(source) => /\.(?:createElement|jsxs?)\)?\("svg",/.test(source)],
+    {entries: true}
+);
 
 interface ErrorBoundaryProps {
     children?: React.ReactNode;
