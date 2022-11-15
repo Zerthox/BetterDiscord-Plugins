@@ -7,7 +7,7 @@
     "private": true,
     "scripts": {
         "check": "tsc --noemit",
-        "test": "mocha -r ts-node/register tests/**/*.ts"
+        "test": "mocha -r ts-node/register tests/**/*.{ts,tsx}"
     },
     "main": "src/index",
     "repository": "https://github.com/Zerthox/BetterDiscord-Plugins",
@@ -36,6 +36,7 @@
     "devDependencies": {
         "@types/mocha": "^10.0.0",
         "mocha": "^10.0.0",
+        "react-reconciler": "^0.28.0",
         "ts-node": "^10.4.0",
         "typescript": "^4.4.4"
     }
