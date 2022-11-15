@@ -121,18 +121,17 @@ export const enum Direction {
 /**
  * Searches a React fiber tree for the first fiber node matching the predicate.
  *
- * This uses a depth first search (DFS) with a maxiumum depth.
+ * This uses a depth first search (DFS) with a maximum depth.
  * Parent nodes are searched first when searching both directions.
  */
 export const queryFiber = (
     fiber: Fiber,
     predicate: Predicate<Fiber>,
     direction: Direction | null = Direction.Up,
-    depth = 30,
-    current = 0
+    depth = 30
 ): Fiber | null => {
     // check depth
-    if (current > depth) {
+    if (depth < 0) {
         return null;
     }
 
@@ -142,18 +141,23 @@ export const queryFiber = (
     }
 
     // check parent (upwards)
-    if ((direction === Direction.Up || direction === Direction.Both) && fiber.return) {
-        const result = queryFiber(fiber.return, predicate, Direction.Up, depth, current + 1);
-        if (result) {
-            return result;
+    if (direction === Direction.Up || direction === Direction.Both) {
+        let count = 0;
+        let parent = fiber.return;
+        while (parent && count < depth) {
+            if (predicate(parent)) {
+                return parent;
+            }
+            count++;
+            parent = parent.return;
         }
     }
 
     // check children (downwards)
-    if ((direction === Direction.Down || direction === Direction.Both) && fiber.child) {
+    if (direction === Direction.Down || direction === Direction.Both) {
         let child = fiber.child;
         while (child) {
-            const result = queryFiber(child, predicate, Direction.Down, depth, current + 1);
+            const result = queryFiber(child, predicate, Direction.Down, depth - 1);
             if (result) {
                 return result;
             }
