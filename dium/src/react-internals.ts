@@ -3,6 +3,11 @@ import type {Fiber, ReactContext} from "react-reconciler";
 
 export type {Fiber} from "react-reconciler";
 
+/** A fiber node with React component as state node. */
+export interface OwnerFiber extends Fiber {
+    stateNode: React.Component<any, any>;
+}
+
 export interface MutableSource<Source> {
     _source: Source;
     _getVersion: (source: Source) => any;

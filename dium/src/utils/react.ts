@@ -1,5 +1,5 @@
 import {React} from "../modules";
-import {ReactDOMInternals, Fiber} from "../react-internals";
+import {ReactDOMInternals, Fiber, OwnerFiber} from "../react-internals";
 
 export type FCHookCallback<P> = (result: JSX.Element, targetProps: P) => JSX.Element | void;
 
@@ -163,11 +163,6 @@ export const queryFiber = (
 
     return null;
 };
-
-/** A fiber node with React component as state node. */
-export interface OwnerFiber extends Fiber {
-    stateNode: React.Component<any>;
-}
 
 /** Finds the owner in the parents of a fiber node. */
 export const findOwner = (fiber: Fiber, depth = 50): OwnerFiber | null => {
