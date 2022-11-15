@@ -50,6 +50,7 @@ export const mappedProxy = <
         },
         deleteProperty(target, prop) {
             delete target[map.get(prop as any) ?? prop];
+            map.delete(prop as any);
             return true;
         },
         has(target, prop) {
