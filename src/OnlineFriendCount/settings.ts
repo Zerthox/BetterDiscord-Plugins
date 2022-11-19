@@ -13,7 +13,7 @@ export type CounterType = "guilds" | "friends" | "friendsOnline" | "pending" | "
 
 export const counterLabels: Record<CounterType, {label: string; long?: string}> = {
     guilds: {
-        label: "Guilds"
+        label: "Servers"
     },
     friends: {
         label: "Friends"
