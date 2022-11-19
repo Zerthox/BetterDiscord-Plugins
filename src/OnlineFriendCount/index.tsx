@@ -1,4 +1,4 @@
-import {createPlugin, Logger, Finder, Patcher, Utils, React} from "dium";
+import {createPlugin, Logger, Finder, Patcher, Utils, React, Filters} from "dium";
 import {GuildsNav} from "@dium/components";
 import {Settings} from "./settings";
 import {CountContainer} from "./count";
@@ -17,6 +17,8 @@ const triggerRerender = async () => {
     }
 };
 
+const homeButtonFilter = Filters.bySource(".getPendingCount");
+
 export default createPlugin({
     start() {
         // patch guilds nav
@@ -34,10 +36,11 @@ export default createPlugin({
                     return Logger.error("Unable to find scroller");
                 }
 
-                // insert after home button
+                // insert after home button or default to position 2
                 const {children} = scroller.props as {children: JSX.Element[]};
-                const homeButtonIndex = children.findIndex((child) => typeof child?.props?.isOnOtherSidebarRoute === "boolean");
-                children.splice(homeButtonIndex + 1, 0, <CountContainer/>);
+                const homeButtonIndex = children.findIndex((child) => homeButtonFilter(child?.type));
+                const index = homeButtonIndex > -1 ? homeButtonIndex + 1 : 2;
+                children.splice(index, 0, <CountContainer/>);
             });
         }, {name: "GuildsNav"});
 
