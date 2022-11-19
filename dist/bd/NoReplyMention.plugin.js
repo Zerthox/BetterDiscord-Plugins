@@ -1,7 +1,7 @@
 /**
  * @name NoReplyMention
  * @author Zerthox
- * @version 0.1.0
+ * @version 0.2.0
  * @description Suppresses reply mentions.
  * @authorLink https://github.com/Zerthox
  * @website https://github.com/Zerthox/BetterDiscord-Plugins
@@ -52,81 +52,32 @@ WScript.Quit();
 
 'use strict';
 
-const createData = (id) => ({
-    load: (key) => BdApi.Data.load(id, key) ?? null,
-    save: (key, value) => BdApi.Data.save(id, key, value),
-    delete: (key) => BdApi.Data.delete(id, key)
-});
-
-const createLazy = () => {
-    let controller = new AbortController();
-    return {
-        waitFor: (filter, { resolve = true, entries = false }) => BdApi.Webpack.waitForModule(filter, {
-            signal: controller.signal,
-            defaultExport: resolve,
-            searchExports: entries
-        }),
-        abort: () => {
-            controller.abort();
-            controller = new AbortController();
-        }
-    };
+let meta = null;
+const getMeta = () => {
+    if (meta) {
+        return meta;
+    }
+    else {
+        throw Error("Accessing meta before initialization");
+    }
+};
+const setMeta = (newMeta) => {
+    meta = newMeta;
 };
 
-const createLogger = (name, color, version) => {
-    const print = (output, ...data) => output(`%c[${name}] %c${version ? `(v${version})` : ""}`, `color: ${color}; font-weight: 700;`, "color: #666; font-size: .8em;", ...data);
-    return {
-        print,
-        log: (...data) => print(console.log, ...data),
-        warn: (...data) => print(console.warn, ...data),
-        error: (...data) => print(console.error, ...data)
-    };
-};
-
-const createPatcher = (id, Logger) => {
-    const forward = (patcher, type, object, method, callback, options) => {
-        const original = object?.[method];
-        if (!(original instanceof Function)) {
-            throw TypeError(`patch target ${original} is not a function`);
-        }
-        const cancel = patcher[type](id, object, method, options.once ? (...args) => {
-            const result = callback(cancel, original, ...args);
-            cancel();
-            return result;
-        } : (...args) => callback(cancel, original, ...args));
-        if (!options.silent) {
-            Logger.log(`Patched ${options.name ?? String(method)}`);
-        }
-        return cancel;
-    };
-    return {
-        instead: (object, method, callback, options = {}) => forward(BdApi.Patcher, "instead", object, method, (cancel, original, context, args) => callback({ cancel, original, context, args }), options),
-        before: (object, method, callback, options = {}) => forward(BdApi.Patcher, "before", object, method, (cancel, original, context, args) => callback({ cancel, original, context, args }), options),
-        after: (object, method, callback, options = {}) => forward(BdApi.Patcher, "after", object, method, (cancel, original, context, args, result) => callback({ cancel, original, context, args, result }), options),
-        unpatchAll: () => {
-            if (BdApi.Patcher.getPatchesByCaller(id).length > 0) {
-                BdApi.Patcher.unpatchAll(id);
-                Logger.log("Unpatched all");
-            }
-        }
-    };
-};
-
-const byEntry = (filter) => {
-    return (target, ...args) => target instanceof Object && target !== window && Object.values(target).some((value) => filter(value, ...args));
-};
 const byProps$1 = (...props) => {
     return (target) => target instanceof Object && props.every((prop) => prop in target);
 };
-const byProtos$1 = (...protos) => {
-    return (target) => target instanceof Object && target.prototype instanceof Object && protos.every((proto) => proto in target.prototype);
-};
-const bySource$1 = (...fragments) => {
+const bySource = (...fragments) => {
     return (target) => {
         if (target instanceof Function) {
             const source = target.toString();
             const renderSource = target.prototype?.render?.toString();
             return fragments.every((fragment) => (typeof fragment === "string" ? (source.includes(fragment) || renderSource?.includes(fragment)) : (fragment(source) || renderSource && fragment(renderSource))));
+        }
+        else if (target instanceof Object && "$$typeof" in target) {
+            const source = (target.render ?? target.type)?.toString();
+            return source && fragments.every((fragment) => typeof fragment === "string" ? source.includes(fragment) : fragment(source));
         }
         else {
             return false;
@@ -134,174 +85,159 @@ const bySource$1 = (...fragments) => {
     };
 };
 
+const confirm = (title, content, options = {}) => BdApi.UI.showConfirmationModal(title, content, options);
+const mappedProxy = (target, mapping) => {
+    const map = new Map(Object.entries(mapping));
+    return new Proxy(target, {
+        get(target, prop) {
+            return target[map.get(prop) ?? prop];
+        },
+        set(target, prop, value) {
+            target[map.get(prop) ?? prop] = value;
+            return true;
+        },
+        deleteProperty(target, prop) {
+            delete target[map.get(prop) ?? prop];
+            map.delete(prop);
+            return true;
+        },
+        has(target, prop) {
+            return map.has(prop) || prop in target;
+        },
+        ownKeys() {
+            return [...map.keys(), ...Object.keys(target)];
+        },
+        getOwnPropertyDescriptor(target, prop) {
+            return Object.getOwnPropertyDescriptor(target, map.get(prop) ?? prop);
+        },
+        defineProperty(target, prop, attributes) {
+            Object.defineProperty(target, map.get(prop) ?? prop, attributes);
+            return true;
+        }
+    });
+};
+
 const find = (filter, { resolve = true, entries = false } = {}) => BdApi.Webpack.getModule(filter, {
     defaultExport: resolve,
     searchExports: entries
 });
 const byProps = (props, options) => find(byProps$1(...props), options);
-const byProtos = (protos, options) => find(byProtos$1(...protos), options);
-const bySource = (contents, options) => find(bySource$1(...contents), options);
-const demangle = (mapping, required, resolve = true) => {
+const demangle = (mapping, required, proxy = false) => {
     const req = required ?? Object.keys(mapping);
-    const found = find((exports) => (exports instanceof Object
-        && exports !== window
-        && req.every((req) => {
-            const filter = mapping[req];
-            return typeof filter === "string"
-                ? filter in exports
-                : Object.values(exports).some((value) => filter(value));
-        })));
-    return resolve ? Object.fromEntries(Object.entries(mapping).map(([key, filter]) => [
+    const found = find((target) => (target instanceof Object
+        && target !== window
+        && req.every((req) => Object.values(target).some((value) => mapping[req](value)))));
+    return proxy ? mappedProxy(found, Object.fromEntries(Object.entries(mapping).map(([key, filter]) => [
         key,
-        typeof filter === "string" ? found?.[filter] : Object.values(found ?? {}).find((value) => filter(value))
-    ])) : found;
+        Object.entries(found ?? {}).find(([, value]) => filter(value))?.[0]
+    ]))) : Object.fromEntries(Object.entries(mapping).map(([key, filter]) => [
+        key,
+        Object.values(found ?? {}).find((value) => filter(value))
+    ]));
 };
 
-const OldFlux = /* @__PURE__ */ byProps(["Store"]);
-const Flux = {
-    default: OldFlux,
-    Store: OldFlux?.Store,
-    Dispatcher: /* @__PURE__ */ byProtos(["dispatch", "unsubscribe"], { entries: true }),
-    useStateFromStores: /* @__PURE__ */ bySource(["useStateFromStores"], { entries: true })
+let controller = new AbortController();
+const abort = () => {
+    controller.abort();
+    controller = new AbortController();
 };
+
+const COLOR = "#3a71c1";
+const print = (output, ...data) => output(`%c[${getMeta().name}] %c${getMeta().version ? `(v${getMeta().version})` : ""}`, `color: ${COLOR}; font-weight: 700;`, "color: #666; font-size: .8em;", ...data);
+const log = (...data) => print(console.log, ...data);
+
+const patch = (type, object, method, callback, options) => {
+    const original = object?.[method];
+    if (!(original instanceof Function)) {
+        throw TypeError(`patch target ${original} is not a function`);
+    }
+    const cancel = BdApi.Patcher[type](getMeta().name, object, method, options.once ? (...args) => {
+        const result = callback(cancel, original, ...args);
+        cancel();
+        return result;
+    } : (...args) => callback(cancel, original, ...args));
+    if (!options.silent) {
+        log(`Patched ${options.name ?? String(method)}`);
+    }
+    return cancel;
+};
+const before = (object, method, callback, options = {}) => patch("before", object, method, (cancel, original, context, args) => callback({ cancel, original, context, args }), options);
+let menuPatches = [];
+const unpatchAll = () => {
+    if (menuPatches.length + BdApi.Patcher.getPatchesByCaller(getMeta().name).length > 0) {
+        for (const cancel of menuPatches) {
+            cancel();
+        }
+        menuPatches = [];
+        BdApi.Patcher.unpatchAll(getMeta().name);
+        log("Unpatched all");
+    }
+};
+
+const inject = (styles) => {
+    if (typeof styles === "string") {
+        BdApi.DOM.addStyle(getMeta().name, styles);
+    }
+};
+const clear = () => BdApi.DOM.removeStyle(getMeta().name);
 
 const { React } = BdApi;
 const classNames = /* @__PURE__ */ find((exports) => exports instanceof Object && exports.default === exports && Object.keys(exports).length === 1);
 
-class Settings extends Flux.Store {
-    constructor(Data, defaults) {
-        super(new Flux.Dispatcher(), {
-            update: () => {
-                for (const listener of this.listeners) {
-                    listener(this.current);
-                }
-                Data.save("settings", this.current);
-            }
-        });
-        this.listeners = new Set();
-        this.defaults = defaults;
-        this.current = { ...defaults, ...Data.load("settings") };
-    }
-    _dispatch() {
-        this._dispatcher.dispatch({ type: "update" });
-    }
-    update(settings) {
-        Object.assign(this.current, typeof settings === "function" ? settings(this.current) : settings);
-        this._dispatch();
-    }
-    reset() {
-        this.current = { ...this.defaults };
-        this._dispatch();
-    }
-    delete(...keys) {
-        for (const key of keys) {
-            delete this.current[key];
-        }
-        this._dispatch();
-    }
-    useCurrent() {
-        return Flux.useStateFromStores([this], () => this.current);
-    }
-    useState() {
-        return Flux.useStateFromStores([this], () => [this.current, (settings) => this.update(settings)]);
-    }
-    useStateWithDefaults() {
-        return Flux.useStateFromStores([this], () => [this.current, this.defaults, (settings) => this.update(settings)]);
-    }
-    useListener(listener) {
-        React.useEffect(() => {
-            this.addListener(listener);
-            return () => this.removeListener(listener);
-        }, [listener]);
-    }
-    addListener(listener) {
-        this.listeners.add(listener);
-        return listener;
-    }
-    removeListener(listener) {
-        this.listeners.delete(listener);
-    }
-    removeAllListeners() {
-        this.listeners.clear();
-    }
-}
-const createSettings = (Data, defaults) => new Settings(Data, defaults);
-
-const createStyles = (id) => {
-    return {
-        inject(styles) {
-            if (typeof styles === "string") {
-                BdApi.DOM.addStyle(id, styles);
-            }
-        },
-        clear: () => BdApi.DOM.removeStyle(id)
-    };
-};
+const Button = /* @__PURE__ */ byProps(["Colors", "Link"], { entries: true });
 
 const Flex = /* @__PURE__ */ byProps(["Child", "Justify"], { entries: true });
 
-const Button = /* @__PURE__ */ byProps(["Colors", "Link"], { entries: true });
-
 const { FormSection, FormItem, FormTitle, FormText, FormDivider, FormNotice } = /* @__PURE__ */ demangle({
-    FormSection: bySource$1(".titleClassName", ".sectionTitle"),
-    FormItem: bySource$1(".titleClassName", ".required"),
-    FormTitle: bySource$1(".faded", ".required"),
+    FormSection: bySource(".titleClassName", ".sectionTitle"),
+    FormItem: bySource(".titleClassName", ".required"),
+    FormTitle: bySource(".faded", ".required"),
     FormText: (target) => target.Types?.INPUT_PLACEHOLDER,
-    FormDivider: bySource$1(".divider", ".style", "\"div\""),
-    FormNotice: bySource$1(".imageData", "formNotice")
-}, ["FormSection", "FormItem", "FormText"]);
+    FormDivider: bySource(".divider", ".style"),
+    FormNotice: bySource(".imageData", "formNotice")
+}, ["FormSection", "FormItem", "FormDivider"]);
 
 const margins = /* @__PURE__ */ byProps(["marginLarge"]);
 
-const confirm = (title, content, options = {}) => BdApi.UI.showConfirmationModal(title, content, options);
-
 const SettingsContainer = ({ name, children, onReset }) => (React.createElement(FormSection, null,
     children,
-    React.createElement(FormDivider, { className: classNames(margins.marginTop20, margins.marginBottom20) }),
-    React.createElement(Flex, { justify: Flex.Justify.END },
-        React.createElement(Button, { size: Button.Sizes.SMALL, onClick: () => confirm(name, "Reset all settings?", {
-                onConfirm: () => onReset()
-            }) }, "Reset"))));
+    onReset ? (React.createElement(React.Fragment, null,
+        React.createElement(FormDivider, { className: classNames(margins.marginTop20, margins.marginBottom20) }),
+        React.createElement(Flex, { justify: Flex.Justify.END },
+            React.createElement(Button, { size: Button.Sizes.SMALL, onClick: () => confirm(name, "Reset all settings?", {
+                    onConfirm: () => onReset()
+                }) }, "Reset")))) : null));
 
-const createPlugin = (config, callback) => (meta) => {
-    const name = config.name ?? meta.name;
-    const version = config.version ?? meta.version;
-    const Logger = createLogger(name, "#3a71c1", version);
-    const Lazy = createLazy();
-    const Patcher = createPatcher(name, Logger);
-    const Styles = createStyles(name);
-    const Data = createData(name);
-    const Settings = createSettings(Data, config.settings ?? {});
-    const plugin = callback({ meta, Logger, Lazy, Patcher, Styles, Data, Settings });
+const createPlugin = (plugin) => (meta) => {
+    setMeta(meta);
+    const { start, stop, styles, Settings, SettingsPanel } = (plugin instanceof Function ? plugin(meta) : plugin);
+    Settings?.load();
     return {
         start() {
-            Logger.log("Enabled");
-            Styles.inject(config.styles);
-            plugin.start();
+            log("Enabled");
+            inject(styles);
+            start?.();
         },
         stop() {
-            Lazy.abort();
-            Patcher.unpatchAll();
-            Styles.clear();
-            plugin.stop();
-            Logger.log("Disabled");
+            abort();
+            unpatchAll();
+            clear();
+            stop?.();
+            log("Disabled");
         },
-        getSettingsPanel: plugin.SettingsPanel ? () => (React.createElement(SettingsContainer, { name: name, onReset: () => Settings.reset() },
-            React.createElement(plugin.SettingsPanel, null))) : null
+        getSettingsPanel: SettingsPanel ? () => (React.createElement(SettingsContainer, { name: meta.name, onReset: Settings ? () => Settings.reset() : null },
+            React.createElement(SettingsPanel, null))) : null
     };
 };
 
-const filter = bySource$1(".shouldMention");
-const ReplyActions = find(byEntry(filter));
-const [key] = Object.entries(ReplyActions).find(([, value]) => filter(value));
-const index = createPlugin({}, ({ Patcher }) => ({
+const ReplyActions = demangle({ createPendingReply: bySource(".shouldMention") }, null, true);
+const index = createPlugin({
     start() {
-        Patcher.before(ReplyActions, key, ({ args: [options] }) => {
+        before(ReplyActions, "createPendingReply", ({ args: [options] }) => {
             options.shouldMention = false;
         }, { name: "createPendingReply" });
-    },
-    stop() { }
-}));
+    }
+});
 
 module.exports = index;
 
