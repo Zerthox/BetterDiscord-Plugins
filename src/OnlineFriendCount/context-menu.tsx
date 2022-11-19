@@ -1,14 +1,6 @@
-import {React, SettingsType} from "dium";
-import {Settings} from "./settings";
+import {React} from "dium";
+import {Settings, counterLabels} from "./settings";
 import {Menu, MenuGroup, MenuCheckboxItem} from "@dium/components";
-
-const items: Record<keyof SettingsType<typeof Settings>, string> = {
-    guilds: "Servers",
-    friends: "Friends",
-    friendsOnline: "Online Friends",
-    pending: "Pending Friend Requests",
-    blocked: "Blocked Users"
-};
 
 export const CountContextMenu = (props: React.ComponentProps<typeof Menu>): JSX.Element => {
     const [settings, setSettings] = Settings.useState();
@@ -16,15 +8,23 @@ export const CountContextMenu = (props: React.ComponentProps<typeof Menu>): JSX.
     return (
         <Menu {...props}>
             <MenuGroup>
-                {Object.entries(items).map(([id, label]) => (
+                {Object.entries(counterLabels).map(([id, {label, long}]) => (
                     <MenuCheckboxItem
                         key={id}
                         id={id}
-                        label={label}
+                        label={long ?? label}
                         checked={settings[id]}
                         action={() => setSettings({[id]: !settings[id]})}
                     />
                 ))}
+            </MenuGroup>
+            <MenuGroup>
+                <MenuCheckboxItem
+                    id="interval"
+                    label="Auto rotate"
+                    checked={settings.interval}
+                    action={() => setSettings({interval: !settings.interval})}
+                />
             </MenuGroup>
         </Menu>
     );
