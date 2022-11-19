@@ -1,8 +1,8 @@
 /**
  * @name OnlineFriendCount
  * @author Zerthox
- * @version 2.2.1
- * @description Add the old online friend count back to guild list. Because nostalgia.
+ * @version 3.0.0
+ * @description Adds the old online friend count and similar counters back to server list. Because nostalgia.
  * @authorLink https://github.com/Zerthox
  * @website https://github.com/Zerthox/BetterDiscord-Plugins
  * @source https://github.com/Zerthox/BetterDiscord-Plugins/tree/master/src/OnlineFriendCount
@@ -52,65 +52,21 @@ WScript.Quit();
 
 'use strict';
 
-const createData = (id) => ({
-    load: (key) => BdApi.Data.load(id, key) ?? null,
-    save: (key, value) => BdApi.Data.save(id, key, value),
-    delete: (key) => BdApi.Data.delete(id, key)
-});
-
-const createLazy = () => {
-    let controller = new AbortController();
-    return {
-        waitFor: (filter, { resolve = true, entries = false }) => BdApi.Webpack.waitForModule(filter, {
-            signal: controller.signal,
-            defaultExport: resolve,
-            searchExports: entries
-        }),
-        abort: () => {
-            controller.abort();
-            controller = new AbortController();
-        }
-    };
+let meta = null;
+const getMeta = () => {
+    if (meta) {
+        return meta;
+    }
+    else {
+        throw Error("Accessing meta before initialization");
+    }
+};
+const setMeta = (newMeta) => {
+    meta = newMeta;
 };
 
-const createLogger = (name, color, version) => {
-    const print = (output, ...data) => output(`%c[${name}] %c${version ? `(v${version})` : ""}`, `color: ${color}; font-weight: 700;`, "color: #666; font-size: .8em;", ...data);
-    return {
-        print,
-        log: (...data) => print(console.log, ...data),
-        warn: (...data) => print(console.warn, ...data),
-        error: (...data) => print(console.error, ...data)
-    };
-};
-
-const createPatcher = (id, Logger) => {
-    const forward = (patcher, type, object, method, callback, options) => {
-        const original = object?.[method];
-        if (!(original instanceof Function)) {
-            throw TypeError(`patch target ${original} is not a function`);
-        }
-        const cancel = patcher[type](id, object, method, options.once ? (...args) => {
-            const result = callback(cancel, original, ...args);
-            cancel();
-            return result;
-        } : (...args) => callback(cancel, original, ...args));
-        if (!options.silent) {
-            Logger.log(`Patched ${options.name ?? String(method)}`);
-        }
-        return cancel;
-    };
-    return {
-        instead: (object, method, callback, options = {}) => forward(BdApi.Patcher, "instead", object, method, (cancel, original, context, args) => callback({ cancel, original, context, args }), options),
-        before: (object, method, callback, options = {}) => forward(BdApi.Patcher, "before", object, method, (cancel, original, context, args) => callback({ cancel, original, context, args }), options),
-        after: (object, method, callback, options = {}) => forward(BdApi.Patcher, "after", object, method, (cancel, original, context, args, result) => callback({ cancel, original, context, args, result }), options),
-        unpatchAll: () => {
-            if (BdApi.Patcher.getPatchesByCaller(id).length > 0) {
-                BdApi.Patcher.unpatchAll(id);
-                Logger.log("Unpatched all");
-            }
-        }
-    };
-};
+const load = (key) => BdApi.Data.load(getMeta().name, key);
+const save = (key, value) => BdApi.Data.save(getMeta().name, key, value);
 
 const byName$1 = (name) => {
     return (target) => (target?.displayName ?? target?.constructor?.displayName) === name;
@@ -118,7 +74,7 @@ const byName$1 = (name) => {
 const byProps$1 = (...props) => {
     return (target) => target instanceof Object && props.every((prop) => prop in target);
 };
-const byProtos$1 = (...protos) => {
+const byProtos = (...protos) => {
     return (target) => target instanceof Object && target.prototype instanceof Object && protos.every((proto) => proto in target.prototype);
 };
 const bySource$1 = (...fragments) => {
@@ -138,37 +94,115 @@ const bySource$1 = (...fragments) => {
     };
 };
 
+const confirm = (title, content, options = {}) => BdApi.UI.showConfirmationModal(title, content, options);
+const mappedProxy = (target, mapping) => {
+    const map = new Map(Object.entries(mapping));
+    return new Proxy(target, {
+        get(target, prop) {
+            return target[map.get(prop) ?? prop];
+        },
+        set(target, prop, value) {
+            target[map.get(prop) ?? prop] = value;
+            return true;
+        },
+        deleteProperty(target, prop) {
+            delete target[map.get(prop) ?? prop];
+            map.delete(prop);
+            return true;
+        },
+        has(target, prop) {
+            return map.has(prop) || prop in target;
+        },
+        ownKeys() {
+            return [...map.keys(), ...Object.keys(target)];
+        },
+        getOwnPropertyDescriptor(target, prop) {
+            return Object.getOwnPropertyDescriptor(target, map.get(prop) ?? prop);
+        },
+        defineProperty(target, prop, attributes) {
+            Object.defineProperty(target, map.get(prop) ?? prop, attributes);
+            return true;
+        }
+    });
+};
+
 const find = (filter, { resolve = true, entries = false } = {}) => BdApi.Webpack.getModule(filter, {
     defaultExport: resolve,
     searchExports: entries
 });
 const byName = (name, options) => find(byName$1(name), options);
 const byProps = (props, options) => find(byProps$1(...props), options);
-const byProtos = (protos, options) => find(byProtos$1(...protos), options);
 const bySource = (contents, options) => find(bySource$1(...contents), options);
-const demangle = (mapping, required, resolve = true) => {
+const demangle = (mapping, required, proxy = false) => {
     const req = required ?? Object.keys(mapping);
-    const found = find((exports) => (exports instanceof Object
-        && exports !== window
-        && req.every((req) => {
-            const filter = mapping[req];
-            return typeof filter === "string"
-                ? filter in exports
-                : Object.values(exports).some((value) => filter(value));
-        })));
-    return resolve ? Object.fromEntries(Object.entries(mapping).map(([key, filter]) => [
+    const found = find((target) => (target instanceof Object
+        && target !== window
+        && req.every((req) => Object.values(target).some((value) => mapping[req](value)))));
+    return proxy ? mappedProxy(found, Object.fromEntries(Object.entries(mapping).map(([key, filter]) => [
         key,
-        typeof filter === "string" ? found?.[filter] : Object.values(found ?? {}).find((value) => filter(value))
-    ])) : found;
+        Object.entries(found ?? {}).find(([, value]) => filter(value))?.[0]
+    ]))) : Object.fromEntries(Object.entries(mapping).map(([key, filter]) => [
+        key,
+        Object.values(found ?? {}).find((value) => filter(value))
+    ]));
 };
 
-const OldFlux = /* @__PURE__ */ byProps(["Store"]);
-const Flux = {
-    default: OldFlux,
-    Store: OldFlux?.Store,
-    Dispatcher: /* @__PURE__ */ byProtos(["dispatch", "unsubscribe"], { entries: true }),
-    useStateFromStores: /* @__PURE__ */ bySource(["useStateFromStores"], { entries: true })
+let controller = new AbortController();
+const abort = () => {
+    controller.abort();
+    controller = new AbortController();
 };
+
+const COLOR = "#3a71c1";
+const print = (output, ...data) => output(`%c[${getMeta().name}] %c${getMeta().version ? `(v${getMeta().version})` : ""}`, `color: ${COLOR}; font-weight: 700;`, "color: #666; font-size: .8em;", ...data);
+const log = (...data) => print(console.log, ...data);
+const warn = (...data) => print(console.warn, ...data);
+const error = (...data) => print(console.error, ...data);
+
+const patch = (type, object, method, callback, options) => {
+    const original = object?.[method];
+    if (!(original instanceof Function)) {
+        throw TypeError(`patch target ${original} is not a function`);
+    }
+    const cancel = BdApi.Patcher[type](getMeta().name, object, method, options.once ? (...args) => {
+        const result = callback(cancel, original, ...args);
+        cancel();
+        return result;
+    } : (...args) => callback(cancel, original, ...args));
+    if (!options.silent) {
+        log(`Patched ${options.name ?? String(method)}`);
+    }
+    return cancel;
+};
+const after = (object, method, callback, options = {}) => patch("after", object, method, (cancel, original, context, args, result) => callback({ cancel, original, context, args, result }), options);
+let menuPatches = [];
+const unpatchAll = () => {
+    if (menuPatches.length + BdApi.Patcher.getPatchesByCaller(getMeta().name).length > 0) {
+        for (const cancel of menuPatches) {
+            cancel();
+        }
+        menuPatches = [];
+        BdApi.Patcher.unpatchAll(getMeta().name);
+        log("Unpatched all");
+    }
+};
+
+const inject = (styles) => {
+    if (typeof styles === "string") {
+        BdApi.DOM.addStyle(getMeta().name, styles);
+    }
+};
+const clear = () => BdApi.DOM.removeStyle(getMeta().name);
+
+const Flux = /* @__PURE__ */ demangle({
+    default: byProps$1("Store", "connectStores"),
+    Dispatcher: byProtos("dispatch"),
+    Store: byProtos("emitChange"),
+    BatchedStoreListener: byProtos("attach", "detach"),
+    useStateFromStores: bySource$1("useStateFromStores")
+}, ["Store", "Dispatcher", "useStateFromStores"]);
+
+const GuildStore = /* @__PURE__ */ byName("GuildStore");
 
 const { React } = BdApi;
 const { ReactDOM } = BdApi;
@@ -176,76 +210,6 @@ const classNames = /* @__PURE__ */ find((exports) => exports instanceof Object &
 
 const PresenceStore = /* @__PURE__ */ byName("PresenceStore");
 const RelationshipStore = /* @__PURE__ */ byName("RelationshipStore");
-
-class Settings extends Flux.Store {
-    constructor(Data, defaults) {
-        super(new Flux.Dispatcher(), {
-            update: () => {
-                for (const listener of this.listeners) {
-                    listener(this.current);
-                }
-                Data.save("settings", this.current);
-            }
-        });
-        this.listeners = new Set();
-        this.defaults = defaults;
-        this.current = { ...defaults, ...Data.load("settings") };
-    }
-    _dispatch() {
-        this._dispatcher.dispatch({ type: "update" });
-    }
-    update(settings) {
-        Object.assign(this.current, typeof settings === "function" ? settings(this.current) : settings);
-        this._dispatch();
-    }
-    reset() {
-        this.current = { ...this.defaults };
-        this._dispatch();
-    }
-    delete(...keys) {
-        for (const key of keys) {
-            delete this.current[key];
-        }
-        this._dispatch();
-    }
-    useCurrent() {
-        return Flux.useStateFromStores([this], () => this.current);
-    }
-    useState() {
-        return Flux.useStateFromStores([this], () => [this.current, (settings) => this.update(settings)]);
-    }
-    useStateWithDefaults() {
-        return Flux.useStateFromStores([this], () => [this.current, this.defaults, (settings) => this.update(settings)]);
-    }
-    useListener(listener) {
-        React.useEffect(() => {
-            this.addListener(listener);
-            return () => this.removeListener(listener);
-        }, [listener]);
-    }
-    addListener(listener) {
-        this.listeners.add(listener);
-        return listener;
-    }
-    removeListener(listener) {
-        this.listeners.delete(listener);
-    }
-    removeAllListeners() {
-        this.listeners.clear();
-    }
-}
-const createSettings = (Data, defaults) => new Settings(Data, defaults);
-
-const createStyles = (id) => {
-    return {
-        inject(styles) {
-            if (typeof styles === "string") {
-                BdApi.DOM.addStyle(id, styles);
-            }
-        },
-        clear: () => BdApi.DOM.removeStyle(id)
-    };
-};
 
 const Button = /* @__PURE__ */ byProps(["Colors", "Link"], { entries: true });
 
@@ -256,9 +220,11 @@ const { FormSection, FormItem, FormTitle, FormText, FormDivider, FormNotice } = 
     FormItem: bySource$1(".titleClassName", ".required"),
     FormTitle: bySource$1(".faded", ".required"),
     FormText: (target) => target.Types?.INPUT_PLACEHOLDER,
-    FormDivider: bySource$1(".divider", ".style", "\"div\""),
+    FormDivider: bySource$1(".divider", ".style"),
     FormNotice: bySource$1(".imageData", "formNotice")
-}, ["FormSection", "FormItem", "FormText"]);
+}, ["FormSection", "FormItem", "FormDivider"]);
+
+const GuildsNav = /* @__PURE__ */ bySource(["guildsnav"], { entries: true });
 
 const { Link, NavLink, LinkRouter } = /* @__PURE__ */ demangle({
     NavLink: bySource$1(".sensitive", ".to"),
@@ -266,9 +232,9 @@ const { Link, NavLink, LinkRouter } = /* @__PURE__ */ demangle({
     LinkRouter: bySource$1("this.history")
 }, ["NavLink", "Link"]);
 
-const margins = /* @__PURE__ */ byProps(["marginLarge"]);
+const { Menu: Menu, Group: MenuGroup, Item: MenuItem, Separator: MenuSeparator, CheckboxItem: MenuCheckboxItem, RadioItem: MenuRadioItem, ControlItem: MenuControlItem } = BdApi.ContextMenu;
 
-const confirm = (title, content, options = {}) => BdApi.UI.showConfirmationModal(title, content, options);
+const margins = /* @__PURE__ */ byProps(["marginLarge"]);
 
 const [getInstanceFromNode, getNodeFromInstance, getFiberCurrentPropsFromNode, enqueueStateRestore, restoreStateIfNeeded, batchedUpdates] = ReactDOM?.__SECRET_INTERNALS_DO_NOT_USE_OR_YOU_WILL_BE_FIRED?.Events ?? [];
 const ReactDOMInternals = {
@@ -280,29 +246,21 @@ const ReactDOMInternals = {
     batchedUpdates
 };
 
-const FCHook = ({ children: { type, props }, callbacks: callbacks }) => {
-    let result = type(props);
-    for (const callback of callbacks) {
-        result = callback(result, props) ?? result;
-    }
-    return result;
+const FCHook = ({ children: { type, props }, callback }) => {
+    const result = type(props);
+    return callback(result, props) ?? result;
 };
 const hookFunctionComponent = (target, callback) => {
-    if (target.type === FCHook) {
-        target.props.callbacks.push(callback);
-    }
-    else {
-        const props = {
-            children: { ...target },
-            callbacks: [callback]
-        };
-        target.props = props;
-        target.type = FCHook;
-    }
+    const props = {
+        children: { ...target },
+        callback
+    };
+    target.props = props;
+    target.type = FCHook;
     return target;
 };
 const queryTree = (node, predicate) => {
-    const worklist = [node];
+    const worklist = [node].flat();
     while (worklist.length !== 0) {
         const node = worklist.shift();
         if (predicate(node)) {
@@ -315,23 +273,28 @@ const queryTree = (node, predicate) => {
     return null;
 };
 const getFiber = (node) => ReactDOMInternals.getInstanceFromNode(node ?? {});
-const queryFiber = (fiber, predicate, direction = "up" , depth = 30, current = 0) => {
-    if (current > depth) {
+const queryFiber = (fiber, predicate, direction = "up" , depth = 30) => {
+    if (depth < 0) {
         return null;
     }
     if (predicate(fiber)) {
         return fiber;
     }
-    if ((direction === "up"  || direction === "both" ) && fiber.return) {
-        const result = queryFiber(fiber.return, predicate, "up" , depth, current + 1);
-        if (result) {
-            return result;
+    if (direction === "up"  || direction === "both" ) {
+        let count = 0;
+        let parent = fiber.return;
+        while (parent && count < depth) {
+            if (predicate(parent)) {
+                return parent;
+            }
+            count++;
+            parent = parent.return;
         }
     }
-    if ((direction === "down"  || direction === "both" ) && fiber.child) {
+    if (direction === "down"  || direction === "both" ) {
         let child = fiber.child;
         while (child) {
-            const result = queryFiber(child, predicate, "down" , depth, current + 1);
+            const result = queryFiber(child, predicate, "down" , depth - 1);
             if (result) {
                 return result;
             }
@@ -362,91 +325,224 @@ const forceFullRerender = (fiber) => new Promise((resolve) => {
 
 const SettingsContainer = ({ name, children, onReset }) => (React.createElement(FormSection, null,
     children,
-    React.createElement(FormDivider, { className: classNames(margins.marginTop20, margins.marginBottom20) }),
-    React.createElement(Flex, { justify: Flex.Justify.END },
-        React.createElement(Button, { size: Button.Sizes.SMALL, onClick: () => confirm(name, "Reset all settings?", {
-                onConfirm: () => onReset()
-            }) }, "Reset"))));
+    onReset ? (React.createElement(React.Fragment, null,
+        React.createElement(FormDivider, { className: classNames(margins.marginTop20, margins.marginBottom20) }),
+        React.createElement(Flex, { justify: Flex.Justify.END },
+            React.createElement(Button, { size: Button.Sizes.SMALL, onClick: () => confirm(name, "Reset all settings?", {
+                    onConfirm: () => onReset()
+                }) }, "Reset")))) : null));
 
-const createPlugin = (config, callback) => (meta) => {
-    const name = config.name ?? meta.name;
-    const version = config.version ?? meta.version;
-    const Logger = createLogger(name, "#3a71c1", version);
-    const Lazy = createLazy();
-    const Patcher = createPatcher(name, Logger);
-    const Styles = createStyles(name);
-    const Data = createData(name);
-    const Settings = createSettings(Data, config.settings ?? {});
-    const plugin = callback({ meta, Logger, Lazy, Patcher, Styles, Data, Settings });
+class SettingsStore extends Flux.Store {
+    constructor(defaults, onLoad) {
+        super(new Flux.Dispatcher(), {
+            update: () => {
+                for (const listener of this.listeners) {
+                    listener(this.current);
+                }
+            }
+        });
+        this.listeners = new Set();
+        this.defaults = defaults;
+        this.onLoad = onLoad;
+    }
+    load() {
+        this.current = { ...this.defaults, ...load("settings") };
+        this.onLoad?.();
+        this._dispatch(false);
+    }
+    _dispatch(save$1) {
+        this._dispatcher.dispatch({ type: "update" });
+        if (save$1) {
+            save("settings", this.current);
+        }
+    }
+    update(settings) {
+        Object.assign(this.current, typeof settings === "function" ? settings(this.current) : settings);
+        this._dispatch(true);
+    }
+    reset() {
+        this.current = { ...this.defaults };
+        this._dispatch(true);
+    }
+    delete(...keys) {
+        for (const key of keys) {
+            delete this.current[key];
+        }
+        this._dispatch(true);
+    }
+    useCurrent() {
+        return Flux.useStateFromStores([this], () => this.current, undefined, () => false);
+    }
+    useSelector(selector, deps, compare) {
+        return Flux.useStateFromStores([this], () => selector(this.current), deps, compare);
+    }
+    useState() {
+        return Flux.useStateFromStores([this], () => [
+            this.current,
+            (settings) => this.update(settings)
+        ]);
+    }
+    useStateWithDefaults() {
+        return Flux.useStateFromStores([this], () => [
+            this.current,
+            this.defaults,
+            (settings) => this.update(settings)
+        ]);
+    }
+    useListener(listener, deps) {
+        React.useEffect(() => {
+            this.addListener(listener);
+            return () => this.removeListener(listener);
+        }, deps ?? [listener]);
+    }
+    addListener(listener) {
+        this.listeners.add(listener);
+        return listener;
+    }
+    removeListener(listener) {
+        this.listeners.delete(listener);
+    }
+    removeAllListeners() {
+        this.listeners.clear();
+    }
+}
+const createSettings = (defaults, onLoad) => new SettingsStore(defaults, onLoad);
+
+const createPlugin = (plugin) => (meta) => {
+    setMeta(meta);
+    const { start, stop, styles, Settings, SettingsPanel } = (plugin instanceof Function ? plugin(meta) : plugin);
+    Settings?.load();
     return {
         start() {
-            Logger.log("Enabled");
-            Styles.inject(config.styles);
-            plugin.start();
+            log("Enabled");
+            inject(styles);
+            start?.();
         },
         stop() {
-            Lazy.abort();
-            Patcher.unpatchAll();
-            Styles.clear();
-            plugin.stop();
-            Logger.log("Disabled");
+            abort();
+            unpatchAll();
+            clear();
+            stop?.();
+            log("Disabled");
         },
-        getSettingsPanel: plugin.SettingsPanel ? () => (React.createElement(SettingsContainer, { name: name, onReset: () => Settings.reset() },
-            React.createElement(plugin.SettingsPanel, null))) : null
+        getSettingsPanel: SettingsPanel ? () => (React.createElement(SettingsContainer, { name: meta.name, onReset: Settings ? () => Settings.reset() : null },
+            React.createElement(SettingsPanel, null))) : null
     };
 };
 
-const styles = ".friendsOnline-2JkivW {\n  color: var(--channels-default);\n  text-align: center;\n  text-transform: uppercase;\n  font-size: 10px;\n  font-weight: 500;\n  line-height: 1.3;\n  width: 70px;\n  word-wrap: normal;\n  white-space: nowrap;\n  cursor: pointer;\n}\n.friendsOnline-2JkivW:hover {\n  color: var(--interactive-hover);\n}";
+const Settings = createSettings({
+    guilds: false,
+    friends: false,
+    friendsOnline: true,
+    pending: false,
+    blocked: false,
+    interval: false
+});
+const counterLabels = {
+    guilds: {
+        label: "Servers"
+    },
+    friends: {
+        label: "Friends"
+    },
+    friendsOnline: {
+        label: "Online",
+        long: "Online Friends"
+    },
+    pending: {
+        label: "Pendings",
+        long: "Pending Friend Requests"
+    },
+    blocked: {
+        label: "Blocked",
+        long: "Blocked Users"
+    }
+};
 
-const GuildsNav = bySource(["guildsnav"], { entries: true });
+const CountContextMenu = (props) => {
+    const [settings, setSettings] = Settings.useState();
+    return (React.createElement(Menu, { ...props },
+        React.createElement(MenuGroup, null, Object.entries(counterLabels).map(([id, { label, long }]) => (React.createElement(MenuCheckboxItem, { key: id, id: id, label: long ?? label, checked: settings[id], action: () => setSettings({ [id]: !settings[id] }) })))),
+        React.createElement(MenuGroup, null,
+            React.createElement(MenuCheckboxItem, { id: "interval", label: "Auto rotate", checked: settings.interval, action: () => setSettings({ interval: !settings.interval }) }))));
+};
+
+const listStyles = byProps(["listItem"]);
+const Item = ({ children, className, link }) => (React.createElement("div", { className: listStyles.listItem }, link ? (React.createElement(Link, { to: link, className: classNames("item-onlineFriendCount", "link-onlineFriendCount", className) }, children)) : (React.createElement("div", { className: classNames("item-onlineFriendCount", className) }, children))));
+const CounterItem = ({ type, count }) => (React.createElement(Item, { link: "/channels/@me", className: classNames("counter-onlineFriendCount", type + "-onlineFriendCount") },
+    count,
+    " ",
+    counterLabels[type].label));
+const countFilteredRelationships = (filter) => (Object.entries(RelationshipStore.getRelationships()).filter(([id, type]) => filter({ id, type })).length);
+const useCounters = () => {
+    const guilds = Flux.useStateFromStores([GuildStore], () => GuildStore.getGuildCount(), []);
+    const friendsOnline = Flux.useStateFromStores([PresenceStore, RelationshipStore], () => countFilteredRelationships(({ id, type }) => type === 1  && PresenceStore.getStatus(id) !== "offline" ), []);
+    const relationships = Flux.useStateFromStores([RelationshipStore], () => ({
+        friends: countFilteredRelationships(({ type }) => type === 1 ),
+        pending: countFilteredRelationships(({ type }) => type === 3  || type === 4 ),
+        blocked: countFilteredRelationships(({ type }) => type === 2 )
+    }), []);
+    return Object.entries({ guilds, friendsOnline, ...relationships })
+        .map(([type, count]) => ({ type, count }));
+};
+const CountersContainer = () => {
+    const { interval, ...settings } = Settings.useCurrent();
+    const counters = useCounters().filter(({ type }) => settings[type]);
+    const [current, setCurrent] = React.useState(0);
+    const callback = React.useRef();
+    React.useEffect(() => {
+        callback.current = () => setCurrent((current + 1) % counters.length);
+    }, [current, counters.length]);
+    React.useEffect(() => {
+        if (interval && counters.length > 1) {
+            setCurrent(0);
+            const id = setInterval(() => callback.current(), 5000);
+            return () => clearInterval(id);
+        }
+    }, [interval, counters.length]);
+    return (React.createElement("div", { className: "container-onlineFriendCount", onContextMenu: (event) => BdApi.ContextMenu.open(event, CountContextMenu) }, counters.length > 0 ? (interval ? (React.createElement(CounterItem, { ...counters[current] })) : counters.map((counter) => React.createElement(CounterItem, { key: counter.type, ...counter }))) : (React.createElement(Item, null, "-"))));
+};
+
+const styles = ".item-onlineFriendCount {\n  color: var(--channels-default);\n  text-align: center;\n  text-transform: uppercase;\n  font-size: 10px;\n  font-weight: 500;\n  line-height: 1.3;\n  width: 70px;\n  word-wrap: normal;\n  white-space: nowrap;\n}\n\n.link-onlineFriendCount {\n  cursor: pointer;\n}\n.link-onlineFriendCount:hover {\n  color: var(--interactive-hover);\n}";
+
 const guildStyles = byProps(["guilds", "base"]);
 const treeStyles = byProps(["tree", "scroller"]);
-const listStyles = byProps(["listItem"]);
-const friendsOnline = "friendsOnline-2JkivW";
-const OnlineCount = () => {
-    const online = Flux.useStateFromStores([PresenceStore, RelationshipStore], () => (Object.entries(RelationshipStore.getRelationships())
-        .filter(([id, type]) => type === 1  && PresenceStore.getStatus(id) !== "offline" )
-        .length));
-    return (React.createElement("div", { className: listStyles.listItem },
-        React.createElement(Link, { to: "/channels/@me" },
-            React.createElement("div", { className: friendsOnline },
-                online,
-                " Online"))));
+const triggerRerender = async () => {
+    const node = document.getElementsByClassName(guildStyles.guilds)?.[0];
+    const fiber = getFiber(node);
+    if (await forceFullRerender(fiber)) {
+        log("Rerendered guilds");
+    }
+    else {
+        warn("Unable to rerender guilds");
+    }
 };
-const index = createPlugin({ styles }, ({ Logger, Patcher }) => {
-    const triggerRerender = async () => {
-        const node = document.getElementsByClassName(guildStyles.guilds)?.[0];
-        const fiber = getFiber(node);
-        if (await forceFullRerender(fiber)) {
-            Logger.log("Rerendered guilds");
-        }
-        else {
-            Logger.warn("Unable to rerender guilds");
-        }
-    };
-    return {
-        start() {
-            Patcher.after(GuildsNav, "type", ({ result }) => {
-                const target = queryTree(result, (node) => node?.props?.className?.split(" ").includes(guildStyles.guilds));
-                if (!target) {
-                    return Logger.error("Unable to find chain patch target");
+const homeButtonFilter = bySource$1(".getPendingCount");
+const index = createPlugin({
+    start() {
+        after(GuildsNav, "type", ({ result }) => {
+            const target = queryTree(result, (node) => node?.props?.className?.split(" ").includes(guildStyles.guilds));
+            if (!target) {
+                return error("Unable to find chain patch target");
+            }
+            hookFunctionComponent(target, (result) => {
+                const scroller = queryTree(result, (node) => node?.props?.className?.split(" ").includes(treeStyles.scroller));
+                if (!scroller) {
+                    return error("Unable to find scroller");
                 }
-                hookFunctionComponent(target, (result) => {
-                    const scroller = queryTree(result, (node) => node?.props?.className?.split(" ").includes(treeStyles.scroller));
-                    if (!scroller) {
-                        return Logger.error("Unable to find scroller");
-                    }
-                    const { children } = scroller.props;
-                    const homeButtonIndex = children.findIndex((child) => typeof child?.props?.isOnOtherSidebarRoute === "boolean");
-                    children.splice(homeButtonIndex + 1, 0, React.createElement(OnlineCount, null));
-                });
+                const { children } = scroller.props;
+                const homeButtonIndex = children.findIndex((child) => homeButtonFilter(child?.type));
+                const index = homeButtonIndex > -1 ? homeButtonIndex + 1 : 2;
+                children.splice(index, 0, React.createElement(CountersContainer, null));
             });
-            triggerRerender();
-        },
-        stop() {
-            triggerRerender();
-        }
-    };
+        }, { name: "GuildsNav" });
+        triggerRerender();
+    },
+    stop() {
+        triggerRerender();
+    },
+    styles,
+    Settings
 });
 
 module.exports = index;

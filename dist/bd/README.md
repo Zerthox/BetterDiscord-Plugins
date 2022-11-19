@@ -7,8 +7,8 @@ Set user volume values manually instead of using a slider. Allows setting volume
 ## CollapseEmbeds <sub><sup>`v0.2.0` *(Updated: 30/10/2022)*</sup></sub>
 Add the old online friend count back to guild list. Because nostalgia.
 
-## [OnlineFriendCount](https://betterdiscord.app/plugin/OnlineFriendCount) <sub><sup>`v2.2.1` *(Updated: 15/10/2022)*</sup></sub>
-Add the old online friend count back to guild list. Because nostalgia.
+## [OnlineFriendCount](https://betterdiscord.app/plugin/OnlineFriendCount) <sub><sup>`v3.0.0` *(Updated: 19/11/2022)*</sup></sub>
+Adds the old online friend count and similar counters back to server list. Because nostalgia.
 
 ## [VoiceEvents](https://betterdiscord.app/plugin/VoiceEvents) <sub><sup>`v2.4.0` *(Updated: 14/11/2022)*</sup></sub>
 Add TTS Event Notifications to your selected Voice Channel. TeamSpeak feeling.
