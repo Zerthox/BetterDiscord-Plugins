@@ -1,7 +1,7 @@
 import {createPlugin, Logger, Finder, Patcher, Utils, React, Filters} from "dium";
 import {GuildsNav} from "@dium/components";
 import {Settings} from "./settings";
-import {CountContainer} from "./count";
+import {CountersContainer} from "./counter";
 import styles from "./styles.scss";
 
 const guildStyles = Finder.byProps(["guilds", "base"]);
@@ -40,7 +40,7 @@ export default createPlugin({
                 const {children} = scroller.props as {children: JSX.Element[]};
                 const homeButtonIndex = children.findIndex((child) => homeButtonFilter(child?.type));
                 const index = homeButtonIndex > -1 ? homeButtonIndex + 1 : 2;
-                children.splice(index, 0, <CountContainer/>);
+                children.splice(index, 0, <CountersContainer/>);
             });
         }, {name: "GuildsNav"});
 
