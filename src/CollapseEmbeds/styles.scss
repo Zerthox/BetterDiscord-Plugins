@@ -1,5 +1,5 @@
-.collapseEmbeds-container {
-    &.collapseEmbeds-embed {
+.container {
+    &.embed {
         justify-self: stretch;
         & > article {
             flex-grow: 1;
@@ -7,7 +7,7 @@
         }
     }
 }
-.collapseEmbeds-hideButton {
+.hideButton {
     margin-bottom: -4px;
     align-self: flex-end;
     color: var(--interactive-normal);
@@ -16,18 +16,22 @@
     &:hover {
         color: var(--interactive-hover);
     }
-    .collapseEmbeds-expanded > & {
+    .expanded > & {
         margin-bottom: -6px;
-        &.collapseEmbeds-marginCorrect {
+        &.marginCorrect {
             margin-left: -20px;
         }
     }
     &:hover,
     :hover + &,
-    .collapseEmbeds-collapsed > & {
+    .collapsed > & {
         visibility: visible;
     }
 }
-.collapseEmbeds-icon {
+.icon {
     margin: -2px;
+}
+
+.attachment {
+    /* unused */
 }

@@ -37,6 +37,8 @@
         "eslint-plugin-react": "^7.26.1",
         "eslint-plugin-react-hooks": "^4.2.0",
         "minimist": "^1.2.6",
+        "postcss": "^8.4.19",
+        "postcss-modules": "^6.0.0",
         "rollup": "^3.1.0",
         "rollup-plugin-cleanup": "^3.2.1",
         "rollup-plugin-scss": "^4.0.0",

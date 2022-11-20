@@ -1,5 +1,4 @@
 import json from "@rollup/plugin-json";
-import scss from "rollup-plugin-scss";
 import typescript from "@rollup/plugin-typescript";
 import cleanup from "rollup-plugin-cleanup";
 import type {RollupOptions} from "rollup";
@@ -18,9 +17,6 @@ const config: RollupOptions = {
         json({
             namedExports: true,
             preferConst: true
-        }),
-        scss({
-            output: false
         }),
         typescript(),
         cleanup({

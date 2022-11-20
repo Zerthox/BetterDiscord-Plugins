@@ -1,4 +1,4 @@
-.item-onlineFriendCount {
+.item {
     color: var(--channels-default);
     text-align: center;
     text-transform: uppercase;
@@ -9,9 +9,13 @@
     word-wrap: normal;
     white-space: nowrap;
 }
-.link-onlineFriendCount {
+.link {
     cursor: pointer;
     &:hover {
         color: var(--interactive-hover);
     }
+}
+
+.container, .counter, .guilds, .friends, .friendsOnline, .pending, .blocked {
+    /*! unused */
 }

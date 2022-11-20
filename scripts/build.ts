@@ -2,8 +2,13 @@ import path from "path";
 import {promises as fs, readdirSync, readFileSync} from "fs";
 import minimist from "minimist";
 import chalk from "chalk";
+
 import * as rollup from "rollup";
+import scss from "rollup-plugin-scss";
+import postcss from "postcss";
+import postcssModules from "postcss-modules";
 import rollupConfig from "../rollup.config";
+
 import type {Meta} from "betterdiscord";
 
 const repo = "Zerthox/BetterDiscord-Plugins";
@@ -75,17 +80,11 @@ if (args.watch) {
 
 async function build(inputPath: string, outputPath: string): Promise<void> {
     const meta = await readMeta(inputPath);
-    const {output: outputConfig, ...inputConfig} = rollupConfig;
+    const config = generateRollupConfig(inputPath, outputPath, meta);
 
     // bundle plugin
-    const bundle = await rollup.rollup({
-        ...inputConfig,
-        input: path.resolve(inputPath, "index.tsx")
-    });
-    await bundle.write({
-        ...outputConfig,
-        ...genOutputOptions(meta, outputPath)
-    });
+    const bundle = await rollup.rollup(config);
+    await bundle.write(config.output);
     success(`Built ${meta.name} v${meta.version} to "${outputPath}"`);
 
     await bundle.close();
@@ -93,17 +92,12 @@ async function build(inputPath: string, outputPath: string): Promise<void> {
 
 async function watch(inputPath: string, outputPath: string): Promise<void> {
     const meta = await readMeta(inputPath);
-    const {output: outputConfig, plugins, ...inputConfig} = rollupConfig;
+    const {plugins, ...config} = generateRollupConfig(inputPath, outputPath, meta);
     const metaPath = resolvePluginConfig(inputPath);
 
     // start watching
     const watcher = rollup.watch({
-        ...inputConfig,
-        input: path.resolve(inputPath, "index.tsx"),
-        output: {
-            ...outputConfig,
-            ...genOutputOptions(meta, outputPath)
-        },
+        ...config,
         plugins: [
             plugins,
             {
@@ -159,10 +153,31 @@ function buildMeta(meta: Meta): string {
     return result + "\n**/\n";
 }
 
-function genOutputOptions(meta: Meta, outputPath: string): rollup.OutputOptions {
+interface RollupConfig extends Omit<rollup.RollupOptions, "output"> {
+    output: rollup.OutputOptions;
+}
+
+function generateRollupConfig(inputPath: string, outputPath: string, meta: Meta): RollupConfig {
+    const {output, plugins, ...rest} = rollupConfig;
+
     return {
-        file: outputPath,
-        banner: buildMeta(meta) + `\n/*@cc_on @if (@_jscript)\n${wscript}\n@else @*/\n`,
-        footer: "\n/*@end @*/"
+        ...rest,
+        input: path.resolve(inputPath, "index.tsx"),
+        plugins: [
+            plugins,
+            scss({
+                output: false,
+                processor: () => postcss(postcssModules({
+                    getJSON: () => {},
+                    generateScopedName: `[local]-${meta.name}`
+                })) as any
+            })
+        ],
+        output: {
+            ...output,
+            file: outputPath,
+            banner: buildMeta(meta) + `\n/*@cc_on @if (@_jscript)\n${wscript}\n@else @*/\n`,
+            footer: "\n/*@end @*/"
+        }
     };
 }
