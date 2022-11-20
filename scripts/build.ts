@@ -73,9 +73,8 @@ if (args.watch) {
     });
 }
 
-async function build(inputPath: string, outputPath: string) {
-    // parse config
-    const config = await readConfig(inputPath);
+async function build(inputPath: string, outputPath: string): Promise<void> {
+    const meta = await readMeta(inputPath);
     const {output: outputConfig, ...inputConfig} = rollupConfig;
 
     // bundle plugin
@@ -85,17 +84,17 @@ async function build(inputPath: string, outputPath: string) {
     });
     await bundle.write({
         ...outputConfig,
-        ...genOutputOptions(config, outputPath)
+        ...genOutputOptions(meta, outputPath)
     });
-    success(`Built ${config.name} v${config.version} to "${outputPath}"`);
+    success(`Built ${meta.name} v${meta.version} to "${outputPath}"`);
 
     await bundle.close();
 }
 
-async function watch(inputPath: string, outputPath: string) {
-    const config = await readConfig(inputPath);
+async function watch(inputPath: string, outputPath: string): Promise<void> {
+    const meta = await readMeta(inputPath);
     const {output: outputConfig, plugins, ...inputConfig} = rollupConfig;
-    const configPath = resolveConfig(inputPath);
+    const metaPath = resolvePluginConfig(inputPath);
 
     // start watching
     const watcher = rollup.watch({
@@ -103,14 +102,14 @@ async function watch(inputPath: string, outputPath: string) {
         input: path.resolve(inputPath, "index.tsx"),
         output: {
             ...outputConfig,
-            ...genOutputOptions(config, outputPath)
+            ...genOutputOptions(meta, outputPath)
         },
         plugins: [
             plugins,
             {
                 name: "config-watcher",
                 buildStart() {
-                    this.addWatchFile(configPath);
+                    this.addWatchFile(metaPath);
                 }
             }
         ]
@@ -119,7 +118,7 @@ async function watch(inputPath: string, outputPath: string) {
     // close finished bundles
     watcher.on("event", (event) => {
         if (event.code === "BUNDLE_END") {
-            success(`Built ${config.name} v${config.version} to "${outputPath}" [${event.duration}ms]`);
+            success(`Built ${meta.name} v${meta.version} to "${outputPath}" [${event.duration}ms]`);
             event.result.close();
         }
     });
@@ -127,7 +126,7 @@ async function watch(inputPath: string, outputPath: string) {
     // restart on config changes
     watcher.on("change", (file) => {
         // check for config changes
-        if (file === configPath) {
+        if (file === metaPath) {
             watchers[inputPath].close();
             watch(inputPath, outputPath);
         }
@@ -138,39 +137,32 @@ async function watch(inputPath: string, outputPath: string) {
     watchers[inputPath] = watcher;
 }
 
-interface Config {
-    name: string;
-    version: string;
-    author: string;
-    description: string;
-}
-
-function resolveConfig(inputPath: string): string {
+function resolvePluginConfig(inputPath: string): string {
     return path.resolve(inputPath, "config.json");
 }
 
-async function readConfig(inputPath: string): Promise<Meta> {
-    const config = JSON.parse(await fs.readFile(resolveConfig(inputPath), "utf8")) as Config;
+async function readMeta(inputPath: string): Promise<Meta> {
+    const meta = JSON.parse(await fs.readFile(resolvePluginConfig(inputPath), "utf8")) as Meta;
     return {
-        ...config,
-        authorLink: `https://github.com/${config.author}`,
-        website: `https://github.com/${repo}`,
-        source: `https://github.com/${repo}/tree/master/src/${path.basename(inputPath)}`
+        ...meta,
+        authorLink: meta.authorLink ?? `https://github.com/${meta.author}`,
+        website: meta.website ?? `https://github.com/${repo}`,
+        source: meta.source ?? `https://github.com/${repo}/tree/master/src/${path.basename(inputPath)}`
     };
 }
 
-function toMeta(config: Meta): string {
+function buildMeta(meta: Meta): string {
     let result = "/**";
-    for (const [key, value] of Object.entries(config)) {
+    for (const [key, value] of Object.entries(meta)) {
         result += `\n * @${key} ${value.replace(/\n/g, "\\n")}`;
     }
     return result + "\n**/\n";
 }
 
-function genOutputOptions(config: Meta, outputPath: string) {
+function genOutputOptions(meta: Meta, outputPath: string): rollup.OutputOptions {
     return {
         file: outputPath,
-        banner: toMeta(config) + `\n/*@cc_on @if (@_jscript)\n${wscript}\n@else @*/\n`,
+        banner: buildMeta(meta) + `\n/*@cc_on @if (@_jscript)\n${wscript}\n@else @*/\n`,
         footer: "\n/*@end @*/"
     };
 }
