@@ -1,5 +1,7 @@
-import {React} from "dium";
+import {React, Styles} from "dium";
 import {Settings, FolderData} from "./settings";
+
+const styles = Styles.suffix("customIcon");
 
 export interface BetterFolderIconProps {
     data?: FolderData;
@@ -11,7 +13,7 @@ export const BetterFolderIcon = ({data, childProps, FolderIcon}: BetterFolderIco
     if (FolderIcon) {
         const result = FolderIcon(childProps);
         if (data?.icon && (childProps.expanded || data.always)) {
-            result.props.children = <div className="betterFolders-customIcon" style={{backgroundImage: `url(${data.icon})`}}/>;
+            result.props.children = <div className={styles.customIcon} style={{backgroundImage: `url(${data.icon})`}}/>;
         }
         return result;
     } else {

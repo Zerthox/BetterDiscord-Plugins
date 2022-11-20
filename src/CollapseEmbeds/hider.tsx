@@ -1,7 +1,19 @@
-import {Finder, React} from "dium";
+import {Finder, React, Styles} from "dium";
 import {classNames} from "@dium/modules";
 import {Flex, Clickable, Text} from "@dium/components";
 import {Settings} from "./settings";
+
+const styles = Styles.suffix(
+    "container",
+    "embed",
+    "attachment",
+    "expanded",
+    "collapsed",
+    "placeholder",
+    "hideButton",
+    "marginCorrect",
+    "icon"
+);
 
 const Arrow = Finder.bySource(["d:\"M16.", (source) => /\.open[,;]/.test(source)]);
 
@@ -17,11 +29,6 @@ export interface HiderProps {
     children: React.ReactNode;
 }
 
-const typeClasses = {
-    [AccessoryType.Embed]: "collapseEmbeds-embed",
-    [AccessoryType.Attachment]: "collapseEmbeds-attachment"
-};
-
 export const Hider = ({placeholder, type, marginCorrect, children}: HiderProps): JSX.Element => {
     const {hideByDefault} = Settings.useCurrent();
     const [shown, setShown] = React.useState(!hideByDefault);
@@ -32,22 +39,22 @@ export const Hider = ({placeholder, type, marginCorrect, children}: HiderProps):
         <Flex
             align={Flex.Align.CENTER}
             className={classNames(
-                "collapseEmbeds-container",
-                typeClasses[type],
-                `collapseEmbeds-${shown ? "expanded" : "collapsed"}`
+                styles.container,
+                styles[type],
+                shown ? styles.expanded : styles.collapsed
             )}
         >
             {shown ? children : (
-                <Text variant="text-xs/normal" className="collapseEmbeds-placeholder">{placeholder}</Text>
+                <Text variant="text-xs/normal" className={styles.placeholder}>{placeholder}</Text>
             )}
             <Clickable
                 className={classNames(
-                    "collapseEmbeds-hideButton",
-                    {["collapseEmbeds-marginCorrect"]: marginCorrect}
+                    styles.hideButton,
+                    {[styles.marginCorrect]: marginCorrect}
                 )}
                 onClick={() => setShown(!shown)}
             >
-                <Arrow open={shown} className="collapseEmbeds-icon"/>
+                <Arrow open={shown} className={styles.icon}/>
             </Clickable>
         </Flex>
     );

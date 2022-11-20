@@ -1,8 +1,10 @@
-import {Finder, React, Flux} from "dium";
+import {Finder, React, Flux, Styles} from "dium";
 import {GuildStore, PresenceStore, RelationshipStore, RelationshipTypes, StatusTypes, classNames} from "@dium/modules";
 import {Link} from "@dium/components";
 import {Settings, CounterType, counterLabels} from "./settings";
 import {CountContextMenu} from "./context-menu";
+
+const styles = Styles.suffix("container", "item", "link", "counter", "guilds", "friends", "friendsOnline", "pending", "blocked");
 
 const listStyles = Finder.byProps(["listItem"]);
 
@@ -16,17 +18,17 @@ const Item = ({children, className, link}: ItemProps) => (
     <div className={listStyles.listItem}>{link ? (
         <Link
             to={link}
-            className={classNames("item-onlineFriendCount", "link-onlineFriendCount", className)}
+            className={classNames(styles.item, styles.link, className)}
         >{children}</Link>
     ) : (
-        <div className={classNames("item-onlineFriendCount", className)}>{children}</div>
+        <div className={classNames(styles.link, className)}>{children}</div>
     )}</div>
 );
 
 const CounterItem = ({type, count}: Counter) => (
     <Item
         link="/channels/@me"
-        className={classNames("counter-onlineFriendCount", type + "-onlineFriendCount")}
+        className={classNames(styles.counter, styles[type])}
     >{count} {counterLabels[type].label}</Item>
 );
 
@@ -39,7 +41,7 @@ interface Counter {
     count: number;
 }
 
-const useCounters = (): {type: CounterType; count: number}[] => {
+const useCounters = (): Counter[] => {
     const guilds = Flux.useStateFromStores([GuildStore], () => GuildStore.getGuildCount(), []);
     const friendsOnline = Flux.useStateFromStores([PresenceStore, RelationshipStore], () => countFilteredRelationships(
         ({id, type}) => type === RelationshipTypes.FRIEND && PresenceStore.getStatus(id) !== StatusTypes.OFFLINE
@@ -75,7 +77,7 @@ export const CountersContainer = (): JSX.Element => {
 
     return (
         <div
-            className="container-onlineFriendCount"
+            className={styles.container}
             onContextMenu={(event) => BdApi.ContextMenu.open(event, CountContextMenu)}
         >
             {counters.length > 0 ? (
