@@ -4,9 +4,7 @@ import minimist from "minimist";
 import chalk from "chalk";
 
 import * as rollup from "rollup";
-import scss from "rollup-plugin-scss";
-import postcss from "postcss";
-import postcssModules from "postcss-modules";
+import styleModules from "./style-modules";
 import rollupConfig from "../rollup.config";
 
 import type {Meta} from "betterdiscord";
@@ -165,12 +163,11 @@ function generateRollupConfig(inputPath: string, outputPath: string, meta: Meta)
         input: path.resolve(inputPath, "index.tsx"),
         plugins: [
             plugins,
-            scss({
-                output: false,
-                processor: () => postcss(postcssModules({
-                    getJSON: () => {},
+            styleModules({
+                modules: {
                     generateScopedName: `[local]-${meta.name}`
-                })) as any
+                },
+                cleanup: true
             })
         ],
         output: {
