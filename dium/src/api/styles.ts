@@ -15,7 +15,17 @@ export const suffix = <T extends string = never>(...classNames: T[]): Record<T, 
     const result: Record<T, string> = {} as any;
     for (const className of classNames) {
         Object.defineProperty(result, className, {
-            get: () => className + "-" + getMeta().name
+            get: () => {
+                const value = className + "-" + getMeta().name;
+                Object.defineProperty(result, className, {
+                    value,
+                    configurable: true,
+                    enumerable: true
+                });
+                return value;
+            },
+            configurable: true,
+            enumerable: true
         });
     }
     return result;
