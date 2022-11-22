@@ -2,7 +2,7 @@ import {createPlugin, Finder, Filters, Lazy, Patcher, React} from "dium";
 import {Snowflake, MediaEngineStore, MediaEngineActions, MediaEngineContext} from "@dium/modules";
 import {MenuItem} from "@dium/components";
 import {NumberInput} from "./input";
-import styles from "./styles.scss";
+import {css} from "./styles.module.scss";
 
 interface AudioConvert {
     amplitudeToPerceptual(amplitude: number): number;
@@ -56,5 +56,5 @@ export default createPlugin({
             }
         }, {name: "useUserVolumeItem"});
     },
-    styles
+    styles: css
 });

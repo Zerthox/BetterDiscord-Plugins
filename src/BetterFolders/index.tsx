@@ -4,7 +4,7 @@ import {SwitchItem, GuildsNav} from "@dium/components";
 import {Settings} from "./settings";
 import {ConnectedBetterFolderIcon} from "./icon";
 import {folderModalPatch, FolderSettingsModal} from "./modal";
-import styles from "./styles.scss";
+import {css} from "./styles.module.scss";
 
 const guildStyles = Finder.byProps(["guilds", "base"]);
 
@@ -116,7 +116,7 @@ export default createPlugin({
     stop() {
         triggerRerender(getGuildsOwner());
     },
-    styles,
+    styles: css,
     Settings,
     SettingsPanel: () => {
         const [{closeOnOpen}, setSettings] = Settings.useState();

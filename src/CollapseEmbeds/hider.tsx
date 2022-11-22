@@ -1,19 +1,8 @@
-import {Finder, React, Styles} from "dium";
+import {Finder, React} from "dium";
 import {classNames} from "@dium/modules";
 import {Flex, Clickable, Text} from "@dium/components";
 import {Settings} from "./settings";
-
-const styles = Styles.suffix(
-    "container",
-    "embed",
-    "attachment",
-    "expanded",
-    "collapsed",
-    "placeholder",
-    "hideButton",
-    "marginCorrect",
-    "icon"
-);
+import styles from "./styles.module.scss";
 
 const Arrow = Finder.bySource(["d:\"M16.", (source) => /\.open[,;]/.test(source)]);
 

@@ -2,7 +2,7 @@ import {createPlugin, Logger, Finder, Patcher, Utils, React, Filters} from "dium
 import {GuildsNav} from "@dium/components";
 import {Settings} from "./settings";
 import {CountersContainer} from "./counter";
-import styles from "./styles.scss";
+import {css} from "./styles.module.scss";
 
 const guildStyles = Finder.byProps(["guilds", "base"]);
 const treeStyles = Finder.byProps(["tree", "scroller"]);
@@ -49,6 +49,6 @@ export default createPlugin({
     stop() {
         triggerRerender();
     },
-    styles,
+    styles: css,
     Settings
 });

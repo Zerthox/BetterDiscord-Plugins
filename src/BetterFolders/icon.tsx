@@ -1,7 +1,6 @@
-import {React, Styles} from "dium";
+import {React} from "dium";
 import {Settings, FolderData} from "./settings";
-
-const styles = Styles.suffix("customIcon");
+import styles from "./styles.module.scss";
 
 export interface BetterFolderIconProps {
     data?: FolderData;

@@ -1,4 +1,3 @@
-// BetterVolume styles
 .container {
     margin: 0 8px;
     padding: 3px 6px;
@@ -16,4 +15,8 @@
     &:hover::-webkit-inner-spin-button {
         appearance: auto;
     }
+}
+
+.unit {
+    /* unused */
 }

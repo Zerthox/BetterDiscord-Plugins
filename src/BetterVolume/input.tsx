@@ -1,6 +1,5 @@
-import {React, Styles} from "dium";
-
-const styles = Styles.suffix("container", "input", "unit");
+import {React} from "dium";
+import styles from "./styles.module.scss";
 
 const limit = (input: number, min: number, max: number): number => Math.min(Math.max(input, min), max);
 

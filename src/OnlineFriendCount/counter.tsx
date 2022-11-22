@@ -1,10 +1,9 @@
-import {Finder, React, Flux, Styles} from "dium";
+import {Finder, React, Flux} from "dium";
 import {GuildStore, PresenceStore, RelationshipStore, RelationshipTypes, StatusTypes, classNames} from "@dium/modules";
 import {Link} from "@dium/components";
 import {Settings, CounterType, counterLabels} from "./settings";
 import {CountContextMenu} from "./context-menu";
-
-const styles = Styles.suffix("container", "item", "link", "counter", "guilds", "friends", "friendsOnline", "pending", "blocked");
+import styles from "./styles.module.scss";
 
 const listStyles = Finder.byProps(["listItem"]);
 

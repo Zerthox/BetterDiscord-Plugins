@@ -3,7 +3,7 @@ import {Attachment} from "@dium/modules";
 import {SwitchItem, MessageFooter, Embed} from "@dium/components";
 import {Settings} from "./settings";
 import {Hider, AccessoryType} from "./hider";
-import styles from "./styles.scss";
+import {css} from "./styles.module.scss";
 
 interface AttachmentProps extends Record<string, any> {
     attachment: Attachment;
@@ -37,7 +37,7 @@ export default createPlugin({
             }
         }, {name: "MessageFooter renderAttachments"});
     },
-    styles,
+    styles: css,
     Settings,
     SettingsPanel: () => {
         const [{hideByDefault}, setSettings] = Settings.useState();
