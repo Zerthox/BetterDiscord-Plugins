@@ -1,5 +1,7 @@
 import type * as BD from "betterdiscord";
 
+export const hasOwnProperty = (object: unknown, property: PropertyKey): boolean => Object.prototype.hasOwnProperty.call(object, property);
+
 export const sleep = (duration: number): Promise<void> => new Promise((resolve) => setTimeout(resolve, duration));
 
 export const alert = (title: string, content: string | JSX.Element): void => BdApi.UI.alert(title, content);
