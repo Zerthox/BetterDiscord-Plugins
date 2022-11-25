@@ -1,7 +1,7 @@
 /**
  * @name BetterFolders
  * @author Zerthox
- * @version 3.3.0
+ * @version 3.4.0
  * @description Add new functionality to server folders. Custom Folder Icons. Close other folders on open.
  * @authorLink https://github.com/Zerthox
  * @website https://github.com/Zerthox/BetterDiscord-Plugins
@@ -107,6 +107,7 @@ const mappedProxy = (target, mapping) => {
         },
         deleteProperty(target, prop) {
             delete target[map.get(prop) ?? prop];
+            map.delete(prop);
             return true;
         },
         has(target, prop) {
@@ -136,12 +137,7 @@ const demangle = (mapping, required, proxy = false) => {
     const req = required ?? Object.keys(mapping);
     const found = find((target) => (target instanceof Object
         && target !== window
-        && req.every((req) => {
-            const filter = mapping[req];
-            return typeof filter === "string"
-                ? filter in target
-                : Object.values(target).some((value) => filter(value));
-        })));
+        && req.every((req) => Object.values(target).some((value) => mapping[req](value)))));
     return proxy ? mappedProxy(found, Object.fromEntries(Object.entries(mapping).map(([key, filter]) => [
         key,
         Object.entries(found ?? {}).find(([, value]) => filter(value))?.[0]
@@ -183,6 +179,7 @@ const patch = (type, object, method, callback, options) => {
     }
     return cancel;
 };
+const instead = (object, method, callback, options = {}) => patch("instead", object, method, (cancel, original, context, args) => callback({ cancel, original, context, args }), options);
 const after = (object, method, callback, options = {}) => patch("after", object, method, (cancel, original, context, args, result) => callback({ cancel, original, context, args, result }), options);
 let menuPatches = [];
 const unpatchAll = () => {
@@ -278,23 +275,28 @@ const queryTree = (node, predicate) => {
     return null;
 };
 const getFiber = (node) => ReactDOMInternals.getInstanceFromNode(node ?? {});
-const queryFiber = (fiber, predicate, direction = "up" , depth = 30, current = 0) => {
-    if (current > depth) {
+const queryFiber = (fiber, predicate, direction = "up" , depth = 30) => {
+    if (depth < 0) {
         return null;
     }
     if (predicate(fiber)) {
         return fiber;
     }
-    if ((direction === "up"  || direction === "both" ) && fiber.return) {
-        const result = queryFiber(fiber.return, predicate, "up" , depth, current + 1);
-        if (result) {
-            return result;
+    if (direction === "up"  || direction === "both" ) {
+        let count = 0;
+        let parent = fiber.return;
+        while (parent && count < depth) {
+            if (predicate(parent)) {
+                return parent;
+            }
+            count++;
+            parent = parent.return;
         }
     }
-    if ((direction === "down"  || direction === "both" ) && fiber.child) {
+    if (direction === "down"  || direction === "both" ) {
         let child = fiber.child;
         while (child) {
-            const result = queryFiber(child, predicate, "down" , depth, current + 1);
+            const result = queryFiber(child, predicate, "down" , depth - 1);
             if (result) {
                 return result;
             }
@@ -310,12 +312,7 @@ const forceFullRerender = (fiber) => new Promise((resolve) => {
     const owner = findOwner(fiber);
     if (owner) {
         const { stateNode } = owner;
-        const original = stateNode.render;
-        stateNode.render = function forceRerender() {
-            original.call(this);
-            stateNode.render = original;
-            return null;
-        };
+        instead(stateNode, "render", () => null, { once: true, silent: true });
         stateNode.forceUpdate(() => stateNode.forceUpdate(() => resolve(true)));
     }
     else {
@@ -435,11 +432,16 @@ const Settings = createSettings({
     folders: {}
 });
 
+const css = ".customIcon-BetterFolders {\n  width: 100%;\n  height: 100%;\n  background-size: contain;\n  background-position: center;\n  background-repeat: no-repeat;\n}";
+const styles = {
+    customIcon: "customIcon-BetterFolders"
+};
+
 const BetterFolderIcon = ({ data, childProps, FolderIcon }) => {
     if (FolderIcon) {
         const result = FolderIcon(childProps);
         if (data?.icon && (childProps.expanded || data.always)) {
-            result.props.children = React.createElement("div", { className: "betterFolders-customIcon", style: { backgroundImage: `url(${data.icon})` } });
+            result.props.children = React.createElement("div", { className: styles.customIcon, style: { backgroundImage: `url(${data.icon})` } });
         }
         return result;
     }
@@ -506,8 +508,6 @@ const folderModalPatch = ({ context, result }, FolderIcon) => {
         }
     };
 };
-
-const styles = ".betterFolders-customIcon {\n  width: 100%;\n  height: 100%;\n  background-size: contain;\n  background-position: center;\n  background-repeat: no-repeat;\n}\n\n.betterFolders-preview {\n  margin: 0 10px;\n  background-size: contain;\n  background-position: center;\n  background-repeat: no-repeat;\n  border-radius: 16px;\n  cursor: default;\n}";
 
 const guildStyles = byProps(["guilds", "base"]);
 const getGuildsOwner = () => findOwner(getFiber(document.getElementsByClassName(guildStyles.guilds)?.[0]));
@@ -584,7 +584,7 @@ const index = createPlugin({
     stop() {
         triggerRerender(getGuildsOwner());
     },
-    styles,
+    styles: css,
     Settings,
     SettingsPanel: () => {
         const [{ closeOnOpen }, setSettings] = Settings.useState();
