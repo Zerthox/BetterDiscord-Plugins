@@ -1,7 +1,7 @@
 /**
  * @name OnlineFriendCount
  * @author Zerthox
- * @version 3.0.0
+ * @version 3.1.0
  * @description Adds the old online friend count and similar counters back to server list. Because nostalgia.
  * @authorLink https://github.com/Zerthox
  * @website https://github.com/Zerthox/BetterDiscord-Plugins
@@ -174,6 +174,7 @@ const patch = (type, object, method, callback, options) => {
     }
     return cancel;
 };
+const instead = (object, method, callback, options = {}) => patch("instead", object, method, (cancel, original, context, args) => callback({ cancel, original, context, args }), options);
 const after = (object, method, callback, options = {}) => patch("after", object, method, (cancel, original, context, args, result) => callback({ cancel, original, context, args, result }), options);
 let menuPatches = [];
 const unpatchAll = () => {
@@ -310,12 +311,7 @@ const forceFullRerender = (fiber) => new Promise((resolve) => {
     const owner = findOwner(fiber);
     if (owner) {
         const { stateNode } = owner;
-        const original = stateNode.render;
-        stateNode.render = function forceRerender() {
-            original.call(this);
-            stateNode.render = original;
-            return null;
-        };
+        instead(stateNode, "render", () => null, { once: true, silent: true });
         stateNode.forceUpdate(() => stateNode.forceUpdate(() => resolve(true)));
     }
     else {
@@ -467,9 +463,22 @@ const CountContextMenu = (props) => {
             React.createElement(MenuCheckboxItem, { id: "interval", label: "Auto rotate", checked: settings.interval, action: () => setSettings({ interval: !settings.interval }) }))));
 };
 
+const css = ".item-OnlineFriendCount {\n  color: var(--channels-default);\n  text-align: center;\n  text-transform: uppercase;\n  font-size: 10px;\n  font-weight: 500;\n  line-height: 1.3;\n  width: 70px;\n  word-wrap: normal;\n  white-space: nowrap;\n}\n\n.link-OnlineFriendCount {\n  cursor: pointer;\n}\n.link-OnlineFriendCount:hover {\n  color: var(--interactive-hover);\n}";
+const styles = {
+    item: "item-OnlineFriendCount",
+    link: "link-OnlineFriendCount",
+    container: "container-OnlineFriendCount",
+    counter: "counter-OnlineFriendCount",
+    guilds: "guilds-OnlineFriendCount",
+    friends: "friends-OnlineFriendCount",
+    friendsOnline: "friendsOnline-OnlineFriendCount",
+    pending: "pending-OnlineFriendCount",
+    blocked: "blocked-OnlineFriendCount"
+};
+
 const listStyles = byProps(["listItem"]);
-const Item = ({ children, className, link }) => (React.createElement("div", { className: listStyles.listItem }, link ? (React.createElement(Link, { to: link, className: classNames("item-onlineFriendCount", "link-onlineFriendCount", className) }, children)) : (React.createElement("div", { className: classNames("item-onlineFriendCount", className) }, children))));
-const CounterItem = ({ type, count }) => (React.createElement(Item, { link: "/channels/@me", className: classNames("counter-onlineFriendCount", type + "-onlineFriendCount") },
+const Item = ({ children, className, link }) => (React.createElement("div", { className: listStyles.listItem }, link ? (React.createElement(Link, { to: link, className: classNames(styles.item, styles.link, className) }, children)) : (React.createElement("div", { className: classNames(styles.link, className) }, children))));
+const CounterItem = ({ type, count }) => (React.createElement(Item, { link: "/channels/@me", className: classNames(styles.counter, styles[type]) },
     count,
     " ",
     counterLabels[type].label));
@@ -500,10 +509,8 @@ const CountersContainer = () => {
             return () => clearInterval(id);
         }
     }, [interval, counters.length]);
-    return (React.createElement("div", { className: "container-onlineFriendCount", onContextMenu: (event) => BdApi.ContextMenu.open(event, CountContextMenu) }, counters.length > 0 ? (interval ? (React.createElement(CounterItem, { ...counters[current] })) : counters.map((counter) => React.createElement(CounterItem, { key: counter.type, ...counter }))) : (React.createElement(Item, null, "-"))));
+    return (React.createElement("div", { className: styles.container, onContextMenu: (event) => BdApi.ContextMenu.open(event, CountContextMenu) }, counters.length > 0 ? (interval ? (React.createElement(CounterItem, { ...counters[current] })) : counters.map((counter) => React.createElement(CounterItem, { key: counter.type, ...counter }))) : (React.createElement(Item, null, "-"))));
 };
-
-const styles = ".item-onlineFriendCount {\n  color: var(--channels-default);\n  text-align: center;\n  text-transform: uppercase;\n  font-size: 10px;\n  font-weight: 500;\n  line-height: 1.3;\n  width: 70px;\n  word-wrap: normal;\n  white-space: nowrap;\n}\n\n.link-onlineFriendCount {\n  cursor: pointer;\n}\n.link-onlineFriendCount:hover {\n  color: var(--interactive-hover);\n}";
 
 const guildStyles = byProps(["guilds", "base"]);
 const treeStyles = byProps(["tree", "scroller"]);
@@ -541,7 +548,7 @@ const index = createPlugin({
     stop() {
         triggerRerender();
     },
-    styles,
+    styles: css,
     Settings
 });
 
