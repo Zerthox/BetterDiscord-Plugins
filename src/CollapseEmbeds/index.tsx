@@ -17,7 +17,7 @@ export default createPlugin({
             return (
                 <Hider
                     type={AccessoryType.Embed}
-                    placeholder={embed.provider?.name}
+                    placeholder={embed.provider?.name ?? embed.author?.name}
                 >{result}</Hider>
             );
         }, {name: "Embed render"});

@@ -1,7 +1,7 @@
 /**
  * @name CollapseEmbeds
  * @author Zerthox
- * @version 0.2.0
+ * @version 0.2.1
  * @description Collapse embeds & attachments.
  * @authorLink https://github.com/Zerthox
  * @website https://github.com/Zerthox/BetterDiscord-Plugins
@@ -104,6 +104,7 @@ const mappedProxy = (target, mapping) => {
         },
         deleteProperty(target, prop) {
             delete target[map.get(prop) ?? prop];
+            map.delete(prop);
             return true;
         },
         has(target, prop) {
@@ -133,12 +134,7 @@ const demangle = (mapping, required, proxy = false) => {
     const req = required ?? Object.keys(mapping);
     const found = find((target) => (target instanceof Object
         && target !== window
-        && req.every((req) => {
-            const filter = mapping[req];
-            return typeof filter === "string"
-                ? filter in target
-                : Object.values(target).some((value) => filter(value));
-        })));
+        && req.every((req) => Object.values(target).some((value) => mapping[req](value)))));
     return proxy ? mappedProxy(found, Object.fromEntries(Object.entries(mapping).map(([key, filter]) => [
         key,
         Object.entries(found ?? {}).find(([, value]) => filter(value))?.[0]
@@ -368,28 +364,34 @@ const Settings = createSettings({
     hideByDefault: false
 });
 
-const Arrow = bySource(["d:\"M16.", (source) => /\.open[,;]/.test(source)]);
-const typeClasses = {
-    ["embed" ]: "collapseEmbeds-embed",
-    ["attachment" ]: "collapseEmbeds-attachment"
-};
-const Hider = ({ placeholder, type, marginCorrect, children }) => {
-    const { hideByDefault } = Settings.useCurrent();
-    const [shown, setShown] = React.useState(!hideByDefault);
-    Settings.useListener(({ hideByDefault }) => setShown(!hideByDefault));
-    return (React.createElement(Flex, { align: Flex.Align.CENTER, className: classNames("collapseEmbeds-container", typeClasses[type], `collapseEmbeds-${shown ? "expanded" : "collapsed"}`) },
-        shown ? children : (React.createElement(Text, { variant: "text-xs/normal", className: "collapseEmbeds-placeholder" }, placeholder)),
-        React.createElement(Clickable, { className: classNames("collapseEmbeds-hideButton", { ["collapseEmbeds-marginCorrect"]: marginCorrect }), onClick: () => setShown(!shown) },
-            React.createElement(Arrow, { open: shown, className: "collapseEmbeds-icon" }))));
+const css = ".container-CollapseEmbeds.embed-CollapseEmbeds {\n  justify-self: stretch;\n}\n.container-CollapseEmbeds.embed-CollapseEmbeds > article {\n  flex-grow: 1;\n  flex-shrink: 0;\n}\n\n.hideButton-CollapseEmbeds {\n  margin-bottom: -4px;\n  align-self: flex-end;\n  color: var(--interactive-normal);\n  cursor: pointer;\n  visibility: hidden;\n}\n.hideButton-CollapseEmbeds:hover {\n  color: var(--interactive-hover);\n}\n.expanded-CollapseEmbeds > .hideButton-CollapseEmbeds {\n  margin-bottom: -6px;\n}\n.expanded-CollapseEmbeds > .hideButton-CollapseEmbeds.marginCorrect-CollapseEmbeds {\n  margin-left: -20px;\n}\n.hideButton-CollapseEmbeds:hover, :hover + .hideButton-CollapseEmbeds, .collapsed-CollapseEmbeds > .hideButton-CollapseEmbeds {\n  visibility: visible;\n}\n\n.icon-CollapseEmbeds {\n  margin: -2px;\n}";
+const styles = {
+    container: "container-CollapseEmbeds",
+    embed: "embed-CollapseEmbeds",
+    hideButton: "hideButton-CollapseEmbeds",
+    expanded: "expanded-CollapseEmbeds",
+    marginCorrect: "marginCorrect-CollapseEmbeds",
+    collapsed: "collapsed-CollapseEmbeds",
+    icon: "icon-CollapseEmbeds",
+    attachment: "attachment-CollapseEmbeds",
+    placeholder: "placeholder-CollapseEmbeds"
 };
 
-const styles = ".collapseEmbeds-container.collapseEmbeds-embed {\n  justify-self: stretch;\n}\n.collapseEmbeds-container.collapseEmbeds-embed > article {\n  flex-grow: 1;\n  flex-shrink: 0;\n}\n\n.collapseEmbeds-hideButton {\n  margin-bottom: -4px;\n  align-self: flex-end;\n  color: var(--interactive-normal);\n  cursor: pointer;\n  visibility: hidden;\n}\n.collapseEmbeds-hideButton:hover {\n  color: var(--interactive-hover);\n}\n.collapseEmbeds-expanded > .collapseEmbeds-hideButton {\n  margin-bottom: -6px;\n}\n.collapseEmbeds-expanded > .collapseEmbeds-hideButton.collapseEmbeds-marginCorrect {\n  margin-left: -20px;\n}\n.collapseEmbeds-hideButton:hover, :hover + .collapseEmbeds-hideButton, .collapseEmbeds-collapsed > .collapseEmbeds-hideButton {\n  visibility: visible;\n}\n\n.collapseEmbeds-icon {\n  margin: -2px;\n}";
+const Arrow = bySource(["d:\"M16.", (source) => /\.open[,;]/.test(source)]);
+const Hider = ({ placeholder, type, marginCorrect, children }) => {
+    const [shown, setShown] = React.useState(!Settings.current.hideByDefault);
+    Settings.useListener(({ hideByDefault }) => setShown(!hideByDefault), []);
+    return (React.createElement(Flex, { align: Flex.Align.CENTER, className: classNames(styles.container, styles[type], shown ? styles.expanded : styles.collapsed) },
+        shown ? children : (React.createElement(Text, { variant: "text-xs/normal", className: styles.placeholder }, placeholder)),
+        React.createElement(Clickable, { className: classNames(styles.hideButton, { [styles.marginCorrect]: marginCorrect }), onClick: () => setShown(!shown) },
+            React.createElement(Arrow, { open: shown, className: styles.icon }))));
+};
 
 const index = createPlugin({
     start() {
         after(Embed.prototype, "render", ({ result, context }) => {
             const { embed } = context.props;
-            return (React.createElement(Hider, { type: "embed" , placeholder: embed.provider?.name }, result));
+            return (React.createElement(Hider, { type: "embed" , placeholder: embed.provider?.name ?? embed.author?.name }, result));
         }, { name: "Embed render" });
         after(MessageFooter.prototype, "renderAttachments", ({ result }) => {
             const attachments = queryTreeAll(result, (node) => node?.props?.attachment);
@@ -398,7 +400,7 @@ const index = createPlugin({
             }
         }, { name: "MessageFooter renderAttachments" });
     },
-    styles,
+    styles: css,
     Settings,
     SettingsPanel: () => {
         const [{ hideByDefault }, setSettings] = Settings.useState();

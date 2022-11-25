@@ -19,10 +19,8 @@ export interface HiderProps {
 }
 
 export const Hider = ({placeholder, type, marginCorrect, children}: HiderProps): JSX.Element => {
-    const {hideByDefault} = Settings.useCurrent();
-    const [shown, setShown] = React.useState(!hideByDefault);
-
-    Settings.useListener(({hideByDefault}) => setShown(!hideByDefault));
+    const [shown, setShown] = React.useState(!Settings.current.hideByDefault);
+    Settings.useListener(({hideByDefault}) => setShown(!hideByDefault), []);
 
     return (
         <Flex
