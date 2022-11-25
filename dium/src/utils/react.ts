@@ -1,3 +1,4 @@
+import * as Patcher from "../api/patcher";
 import {React} from "../modules";
 import {ReactDOMInternals, Fiber, OwnerFiber} from "../react-internals";
 
@@ -197,12 +198,7 @@ export const forceFullRerender = (fiber: Fiber): Promise<boolean> => new Promise
         const {stateNode} = owner;
 
         // render no elements in next render
-        const original = stateNode.render;
-        stateNode.render = function forceRerender() {
-            original.call(this);
-            stateNode.render = original;
-            return null;
-        };
+        Patcher.instead(stateNode, "render", () => null, {once: true, silent: true});
 
         // force update twice
         stateNode.forceUpdate(() => stateNode.forceUpdate(() => resolve(true)));

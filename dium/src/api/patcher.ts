@@ -1,9 +1,15 @@
 import * as Logger from "./logger";
 import {getMeta} from "../meta";
 
+/** Patcher options. */
 export interface Options {
-    silent?: boolean;
+    /** Execute the patch once, then unpatch. */
     once?: boolean;
+
+    /** Disable console output when patching. */
+    silent?: boolean;
+
+    /** Name of the patch target displayed in console output. */
     name?: string;
 }
 
