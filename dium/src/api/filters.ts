@@ -42,6 +42,7 @@ export const byName = (name: string): Filter => {
 };
 
 /** Creates a filter searching by export properties. */
+// TODO: rename to byKeys for clarity?
 export const byProps = (...props: string[]): Filter => {
     return (target) => target instanceof Object && props.every((prop) => prop in target);
 };

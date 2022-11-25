@@ -24,10 +24,10 @@ export const moment: typeof import("moment") = /* @__PURE__ */ Finder.byProps(["
 
 export const SimpleMarkdown: typeof import("simple-markdown") = /* @__PURE__ */ Finder.byProps(["parseBlock", "parseInline"]);
 
-export const hljs: typeof import("highlight.js") = /* @__PURE__ */ Finder.byProps(["highlight", "highlightBlock"]);
+export const hljs: typeof import("highlight.js").default = /* @__PURE__ */ Finder.byProps(["highlight", "highlightBlock"]);
 
 export const platform: typeof import("platform") = /* @__PURE__ */ Finder.byProps(["os", "manufacturer"]);
 
-export const lottie: typeof import("lottie-web") = /* @__PURE__ */ Finder.byProps(["setSubframeRendering"]);
+export const lottie: typeof import("lottie-web").default = /* @__PURE__ */ Finder.byProps(["setSubframeRendering"]);
 
-export const stemmer: typeof import("stemmer") = /* @__PURE__ */ Finder.bySource([".test", ".exec", ".substr"]);
+export const stemmer: typeof import("stemmer").stemmer = /* @__PURE__ */ Finder.bySource([".test", ".exec", ".substr"]);
