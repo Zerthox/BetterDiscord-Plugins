@@ -13,6 +13,7 @@ export * from "./radio";
 export * from "./select";
 export * from "./slider";
 export * from "./switch";
+export * from "./text-area";
 export * from "./text-input";
 export * from "./text";
 

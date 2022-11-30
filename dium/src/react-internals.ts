@@ -3,6 +3,16 @@ import type {Fiber, ReactContext} from "react-reconciler";
 
 export type {Fiber} from "react-reconciler";
 
+export interface ForwardRefExoticComponent<P, T = any> extends React.ForwardRefExoticComponent<P> {
+    render: React.ForwardRefRenderFunction<T, P>;
+}
+
+type CompareFn = Parameters<typeof React.memo>[1];
+
+export interface MemoExoticComponent<T extends React.ComponentType<any>> extends React.MemoExoticComponent<T> {
+    compare?: CompareFn;
+}
+
 /** A fiber node with React component as state node. */
 export interface OwnerFiber extends Fiber {
     stateNode: React.Component<any, any>;
