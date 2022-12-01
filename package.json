@@ -20,7 +20,7 @@
     ],
     "devDependencies": {
         "@rollup/plugin-json": "^5.0.0",
-        "@rollup/plugin-typescript": "^9.0.1",
+        "@rollup/plugin-typescript": "^10.0.1",
         "@types/eslint": "^8.4.10",
         "@types/lodash.camelcase": "^4.3.7",
         "@types/minimist": "^1.2.2",

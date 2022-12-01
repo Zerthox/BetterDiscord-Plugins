@@ -4,8 +4,7 @@
         "jsx": "react",
         "moduleResolution": "node",
         "esModuleInterop": true,
-        "resolveJsonModule": true,
-        "baseUrl": "."
+        "resolveJsonModule": true
     },
     "ts-node": {
         "files": true
