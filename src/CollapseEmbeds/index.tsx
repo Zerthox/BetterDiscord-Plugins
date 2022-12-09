@@ -17,7 +17,7 @@ export default createPlugin({
             return (
                 <Hider
                     type={AccessoryType.Embed}
-                    placeholder={embed.provider?.name ?? embed.author?.name}
+                    placeholder={embed.provider?.name ?? embed.author?.name ?? embed.rawTitle}
                 >{result}</Hider>
             );
         }, {name: "Embed render"});
@@ -25,15 +25,13 @@ export default createPlugin({
         Patcher.after(MessageFooter.prototype, "renderAttachments", ({result}: PatchDataWithResult<JSX.Element>) => {
             const attachments = Utils.queryTreeAll(result, (node) => node?.props?.attachment);
             for (const attachment of attachments) {
-                Utils.hookFunctionComponent<AttachmentProps>(
-                    attachment,
-                    (result, {attachment, canRemoveAttachment}) => (
-                        <Hider
-                            type={AccessoryType.Attachment}
-                            placeholder={attachment.filename}
-                            marginCorrect={canRemoveAttachment}
-                        >{result}</Hider>
-                    ));
+                Utils.hookFunctionComponent<AttachmentProps>(attachment, (result, {attachment, canRemoveAttachment}) => (
+                    <Hider
+                        type={AccessoryType.Attachment}
+                        placeholder={attachment.filename}
+                        marginCorrect={canRemoveAttachment}
+                    >{result}</Hider>
+                ));
             }
         }, {name: "MessageFooter renderAttachments"});
     },
