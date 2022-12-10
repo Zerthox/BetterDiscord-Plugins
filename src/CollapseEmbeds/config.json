@@ -2,5 +2,5 @@
     "name": "CollapseEmbeds",
     "author": "Zerthox",
     "version": "0.2.2",
-    "description": "Collapse embeds & attachments."
+    "description": "Adds a button to collapse embeds & attachments."
 }
