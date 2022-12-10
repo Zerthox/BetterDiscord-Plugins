@@ -1,8 +1,8 @@
 /**
  * @name CollapseEmbeds
  * @author Zerthox
- * @version 0.2.1
- * @description Collapse embeds & attachments.
+ * @version 0.2.2
+ * @description Adds a button to collapse embeds & attachments.
  * @authorLink https://github.com/Zerthox
  * @website https://github.com/Zerthox/BetterDiscord-Plugins
  * @source https://github.com/Zerthox/BetterDiscord-Plugins/tree/master/src/CollapseEmbeds
@@ -76,14 +76,13 @@ const byProtos$1 = (...protos) => {
 };
 const bySource$1 = (...fragments) => {
     return (target) => {
+        while (target instanceof Object && "$$typeof" in target) {
+            target = target.render ?? target.type;
+        }
         if (target instanceof Function) {
             const source = target.toString();
             const renderSource = target.prototype?.render?.toString();
             return fragments.every((fragment) => (typeof fragment === "string" ? (source.includes(fragment) || renderSource?.includes(fragment)) : (fragment(source) || renderSource && fragment(renderSource))));
-        }
-        else if (target instanceof Object && "$$typeof" in target) {
-            const source = (target.render ?? target.type)?.toString();
-            return source && fragments.every((fragment) => typeof fragment === "string" ? source.includes(fragment) : fragment(source));
         }
         else {
             return false;
@@ -391,7 +390,7 @@ const index = createPlugin({
     start() {
         after(Embed.prototype, "render", ({ result, context }) => {
             const { embed } = context.props;
-            return (React.createElement(Hider, { type: "embed" , placeholder: embed.provider?.name ?? embed.author?.name }, result));
+            return (React.createElement(Hider, { type: "embed" , placeholder: embed.provider?.name ?? embed.author?.name ?? embed.rawTitle }, result));
         }, { name: "Embed render" });
         after(MessageFooter.prototype, "renderAttachments", ({ result }) => {
             const attachments = queryTreeAll(result, (node) => node?.props?.attachment);
