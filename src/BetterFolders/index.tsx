@@ -6,7 +6,7 @@ import {ConnectedBetterFolderIcon} from "./icon";
 import {folderModalPatch, FolderSettingsModal} from "./modal";
 import {css} from "./styles.module.scss";
 
-const guildStyles = Finder.byProps(["guilds", "base"]);
+const guildStyles = Finder.byKeys(["guilds", "base"]);
 
 const getGuildsOwner = () => Utils.findOwner(Utils.getFiber(document.getElementsByClassName(guildStyles.guilds)?.[0]));
 

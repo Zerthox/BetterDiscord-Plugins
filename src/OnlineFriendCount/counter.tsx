@@ -5,7 +5,7 @@ import {Settings, CounterType, counterLabels} from "./settings";
 import {CountContextMenu} from "./context-menu";
 import styles from "./styles.module.scss";
 
-const listStyles = Finder.byProps(["listItem"]);
+const listStyles = Finder.byKeys(["listItem"]);
 
 interface ItemProps {
     children?: React.ReactNode;

@@ -30,6 +30,6 @@ interface ComponentDispatchModule {
 }
 
 export const {ComponentDispatch, ComponentDispatcher}: ComponentDispatchModule = /* @__PURE__ */ Finder.demangle({
-    ComponentDispatch: Filters.byProps("dispatchToLastSubscribed"),
+    ComponentDispatch: Filters.byKeys("dispatchToLastSubscribed"),
     ComponentDispatcher: Filters.byProtos("dispatchToLastSubscribed")
 });

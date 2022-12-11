@@ -4,8 +4,8 @@ import {Settings} from "./settings";
 import {CountersContainer} from "./counter";
 import {css} from "./styles.module.scss";
 
-const guildStyles = Finder.byProps(["guilds", "base"]);
-const treeStyles = Finder.byProps(["tree", "scroller"]);
+const guildStyles = Finder.byKeys(["guilds", "base"]);
+const treeStyles = Finder.byKeys(["tree", "scroller"]);
 
 const triggerRerender = async () => {
     const node = document.getElementsByClassName(guildStyles.guilds)?.[0];

@@ -29,7 +29,7 @@ export const byEntries = (...filters: Filter[]): any => find(Filters.join(...fil
 export const byName = (name: string, options?: FindOptions): any => find(Filters.byName(name), options);
 
 /** Finds a module using property names of its export. */
-export const byProps = (props: string[], options?: FindOptions): any => find(Filters.byProps(...props), options);
+export const byKeys = (keys: string[], options?: FindOptions): any => find(Filters.byKeys(...keys), options);
 
 /** Finds a module using prototype names of its export. */
 export const byProtos = (protos: string[], options?: FindOptions): any => find(Filters.byProtos(...protos), options);
@@ -53,7 +53,7 @@ export const all = {
     byName: (name: string, options?: FindOptions): any[] => all.find(Filters.byName(name), options),
 
     /** Finds all modules using property names of its export. */
-    byProps: (props: string[], options?: FindOptions): any[] => all.find(Filters.byProps(...props), options),
+    byKeys: (keys: string[], options?: FindOptions): any[] => all.find(Filters.byKeys(...keys), options),
 
     /** Finds all modules using prototype names of it export. */
     byProtos: (protos: string[], options?: FindOptions): any[] => all.find(Filters.byProtos(...protos), options),

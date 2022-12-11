@@ -220,4 +220,4 @@ export interface MessageActions extends ActionModule {
     trackInvite(e: any): any;
 }
 
-export const MessageActions: MessageActions = /* @__PURE__ */ Finder.byProps(["jumpToMessage", "_sendMessage"]);
+export const MessageActions: MessageActions = /* @__PURE__ */ Finder.byKeys(["jumpToMessage", "_sendMessage"]);

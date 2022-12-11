@@ -75,7 +75,7 @@ export const byExports = (exported: Webpack.Exports, keys?: string[]): Webpack.M
 export const byName = (name: string, keys?: string[]): Webpack.Module => find(Filters.byName(name), keys);
 
 /** Finds a raw module using property names of its export. */
-export const byProps = (props: string[], keys?: string[]): Webpack.Module => find(Filters.byProps(...props), keys);
+export const byKeys = (props: string[], keys?: string[]): Webpack.Module => find(Filters.byKeys(...props), keys);
 
 /** Finds a raw module using prototype names of its export. */
 export const byProtos = (protos: string[], keys?: string[]): Webpack.Module => find(Filters.byProtos(...protos), keys);
@@ -101,7 +101,7 @@ export const all = {
     byName: (name: string, keys?: string[]): Webpack.Module[] => all.find(Filters.byName(name), keys),
 
     /** Finds all modules using property names of its export. */
-    byProps: (props: string[], keys?: string[]): Webpack.Module[] => all.find(Filters.byProps(...props), keys),
+    byKeys: (keys: string[], checkKeys?: string[]): Webpack.Module[] => all.find(Filters.byKeys(...keys), checkKeys),
 
     /** Finds all modules using prototype names of it export. */
     byProtos: (protos: string[], keys?: string[]): Webpack.Module[] => all.find(Filters.byProtos(...protos), keys),

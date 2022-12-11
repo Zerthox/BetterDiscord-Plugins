@@ -27,7 +27,7 @@ export interface Platforms {
 }
 
 // TODO: demangle
-export const Platforms: Platforms = /* @__PURE__ */ Finder.find(Filters.byEntry(Filters.byProps("WINDOWS", "WEB")));
+export const Platforms: Platforms = /* @__PURE__ */ Finder.find(Filters.byEntry(Filters.byKeys("WINDOWS", "WEB")));
 
 export interface ClientActions {
     selectGuild(e);
@@ -71,7 +71,7 @@ export interface ClientActions {
     setCommunicationDisabledUntil(e, t, n, i, o);
 }
 
-export const ClientActions: ClientActions = /* @__PURE__ */ Finder.byProps(["toggleGuildFolderExpand"]);
+export const ClientActions: ClientActions = /* @__PURE__ */ Finder.byKeys(["toggleGuildFolderExpand"]);
 
 export interface UserSetting<T> {
     getSetting(): T;
@@ -81,7 +81,7 @@ export interface UserSetting<T> {
 
 export type UserSettings = Record<string, UserSetting<any>>;
 
-export const UserSettings: UserSettings = /* @__PURE__ */ Finder.find(Filters.byEntry(Filters.byProps("updateSetting"), true));
+export const UserSettings: UserSettings = /* @__PURE__ */ Finder.find(Filters.byEntry(Filters.byKeys("updateSetting"), true));
 
 export interface LocaleStore extends Store {
     get locale(): any;
@@ -127,4 +127,4 @@ export interface MediaEngineActions extends ActionModule {
     toggleLocalMute(userId: Snowflake, context?: MediaEngineContext): void;
 }
 
-export const MediaEngineActions: MediaEngineActions = /* @__PURE__ */ Finder.byProps(["setLocalVolume"]);
+export const MediaEngineActions: MediaEngineActions = /* @__PURE__ */ Finder.byKeys(["setLocalVolume"]);

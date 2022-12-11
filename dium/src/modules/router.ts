@@ -3,7 +3,7 @@ import {Filters, Finder} from "../api";
 const mapping = {
     Redirect: Filters.bySource(".computedMatch", ".to"),
     Route: Filters.bySource(".computedMatch", ".location"),
-    Router: Filters.byProps("computeRootMatch"),
+    Router: Filters.byKeys("computeRootMatch"),
     Switch: Filters.bySource(".cloneElement"),
     withRouter: Filters.bySource("withRouter("),
     RouterContext: Filters.byName("Router")

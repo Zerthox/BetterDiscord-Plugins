@@ -180,12 +180,12 @@ export interface FluxHooks {
     statesWillNeverBeEqual: Comparator<unknown>;
 }
 
-export const Dispatcher: Dispatcher = /* @__PURE__ */ Finder.byProps(["dispatch", "subscribe"]);
+export const Dispatcher: Dispatcher = /* @__PURE__ */ Finder.byKeys(["dispatch", "subscribe"]);
 
 export type Flux = Pick<FluxHooks, "default" | "Store" | "Dispatcher" | "BatchedStoreListener" | "useStateFromStores">;
 
 export const Flux: Flux = /* @__PURE__ */ Finder.demangle({
-    default: Filters.byProps("Store", "connectStores"),
+    default: Filters.byKeys("Store", "connectStores"),
     Dispatcher: Filters.byProtos("dispatch"),
     Store: Filters.byProtos("emitChange"),
     BatchedStoreListener: Filters.byProtos("attach", "detach"),
