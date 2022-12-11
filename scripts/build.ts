@@ -2,14 +2,11 @@ import path from "path";
 import {promises as fs, readdirSync, readFileSync} from "fs";
 import minimist from "minimist";
 import chalk from "chalk";
-
 import * as rollup from "rollup";
 import styleModules from "./style-modules";
 import rollupConfig from "../rollup.config";
-
+import {repository} from "../package.json";
 import type {Meta} from "betterdiscord";
-
-const repo = "Zerthox/BetterDiscord-Plugins";
 
 const success = (msg: string) => console.log(chalk.green(msg));
 const warn = (msg: string) => console.warn(chalk.yellow(`Warn: ${msg}`));
@@ -91,7 +88,7 @@ async function build(inputPath: string, outputPath: string): Promise<void> {
 async function watch(inputPath: string, outputPath: string): Promise<void> {
     const meta = await readMeta(inputPath);
     const {plugins, ...config} = generateRollupConfig(inputPath, outputPath, meta);
-    const metaPath = resolvePluginConfig(inputPath);
+    const metaPath = resolvePluginMeta(inputPath);
 
     // start watching
     const watcher = rollup.watch({
@@ -99,7 +96,7 @@ async function watch(inputPath: string, outputPath: string): Promise<void> {
         plugins: [
             plugins,
             {
-                name: "config-watcher",
+                name: "meta-watcher",
                 buildStart() {
                     this.addWatchFile(metaPath);
                 }
@@ -129,17 +126,17 @@ async function watch(inputPath: string, outputPath: string): Promise<void> {
     watchers[inputPath] = watcher;
 }
 
-function resolvePluginConfig(inputPath: string): string {
-    return path.resolve(inputPath, "config.json");
+function resolvePluginMeta(inputPath: string): string {
+    return path.resolve(inputPath, "meta.json");
 }
 
 async function readMeta(inputPath: string): Promise<Meta> {
-    const meta = JSON.parse(await fs.readFile(resolvePluginConfig(inputPath), "utf8")) as Meta;
+    const meta = JSON.parse(await fs.readFile(resolvePluginMeta(inputPath), "utf8")) as Meta;
     return {
         ...meta,
         authorLink: meta.authorLink ?? `https://github.com/${meta.author}`,
-        website: meta.website ?? `https://github.com/${repo}`,
-        source: meta.source ?? `https://github.com/${repo}/tree/master/src/${path.basename(inputPath)}`
+        website: meta.website ?? repository,
+        source: meta.source ?? `${repository}/tree/master/src/${path.basename(inputPath)}`
     };
 }
 
