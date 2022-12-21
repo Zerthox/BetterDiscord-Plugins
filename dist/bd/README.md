@@ -10,5 +10,5 @@ Adds a button to collapse embeds & attachments.
 ## [OnlineFriendCount](https://betterdiscord.app/plugin/OnlineFriendCount) <sub><sup>`v3.1.0` *(Updated: 25/11/2022)*</sup></sub>
 Adds the old online friend count and similar counters back to server list. Because nostalgia.
 
-## [VoiceEvents](https://betterdiscord.app/plugin/VoiceEvents) <sub><sup>`v2.4.0` *(Updated: 14/11/2022)*</sup></sub>
+## [VoiceEvents](https://betterdiscord.app/plugin/VoiceEvents) <sub><sup>`v2.5.0` *(Updated: 21/12/2022)*</sup></sub>
 Adds TTS Event Notifications to your selected Voice Channel. TeamSpeak feeling.

@@ -1,8 +1,8 @@
 /**
  * @name VoiceEvents
  * @author Zerthox
- * @version 2.4.0
- * @description Add TTS Event Notifications to your selected Voice Channel. TeamSpeak feeling.
+ * @version 2.5.0
+ * @description Adds TTS Event Notifications to your selected Voice Channel. TeamSpeak feeling.
  * @authorLink https://github.com/Zerthox
  * @website https://github.com/Zerthox/BetterDiscord-Plugins
  * @source https://github.com/Zerthox/BetterDiscord-Plugins/tree/master/src/VoiceEvents
@@ -68,25 +68,27 @@ const setMeta = (newMeta) => {
 const load = (key) => BdApi.Data.load(getMeta().name, key);
 const save = (key, value) => BdApi.Data.save(getMeta().name, key, value);
 
+const join = (...filters) => {
+    return ((...args) => filters.every((filter) => filter(...args)));
+};
 const byName$1 = (name) => {
     return (target) => (target?.displayName ?? target?.constructor?.displayName) === name;
 };
-const byProps$1 = (...props) => {
-    return (target) => target instanceof Object && props.every((prop) => prop in target);
+const byKeys$1 = (...keys) => {
+    return (target) => target instanceof Object && keys.every((prop) => prop in target);
 };
 const byProtos = (...protos) => {
     return (target) => target instanceof Object && target.prototype instanceof Object && protos.every((proto) => proto in target.prototype);
 };
 const bySource$1 = (...fragments) => {
     return (target) => {
+        while (target instanceof Object && "$$typeof" in target) {
+            target = target.render ?? target.type;
+        }
         if (target instanceof Function) {
             const source = target.toString();
             const renderSource = target.prototype?.render?.toString();
             return fragments.every((fragment) => (typeof fragment === "string" ? (source.includes(fragment) || renderSource?.includes(fragment)) : (fragment(source) || renderSource && fragment(renderSource))));
-        }
-        else if (target instanceof Object && "$$typeof" in target) {
-            const source = (target.render ?? target.type)?.toString();
-            return source && fragments.every((fragment) => typeof fragment === "string" ? source.includes(fragment) : fragment(source));
         }
         else {
             return false;
@@ -108,6 +110,7 @@ const mappedProxy = (target, mapping) => {
         },
         deleteProperty(target, prop) {
             delete target[map.get(prop) ?? prop];
+            map.delete(prop);
             return true;
         },
         has(target, prop) {
@@ -131,7 +134,7 @@ const find = (filter, { resolve = true, entries = false } = {}) => BdApi.Webpack
     searchExports: entries
 });
 const byName = (name, options) => find(byName$1(name), options);
-const byProps = (props, options) => find(byProps$1(...props), options);
+const byKeys = (keys, options) => find(byKeys$1(...keys), options);
 const bySource = (contents, options) => find(bySource$1(...contents), options);
 const demangle = (mapping, required, proxy = false) => {
     const req = required ?? Object.keys(mapping);
@@ -196,9 +199,9 @@ const VoiceStateStore = /* @__PURE__ */ byName("VoiceStateStore");
 
 const MediaEngineStore = /* @__PURE__ */ byName("MediaEngineStore");
 
-const Dispatcher = /* @__PURE__ */ byProps(["dispatch", "subscribe"]);
+const Dispatcher = /* @__PURE__ */ byKeys(["dispatch", "subscribe"]);
 const Flux = /* @__PURE__ */ demangle({
-    default: byProps$1("Store", "connectStores"),
+    default: byKeys$1("Store", "connectStores"),
     Dispatcher: byProtos("dispatch"),
     Store: byProtos("emitChange"),
     BatchedStoreListener: byProtos("attach", "detach"),
@@ -212,9 +215,9 @@ const classNames = /* @__PURE__ */ find((exports) => exports instanceof Object &
 
 const UserStore = /* @__PURE__ */ byName("UserStore");
 
-const Button = /* @__PURE__ */ byProps(["Colors", "Link"], { entries: true });
+const Button = /* @__PURE__ */ byKeys(["Colors", "Link"], { entries: true });
 
-const Flex = /* @__PURE__ */ byProps(["Child", "Justify"], { entries: true });
+const Flex = /* @__PURE__ */ byKeys(["Child", "Justify"], { entries: true });
 
 const { FormSection, FormItem, FormTitle, FormText, FormDivider, FormNotice } = /* @__PURE__ */ demangle({
     FormSection: bySource$1(".titleClassName", ".sectionTitle"),
@@ -235,7 +238,7 @@ const { Select, SingleSelect } =  demangle({
 const Slider = /* @__PURE__ */ bySource([".asValueChanges"], { entries: true });
 
 const SwitchItem = /* @__PURE__ */ bySource([".helpdeskArticleId"], { entries: true });
-const Switch = /* @__PURE__ */ bySource([".onChange", ".focusProps"], { entries: true });
+const Switch = /* @__PURE__ */ find(join(byName$1("withDefaultColorContext()"), (_, module) => Object.keys(module.exports).length === 1));
 
 const { TextInput, TextInputError } = /* @__PURE__ */ demangle({
     TextInput: (target) => target?.defaultProps?.type === "text",
@@ -244,7 +247,7 @@ const { TextInput, TextInputError } = /* @__PURE__ */ demangle({
 
 const Text = /* @__PURE__ */ bySource([".lineClamp", ".variant"], { entries: true });
 
-const margins = /* @__PURE__ */ byProps(["marginLarge"]);
+const margins = /* @__PURE__ */ byKeys(["marginLarge"]);
 
 const queryTree = (node, predicate) => {
     const worklist = [node].flat();
@@ -381,35 +384,8 @@ const createPlugin = (plugin) => (meta) => {
     };
 };
 
-const findDefaultVoice = () => {
-    const voices = speechSynthesis.getVoices();
-    if (voices.length === 0) {
-        error("No speech synthesis voices available");
-        alert(getMeta().name, React.createElement(Text, { color: "text-normal" },
-            "Electron does not have any Speech Synthesis Voices available on your system.",
-            React.createElement("br", null),
-            "The plugin will be unable to function properly."));
-        return null;
-    }
-    else {
-        return voices.find((voice) => voice.lang === "en-US") ?? voices[0];
-    }
-};
-const findCurrentVoice = () => {
-    const uri = Settings.current.voice;
-    const voice = speechSynthesis.getVoices().find((voice) => voice.voiceURI === uri);
-    if (voice) {
-        return voice;
-    }
-    else {
-        warn(`Voice "${uri}" not found, reverting to default`);
-        const defaultVoice = findDefaultVoice();
-        Settings.update({ voice: defaultVoice.voiceURI });
-        return defaultVoice;
-    }
-};
 const Settings = createSettings({
-    voice: findDefaultVoice()?.voiceURI,
+    voice: null,
     volume: 100,
     speed: 1,
     filterNames: true,
@@ -456,6 +432,33 @@ const Settings = createSettings({
     unknownChannel: "The call"
 });
 
+const findDefaultVoice = () => {
+    const voices = speechSynthesis.getVoices();
+    if (voices.length === 0) {
+        error("No speech synthesis voices available");
+        alert(getMeta().name, React.createElement(Text, { color: "text-normal" },
+            "Electron does not have any Speech Synthesis Voices available on your system.",
+            React.createElement("br", null),
+            "The plugin will be unable to function properly."));
+        return null;
+    }
+    else {
+        return voices.find((voice) => voice.lang === "en-US") ?? voices[0];
+    }
+};
+const findCurrentVoice = () => {
+    const uri = Settings.current.voice;
+    const voice = speechSynthesis.getVoices().find((voice) => voice.voiceURI === uri);
+    if (voice) {
+        return voice;
+    }
+    else {
+        warn(`Voice "${uri}" not found, reverting to default`);
+        const defaultVoice = findDefaultVoice();
+        Settings.update({ voice: defaultVoice.voiceURI });
+        return defaultVoice;
+    }
+};
 const speak = (message) => {
     const { volume, speed } = Settings.current;
     const utterance = new SpeechSynthesisUtterance(message);
@@ -525,35 +528,41 @@ const SettingsPanel = () => {
             React.createElement(SwitchItem, { value: filterStages, onChange: (checked) => setSettings({ filterStages: checked }), note: "Disable notifications for stage voice channels." }, "Enable Stage Filter")),
         React.createElement(FormSection, null,
             React.createElement(FormTitle, { tag: "h3" }, "Notifications"),
-            React.createElement(FormText, { type: "description", className: margins.marginBottom20 }, "$user will get replaced with the respective User Nickname, $username with the User Account name and $channel with the respective Voice Channel name.")),
-        Object.entries(titles).map(([key, title]) => (React.createElement(FormItem, { key: key, className: margins.marginBottom20 },
-            React.createElement(FormTitle, null, title),
-            React.createElement(Flex, { align: Flex.Align.CENTER },
-                React.createElement(Flex.Child, { grow: 1 },
-                    React.createElement("div", null,
-                        React.createElement(TextInput, { value: settings.notifs[key].message, placeholder: defaults.notifs[key].message, onChange: (value) => {
+            React.createElement(FormText, { type: "description", className: margins.marginBottom20 },
+                React.createElement(Text, { tag: "span", variant: "code" }, "$user"),
+                " will get replaced with the respective User Nickname, ",
+                React.createElement(Text, { tag: "span", variant: "code" }, "$username"),
+                " with the User Account name and ",
+                React.createElement(Text, { tag: "span", variant: "code" }, "$channel"),
+                " with the respective Voice Channel name."),
+            Object.entries(titles).map(([key, title]) => (React.createElement(FormItem, { key: key, className: margins.marginBottom20 },
+                React.createElement(FormTitle, null, title),
+                React.createElement(Flex, { align: Flex.Align.CENTER },
+                    React.createElement(Flex.Child, { grow: 1 },
+                        React.createElement("div", null,
+                            React.createElement(TextInput, { value: settings.notifs[key].message, placeholder: defaults.notifs[key].message, onChange: (value) => {
+                                    const { notifs } = settings;
+                                    notifs[key].message = value;
+                                    setSettings({ notifs });
+                                } }))),
+                    React.createElement(Flex.Child, { grow: 0 },
+                        React.createElement(Switch, { checked: settings.notifs[key].enabled, onChange: (value) => {
                                 const { notifs } = settings;
-                                notifs[key].message = value;
+                                notifs[key].enabled = value;
                                 setSettings({ notifs });
-                            } }))),
-                React.createElement(Flex.Child, { grow: 0 },
-                    React.createElement(Switch, { checked: settings.notifs[key].enabled, onChange: (value) => {
-                            const { notifs } = settings;
-                            notifs[key].enabled = value;
-                            setSettings({ notifs });
-                        } })),
-                React.createElement(Flex.Child, { grow: 0 },
-                    React.createElement(Button, { size: Button.Sizes.SMALL, onClick: () => speak(settings.notifs[key].message
-                            .split("$user").join("user")
-                            .split("$channel").join("channel")) }, "Test")))))),
-        React.createElement(FormItem, { key: "unknownChannel", className: margins.marginBottom20 },
-            React.createElement(FormTitle, null, "Unknown Channel Name"),
-            React.createElement(Flex, { align: Flex.Align.CENTER },
-                React.createElement(Flex.Child, { grow: 1 },
-                    React.createElement("div", null,
-                        React.createElement(TextInput, { value: settings.unknownChannel, placeholder: defaults.unknownChannel, onChange: (value) => setSettings({ unknownChannel: value }) }))),
-                React.createElement(Flex.Child, { grow: 0 },
-                    React.createElement(Button, { size: Button.Sizes.SMALL, onClick: () => speak(settings.unknownChannel) }, "Test"))))));
+                            } })),
+                    React.createElement(Flex.Child, { grow: 0 },
+                        React.createElement(Button, { size: Button.Sizes.SMALL, onClick: () => speak(settings.notifs[key].message
+                                .split("$user").join("user")
+                                .split("$channel").join("channel")) }, "Test")))))),
+            React.createElement(FormItem, { key: "unknownChannel", className: margins.marginBottom20 },
+                React.createElement(FormTitle, null, "Unknown Channel Name"),
+                React.createElement(Flex, { align: Flex.Align.CENTER },
+                    React.createElement(Flex.Child, { grow: 1 },
+                        React.createElement("div", null,
+                            React.createElement(TextInput, { value: settings.unknownChannel, placeholder: defaults.unknownChannel, onChange: (value) => setSettings({ unknownChannel: value }) }))),
+                    React.createElement(Flex.Child, { grow: 0 },
+                        React.createElement(Button, { size: Button.Sizes.SMALL, onClick: () => speak(settings.unknownChannel) }, "Test")))))));
 };
 
 const selfMuteHandler = () => {
@@ -611,6 +620,11 @@ const voiceStateHandler = (action) => {
 };
 const index = createPlugin({
     start() {
+        const voice = findDefaultVoice()?.voiceURI;
+        Settings.defaults.voice = voice;
+        if (!Settings.current.voice) {
+            Settings.update({ voice });
+        }
         saveStates();
         Dispatcher.subscribe("VOICE_STATE_UPDATES", voiceStateHandler);
         log("Subscribed to voice state actions");
