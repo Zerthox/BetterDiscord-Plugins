@@ -1,39 +1,7 @@
-import {createSettings, SettingsType, Logger, Utils, React, getMeta} from "dium";
-import {Text} from "@dium/components";
-
-export const findDefaultVoice = (): SpeechSynthesisVoice => {
-    const voices = speechSynthesis.getVoices();
-    if (voices.length === 0) {
-        Logger.error("No speech synthesis voices available");
-        Utils.alert(
-            getMeta().name,
-            <Text color="text-normal">
-                Electron does not have any Speech Synthesis Voices available on your system.
-                <br/>
-                The plugin will be unable to function properly.
-            </Text>
-        );
-        return null;
-    } else {
-        return voices.find((voice) => voice.lang === "en-US") ?? voices[0];
-    }
-};
-
-export const findCurrentVoice = (): SpeechSynthesisVoice => {
-    const uri = Settings.current.voice;
-    const voice = speechSynthesis.getVoices().find((voice) => voice.voiceURI === uri);
-    if (voice) {
-        return voice;
-    } else {
-        Logger.warn(`Voice "${uri}" not found, reverting to default`);
-        const defaultVoice = findDefaultVoice();
-        Settings.update({voice: defaultVoice.voiceURI});
-        return defaultVoice;
-    }
-};
+import {createSettings, SettingsType} from "dium";
 
 export const Settings = createSettings({
-    voice: findDefaultVoice()?.voiceURI,
+    voice: null as string, // set later
     volume: 100,
     speed: 1,
     filterNames: true,

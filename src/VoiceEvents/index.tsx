@@ -10,7 +10,7 @@ import {
 import {MenuItem} from "@dium/components";
 import {Settings} from "./settings";
 import {SettingsPanel} from "./settings-panel";
-import {notify} from "./voice";
+import {findDefaultVoice, notify} from "./voice";
 
 const selfMuteHandler = () => {
     const userId = UserStore.getCurrentUser().id;
@@ -81,6 +81,13 @@ const voiceStateHandler = (action: VoiceStateUpdatesAction) => {
 
 export default createPlugin({
     start() {
+        // initialize default voice
+        const voice = findDefaultVoice()?.voiceURI;
+        Settings.defaults.voice = voice;
+        if (!Settings.current.voice) {
+            Settings.update({voice});
+        }
+
         // save initial voice states
         saveStates();
 
