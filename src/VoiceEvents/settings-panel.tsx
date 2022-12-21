@@ -115,69 +115,69 @@ export const SettingsPanel = (): JSX.Element => {
             <FormSection>
                 <FormTitle tag="h3">Notifications</FormTitle>
                 <FormText type="description" className={margins.marginBottom20}>
-                    $user will get replaced with the respective User Nickname, $username with the User Account name and $channel with the respective Voice Channel name.
+                    <Text tag="span" variant="code">$user</Text> will get replaced with the respective User Nickname, <Text tag="span" variant="code">$username</Text> with the User Account name and <Text tag="span" variant="code">$channel</Text> with the respective Voice Channel name.
                 </FormText>
-            </FormSection>
-            {Object.entries(titles).map(([key, title]) => (
-                <FormItem key={key} className={margins.marginBottom20}>
-                    <FormTitle>{title}</FormTitle>
+                {Object.entries(titles).map(([key, title]) => (
+                    <FormItem key={key} className={margins.marginBottom20}>
+                        <FormTitle>{title}</FormTitle>
+                        <Flex align={Flex.Align.CENTER}>
+                            <Flex.Child grow={1}>
+                                <div>
+                                    <TextInput
+                                        value={settings.notifs[key].message}
+                                        placeholder={defaults.notifs[key].message}
+                                        onChange={(value: string) => {
+                                            const {notifs} = settings;
+                                            notifs[key].message = value;
+                                            setSettings({notifs});
+                                        }}
+                                    />
+                                </div>
+                            </Flex.Child>
+                            <Flex.Child grow={0}>
+                                <Switch
+                                    checked={settings.notifs[key].enabled}
+                                    onChange={(value: boolean) => {
+                                        const {notifs} = settings;
+                                        notifs[key].enabled = value;
+                                        setSettings({notifs});
+                                    }}
+                                />
+                            </Flex.Child>
+                            <Flex.Child grow={0}>
+                                <Button
+                                    size={Button.Sizes.SMALL}
+                                    onClick={() => speak(
+                                        settings.notifs[key].message
+                                            .split("$user").join("user")
+                                            .split("$channel").join("channel")
+                                    )}
+                                >Test</Button>
+                            </Flex.Child>
+                        </Flex>
+                    </FormItem>
+                ))}
+                <FormItem key="unknownChannel" className={margins.marginBottom20}>
+                    <FormTitle>Unknown Channel Name</FormTitle>
                     <Flex align={Flex.Align.CENTER}>
                         <Flex.Child grow={1}>
                             <div>
                                 <TextInput
-                                    value={settings.notifs[key].message}
-                                    placeholder={defaults.notifs[key].message}
-                                    onChange={(value: string) => {
-                                        const {notifs} = settings;
-                                        notifs[key].message = value;
-                                        setSettings({notifs});
-                                    }}
+                                    value={settings.unknownChannel}
+                                    placeholder={defaults.unknownChannel}
+                                    onChange={(value: string) => setSettings({unknownChannel: value})}
                                 />
                             </div>
                         </Flex.Child>
                         <Flex.Child grow={0}>
-                            <Switch
-                                checked={settings.notifs[key].enabled}
-                                onChange={(value: boolean) => {
-                                    const {notifs} = settings;
-                                    notifs[key].enabled = value;
-                                    setSettings({notifs});
-                                }}
-                            />
-                        </Flex.Child>
-                        <Flex.Child grow={0}>
                             <Button
                                 size={Button.Sizes.SMALL}
-                                onClick={() => speak(
-                                    settings.notifs[key].message
-                                        .split("$user").join("user")
-                                        .split("$channel").join("channel")
-                                )}
+                                onClick={() => speak(settings.unknownChannel)}
                             >Test</Button>
                         </Flex.Child>
                     </Flex>
                 </FormItem>
-            ))}
-            <FormItem key="unknownChannel" className={margins.marginBottom20}>
-                <FormTitle>Unknown Channel Name</FormTitle>
-                <Flex align={Flex.Align.CENTER}>
-                    <Flex.Child grow={1}>
-                        <div>
-                            <TextInput
-                                value={settings.unknownChannel}
-                                placeholder={defaults.unknownChannel}
-                                onChange={(value: string) => setSettings({unknownChannel: value})}
-                            />
-                        </div>
-                    </Flex.Child>
-                    <Flex.Child grow={0}>
-                        <Button
-                            size={Button.Sizes.SMALL}
-                            onClick={() => speak(settings.unknownChannel)}
-                        >Test</Button>
-                    </Flex.Child>
-                </Flex>
-            </FormItem>
+            </FormSection>
         </>
     );
 };

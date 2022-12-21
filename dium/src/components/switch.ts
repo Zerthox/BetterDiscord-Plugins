@@ -1,7 +1,7 @@
-import {Finder} from "../api";
+import {Filters, Finder} from "../api";
 
 export interface SwitchItemProps {
-    value: boolean;
+    value?: boolean;
     disabled?: boolean;
     hideBorder?: boolean;
     tooltipNote?: any;
@@ -25,4 +25,7 @@ export interface SwitchProps {
     innerRef?: any;
 }
 
-export const Switch: React.FunctionComponent<SwitchProps> = /* @__PURE__ */ Finder.bySource([".onChange", ".focusProps"], {entries: true});
+export const Switch: React.FunctionComponent<SwitchProps> = /* @__PURE__ */ Finder.find(Filters.join(
+    Filters.byName("withDefaultColorContext()"),
+    (_, module) => Object.keys(module.exports).length === 1
+));

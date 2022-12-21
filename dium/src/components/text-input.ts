@@ -13,7 +13,7 @@ export interface TextInputProps {
     error?: any;
     minLength?: any;
     maxLength?: any;
-    onChange: (value: string) => void;
+    onChange?: (value: string) => void;
     className?: string;
     inputClassName?: string;
     inputPrefix?: any;
