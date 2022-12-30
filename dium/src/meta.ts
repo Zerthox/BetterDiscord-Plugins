@@ -5,6 +5,11 @@ export type Meta = BD.Meta;
 /** Meta of this plugin. */
 let meta: Meta = null;
 
+/**
+ * Returns the plugin meta.
+ *
+ * This will throw an error when accessed before the plugin was initialized.
+ */
 export const getMeta = (): Meta => {
     if (meta) {
         return meta;

@@ -41,12 +41,12 @@ export const byName = (name: string): Filter => {
     return (target: any) => (target?.displayName ?? target?.constructor?.displayName) === name;
 };
 
-/** Creates a filter searching by export properties. */
+/** Creates a filter searching by export property names. */
 export const byKeys = (...keys: string[]): Filter => {
-    return (target) => target instanceof Object && keys.every((prop) => prop in target);
+    return (target) => target instanceof Object && keys.every((key) => key in target);
 };
 
-/** Creates a filter searching by prototypes. */
+/** Creates a filter searching by prototype names. */
 export const byProtos = (...protos: string[]): Filter => {
     return (target: any) => target instanceof Object && target.prototype instanceof Object && protos.every((proto) => proto in target.prototype);
 };
@@ -68,12 +68,10 @@ export const bySource = (...fragments: TypeOrPredicate<string>[]): Filter => {
             const source = target.toString();
             const renderSource = (target.prototype as React.Component)?.render?.toString();
 
-            return fragments.every((fragment) => (
-                typeof fragment === "string" ? (
-                    source.includes(fragment) || renderSource?.includes(fragment)
-                ) : (
-                    fragment(source) || renderSource && fragment(renderSource)
-                )
+            return fragments.every((fragment) => typeof fragment === "string" ? (
+                source.includes(fragment) || renderSource?.includes(fragment)
+            ) : (
+                fragment(source) || renderSource && fragment(renderSource)
             ));
         } else {
             return false;
