@@ -25,7 +25,7 @@ export interface SwitchProps {
     innerRef?: any;
 }
 
-export const Switch: React.FunctionComponent<SwitchProps> = /* @__PURE__ */ Finder.find(Filters.join(
+export const Switch: React.FunctionComponent<SwitchProps> = /* @__PURE__ */ Finder.find(Filters.join<Finder.Filter>(
     Filters.byName("withDefaultColorContext()"),
     (_, module) => Object.keys(module.exports).length === 1
 ));
