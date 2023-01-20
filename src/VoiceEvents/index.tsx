@@ -5,7 +5,8 @@ import {
     UserStore,
     VoiceState,
     VoiceStateStore,
-    MediaEngineStore
+    MediaEngineStore,
+    Snowflake
 } from "@dium/modules";
 import {MenuItem} from "@dium/components";
 import {Settings} from "./settings";
@@ -29,7 +30,7 @@ interface VoiceStateUpdatesAction {
     voiceStates: VoiceState[];
 }
 
-let prevStates: Record<string, VoiceState> = {};
+let prevStates: Record<Snowflake, VoiceState> = {};
 const saveStates = () => {
     prevStates = {...VoiceStateStore.getVoiceStatesForChannel(SelectedChannelStore.getVoiceChannelId())};
 };
