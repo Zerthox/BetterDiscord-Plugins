@@ -147,7 +147,8 @@ function generateRollupConfig(name: string, inputPath: string, outputPath: strin
             }),
             bdMeta({
                 meta: {
-                    website: repository
+                    website: repository,
+                    source: `${repository}/tree/master/src/${path.basename(inputPath)}`
                 }
             }),
             bdWScript()
