@@ -16,7 +16,8 @@
     "bugs": "https://github.com/Zerthox/BetterDiscord-Plugins/issues",
     "homepage": "https://github.com/Zerthox/BetterDiscord-Plugins#readme",
     "workspaces": [
-        "packages/*"
+        "packages/*",
+        "src/*"
     ],
     "dependencies": {
         "@types/betterdiscord": "github:zerthox/betterdiscord-types",

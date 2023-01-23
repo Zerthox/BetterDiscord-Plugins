@@ -1,0 +1,9 @@
+{
+    "name": "BetterVolume",
+    "author": "Zerthox",
+    "version": "2.3.1",
+    "description": "Set user volume values manually instead of using a slider. Allows setting volumes higher than 200%.",
+    "dependencies": {
+        "dium": "^0.4.0"
+    }
+}
