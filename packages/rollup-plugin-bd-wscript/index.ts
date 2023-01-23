@@ -2,7 +2,7 @@ import path from "path";
 import {readFileSync} from "fs";
 import type {Plugin} from "rollup";
 
-const wscript = readFileSync(path.resolve(__dirname, "wscript.js"), "utf8").split("\n").filter((line) => line.trim().length > 0).join("\n");
+const wscript = readFileSync(path.join(__dirname, "wscript.js"), "utf8").split("\n").filter((line) => line.trim().length > 0).join("\n");
 
 /**
  * Rollup plugin for BetterDiscord WScript warning generation.

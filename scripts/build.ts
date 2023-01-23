@@ -1,14 +1,14 @@
 import path from "path";
-import {promises as fs, readdirSync} from "fs";
+import {readdirSync} from "fs";
 import minimist from "minimist";
 import chalk from "chalk";
 import * as rollup from "rollup";
 import styleModules from "rollup-plugin-style-modules";
-import rollupConfig from "../rollup.config";
-import {repository} from "../package.json";
+import {resolvePkg, readMetaFromPkg} from "bd-meta";
 import bdMeta from "rollup-plugin-bd-meta";
 import bdWScript from "rollup-plugin-bd-wscript";
-import type {Meta} from "betterdiscord";
+import rollupConfig from "../rollup.config";
+import {repository} from "../package.json";
 
 const success = (msg: string) => console.log(chalk.green(msg));
 const warn = (msg: string) => console.warn(chalk.yellow(`Warn: ${msg}`));
@@ -75,8 +75,8 @@ if (args.watch) {
 }
 
 async function build(inputPath: string, outputPath: string): Promise<void> {
-    const meta = await readMeta(inputPath);
-    const config = generateRollupConfig(inputPath, outputPath, meta);
+    const meta = await readMetaFromPkg(await resolvePkg(inputPath));
+    const config = generateRollupConfig(meta.name, inputPath, outputPath);
 
     // bundle plugin
     const bundle = await rollup.rollup(config);
@@ -87,9 +87,9 @@ async function build(inputPath: string, outputPath: string): Promise<void> {
 }
 
 async function watch(inputPath: string, outputPath: string): Promise<void> {
-    const meta = await readMeta(inputPath);
-    const {plugins, ...config} = generateRollupConfig(inputPath, outputPath, meta);
-    const metaPath = resolvePluginMeta(inputPath);
+    const pkgPath = await resolvePkg(inputPath);
+    const meta = await readMetaFromPkg(pkgPath);
+    const {plugins, ...config} = generateRollupConfig(meta.name, inputPath, outputPath);
 
     // start watching
     const watcher = rollup.watch({
@@ -97,9 +97,9 @@ async function watch(inputPath: string, outputPath: string): Promise<void> {
         plugins: [
             plugins,
             {
-                name: "meta-watcher",
+                name: "package-watcher",
                 buildStart() {
-                    this.addWatchFile(metaPath);
+                    this.addWatchFile(pkgPath);
                 }
             }
         ]
@@ -116,7 +116,7 @@ async function watch(inputPath: string, outputPath: string): Promise<void> {
     // restart on config changes
     watcher.on("change", (file) => {
         // check for config changes
-        if (file === metaPath) {
+        if (file === pkgPath) {
             watchers[inputPath].close();
             watch(inputPath, outputPath);
         }
@@ -127,25 +127,11 @@ async function watch(inputPath: string, outputPath: string): Promise<void> {
     watchers[inputPath] = watcher;
 }
 
-function resolvePluginMeta(inputPath: string): string {
-    return path.resolve(inputPath, "meta.json");
-}
-
-async function readMeta(inputPath: string): Promise<Meta> {
-    const meta = JSON.parse(await fs.readFile(resolvePluginMeta(inputPath), "utf8")) as Meta;
-    return {
-        ...meta,
-        authorLink: meta.authorLink ?? `https://github.com/${meta.author}`,
-        website: meta.website ?? repository,
-        source: meta.source ?? `${repository}/tree/master/src/${path.basename(inputPath)}`
-    };
-}
-
 interface RollupConfig extends Omit<rollup.RollupOptions, "output"> {
     output: rollup.OutputOptions;
 }
 
-function generateRollupConfig(inputPath: string, outputPath: string, meta: Meta): RollupConfig {
+function generateRollupConfig(name: string, inputPath: string, outputPath: string): RollupConfig {
     const {output, plugins, ...rest} = rollupConfig;
 
     return {
@@ -155,11 +141,15 @@ function generateRollupConfig(inputPath: string, outputPath: string, meta: Meta)
             plugins,
             styleModules({
                 modules: {
-                    generateScopedName: `[local]-${meta.name}`
+                    generateScopedName: `[local]-${name}`
                 },
                 cleanup: true
             }),
-            bdMeta({meta}),
+            bdMeta({
+                meta: {
+                    website: repository
+                }
+            }),
             bdWScript()
         ],
         output: {

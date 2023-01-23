@@ -1,0 +1,11 @@
+{
+    "name": "bd-meta",
+    "version": "0.1.0",
+    "author": "Zerthox",
+    "dependencies": {
+        "@types/betterdiscord": "github:zerthox/betterdiscord-types",
+        "lodash.camelcase": "^4.3.0",
+        "lodash.upperfirst": "^4.3.1",
+        "type-fest": "^3.5.3"
+    }
+}
