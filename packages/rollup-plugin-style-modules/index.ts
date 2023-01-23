@@ -20,7 +20,7 @@ export function styleModules({modules, cleanup = true}: Options = {}): Plugin {
     const filter = (id: string) => /\.module\.(css|scss|sass)$/.test(id);
 
     return {
-        name: "styleModules",
+        name: "style-modules",
         async transform(code, id) {
             if (filter(id)) {
                 // we expect stringified css string to be the default export

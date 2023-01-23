@@ -3,7 +3,7 @@ import {promises as fs, readdirSync, readFileSync} from "fs";
 import minimist from "minimist";
 import chalk from "chalk";
 import * as rollup from "rollup";
-import styleModules from "./style-modules";
+import styleModules from "rollup-plugin-style-modules";
 import rollupConfig from "../rollup.config";
 import {repository} from "../package.json";
 import type {Meta} from "betterdiscord";

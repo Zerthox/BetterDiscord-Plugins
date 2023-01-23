@@ -6,7 +6,7 @@
         "esModuleInterop": true,
         "resolveJsonModule": true,
         "paths": {
-            "@dium/*": ["./dium/src/*"]
+            "@dium/*": ["./packages/dium/src/*"]
         }
     },
     "ts-node": {

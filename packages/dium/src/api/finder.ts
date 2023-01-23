@@ -29,6 +29,7 @@ export const byEntries = (...filters: Filter[]): any => find(Filters.join(...fil
 export const byName = (name: string, options?: FindOptions): any => find(Filters.byName(name), options);
 
 /** Finds a module using property names of its export. */
+// TODO: using spread here turns an accidentally passed string into a single character array
 export const byKeys = (keys: string[], options?: FindOptions): any => find(Filters.byKeys(...keys), options);
 
 /** Finds a module using prototype names of its export. */
