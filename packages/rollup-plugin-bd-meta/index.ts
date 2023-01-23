@@ -4,12 +4,13 @@ import {resolvePkg, readMetaFromPkg, writeMeta, Meta} from "bd-meta";
 
 export interface Options {
     meta?: Partial<Meta>;
+    authorGithub?: boolean;
 }
 
 /**
  * Rollup plugin for BetterDiscord plugin meta generation.
  */
-export function bdMeta(options: Options = {}): Plugin {
+export function bdMeta({meta, authorGithub}: Options = {}): Plugin {
     const pkgFiles: Record<string, string> = {};
 
     return {
@@ -39,15 +40,16 @@ export function bdMeta(options: Options = {}): Plugin {
             async handler(code, chunk) {
                 if (chunk.isEntry) {
                     const pkg = pkgFiles[chunk.facadeModuleId];
-                    return {
-                        code: writeMeta({
-                            ...pkg ? await readMetaFromPkg(pkg) : {},
-                            ...options.meta
-                        }) + code,
-                        map: {
-                            mappings: ""
-                        }
+                    const combinedMeta = {
+                        ...pkg ? await readMetaFromPkg(pkg, {authorGithub}) : {},
+                        ...meta
                     };
+                    if (Object.keys(combinedMeta).length > 0) {
+                        return {
+                            code: writeMeta(combinedMeta) + code,
+                            map: {mappings: ""}
+                        };
+                    }
                 }
             }
         }

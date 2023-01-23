@@ -33,13 +33,17 @@ export async function resolvePkg(dir: string): Promise<string> {
     return undefined;
 }
 
-export async function readMetaFromPkg(file: string): Promise<Meta> {
+export interface Options {
+    authorGithub?: boolean;
+}
+
+export async function readMetaFromPkg(file: string, {authorGithub = false}: Options = {}): Promise<Meta> {
     const pkg = JSON.parse(await fs.readFile(file, "utf8")) as PackageWithMeta;
     return {
         name: upperFirst(camelCase(pkg.name)),
         version: pkg.version,
         author: typeof pkg.author === "string" ? pkg.author : pkg.author.name,
-        authorLink: typeof pkg.author === "object" ? pkg.author.url : undefined,
+        authorLink: typeof pkg.author === "object" ? pkg.author.url : (authorGithub ? `https://github.com/${pkg.author}` : undefined),
         description: pkg.description,
         website: pkg.homepage,
         ...pkg.meta
