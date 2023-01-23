@@ -1,3 +1,4 @@
+/* eslint-disable */
 var pluginName = WScript.ScriptName.split(".")[0];
 var shell = WScript.CreateObject("WScript.Shell");
 
