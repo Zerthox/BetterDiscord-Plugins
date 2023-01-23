@@ -1,0 +1,11 @@
+{
+    "name": "rollup-plugin-bd-wscript",
+    "version": "0.1.0",
+    "author": "Zerthox",
+    "peerDependencies": {
+        "rollup": "^3.1.0"
+    },
+    "devDependencies": {
+        "rollup": "^3.10.1"
+    }
+}

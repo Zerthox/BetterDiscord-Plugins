@@ -24,6 +24,8 @@
         "@types/react": "^17.0.52",
         "@types/react-dom": "^17.0.18",
         "dium": "^0.4.0",
+        "rollup-plugin-bd-meta": "^0.1.0",
+        "rollup-plugin-bd-wscript": "^0.1.0",
         "rollup-plugin-style-modules": "^0.1.0"
     },
     "devDependencies": {

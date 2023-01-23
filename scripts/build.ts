@@ -1,11 +1,13 @@
 import path from "path";
-import {promises as fs, readdirSync, readFileSync} from "fs";
+import {promises as fs, readdirSync} from "fs";
 import minimist from "minimist";
 import chalk from "chalk";
 import * as rollup from "rollup";
 import styleModules from "rollup-plugin-style-modules";
 import rollupConfig from "../rollup.config";
 import {repository} from "../package.json";
+import bdMeta from "rollup-plugin-bd-meta";
+import bdWScript from "rollup-plugin-bd-wscript";
 import type {Meta} from "betterdiscord";
 
 const success = (msg: string) => console.log(chalk.green(msg));
@@ -15,7 +17,6 @@ const error = (msg: string) => console.error(chalk.red(`Error: ${msg}`));
 // find sources
 const sourceFolder = path.resolve(__dirname, "../src");
 const sourceEntries = readdirSync(sourceFolder, {withFileTypes: true}).filter((entry) => entry.isDirectory());
-const wscript = readFileSync(path.resolve(__dirname, "wscript.js"), "utf8").split("\n").filter((line) => line.trim().length > 0).join("\n");
 
 // parse args
 const args = minimist(process.argv.slice(2), {boolean: ["dev", "watch"]});
@@ -140,14 +141,6 @@ async function readMeta(inputPath: string): Promise<Meta> {
     };
 }
 
-function buildMeta(meta: Meta): string {
-    let result = "/**";
-    for (const [key, value] of Object.entries(meta)) {
-        result += `\n * @${key} ${value.replace(/\n/g, "\\n")}`;
-    }
-    return result + "\n**/\n";
-}
-
 interface RollupConfig extends Omit<rollup.RollupOptions, "output"> {
     output: rollup.OutputOptions;
 }
@@ -165,13 +158,13 @@ function generateRollupConfig(inputPath: string, outputPath: string, meta: Meta)
                     generateScopedName: `[local]-${meta.name}`
                 },
                 cleanup: true
-            })
+            }),
+            bdMeta({meta}),
+            bdWScript()
         ],
         output: {
             ...output,
-            file: outputPath,
-            banner: buildMeta(meta) + `\n/*@cc_on @if (@_jscript)\n${wscript}\n@else @*/\n`,
-            footer: "\n/*@end @*/"
+            file: outputPath
         }
     };
 }
