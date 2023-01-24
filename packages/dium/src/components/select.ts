@@ -44,5 +44,5 @@ interface SelectModule {
 
 export const {Select, SingleSelect}: SelectModule = /* @__PURE */ Finder.demangle({
     Select: Filters.bySource(".renderOptionLabel", ".renderOptionValue"),
-    SingleSelect: Filters.bySource(".onChange", ".jsx")
+    SingleSelect: Filters.bySource("select:", "onChange:")
 }, ["Select"]);
