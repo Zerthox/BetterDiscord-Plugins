@@ -1,9 +1,9 @@
 /**
  * @name BetterFolders
+ * @version 3.4.1
  * @author Zerthox
- * @version 3.4.0
- * @description Add new functionality to server folders. Custom Folder Icons. Close other folders on open.
  * @authorLink https://github.com/Zerthox
+ * @description Adds new functionality to server folders. Custom Folder Icons. Close other folders on open.
  * @website https://github.com/Zerthox/BetterDiscord-Plugins
  * @source https://github.com/Zerthox/BetterDiscord-Plugins/tree/master/src/BetterFolders
 **/
@@ -71,22 +71,21 @@ const save = (key, value) => BdApi.Data.save(getMeta().name, key, value);
 const byName$1 = (name) => {
     return (target) => (target?.displayName ?? target?.constructor?.displayName) === name;
 };
-const byProps$1 = (...props) => {
-    return (target) => target instanceof Object && props.every((prop) => prop in target);
+const byKeys$1 = (...keys) => {
+    return (target) => target instanceof Object && keys.every((key) => key in target);
 };
 const byProtos = (...protos) => {
     return (target) => target instanceof Object && target.prototype instanceof Object && protos.every((proto) => proto in target.prototype);
 };
 const bySource$1 = (...fragments) => {
     return (target) => {
+        while (target instanceof Object && "$$typeof" in target) {
+            target = target.render ?? target.type;
+        }
         if (target instanceof Function) {
             const source = target.toString();
             const renderSource = target.prototype?.render?.toString();
-            return fragments.every((fragment) => (typeof fragment === "string" ? (source.includes(fragment) || renderSource?.includes(fragment)) : (fragment(source) || renderSource && fragment(renderSource))));
-        }
-        else if (target instanceof Object && "$$typeof" in target) {
-            const source = (target.render ?? target.type)?.toString();
-            return source && fragments.every((fragment) => typeof fragment === "string" ? source.includes(fragment) : fragment(source));
+            return fragments.every((fragment) => typeof fragment === "string" ? (source.includes(fragment) || renderSource?.includes(fragment)) : (fragment(source) || renderSource && fragment(renderSource)));
         }
         else {
             return false;
@@ -131,7 +130,7 @@ const find = (filter, { resolve = true, entries = false } = {}) => BdApi.Webpack
     searchExports: entries
 });
 const byName = (name, options) => find(byName$1(name), options);
-const byProps = (props, options) => find(byProps$1(...props), options);
+const byKeys = (keys, options) => find(byKeys$1(...keys), options);
 const bySource = (contents, options) => find(bySource$1(...contents), options);
 const demangle = (mapping, required, proxy = false) => {
     const req = required ?? Object.keys(mapping);
@@ -200,10 +199,10 @@ const inject = (styles) => {
 };
 const clear = () => BdApi.DOM.removeStyle(getMeta().name);
 
-const ClientActions = /* @__PURE__ */ byProps(["toggleGuildFolderExpand"]);
+const ClientActions = /* @__PURE__ */ byKeys(["toggleGuildFolderExpand"]);
 
 const Flux = /* @__PURE__ */ demangle({
-    default: byProps$1("Store", "connectStores"),
+    default: byKeys$1("Store", "connectStores"),
     Dispatcher: byProtos("dispatch"),
     Store: byProtos("emitChange"),
     BatchedStoreListener: byProtos("attach", "detach"),
@@ -217,9 +216,9 @@ const { React } = BdApi;
 const { ReactDOM } = BdApi;
 const classNames = /* @__PURE__ */ find((exports) => exports instanceof Object && exports.default === exports && Object.keys(exports).length === 1);
 
-const Button = /* @__PURE__ */ byProps(["Colors", "Link"], { entries: true });
+const Button = /* @__PURE__ */ byKeys(["Colors", "Link"], { entries: true });
 
-const Flex = /* @__PURE__ */ byProps(["Child", "Justify"], { entries: true });
+const Flex = /* @__PURE__ */ byKeys(["Child", "Justify"], { entries: true });
 
 const { FormSection, FormItem, FormTitle, FormText, FormDivider, FormNotice } = /* @__PURE__ */ demangle({
     FormSection: bySource$1(".titleClassName", ".sectionTitle"),
@@ -234,9 +233,12 @@ const GuildsNav = /* @__PURE__ */ bySource(["guildsnav"], { entries: true });
 
 const RadioGroup = /* @__PURE__ */ bySource([".radioItemClassName", ".options"], { entries: true });
 
-const SwitchItem = /* @__PURE__ */ bySource([".helpdeskArticleId"], { entries: true });
+const { SwitchItem, Switch } = /* @__PURE__ */ demangle({
+    SwitchItem: bySource$1(".tooltipNote"),
+    Switch: byName$1("withDefaultColorContext()")
+});
 
-const margins = /* @__PURE__ */ byProps(["marginLarge"]);
+const margins = /* @__PURE__ */ byKeys(["marginLarge"]);
 
 const [getInstanceFromNode, getNodeFromInstance, getFiberCurrentPropsFromNode, enqueueStateRestore, restoreStateIfNeeded, batchedUpdates] = ReactDOM?.__SECRET_INTERNALS_DO_NOT_USE_OR_YOU_WILL_BE_FIRED?.Events ?? [];
 const ReactDOMInternals = {
@@ -509,7 +511,7 @@ const folderModalPatch = ({ context, result }, FolderIcon) => {
     };
 };
 
-const guildStyles = byProps(["guilds", "base"]);
+const guildStyles = byKeys(["guilds", "base"]);
 const getGuildsOwner = () => findOwner(getFiber(document.getElementsByClassName(guildStyles.guilds)?.[0]));
 const triggerRerender = async (guildsFiber) => {
     if (await forceFullRerender(guildsFiber)) {
