@@ -1,9 +1,9 @@
 /**
  * @name VoiceEvents
+ * @version 2.5.1
  * @author Zerthox
- * @version 2.5.0
- * @description Adds TTS Event Notifications to your selected Voice Channel. TeamSpeak feeling.
  * @authorLink https://github.com/Zerthox
+ * @description Adds TTS Event Notifications to your selected Voice Channel. TeamSpeak feeling.
  * @website https://github.com/Zerthox/BetterDiscord-Plugins
  * @source https://github.com/Zerthox/BetterDiscord-Plugins/tree/master/src/VoiceEvents
 **/
@@ -68,14 +68,11 @@ const setMeta = (newMeta) => {
 const load = (key) => BdApi.Data.load(getMeta().name, key);
 const save = (key, value) => BdApi.Data.save(getMeta().name, key, value);
 
-const join = (...filters) => {
-    return ((...args) => filters.every((filter) => filter(...args)));
-};
 const byName$1 = (name) => {
     return (target) => (target?.displayName ?? target?.constructor?.displayName) === name;
 };
 const byKeys$1 = (...keys) => {
-    return (target) => target instanceof Object && keys.every((prop) => prop in target);
+    return (target) => target instanceof Object && keys.every((key) => key in target);
 };
 const byProtos = (...protos) => {
     return (target) => target instanceof Object && target.prototype instanceof Object && protos.every((proto) => proto in target.prototype);
@@ -88,7 +85,7 @@ const bySource$1 = (...fragments) => {
         if (target instanceof Function) {
             const source = target.toString();
             const renderSource = target.prototype?.render?.toString();
-            return fragments.every((fragment) => (typeof fragment === "string" ? (source.includes(fragment) || renderSource?.includes(fragment)) : (fragment(source) || renderSource && fragment(renderSource))));
+            return fragments.every((fragment) => typeof fragment === "string" ? (source.includes(fragment) || renderSource?.includes(fragment)) : (fragment(source) || renderSource && fragment(renderSource)));
         }
         else {
             return false;
@@ -232,13 +229,15 @@ const { Menu: Menu, Group: MenuGroup, Item: MenuItem, Separator: MenuSeparator, 
 
 const { Select, SingleSelect } =  demangle({
     Select: bySource$1(".renderOptionLabel", ".renderOptionValue"),
-    SingleSelect: bySource$1(".onChange", ".jsx")
+    SingleSelect: bySource$1("select:", "onChange:")
 }, ["Select"]);
 
 const Slider = /* @__PURE__ */ bySource([".asValueChanges"], { entries: true });
 
-const SwitchItem = /* @__PURE__ */ bySource([".helpdeskArticleId"], { entries: true });
-const Switch = /* @__PURE__ */ find(join(byName$1("withDefaultColorContext()"), (_, module) => Object.keys(module.exports).length === 1));
+const { SwitchItem, Switch } = /* @__PURE__ */ demangle({
+    SwitchItem: bySource$1(".tooltipNote"),
+    Switch: byName$1("withDefaultColorContext()")
+});
 
 const { TextInput, TextInputError } = /* @__PURE__ */ demangle({
     TextInput: (target) => target?.defaultProps?.type === "text",
