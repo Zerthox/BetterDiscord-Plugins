@@ -13,8 +13,6 @@ export interface SwitchItemProps {
     children?: React.ReactNode;
 }
 
-export const SwitchItem: React.FunctionComponent<SwitchItemProps> = /* @__PURE__ */ Finder.bySource([".helpdeskArticleId"], {entries: true});
-
 export interface SwitchProps {
     id?: any;
     onChange?: (checked: boolean) => void;
@@ -25,7 +23,13 @@ export interface SwitchProps {
     innerRef?: any;
 }
 
-export const Switch: React.FunctionComponent<SwitchProps> = /* @__PURE__ */ Finder.find(Filters.join<Finder.Filter>(
-    Filters.byName("withDefaultColorContext()"),
-    (_, module) => Object.keys(module.exports).length === 1
-));
+interface SwitchModule {
+    SwitchItem: React.FunctionComponent<SwitchItemProps>;
+    Switch: React.FunctionComponent<SwitchProps>;
+}
+
+// merged with form, but treat as separate modules in case unmerged
+export const {SwitchItem, Switch}: SwitchModule = /* @__PURE__ */ Finder.demangle({
+    SwitchItem: Filters.bySource(".tooltipNote"),
+    Switch: Filters.byName("withDefaultColorContext()")
+});
