@@ -1,9 +1,9 @@
 /**
  * @name CollapseEmbeds
+ * @version 0.2.3
  * @author Zerthox
- * @version 0.2.2
- * @description Adds a button to collapse embeds & attachments.
  * @authorLink https://github.com/Zerthox
+ * @description Adds a button to collapse embeds & attachments.
  * @website https://github.com/Zerthox/BetterDiscord-Plugins
  * @source https://github.com/Zerthox/BetterDiscord-Plugins/tree/master/src/CollapseEmbeds
 **/
@@ -68,8 +68,11 @@ const setMeta = (newMeta) => {
 const load = (key) => BdApi.Data.load(getMeta().name, key);
 const save = (key, value) => BdApi.Data.save(getMeta().name, key, value);
 
-const byProps$1 = (...props) => {
-    return (target) => target instanceof Object && props.every((prop) => prop in target);
+const byName = (name) => {
+    return (target) => (target?.displayName ?? target?.constructor?.displayName) === name;
+};
+const byKeys$1 = (...keys) => {
+    return (target) => target instanceof Object && keys.every((key) => key in target);
 };
 const byProtos$1 = (...protos) => {
     return (target) => target instanceof Object && target.prototype instanceof Object && protos.every((proto) => proto in target.prototype);
@@ -82,7 +85,7 @@ const bySource$1 = (...fragments) => {
         if (target instanceof Function) {
             const source = target.toString();
             const renderSource = target.prototype?.render?.toString();
-            return fragments.every((fragment) => (typeof fragment === "string" ? (source.includes(fragment) || renderSource?.includes(fragment)) : (fragment(source) || renderSource && fragment(renderSource))));
+            return fragments.every((fragment) => typeof fragment === "string" ? (source.includes(fragment) || renderSource?.includes(fragment)) : (fragment(source) || renderSource && fragment(renderSource)));
         }
         else {
             return false;
@@ -126,7 +129,7 @@ const find = (filter, { resolve = true, entries = false } = {}) => BdApi.Webpack
     defaultExport: resolve,
     searchExports: entries
 });
-const byProps = (props, options) => find(byProps$1(...props), options);
+const byKeys = (keys, options) => find(byKeys$1(...keys), options);
 const byProtos = (protos, options) => find(byProtos$1(...protos), options);
 const bySource = (contents, options) => find(bySource$1(...contents), options);
 const demangle = (mapping, required, proxy = false) => {
@@ -189,7 +192,7 @@ const inject = (styles) => {
 const clear = () => BdApi.DOM.removeStyle(getMeta().name);
 
 const Flux = /* @__PURE__ */ demangle({
-    default: byProps$1("Store", "connectStores"),
+    default: byKeys$1("Store", "connectStores"),
     Dispatcher: byProtos$1("dispatch"),
     Store: byProtos$1("emitChange"),
     BatchedStoreListener: byProtos$1("attach", "detach"),
@@ -199,13 +202,13 @@ const Flux = /* @__PURE__ */ demangle({
 const { React } = BdApi;
 const classNames = /* @__PURE__ */ find((exports) => exports instanceof Object && exports.default === exports && Object.keys(exports).length === 1);
 
-const Button = /* @__PURE__ */ byProps(["Colors", "Link"], { entries: true });
+const Button = /* @__PURE__ */ byKeys(["Colors", "Link"], { entries: true });
 
 const Clickable = /* @__PURE__ */ bySource([".ignoreKeyPress"], { entries: true });
 
 const Embed = /* @__PURE__ */ byProtos(["renderSuppressButton"], { entries: true });
 
-const Flex = /* @__PURE__ */ byProps(["Child", "Justify"], { entries: true });
+const Flex = /* @__PURE__ */ byKeys(["Child", "Justify"], { entries: true });
 
 const { FormSection, FormItem, FormTitle, FormText, FormDivider, FormNotice } = /* @__PURE__ */ demangle({
     FormSection: bySource$1(".titleClassName", ".sectionTitle"),
@@ -218,11 +221,14 @@ const { FormSection, FormItem, FormTitle, FormText, FormDivider, FormNotice } = 
 
 const MessageFooter = /* @__PURE__ */ byProtos(["renderRemoveAttachmentConfirmModal"], { entries: true });
 
-const SwitchItem = /* @__PURE__ */ bySource([".helpdeskArticleId"], { entries: true });
+const { SwitchItem, Switch } = /* @__PURE__ */ demangle({
+    SwitchItem: bySource$1(".tooltipNote"),
+    Switch: byName("withDefaultColorContext()")
+});
 
 const Text = /* @__PURE__ */ bySource([".lineClamp", ".variant"], { entries: true });
 
-const margins = /* @__PURE__ */ byProps(["marginLarge"]);
+const margins = /* @__PURE__ */ byKeys(["marginLarge"]);
 
 const FCHook = ({ children: { type, props }, callback }) => {
     const result = type(props);
