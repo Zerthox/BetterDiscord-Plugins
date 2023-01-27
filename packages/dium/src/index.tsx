@@ -1,4 +1,4 @@
-import {Logger, Styles, Patcher, Lazy} from "./api";
+import {Logger, Finder, Styles, Patcher} from "./api";
 import {SettingsStore} from "./settings";
 import {React} from "./modules";
 import {SettingsContainer} from "./settings-container";
@@ -66,7 +66,7 @@ export const createPlugin = <T extends Record<string, any>>(
             start?.();
         },
         stop() {
-            Lazy.abort();
+            Finder.abort();
             Patcher.unpatchAll();
             Styles.clear();
             stop?.();

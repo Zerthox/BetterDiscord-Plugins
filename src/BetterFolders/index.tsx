@@ -1,4 +1,4 @@
-import {createPlugin, Logger, Filters, Finder, Lazy, Patcher, Utils, React, Fiber} from "dium";
+import {createPlugin, Logger, Filters, Finder, Patcher, Utils, React, Fiber} from "dium";
 import {ClientActions, ExpandedGuildFolderStore} from "@dium/modules";
 import {SwitchItem, GuildsNav} from "@dium/components";
 import {Settings} from "./settings";
@@ -102,7 +102,7 @@ export default createPlugin({
         triggerRerender(guildsOwner);
 
         // patch folder settings render
-        Lazy.waitFor(Filters.bySource("GUILD_FOLDER_NAME"), {entries: true}).then((FolderSettingsModal: FolderSettingsModal) => {
+        Finder.waitFor(Filters.bySource("GUILD_FOLDER_NAME"), {entries: true}).then((FolderSettingsModal: FolderSettingsModal) => {
             if (FolderSettingsModal) {
                 Patcher.after(
                     FolderSettingsModal.prototype,

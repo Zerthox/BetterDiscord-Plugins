@@ -1,4 +1,4 @@
-import {createPlugin, Finder, Filters, Lazy, Patcher, React} from "dium";
+import {createPlugin, Finder, Filters, Patcher, React} from "dium";
 import {Snowflake, MediaEngineStore, MediaEngineActions, MediaEngineContext} from "@dium/modules";
 import {MenuItem} from "@dium/components";
 import {NumberInput} from "./input";
@@ -21,7 +21,7 @@ export default createPlugin({
         // wait for context menu lazy load
         const filter = Filters.bySource("user-volume");
         const useUserVolumeItem = Finder.resolveKey(
-            await Lazy.waitFor(filter, {resolve: false}) as Record<string, UseUserVolumeItem>,
+            await Finder.waitFor(filter, {resolve: false}) as Record<string, UseUserVolumeItem>,
             filter
         );
 
