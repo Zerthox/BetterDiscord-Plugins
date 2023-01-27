@@ -4,6 +4,6 @@
     "version": "2.0.0",
     "description": "Emulate Windows, MacOS, Linux or Browser on any platform.\nWARNING: Emulating a different platform may cause unwanted side effects. Use at own risk.",
     "dependencies": {
-        "dium": "^0.4.0"
+        "dium": "*"
     }
 }

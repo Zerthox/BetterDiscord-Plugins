@@ -4,6 +4,6 @@
     "version": "0.2.3",
     "description": "Adds a button to collapse embeds & attachments.",
     "dependencies": {
-        "dium": "^0.4.0"
+        "dium": "*"
     }
 }

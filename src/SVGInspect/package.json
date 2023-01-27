@@ -4,6 +4,6 @@
     "version": "0.1.1",
     "description": "View all SVG components bundled in Discord",
     "dependencies": {
-        "dium": "^0.4.0"
+        "dium": "*"
     }
 }
