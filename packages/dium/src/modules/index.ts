@@ -7,6 +7,7 @@ export * from "./general";
 export * from "./guild";
 export * from "./message";
 export * from "./npm";
+export * from "./popout-window";
 export * from "./router";
 export * from "./user";
 
