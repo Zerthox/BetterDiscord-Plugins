@@ -40,7 +40,7 @@ type Keys = boolean | string[];
 
 const applyFilter = (filter: Finder.Filter, keys: Keys = ["default", "Z", "ZP"]) => (module: Webpack.Module) => {
     const {exports} = module;
-    const check = keys === true ? Object.keys(exports ?? {}) : (keys === false ? [] : keys);
+    const check = typeof keys === "boolean" ? (keys ? Object.keys(exports ?? {}) : []) : keys;
     return (
         filter(exports, module, String(module.id))
         || exports instanceof Object
