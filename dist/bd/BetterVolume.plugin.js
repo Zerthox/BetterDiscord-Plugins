@@ -1,9 +1,9 @@
 /**
  * @name BetterVolume
+ * @version 2.3.2
  * @author Zerthox
- * @version 2.3.1
- * @description Set user volume values manually instead of using a slider. Allows setting volumes higher than 200%.
  * @authorLink https://github.com/Zerthox
+ * @description Set user volume values manually instead of using a slider. Allows setting volumes higher than 200%.
  * @website https://github.com/Zerthox/BetterDiscord-Plugins
  * @source https://github.com/Zerthox/BetterDiscord-Plugins/tree/master/src/BetterVolume
 **/
@@ -68,19 +68,18 @@ const setMeta = (newMeta) => {
 const byName$1 = (name) => {
     return (target) => (target?.displayName ?? target?.constructor?.displayName) === name;
 };
-const byProps$1 = (...props) => {
-    return (target) => target instanceof Object && props.every((prop) => prop in target);
+const byKeys$1 = (...keys) => {
+    return (target) => target instanceof Object && keys.every((key) => key in target);
 };
 const bySource = (...fragments) => {
     return (target) => {
+        while (target instanceof Object && "$$typeof" in target) {
+            target = target.render ?? target.type;
+        }
         if (target instanceof Function) {
             const source = target.toString();
             const renderSource = target.prototype?.render?.toString();
-            return fragments.every((fragment) => (typeof fragment === "string" ? (source.includes(fragment) || renderSource?.includes(fragment)) : (fragment(source) || renderSource && fragment(renderSource))));
-        }
-        else if (target instanceof Object && "$$typeof" in target) {
-            const source = (target.render ?? target.type)?.toString();
-            return source && fragments.every((fragment) => typeof fragment === "string" ? source.includes(fragment) : fragment(source));
+            return fragments.every((fragment) => typeof fragment === "string" ? (source.includes(fragment) || renderSource?.includes(fragment)) : (fragment(source) || renderSource && fragment(renderSource)));
         }
         else {
             return false;
@@ -101,6 +100,7 @@ const mappedProxy = (target, mapping) => {
         },
         deleteProperty(target, prop) {
             delete target[map.get(prop) ?? prop];
+            map.delete(prop);
             return true;
         },
         has(target, prop) {
@@ -124,7 +124,7 @@ const find = (filter, { resolve = true, entries = false } = {}) => BdApi.Webpack
     searchExports: entries
 });
 const byName = (name, options) => find(byName$1(name), options);
-const byProps = (props, options) => find(byProps$1(...props), options);
+const byKeys = (keys, options) => find(byKeys$1(...keys), options);
 const resolveKey = (target, filter) => [target, Object.entries(target ?? {}).find(([, value]) => filter(value))?.[0]];
 const demangle = (mapping, required, proxy = false) => {
     const req = required ?? Object.keys(mapping);
@@ -139,7 +139,6 @@ const demangle = (mapping, required, proxy = false) => {
         Object.values(found ?? {}).find((value) => filter(value))
     ]));
 };
-
 let controller = new AbortController();
 const waitFor = (filter, { resolve = true, entries = false } = {}) => BdApi.Webpack.waitForModule(filter, {
     signal: controller.signal,
@@ -191,14 +190,16 @@ const inject = (styles) => {
 const clear = () => BdApi.DOM.removeStyle(getMeta().name);
 
 const MediaEngineStore = /* @__PURE__ */ byName("MediaEngineStore");
-const MediaEngineActions = /* @__PURE__ */ byProps(["setLocalVolume"]);
+const MediaEngineActions = /* @__PURE__ */ byKeys(["setLocalVolume"]);
+
+const ExperimentStore = /* @__PURE__ */ byName("ExperimentStore");
 
 const { React } = BdApi;
 const classNames = /* @__PURE__ */ find((exports) => exports instanceof Object && exports.default === exports && Object.keys(exports).length === 1);
 
-const Button = /* @__PURE__ */ byProps(["Colors", "Link"], { entries: true });
+const Button = /* @__PURE__ */ byKeys(["Colors", "Link"], { entries: true });
 
-const Flex = /* @__PURE__ */ byProps(["Child", "Justify"], { entries: true });
+const Flex = /* @__PURE__ */ byKeys(["Child", "Justify"], { entries: true });
 
 const { FormSection, FormItem, FormTitle, FormText, FormDivider, FormNotice } = /* @__PURE__ */ demangle({
     FormSection: bySource(".titleClassName", ".sectionTitle"),
@@ -211,7 +212,7 @@ const { FormSection, FormItem, FormTitle, FormText, FormDivider, FormNotice } = 
 
 const { Menu: Menu, Group: MenuGroup, Item: MenuItem, Separator: MenuSeparator, CheckboxItem: MenuCheckboxItem, RadioItem: MenuRadioItem, ControlItem: MenuControlItem } = BdApi.ContextMenu;
 
-const margins = /* @__PURE__ */ byProps(["marginLarge"]);
+const margins = /* @__PURE__ */ byKeys(["marginLarge"]);
 
 const SettingsContainer = ({ name, children, onReset }) => (React.createElement(FormSection, null,
     children,
@@ -244,17 +245,18 @@ const createPlugin = (plugin) => (meta) => {
     };
 };
 
-const styles = ".container-BetterVolume {\n  margin: 0 8px;\n  padding: 3px 6px;\n  background: var(--background-primary);\n  border-radius: 3px;\n  display: flex;\n}\n\n.input-BetterVolume {\n  margin-right: 2px;\n  flex-grow: 1;\n  background: transparent;\n  border: none;\n  color: var(--interactive-normal);\n  font-weight: 500;\n}\n.input-BetterVolume:hover::-webkit-inner-spin-button {\n  appearance: auto;\n}";
+const css = ".container-BetterVolume {\n  margin: 0 8px;\n  padding: 3px 6px;\n  background: var(--background-primary);\n  border-radius: 3px;\n  display: flex;\n}\n\n.input-BetterVolume {\n  margin-right: 2px;\n  flex-grow: 1;\n  background: transparent;\n  border: none;\n  color: var(--interactive-normal);\n  font-weight: 500;\n}\n.input-BetterVolume:hover::-webkit-inner-spin-button {\n  appearance: auto;\n}";
+const styles = {
+    container: "container-BetterVolume",
+    input: "input-BetterVolume",
+    unit: "unit-BetterVolume"
+};
 
-const AudioConvert = demangle({
-    amplitudeToPerceptual: bySource("Math.log10"),
-    perceptualToAmplitude: bySource("Math.pow(10")
-});
 const limit = (input, min, max) => Math.min(Math.max(input, min), max);
 const NumberInput = ({ value, min, max, fallback, onChange }) => {
     const [isEmpty, setEmpty] = React.useState(false);
-    return (React.createElement("div", { className: "container-BetterVolume" },
-        React.createElement("input", { type: "number", className: "input-BetterVolume", min: min, max: max, value: !isEmpty ? Math.round((value + Number.EPSILON) * 100) / 100 : "", onChange: ({ target }) => {
+    return (React.createElement("div", { className: styles.container },
+        React.createElement("input", { type: "number", className: styles.input, min: min, max: max, value: !isEmpty ? Math.round((value + Number.EPSILON) * 100) / 100 : "", onChange: ({ target }) => {
                 const value = limit(parseFloat(target.value), min, max);
                 const isNaN = Number.isNaN(value);
                 setEmpty(isNaN);
@@ -267,22 +269,33 @@ const NumberInput = ({ value, min, max, fallback, onChange }) => {
                     onChange(fallback);
                 }
             } }),
-        React.createElement("span", { className: "unit-BetterVolume" }, "%")));
+        React.createElement("span", { className: styles.unit }, "%")));
 };
+
+const AudioConvert = demangle({
+    amplitudeToPerceptual: bySource("Math.log10"),
+    perceptualToAmplitude: bySource("Math.pow(10")
+});
 const index = createPlugin({
-    async start() {
-        const filter = bySource("user-volume");
-        const useUserVolumeItem = resolveKey(await waitFor(filter, { resolve: false }), filter);
-        after(...useUserVolumeItem, ({ args: [userId, context], result }) => {
-            if (result) {
-                const volume = MediaEngineStore.getLocalVolume(userId, context);
-                return (React.createElement(React.Fragment, null,
-                    result,
-                    React.createElement(MenuItem, { id: "user-volume-input", render: () => (React.createElement(NumberInput, { value: AudioConvert.amplitudeToPerceptual(volume), min: 0, max: 999999, fallback: 100, onChange: (value) => MediaEngineActions.setLocalVolume(userId, AudioConvert.perceptualToAmplitude(value), context) })) })));
-            }
-        }, { name: "useUserVolumeItem" });
+    start() {
+        const audioExperiment = ExperimentStore.getUserExperimentDescriptor("2022-09_remote_audio_settings");
+        if (audioExperiment) {
+            audioExperiment.bucket = 0;
+        }
+        const useUserVolumeItemFilter = bySource("user-volume");
+        waitFor(useUserVolumeItemFilter, { resolve: false }).then((result) => {
+            const useUserVolumeItem = resolveKey(result, useUserVolumeItemFilter);
+            after(...useUserVolumeItem, ({ args: [userId, context], result }) => {
+                if (result) {
+                    const volume = MediaEngineStore.getLocalVolume(userId, context);
+                    return (React.createElement(React.Fragment, null,
+                        result,
+                        React.createElement(MenuItem, { id: "user-volume-input", render: () => (React.createElement(NumberInput, { value: AudioConvert.amplitudeToPerceptual(volume), min: 0, max: 999999, fallback: 100, onChange: (value) => MediaEngineActions.setLocalVolume(userId, AudioConvert.perceptualToAmplitude(value), context) })) })));
+                }
+            }, { name: "useUserVolumeItem" });
+        });
     },
-    styles
+    styles: css
 });
 
 module.exports = index;
