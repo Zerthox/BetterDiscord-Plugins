@@ -101,20 +101,21 @@ interface Callbacks {
     listeners: Set<Callback>;
     add(callback: Callback): void;
     addConditional(callback: Callback, condition: boolean): void;
-    remove(callback: Callback);
+    remove(callback: Callback): any;
     has(callback: Callback): boolean;
     hasAny(): boolean;
     invokeAll(): void;
 }
 
-declare class Store {
-    constructor(dispatcher: Dispatcher, actions: ActionHandlerRecord);
+export interface StoreClass {
+    new(dispatcher: Dispatcher, actions: ActionHandlerRecord): Store;
+    destroy(): any;
+    getAll(): any;
+    initialize(): any;
+    initialized: Promise<any>;
+}
 
-    static destroy(): any;
-    static getAll(): any;
-    static initialize(): any;
-    static initialized: Promise<any>;
-
+export interface Store {
     // private
     _isInitialized: boolean;
     _dispatchToken: DispatchToken;
@@ -138,17 +139,17 @@ declare class Store {
     removeReactChangeListener(listener: Callback): void;
 }
 
-declare class BatchedStoreListener {
-    constructor(stores: Store[], changeCallback: Callback);
+export interface BatchedStoreListenerClass {
+    new(stores: Store[], changeCallback: Callback): BatchedStoreListener;
+}
 
+export interface BatchedStoreListener {
     attach(name: string): void;
     detach(): void;
 }
 
-export type {Store, BatchedStoreListener};
-
 export interface OldFlux {
-    Store: typeof Store;
+    Store: StoreClass;
     CachedStore: any;
     PersistedStore: any;
     StoreListenerMixin: any;
@@ -170,9 +171,9 @@ export type Comparator<T> = (a: T, b: T) => boolean;
 export interface FluxHooks {
     default: OldFlux;
 
-    Store: typeof Store;
+    Store: StoreClass;
     Dispatcher: DispatcherConstructor;
-    BatchedStoreListener: typeof BatchedStoreListener;
+    BatchedStoreListener: BatchedStoreListenerClass;
 
     useStateFromStores<T>(stores: Store[], callback: () => T, deps?: React.DependencyList, compare?: Comparator<T>): T;
     useStateFromStoresArray<T>(stores: Store[], callback: () => T, deps?: React.DependencyList): T;
@@ -191,3 +192,20 @@ export const Flux: Flux = /* @__PURE__ */ Finder.demangle({
     BatchedStoreListener: Filters.byProtos("attach", "detach"),
     useStateFromStores: Filters.bySource("useStateFromStores")
 }, ["Store", "Dispatcher", "useStateFromStores"]);
+
+export interface SnapshotStoreClass {
+    new(): SnapshotStore;
+    allStores: SnapshotStore[];
+    clearAll(): void;
+}
+
+export interface SnapshotStore extends Store {
+    registerActionHandlers(handlers: Record<string, any>): any;
+    clear(): void;
+    save(): void;
+    takeSnapshot?(): any;
+    readSnapshot(version: number): any;
+    getClass(): SnapshotStoreClass;
+}
+
+export const SnapshotStore: SnapshotStoreClass = Finder.byProtos(["readSnapshot"]);
