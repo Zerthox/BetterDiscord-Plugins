@@ -1,5 +1,5 @@
-import {Finder} from "../api";
-import type {Snowflake, Store, ActionModule} from ".";
+import {Filters, Finder} from "../api";
+import type {Snowflake, Store, ActionModule, SnapshotStore} from ".";
 
 /** A Guild (server). */
 export interface Guild {
@@ -198,7 +198,41 @@ export interface SortedGuildStore extends Store {
     __getLocalVars(): any;
 }
 
-export const SortedGuildStore: SortedGuildStore = /* @__PURE__ */ Finder.byName("SortedGuildStore");
+// discord currently has two stores with the same name
+export const SortedGuildStore: SortedGuildStore = /* @__PURE__ */ Finder.find(Filters.join(
+    Filters.byName("SortedGuildStore"),
+    Filters.byKeys("getGuildsTree")
+));
+
+export interface GuildFolder {
+    index: number;
+    guilds: Snowflake[];
+    folderId?: number;
+    folderName?: string;
+    folderColor?: number;
+}
+
+export interface SortedGuild {
+    index: number;
+    guilds: Guild[];
+    folderId?: number;
+    folderName?: string;
+    folderColor?: number;
+}
+
+export interface SortedGuildStoreV2 extends SnapshotStore {
+    getGuildFolderById(id: number): GuildFolder;
+    getSortedGuilds(): SortedGuild[];
+    getFlattenedGuilds(): Guild[];
+    getFlattenedGuildIds(): string[];
+    get guildFolders(): GuildFolder[];
+    get persistKey(): string;
+}
+
+export const SortedGuildStoreV2: SortedGuildStoreV2 = /* @__PURE__ */ Finder.find(Filters.join(
+    Filters.byName("SortedGuildStore"),
+    Filters.byKeys("getSortedGuilds")
+));
 
 export interface ExpandedGuildFolderStore extends Store {
     getExpandedFolders(): Set<number>;
