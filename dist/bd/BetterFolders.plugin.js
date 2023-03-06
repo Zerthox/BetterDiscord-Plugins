@@ -1,6 +1,6 @@
 /**
  * @name BetterFolders
- * @version 3.4.1
+ * @version 3.4.2
  * @author Zerthox
  * @authorLink https://github.com/Zerthox
  * @description Adds new functionality to server folders. Custom Folder Icons. Close other folders on open.
@@ -68,13 +68,16 @@ const setMeta = (newMeta) => {
 const load = (key) => BdApi.Data.load(getMeta().name, key);
 const save = (key, value) => BdApi.Data.save(getMeta().name, key, value);
 
+const join = (...filters) => {
+    return ((...args) => filters.every((filter) => filter(...args)));
+};
 const byName$1 = (name) => {
     return (target) => (target?.displayName ?? target?.constructor?.displayName) === name;
 };
 const byKeys$1 = (...keys) => {
     return (target) => target instanceof Object && keys.every((key) => key in target);
 };
-const byProtos = (...protos) => {
+const byProtos$1 = (...protos) => {
     return (target) => target instanceof Object && target.prototype instanceof Object && protos.every((proto) => proto in target.prototype);
 };
 const bySource$1 = (...fragments) => {
@@ -131,6 +134,7 @@ const find = (filter, { resolve = true, entries = false } = {}) => BdApi.Webpack
 });
 const byName = (name, options) => find(byName$1(name), options);
 const byKeys = (keys, options) => find(byKeys$1(...keys), options);
+const byProtos = (protos, options) => find(byProtos$1(...protos), options);
 const bySource = (contents, options) => find(bySource$1(...contents), options);
 const demangle = (mapping, required, proxy = false) => {
     const req = required ?? Object.keys(mapping);
@@ -145,7 +149,6 @@ const demangle = (mapping, required, proxy = false) => {
         Object.values(found ?? {}).find((value) => filter(value))
     ]));
 };
-
 let controller = new AbortController();
 const waitFor = (filter, { resolve = true, entries = false } = {}) => BdApi.Webpack.waitForModule(filter, {
     signal: controller.signal,
@@ -203,13 +206,14 @@ const ClientActions = /* @__PURE__ */ byKeys(["toggleGuildFolderExpand"]);
 
 const Flux = /* @__PURE__ */ demangle({
     default: byKeys$1("Store", "connectStores"),
-    Dispatcher: byProtos("dispatch"),
-    Store: byProtos("emitChange"),
-    BatchedStoreListener: byProtos("attach", "detach"),
+    Dispatcher: byProtos$1("dispatch"),
+    Store: byProtos$1("emitChange"),
+    BatchedStoreListener: byProtos$1("attach", "detach"),
     useStateFromStores: bySource$1("useStateFromStores")
 }, ["Store", "Dispatcher", "useStateFromStores"]);
+byProtos(["readSnapshot"]);
 
-const SortedGuildStore = /* @__PURE__ */ byName("SortedGuildStore");
+const SortedGuildStore = /* @__PURE__ */ find(join(byName$1("SortedGuildStore"), byKeys$1("getGuildsTree")));
 const ExpandedGuildFolderStore = /* @__PURE__ */ byName("ExpandedGuildFolderStore");
 
 const { React } = BdApi;
