@@ -77,7 +77,7 @@ const byName$1 = (name) => {
 const byKeys$1 = (...keys) => {
     return (target) => target instanceof Object && keys.every((key) => key in target);
 };
-const byProtos$1 = (...protos) => {
+const byProtos = (...protos) => {
     return (target) => target instanceof Object && target.prototype instanceof Object && protos.every((proto) => proto in target.prototype);
 };
 const bySource$1 = (...fragments) => {
@@ -134,7 +134,6 @@ const find = (filter, { resolve = true, entries = false } = {}) => BdApi.Webpack
 });
 const byName = (name, options) => find(byName$1(name), options);
 const byKeys = (keys, options) => find(byKeys$1(...keys), options);
-const byProtos = (protos, options) => find(byProtos$1(...protos), options);
 const bySource = (contents, options) => find(bySource$1(...contents), options);
 const demangle = (mapping, required, proxy = false) => {
     const req = required ?? Object.keys(mapping);
@@ -206,12 +205,11 @@ const ClientActions = /* @__PURE__ */ byKeys(["toggleGuildFolderExpand"]);
 
 const Flux = /* @__PURE__ */ demangle({
     default: byKeys$1("Store", "connectStores"),
-    Dispatcher: byProtos$1("dispatch"),
-    Store: byProtos$1("emitChange"),
-    BatchedStoreListener: byProtos$1("attach", "detach"),
+    Dispatcher: byProtos("dispatch"),
+    Store: byProtos("emitChange"),
+    BatchedStoreListener: byProtos("attach", "detach"),
     useStateFromStores: bySource$1("useStateFromStores")
 }, ["Store", "Dispatcher", "useStateFromStores"]);
-byProtos(["readSnapshot"]);
 
 const SortedGuildStore = /* @__PURE__ */ find(join(byName$1("SortedGuildStore"), byKeys$1("getGuildsTree")));
 const ExpandedGuildFolderStore = /* @__PURE__ */ byName("ExpandedGuildFolderStore");

@@ -208,4 +208,4 @@ export interface SnapshotStore extends Store {
     getClass(): SnapshotStoreClass;
 }
 
-export const SnapshotStore: SnapshotStoreClass = Finder.byProtos(["readSnapshot"]);
+export const SnapshotStore: SnapshotStoreClass = /* @__PURE__ */ Finder.byProtos(["readSnapshot"]);
