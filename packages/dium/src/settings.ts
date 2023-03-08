@@ -1,6 +1,8 @@
 import {React, Flux, Comparator} from "./modules";
 import * as Data from "./api/data";
 
+// TODO: own implementation with flux-compatible interface
+
 export type Listener<T> = (current: T) => void;
 
 export type Update<T> = Partial<T> | ((current: T) => Partial<T>);

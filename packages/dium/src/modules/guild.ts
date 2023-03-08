@@ -1,4 +1,4 @@
-import {Filters, Finder} from "../api";
+import {Finder} from "../api";
 import type {Snowflake, Store, ActionModule, SnapshotStore} from ".";
 
 /** A Guild (server). */
@@ -190,7 +190,7 @@ export interface CompatibleGuildFolder {
     guildIds: Snowflake[];
 }
 
-export interface SortedGuildStore extends Store {
+export interface SortedGuildsStore extends Store {
     getCompatibleGuildFolders(): CompatibleGuildFolder[];
     getFlattenedGuildIds(): Snowflake[];
     getFlattenedGuilds(): GuildsTreeGuild[];
@@ -198,11 +198,8 @@ export interface SortedGuildStore extends Store {
     __getLocalVars(): any;
 }
 
-// discord currently has two stores with the same name
-export const SortedGuildStore: SortedGuildStore = /* @__PURE__ */ Finder.find(Filters.join(
-    Filters.byName("SortedGuildStore"),
-    Filters.byKeys("getGuildsTree")
-));
+// this used to have the same name, now they just added an s
+export const SortedGuildsStore: SortedGuildsStore = /* @__PURE__ */ Finder.byName("SortedGuildsStore");
 
 export interface GuildFolder {
     index: number;
@@ -220,7 +217,7 @@ export interface SortedGuild {
     folderColor?: number;
 }
 
-export interface SortedGuildStoreV2 extends SnapshotStore {
+export interface SortedGuildStore extends SnapshotStore {
     getGuildFolderById(id: number): GuildFolder;
     getSortedGuilds(): SortedGuild[];
     getFlattenedGuilds(): Guild[];
@@ -229,10 +226,7 @@ export interface SortedGuildStoreV2 extends SnapshotStore {
     get persistKey(): string;
 }
 
-export const SortedGuildStoreV2: SortedGuildStoreV2 = /* @__PURE__ */ Finder.find(Filters.join(
-    Filters.byName("SortedGuildStore"),
-    Filters.byKeys("getSortedGuilds")
-));
+export const SortedGuildStore: SortedGuildStore = /* @__PURE__ */ Finder.byName("SortedGuildStore");
 
 export interface ExpandedGuildFolderStore extends Store {
     getExpandedFolders(): Set<number>;
