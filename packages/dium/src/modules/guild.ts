@@ -182,26 +182,25 @@ export interface GuildsTree {
     _pluckNode(node: GuildsTreeNodeBase);
 }
 
-export interface CompatibleGuildFolder {
-    expanded: boolean;
-    folderColor: number;
-    folderId: number;
-    folderName: string;
-    guildIds: Snowflake[];
-}
-
-export interface SortedGuildsStore extends Store {
-    getCompatibleGuildFolders(): CompatibleGuildFolder[];
-    getFlattenedGuildIds(): Snowflake[];
-    getFlattenedGuilds(): GuildsTreeGuild[];
-    getGuildsTree(): GuildsTree;
-    __getLocalVars(): any;
-}
-
-// this used to have the same name, now they just added an s
-export const SortedGuildsStore: SortedGuildsStore = /* @__PURE__ */ Finder.byName("SortedGuildsStore");
-
 export interface GuildFolder {
+    folderId?: number;
+    folderName?: string;
+    folderColor?: number;
+    guildIds: Snowflake[];
+    expanded?: boolean;
+}
+
+export interface SortedGuildStore extends SnapshotStore {
+    getGuildsTree(): GuildsTree;
+    getGuildFolders(): GuildFolder[];
+    getFlattenedGuilds(): GuildsTreeGuild[];
+    getFlattenedGuildIds(): Snowflake[];
+    getCompatibleGuildFolders(): GuildFolder[];
+}
+
+export const SortedGuildStore: SortedGuildStore = /* @__PURE__ */ Finder.byName("SortedGuildStore");
+
+export interface DeprecatedGuildFolder {
     index: number;
     guilds: Snowflake[];
     folderId?: number;
@@ -209,7 +208,7 @@ export interface GuildFolder {
     folderColor?: number;
 }
 
-export interface SortedGuild {
+export interface DeprecatedSortedGuild {
     index: number;
     guilds: Guild[];
     folderId?: number;
@@ -217,16 +216,16 @@ export interface SortedGuild {
     folderColor?: number;
 }
 
-export interface SortedGuildStore extends SnapshotStore {
-    getGuildFolderById(id: number): GuildFolder;
-    getSortedGuilds(): SortedGuild[];
+export interface SortedGuildDeprecatedStore extends SnapshotStore {
+    getGuildFolderById(id: number): DeprecatedGuildFolder;
+    getSortedGuilds(): DeprecatedSortedGuild[];
     getFlattenedGuilds(): Guild[];
-    getFlattenedGuildIds(): string[];
-    get guildFolders(): GuildFolder[];
+    getFlattenedGuildIds(): Snowflake[];
+    get guildFolders(): DeprecatedGuildFolder[];
     get persistKey(): string;
 }
 
-export const SortedGuildStore: SortedGuildStore = /* @__PURE__ */ Finder.byName("SortedGuildStore");
+export const SortedGuildDeprecatedStore: SortedGuildDeprecatedStore = /* @__PURE__ */ Finder.byName("SortedGuildDeprecatedStore");
 
 export interface ExpandedGuildFolderStore extends Store {
     getExpandedFolders(): Set<number>;
