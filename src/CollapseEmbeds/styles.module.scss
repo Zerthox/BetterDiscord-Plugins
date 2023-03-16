@@ -7,6 +7,9 @@
         }
     }
 }
+.placeholder + .placeholder {
+    margin-left: 4px;
+}
 .hideButton {
     margin-bottom: -4px;
     align-self: flex-end;
@@ -18,9 +21,6 @@
     }
     .expanded > & {
         margin-bottom: -6px;
-        &.marginCorrect {
-            margin-left: -20px;
-        }
     }
     &:hover,
     :hover + &,
@@ -32,7 +32,6 @@
     margin: -2px;
 }
 
-.attachment,
-.placeholder {
+.attachment {
     /* unused */
 }

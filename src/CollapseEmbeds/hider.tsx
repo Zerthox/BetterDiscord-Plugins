@@ -12,13 +12,12 @@ export const enum AccessoryType {
 }
 
 export interface HiderProps {
-    placeholder: string;
+    placeholders: string[];
     type: AccessoryType;
-    marginCorrect?: boolean;
     children: React.ReactNode;
 }
 
-export const Hider = ({placeholder, type, marginCorrect, children}: HiderProps): JSX.Element => {
+export const Hider = ({placeholders, type, children}: HiderProps): JSX.Element => {
     const [shown, setShown] = React.useState(!Settings.current.hideByDefault);
     Settings.useListener(({hideByDefault}) => setShown(!hideByDefault), []);
 
@@ -31,14 +30,11 @@ export const Hider = ({placeholder, type, marginCorrect, children}: HiderProps):
                 shown ? styles.expanded : styles.collapsed
             )}
         >
-            {shown ? children : (
-                <Text variant="text-xs/normal" className={styles.placeholder}>{placeholder}</Text>
-            )}
+            {shown ? children : placeholders.filter(Boolean).map((placeholder, i) => (
+                <Text key={i} variant="text-xs/normal" className={styles.placeholder}>{placeholder}</Text>
+            ))}
             <Clickable
-                className={classNames(
-                    styles.hideButton,
-                    {[styles.marginCorrect]: marginCorrect}
-                )}
+                className={styles.hideButton}
                 onClick={() => setShown(!shown)}
             >
                 <Arrow open={shown} className={styles.icon}/>

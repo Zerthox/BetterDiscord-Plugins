@@ -1,6 +1,6 @@
 /**
  * @name CollapseEmbeds
- * @version 0.2.3
+ * @version 1.0.0
  * @author Zerthox
  * @authorLink https://github.com/Zerthox
  * @description Adds a button to collapse embeds & attachments.
@@ -145,7 +145,6 @@ const demangle = (mapping, required, proxy = false) => {
         Object.values(found ?? {}).find((value) => filter(value))
     ]));
 };
-
 let controller = new AbortController();
 const abort = () => {
     controller.abort();
@@ -369,26 +368,25 @@ const Settings = createSettings({
     hideByDefault: false
 });
 
-const css = ".container-CollapseEmbeds.embed-CollapseEmbeds {\n  justify-self: stretch;\n}\n.container-CollapseEmbeds.embed-CollapseEmbeds > article {\n  flex-grow: 1;\n  flex-shrink: 0;\n}\n\n.hideButton-CollapseEmbeds {\n  margin-bottom: -4px;\n  align-self: flex-end;\n  color: var(--interactive-normal);\n  cursor: pointer;\n  visibility: hidden;\n}\n.hideButton-CollapseEmbeds:hover {\n  color: var(--interactive-hover);\n}\n.expanded-CollapseEmbeds > .hideButton-CollapseEmbeds {\n  margin-bottom: -6px;\n}\n.expanded-CollapseEmbeds > .hideButton-CollapseEmbeds.marginCorrect-CollapseEmbeds {\n  margin-left: -20px;\n}\n.hideButton-CollapseEmbeds:hover, :hover + .hideButton-CollapseEmbeds, .collapsed-CollapseEmbeds > .hideButton-CollapseEmbeds {\n  visibility: visible;\n}\n\n.icon-CollapseEmbeds {\n  margin: -2px;\n}";
+const css = ".container-CollapseEmbeds.embed-CollapseEmbeds {\n  justify-self: stretch;\n}\n.container-CollapseEmbeds.embed-CollapseEmbeds > article {\n  flex-grow: 1;\n  flex-shrink: 0;\n}\n\n.placeholder-CollapseEmbeds + .placeholder-CollapseEmbeds {\n  margin-left: 4px;\n}\n\n.hideButton-CollapseEmbeds {\n  margin-bottom: -4px;\n  align-self: flex-end;\n  color: var(--interactive-normal);\n  cursor: pointer;\n  visibility: hidden;\n}\n.hideButton-CollapseEmbeds:hover {\n  color: var(--interactive-hover);\n}\n.expanded-CollapseEmbeds > .hideButton-CollapseEmbeds {\n  margin-bottom: -6px;\n}\n.hideButton-CollapseEmbeds:hover, :hover + .hideButton-CollapseEmbeds, .collapsed-CollapseEmbeds > .hideButton-CollapseEmbeds {\n  visibility: visible;\n}\n\n.icon-CollapseEmbeds {\n  margin: -2px;\n}";
 const styles = {
     container: "container-CollapseEmbeds",
     embed: "embed-CollapseEmbeds",
+    placeholder: "placeholder-CollapseEmbeds",
     hideButton: "hideButton-CollapseEmbeds",
     expanded: "expanded-CollapseEmbeds",
-    marginCorrect: "marginCorrect-CollapseEmbeds",
     collapsed: "collapsed-CollapseEmbeds",
     icon: "icon-CollapseEmbeds",
-    attachment: "attachment-CollapseEmbeds",
-    placeholder: "placeholder-CollapseEmbeds"
+    attachment: "attachment-CollapseEmbeds"
 };
 
 const Arrow = bySource(["d:\"M16.", (source) => /\.open[,;]/.test(source)]);
-const Hider = ({ placeholder, type, marginCorrect, children }) => {
+const Hider = ({ placeholders, type, children }) => {
     const [shown, setShown] = React.useState(!Settings.current.hideByDefault);
     Settings.useListener(({ hideByDefault }) => setShown(!hideByDefault), []);
     return (React.createElement(Flex, { align: Flex.Align.CENTER, className: classNames(styles.container, styles[type], shown ? styles.expanded : styles.collapsed) },
-        shown ? children : (React.createElement(Text, { variant: "text-xs/normal", className: styles.placeholder }, placeholder)),
-        React.createElement(Clickable, { className: classNames(styles.hideButton, { [styles.marginCorrect]: marginCorrect }), onClick: () => setShown(!shown) },
+        shown ? children : placeholders.filter(Boolean).map((placeholder, i) => (React.createElement(Text, { key: i, variant: "text-xs/normal", className: styles.placeholder }, placeholder))),
+        React.createElement(Clickable, { className: styles.hideButton, onClick: () => setShown(!shown) },
             React.createElement(Arrow, { open: shown, className: styles.icon }))));
 };
 
@@ -396,12 +394,14 @@ const index = createPlugin({
     start() {
         after(Embed.prototype, "render", ({ result, context }) => {
             const { embed } = context.props;
-            return (React.createElement(Hider, { type: "embed" , placeholder: embed.provider?.name ?? embed.author?.name ?? embed.rawTitle }, result));
+            const placeholder = embed.provider?.name ?? embed.author?.name ?? embed.rawTitle ?? new URL(embed.url).hostname;
+            return (React.createElement(Hider, { type: "embed" , placeholders: [placeholder] }, result));
         }, { name: "Embed render" });
         after(MessageFooter.prototype, "renderAttachments", ({ result }) => {
-            const attachments = queryTreeAll(result, (node) => node?.props?.attachment);
-            for (const attachment of attachments) {
-                hookFunctionComponent(attachment, (result, { attachment, canRemoveAttachment }) => (React.createElement(Hider, { type: "attachment" , placeholder: attachment.filename, marginCorrect: canRemoveAttachment }, result)));
+            for (const element of queryTreeAll(result, (node) => node?.props?.attachments)) {
+                hookFunctionComponent(element, (result, { attachments }) => {
+                    return (React.createElement(Hider, { type: "attachment" , placeholders: attachments.map(({ attachment }) => attachment.filename ?? new URL(attachment.url).hostname) }, result));
+                });
             }
         }, { name: "MessageFooter renderAttachments" });
     },
