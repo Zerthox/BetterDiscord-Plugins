@@ -1,9 +1,9 @@
 /**
  * @name OnlineFriendCount
+ * @version 3.1.1
  * @author Zerthox
- * @version 3.1.0
- * @description Adds the old online friend count and similar counters back to server list. Because nostalgia.
  * @authorLink https://github.com/Zerthox
+ * @description Adds the old online friend count and similar counters back to server list. Because nostalgia.
  * @website https://github.com/Zerthox/BetterDiscord-Plugins
  * @source https://github.com/Zerthox/BetterDiscord-Plugins/tree/master/src/OnlineFriendCount
 **/
@@ -71,22 +71,21 @@ const save = (key, value) => BdApi.Data.save(getMeta().name, key, value);
 const byName$1 = (name) => {
     return (target) => (target?.displayName ?? target?.constructor?.displayName) === name;
 };
-const byProps$1 = (...props) => {
-    return (target) => target instanceof Object && props.every((prop) => prop in target);
+const byKeys$1 = (...keys) => {
+    return (target) => target instanceof Object && keys.every((key) => key in target);
 };
 const byProtos = (...protos) => {
     return (target) => target instanceof Object && target.prototype instanceof Object && protos.every((proto) => proto in target.prototype);
 };
 const bySource$1 = (...fragments) => {
     return (target) => {
+        while (target instanceof Object && "$$typeof" in target) {
+            target = target.render ?? target.type;
+        }
         if (target instanceof Function) {
             const source = target.toString();
             const renderSource = target.prototype?.render?.toString();
-            return fragments.every((fragment) => (typeof fragment === "string" ? (source.includes(fragment) || renderSource?.includes(fragment)) : (fragment(source) || renderSource && fragment(renderSource))));
-        }
-        else if (target instanceof Object && "$$typeof" in target) {
-            const source = (target.render ?? target.type)?.toString();
-            return source && fragments.every((fragment) => typeof fragment === "string" ? source.includes(fragment) : fragment(source));
+            return fragments.every((fragment) => typeof fragment === "string" ? (source.includes(fragment) || renderSource?.includes(fragment)) : (fragment(source) || renderSource && fragment(renderSource)));
         }
         else {
             return false;
@@ -131,7 +130,7 @@ const find = (filter, { resolve = true, entries = false } = {}) => BdApi.Webpack
     searchExports: entries
 });
 const byName = (name, options) => find(byName$1(name), options);
-const byProps = (props, options) => find(byProps$1(...props), options);
+const byKeys = (keys, options) => find(byKeys$1(...keys), options);
 const bySource = (contents, options) => find(bySource$1(...contents), options);
 const demangle = (mapping, required, proxy = false) => {
     const req = required ?? Object.keys(mapping);
@@ -146,7 +145,6 @@ const demangle = (mapping, required, proxy = false) => {
         Object.values(found ?? {}).find((value) => filter(value))
     ]));
 };
-
 let controller = new AbortController();
 const abort = () => {
     controller.abort();
@@ -196,7 +194,7 @@ const inject = (styles) => {
 const clear = () => BdApi.DOM.removeStyle(getMeta().name);
 
 const Flux = /* @__PURE__ */ demangle({
-    default: byProps$1("Store", "connectStores"),
+    default: byKeys$1("Store", "connectStores"),
     Dispatcher: byProtos("dispatch"),
     Store: byProtos("emitChange"),
     BatchedStoreListener: byProtos("attach", "detach"),
@@ -212,9 +210,9 @@ const classNames = /* @__PURE__ */ find((exports) => exports instanceof Object &
 const PresenceStore = /* @__PURE__ */ byName("PresenceStore");
 const RelationshipStore = /* @__PURE__ */ byName("RelationshipStore");
 
-const Button = /* @__PURE__ */ byProps(["Colors", "Link"], { entries: true });
+const Button = /* @__PURE__ */ byKeys(["Colors", "Link"], { entries: true });
 
-const Flex = /* @__PURE__ */ byProps(["Child", "Justify"], { entries: true });
+const Flex = /* @__PURE__ */ byKeys(["Child", "Justify"], { entries: true });
 
 const { FormSection, FormItem, FormTitle, FormText, FormDivider, FormNotice } = /* @__PURE__ */ demangle({
     FormSection: bySource$1(".titleClassName", ".sectionTitle"),
@@ -235,7 +233,7 @@ const { Link, NavLink, LinkRouter } = /* @__PURE__ */ demangle({
 
 const { Menu: Menu, Group: MenuGroup, Item: MenuItem, Separator: MenuSeparator, CheckboxItem: MenuCheckboxItem, RadioItem: MenuRadioItem, ControlItem: MenuControlItem } = BdApi.ContextMenu;
 
-const margins = /* @__PURE__ */ byProps(["marginLarge"]);
+const margins = /* @__PURE__ */ byKeys(["marginLarge"]);
 
 const [getInstanceFromNode, getNodeFromInstance, getFiberCurrentPropsFromNode, enqueueStateRestore, restoreStateIfNeeded, batchedUpdates] = ReactDOM?.__SECRET_INTERNALS_DO_NOT_USE_OR_YOU_WILL_BE_FIRED?.Events ?? [];
 const ReactDOMInternals = {
@@ -476,7 +474,7 @@ const styles = {
     blocked: "blocked-OnlineFriendCount"
 };
 
-const listStyles = byProps(["listItem"]);
+const listStyles = byKeys(["listItem", "iconBadge"]);
 const Item = ({ children, className, link }) => (React.createElement("div", { className: listStyles.listItem }, link ? (React.createElement(Link, { to: link, className: classNames(styles.item, styles.link, className) }, children)) : (React.createElement("div", { className: classNames(styles.link, className) }, children))));
 const CounterItem = ({ type, count }) => (React.createElement(Item, { link: "/channels/@me", className: classNames(styles.counter, styles[type]) },
     count,
@@ -512,8 +510,8 @@ const CountersContainer = () => {
     return (React.createElement("div", { className: styles.container, onContextMenu: (event) => BdApi.ContextMenu.open(event, CountContextMenu) }, counters.length > 0 ? (interval ? (React.createElement(CounterItem, { ...counters[current] })) : counters.map((counter) => React.createElement(CounterItem, { key: counter.type, ...counter }))) : (React.createElement(Item, null, "-"))));
 };
 
-const guildStyles = byProps(["guilds", "base"]);
-const treeStyles = byProps(["tree", "scroller"]);
+const guildStyles = byKeys(["guilds", "base"]);
+const treeStyles = byKeys(["tree", "scroller"]);
 const triggerRerender = async () => {
     const node = document.getElementsByClassName(guildStyles.guilds)?.[0];
     const fiber = getFiber(node);

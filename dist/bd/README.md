@@ -7,7 +7,7 @@ Set user volume values manually instead of using a slider. Allows setting volume
 ## [CollapseEmbeds](https://betterdiscord.app/plugin/CollapseEmbeds) <sub><sup>`v0.2.3` *(Updated: 24/01/2023)*</sup></sub>
 Adds a button to collapse embeds & attachments.
 
-## [OnlineFriendCount](https://betterdiscord.app/plugin/OnlineFriendCount) <sub><sup>`v3.1.0` *(Updated: 25/11/2022)*</sup></sub>
+## [OnlineFriendCount](https://betterdiscord.app/plugin/OnlineFriendCount) <sub><sup>`v3.1.1` *(Updated: 16/03/2022)*</sup></sub>
 Adds the old online friend count and similar counters back to server list. Because nostalgia.
 
 ## [VoiceEvents](https://betterdiscord.app/plugin/VoiceEvents) <sub><sup>`v2.5.1` *(Updated: 24/01/2023)*</sup></sub>
