@@ -1,6 +1,6 @@
 /**
  * @name BetterFolders
- * @version 3.4.2
+ * @version 3.4.3
  * @author Zerthox
  * @authorLink https://github.com/Zerthox
  * @description Adds new functionality to server folders. Custom Folder Icons. Close other folders on open.
@@ -68,9 +68,6 @@ const setMeta = (newMeta) => {
 const load = (key) => BdApi.Data.load(getMeta().name, key);
 const save = (key, value) => BdApi.Data.save(getMeta().name, key, value);
 
-const join = (...filters) => {
-    return ((...args) => filters.every((filter) => filter(...args)));
-};
 const byName$1 = (name) => {
     return (target) => (target?.displayName ?? target?.constructor?.displayName) === name;
 };
@@ -211,7 +208,7 @@ const Flux = /* @__PURE__ */ demangle({
     useStateFromStores: bySource$1("useStateFromStores")
 }, ["Store", "Dispatcher", "useStateFromStores"]);
 
-const SortedGuildStore = /* @__PURE__ */ find(join(byName$1("SortedGuildStore"), byKeys$1("getGuildsTree")));
+const SortedGuildStore = /* @__PURE__ */ byName("SortedGuildStore");
 const ExpandedGuildFolderStore = /* @__PURE__ */ byName("ExpandedGuildFolderStore");
 
 const { React } = BdApi;
