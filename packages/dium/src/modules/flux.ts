@@ -152,12 +152,13 @@ export interface OldFlux {
     Store: StoreClass;
     CachedStore: any;
     PersistedStore: any;
-    StoreListenerMixin: any;
-    LazyStoreListenerMixin: any;
+    OfflineCacheStore: any;
+    DeviceSettingsStore: any;
 
-    destroy(): void;
+    Emitter: any;
     initialize(): void;
-    initialized: boolean;
+    get initialized(): boolean;
+    destroy(): void;
 
     connectStores<OuterProps, InnerProps>(
         stores: Store[],
