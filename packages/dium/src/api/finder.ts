@@ -81,8 +81,7 @@ export const demangle = <M extends Mapping>(mapping: M, required?: (keyof M)[], 
     const req = required ?? Object.keys(mapping);
 
     const found = find((target) => (
-        target instanceof Object
-        && target !== window
+        Filters.checkObjectValues(target)
         && req.every((req) => Object.values(target).some((value) => mapping[req](value)))
     ));
 

@@ -24,10 +24,17 @@ export const query = ({filter, name, keys, protos, source}: Query): Filter => jo
     source instanceof Array ? bySource(...source) : null
 ].filter(Boolean));
 
+/**
+ * Determines whether values can be checked.
+ *
+ * This also skips checking values on `window` as well as directly exported prototypes.
+ */
+export const checkObjectValues = (target: unknown): boolean => target !== window && target instanceof Object && target.constructor?.prototype !== target;
+
 /** Creates a filter matching on values in the exported object. */
 export const byEntry = <F extends (data: any, ...args: any) => boolean>(filter: F, every = false): F => {
     return ((target, ...args) => {
-        if (target instanceof Object && target !== window) {
+        if (checkObjectValues(target)) {
             const values = Object.values(target);
             return values.length > 0 && values[every ? "every" : "some"]((value) => filter(value, ...args));
         } else {
@@ -38,7 +45,7 @@ export const byEntry = <F extends (data: any, ...args: any) => boolean>(filter: 
 
 /** Creates a filter searching by `displayName`. */
 export const byName = (name: string): Filter => {
-    return (target: any) => (target?.displayName ?? target?.constructor?.displayName) === name;
+    return (target) => (target?.displayName ?? target?.constructor?.displayName) === name;
 };
 
 /** Creates a filter searching by export property names. */
@@ -48,7 +55,7 @@ export const byKeys = (...keys: string[]): Filter => {
 
 /** Creates a filter searching by prototype names. */
 export const byProtos = (...protos: string[]): Filter => {
-    return (target: any) => target instanceof Object && target.prototype instanceof Object && protos.every((proto) => proto in target.prototype);
+    return (target) => target instanceof Object && target.prototype instanceof Object && protos.every((proto) => proto in target.prototype);
 };
 
 /**

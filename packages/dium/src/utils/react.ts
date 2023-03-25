@@ -39,6 +39,7 @@ export type Predicate<Arg> = (arg: Arg) => boolean;
  * This uses a breadth first search (BFS).
  */
 export const queryTree = (node: JSX.Element | JSX.Element[], predicate: Predicate<JSX.Element>): JSX.Element | null => {
+    // TODO: queue impl?
     const worklist = [node].flat();
 
     while (worklist.length !== 0) {
