@@ -1,6 +1,6 @@
 import {createPlugin, Logger, Filters, Finder, Patcher, Utils, React, Fiber} from "dium";
 import {ClientActions, ExpandedGuildFolderStore} from "@dium/modules";
-import {SwitchItem, GuildsNav} from "@dium/components";
+import {FormSwitch, GuildsNav} from "@dium/components";
 import {Settings} from "./settings";
 import {ConnectedBetterFolderIcon} from "./icon";
 import {folderModalPatch, FolderSettingsModal} from "./modal";
@@ -122,7 +122,7 @@ export default createPlugin({
         const [{closeOnOpen}, setSettings] = Settings.useState();
 
         return (
-            <SwitchItem
+            <FormSwitch
                 note="Close other folders when opening a new folder"
                 hideBorder
                 value={closeOnOpen}
@@ -135,7 +135,7 @@ export default createPlugin({
                     }
                     setSettings({closeOnOpen: checked});
                 }}
-            >Close on open</SwitchItem>
+            >Close on open</FormSwitch>
         );
     }
 });

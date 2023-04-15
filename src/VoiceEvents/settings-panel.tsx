@@ -5,13 +5,13 @@ import {
     Button,
     Text,
     Switch,
-    SwitchItem,
     TextInput,
     Slider,
     FormSection,
     FormTitle,
     FormItem,
     FormText,
+    FormSwitch,
     FormDivider,
     SingleSelect,
     margins
@@ -92,25 +92,25 @@ export const SettingsPanel = (): JSX.Element => {
             </FormItem>
             <FormDivider className={classNames(margins.marginTop20, margins.marginBottom20)}/>
             <FormItem>
-                <SwitchItem
+                <FormSwitch
                     value={filterNames}
                     onChange={(checked) => setSettings({filterNames: checked})}
                     note="Limit user & channel names to alphanumeric characters."
-                >Enable Name Filter</SwitchItem>
+                >Enable Name Filter</FormSwitch>
             </FormItem>
             <FormItem>
-                <SwitchItem
+                <FormSwitch
                     value={filterBots}
                     onChange={(checked) => setSettings({filterBots: checked})}
                     note="Disable notifications for bot users in voice."
-                >Enable Bot Filter</SwitchItem>
+                >Enable Bot Filter</FormSwitch>
             </FormItem>
             <FormItem>
-                <SwitchItem
+                <FormSwitch
                     value={filterStages}
                     onChange={(checked) => setSettings({filterStages: checked})}
                     note="Disable notifications for stage voice channels."
-                >Enable Stage Filter</SwitchItem>
+                >Enable Stage Filter</FormSwitch>
             </FormItem>
             <FormSection>
                 <FormTitle tag="h3">Notifications</FormTitle>

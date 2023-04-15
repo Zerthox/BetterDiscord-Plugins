@@ -1,6 +1,6 @@
 import {createPlugin, createSettings, Finder, Filters, Patcher, React, Utils, getMeta} from "dium";
 import {Snowflake, MediaEngineStore, MediaEngineActions, MediaEngineContext, ExperimentStore} from "@dium/modules";
-import {MenuItem, Text, SwitchItem} from "@dium/components";
+import {MenuItem, Text, FormSwitch} from "@dium/components";
 import {NumberInput} from "./input";
 import {css} from "./styles.module.scss";
 
@@ -102,13 +102,13 @@ export default createPlugin({
         const [{disableExperiment}, setSettings] = Settings.useState();
 
         return (
-            <SwitchItem
+            <FormSwitch
                 note="Force disable experiment interfering with volumes greater than 200%."
                 hideBorder
                 value={disableExperiment}
                 disabled={!hasAudioExperiment}
                 onChange={(checked) => setSettings({disableExperiment: checked})}
-            >Disable Audio experiment</SwitchItem>
+            >Disable Audio experiment</FormSwitch>
         );
     }
 });

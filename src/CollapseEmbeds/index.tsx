@@ -1,6 +1,6 @@
 import {createPlugin, PatchDataWithResult, Patcher, React, Utils} from "dium";
 import {Message, Attachment} from "@dium/modules";
-import {SwitchItem, MessageFooter, Embed} from "@dium/components";
+import {FormSwitch, MessageFooter, Embed} from "@dium/components";
 import {Settings} from "./settings";
 import {Hider, AccessoryType} from "./hider";
 import {css} from "./styles.module.scss";
@@ -50,12 +50,12 @@ export default createPlugin({
         const [{hideByDefault}, setSettings] = Settings.useState();
 
         return (
-            <SwitchItem
+            <FormSwitch
                 note="Collapse all embeds &amp; attachments initially."
                 hideBorder
                 value={hideByDefault}
                 onChange={(checked) => setSettings({hideByDefault: checked})}
-            >Collapse by default</SwitchItem>
+            >Collapse by default</FormSwitch>
         );
     }
 });

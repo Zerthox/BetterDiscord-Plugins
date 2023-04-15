@@ -1,6 +1,6 @@
 import {Finder, React} from "dium";
 import {GuildsTreeFolder} from "@dium/modules";
-import {Flex, Button, SwitchItem, FormText, margins} from "@dium/components";
+import {Flex, Button, FormSwitch, FormText, margins} from "@dium/components";
 import {FolderData} from "./settings";
 import {BetterFolderIcon} from "./icon";
 
@@ -28,11 +28,11 @@ export const BetterFolderUploader = ({icon, always, folderNode, onChange, Folder
                 FolderIcon={FolderIcon}
             />
         </Flex>
-        <SwitchItem
+        <FormSwitch
             hideBorder
             className={margins.marginTop8}
             value={always}
             onChange={(checked) => onChange({icon, always: checked})}
-        >Always display icon</SwitchItem>
+        >Always display icon</FormSwitch>
     </>
 );
