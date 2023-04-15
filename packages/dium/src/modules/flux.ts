@@ -115,7 +115,7 @@ export interface StoreClass {
     initialized: Promise<any>;
 }
 
-export interface Store {
+export interface Store extends StoreLike {
     // private
     _isInitialized: boolean;
     _dispatchToken: DispatchToken;
@@ -134,13 +134,16 @@ export interface Store {
 
     addChangeListener(listener: Callback): void;
     addConditionalChangeListener(listener: Callback, condition: boolean): void;
-    addReactChangeListener(listener: Callback): void;
     removeChangeListener(listener: Callback): void;
+}
+
+export interface StoreLike {
+    addReactChangeListener(listener: Callback): void;
     removeReactChangeListener(listener: Callback): void;
 }
 
 export interface BatchedStoreListenerClass {
-    new(stores: Store[], changeCallback: Callback): BatchedStoreListener;
+    new(stores: StoreLike[], changeCallback: Callback): BatchedStoreListener;
 }
 
 export interface BatchedStoreListener {
@@ -148,7 +151,7 @@ export interface BatchedStoreListener {
     detach(): void;
 }
 
-export interface OldFlux {
+export interface OldFluxModule {
     Store: StoreClass;
     CachedStore: any;
     PersistedStore: any;
@@ -161,7 +164,7 @@ export interface OldFlux {
     destroy(): void;
 
     connectStores<OuterProps, InnerProps>(
-        stores: Store[],
+        stores: StoreLike[],
         callback: (props: OuterProps) => InnerProps,
         options?: {forwardRef: boolean}
     ): (component: React.ComponentType<InnerProps & OuterProps>) => React.ComponentClass<OuterProps>;
@@ -170,23 +173,23 @@ export interface OldFlux {
 export type Comparator<T> = (a: T, b: T) => boolean;
 
 export interface FluxHooks {
-    default: OldFlux;
+    default: OldFluxModule;
 
     Store: StoreClass;
     Dispatcher: DispatcherConstructor;
     BatchedStoreListener: BatchedStoreListenerClass;
 
-    useStateFromStores<T>(stores: Store[], callback: () => T, deps?: React.DependencyList, compare?: Comparator<T>): T;
-    useStateFromStoresArray<T>(stores: Store[], callback: () => T, deps?: React.DependencyList): T;
-    useStateFromStoresObject<T>(stores: Store[], callback: () => T, deps?: React.DependencyList): T;
+    useStateFromStores<T>(stores: StoreLike[], callback: () => T, deps?: React.DependencyList, compare?: Comparator<T>): T;
+    useStateFromStoresArray<T>(stores: StoreLike[], callback: () => T, deps?: React.DependencyList): T;
+    useStateFromStoresObject<T>(stores: StoreLike[], callback: () => T, deps?: React.DependencyList): T;
     statesWillNeverBeEqual: Comparator<unknown>;
 }
 
 export const Dispatcher: Dispatcher = /* @__PURE__ */ Finder.byKeys(["dispatch", "subscribe"]);
 
-export type Flux = Pick<FluxHooks, "default" | "Store" | "Dispatcher" | "BatchedStoreListener" | "useStateFromStores">;
+export type FluxModule = Pick<FluxHooks, "default" | "Store" | "Dispatcher" | "BatchedStoreListener" | "useStateFromStores">;
 
-export const Flux: Flux = /* @__PURE__ */ Finder.demangle({
+export const Flux: FluxModule = /* @__PURE__ */ Finder.demangle({
     default: Filters.byKeys("Store", "connectStores"),
     Dispatcher: Filters.byProtos("dispatch"),
     Store: Filters.byProtos("emitChange"),

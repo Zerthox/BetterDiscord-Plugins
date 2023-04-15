@@ -1,7 +1,5 @@
-import {React, Flux, Comparator} from "./modules";
+import {React, Flux, Comparator, StoreLike} from "./modules";
 import * as Data from "./api/data";
-
-// TODO: own implementation with flux-compatible interface
 
 export type Listener<T> = (current: T) => void;
 
@@ -11,7 +9,7 @@ export type Setter<T> = (update: Update<T>) => void;
 
 export type SettingsType<S extends SettingsStore<any>> = S["defaults"];
 
-export class SettingsStore<T extends Record<string, any>> extends Flux.Store {
+export class SettingsStore<T extends Record<string, any>> implements StoreLike {
     /** Default settings values. */
     defaults: T;
 
@@ -22,7 +20,7 @@ export class SettingsStore<T extends Record<string, any>> extends Flux.Store {
     onLoad?: () => void;
 
     /** Currently registered listeners. */
-    listeners: Set<Listener<T>>;
+    listeners: Set<Listener<T>> = new Set();
 
     /**
      * Creates a new settings store.
@@ -31,15 +29,6 @@ export class SettingsStore<T extends Record<string, any>> extends Flux.Store {
      * @param onLoad Optional callback for when the settings are loaded.
      */
     constructor(defaults: T, onLoad?: () => void) {
-        super(new Flux.Dispatcher(), {
-            update: () => {
-                for (const listener of this.listeners) {
-                    listener(this.current);
-                }
-            }
-        });
-
-        this.listeners = new Set();
         this.defaults = defaults;
         this.onLoad = onLoad;
     }
@@ -53,11 +42,13 @@ export class SettingsStore<T extends Record<string, any>> extends Flux.Store {
 
     /**
      * Dispatches a settings update.
-     *
-     * @param save Whether to save the settings.
-     */
+    *
+    * @param save Whether to save the settings.
+    */
     _dispatch(save: boolean): void {
-        this._dispatcher.dispatch({type: "update"});
+        for (const listener of this.listeners) {
+            listener(this.current);
+        }
         if (save) {
             Data.save("settings", this.current);
         }
@@ -188,6 +179,10 @@ export class SettingsStore<T extends Record<string, any>> extends Flux.Store {
     removeAllListeners(): void {
         this.listeners.clear();
     }
+
+    // compatibility with discord's flux interface
+    addReactChangeListener = this.addListener;
+    removeReactChangeListener = this.removeListener;
 }
 
 /**
