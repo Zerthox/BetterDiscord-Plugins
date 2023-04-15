@@ -1,4 +1,4 @@
-import {Filters, Finder} from "../api";
+import {Common} from "./common";
 
 export interface SelectOption<T> {
     label: React.ReactNode;
@@ -37,12 +37,9 @@ export interface SingleSelectProps<T, O extends SelectOption<T>> extends Omit<Se
     onChange?: (value: T) => void;
 }
 
-interface SelectModule {
+interface SelectComponents {
     Select: <T, O extends SelectOption<T>>(props: SelectProps<T, O>) => JSX.Element;
     SingleSelect: <T, O extends SelectOption<T>>(props: SingleSelectProps<T, O>) => JSX.Element;
 }
 
-export const {Select, SingleSelect}: SelectModule = /* @__PURE */ Finder.demangle({
-    Select: Filters.bySource(".renderOptionLabel", ".renderOptionValue"),
-    SingleSelect: Filters.bySource("select:", "onChange:")
-}, ["Select"]);
+export const {Select, SingleSelect} = Common as SelectComponents;

@@ -60,11 +60,11 @@ interface MenuComponents {
 }
 
 export const {
-    Menu: Menu,
+    Menu,
     Group: MenuGroup,
     Item: MenuItem,
     Separator: MenuSeparator,
     CheckboxItem: MenuCheckboxItem,
     RadioItem: MenuRadioItem,
     ControlItem: MenuControlItem
-}: MenuComponents = BdApi.ContextMenu as any;
+} = BdApi.ContextMenu as MenuComponents;

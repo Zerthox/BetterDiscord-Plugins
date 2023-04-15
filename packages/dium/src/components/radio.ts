@@ -1,4 +1,4 @@
-import {Finder} from "../api";
+import {Common} from "./common";
 
 export interface RadioGroupOption<T> {
     name: React.ReactNode;
@@ -31,4 +31,4 @@ export interface RadioGroup {
     };
 }
 
-export const RadioGroup: RadioGroup = /* @__PURE__ */ Finder.bySource([".radioItemClassName", ".options"], {entries: true});
+export const RadioGroup: RadioGroup = Common.RadioGroup;

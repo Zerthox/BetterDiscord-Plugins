@@ -1,17 +1,4 @@
-import {Filters, Finder} from "../api";
-
-export interface SwitchItemProps {
-    value?: boolean;
-    disabled?: boolean;
-    hideBorder?: boolean;
-    tooltipNote?: any;
-    onChange?: (checked: boolean) => void;
-    className?: string;
-    style?: React.CSSProperties;
-    note?: any;
-    helpdeskArticleId?: any;
-    children?: React.ReactNode;
-}
+import {Common} from "./common";
 
 export interface SwitchProps {
     id?: any;
@@ -23,13 +10,4 @@ export interface SwitchProps {
     innerRef?: any;
 }
 
-interface SwitchModule {
-    SwitchItem: React.FunctionComponent<SwitchItemProps>;
-    Switch: React.FunctionComponent<SwitchProps>;
-}
-
-// merged with form, but treat as separate modules in case unmerged
-export const {SwitchItem, Switch}: SwitchModule = /* @__PURE__ */ Finder.demangle({
-    SwitchItem: Filters.bySource(".tooltipNote"),
-    Switch: Filters.byName("withDefaultColorContext()")
-});
+export const Switch: React.FunctionComponent<SwitchProps> = Common.Switch;

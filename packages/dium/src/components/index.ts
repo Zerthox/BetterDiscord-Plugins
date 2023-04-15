@@ -2,6 +2,7 @@ import {Finder} from "../api";
 
 export * from "./button";
 export * from "./clickable";
+export * from "./common";
 export * from "./embed";
 export * from "./flex";
 export * from "./form";
@@ -14,7 +15,7 @@ export * from "./select";
 export * from "./slider";
 export * from "./switch";
 export * from "./text-area";
-export * from "./text-input";
+export * from "./input";
 export * from "./text";
 
 interface Margins {

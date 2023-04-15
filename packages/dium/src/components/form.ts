@@ -1,4 +1,4 @@
-import {Filters, Finder} from "../api";
+import {Common} from "./common";
 
 export const enum FormTags {
     H1 = "h1",
@@ -78,6 +78,19 @@ export interface FormText extends React.FunctionComponent<FormTextProps> {
     Types: typeof FormTextTypes;
 }
 
+export interface FormSwitchProps {
+    value?: boolean;
+    disabled?: boolean;
+    hideBorder?: boolean;
+    tooltipNote?: any;
+    onChange?: (checked: boolean) => void;
+    className?: string;
+    style?: React.CSSProperties;
+    note?: any;
+    helpdeskArticleId?: any;
+    children?: React.ReactNode;
+}
+
 export const enum FormNoticeTypes {
     BRAND = "cardBrand",
     CUSTOM = "card",
@@ -108,12 +121,14 @@ export interface FormNotice extends React.FunctionComponent<FormNoticeProps> {
     Types: typeof FormNoticeTypes;
 }
 
-interface Form {
+interface FormComponents {
     FormSection: FormSection;
     FormItem: FormItem;
     FormTitle: FormTitle;
     FormText: FormText;
+    FormLabel: React.FunctionComponent<any>;
     FormDivider: React.FunctionComponent<any>;
+    FormSwitch: React.FunctionComponent<FormSwitchProps>;
     FormNotice: FormNotice;
 }
 
@@ -122,13 +137,8 @@ export const {
     FormItem,
     FormTitle,
     FormText,
+    FormLabel,
     FormDivider,
+    FormSwitch,
     FormNotice
-}: Form = /* @__PURE__ */ Finder.demangle({
-    FormSection: Filters.bySource(".titleClassName", ".sectionTitle"),
-    FormItem: Filters.bySource(".titleClassName", ".required"),
-    FormTitle: Filters.bySource(".faded", ".required"),
-    FormText: (target) => target.Types?.INPUT_PLACEHOLDER,
-    FormDivider: Filters.bySource(".divider", ".style"),
-    FormNotice: Filters.bySource(".imageData", "formNotice")
-} as const, ["FormSection", "FormItem", "FormDivider"]);
+} = Common as FormComponents;

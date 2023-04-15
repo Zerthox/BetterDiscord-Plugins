@@ -1,4 +1,4 @@
-import {Filters, Finder} from "../api";
+import {Common} from "./common";
 
 export const enum TextInputSizes {
     DEFAULT = "default",
@@ -42,12 +42,9 @@ export interface TextInput extends React.ComponentClass<TextInputProps, any> {
     };
 }
 
-interface TextInputModule {
+interface InputComponents {
     TextInput: TextInput;
-    TextInputError: React.FunctionComponent<any>;
+    InputError: React.FunctionComponent<any>;
 }
 
-export const {TextInput, TextInputError}: TextInputModule = /* @__PURE__ */ Finder.demangle({
-    TextInput: (target) => target?.defaultProps?.type === "text",
-    TextInputError: Filters.bySource(".error", "text-danger")
-} as const, ["TextInput"]);
+export const {TextInput, InputError} = Common as InputComponents;

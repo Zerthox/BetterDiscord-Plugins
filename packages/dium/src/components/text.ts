@@ -1,4 +1,4 @@
-import {Finder} from "../api";
+import {Common} from "./common";
 
 export interface TextProps {
     variant?: TextVariants;
@@ -67,4 +67,4 @@ type TextVariants =
     | "text-xxs/normal"
     | "text-xxs/semibold";
 
-export const Text: React.FunctionComponent<TextProps> = /* @__PURE__ */ Finder.bySource([".lineClamp", ".variant"], {entries: true});
+export const Text: React.FunctionComponent<TextProps> = Common.Text;
