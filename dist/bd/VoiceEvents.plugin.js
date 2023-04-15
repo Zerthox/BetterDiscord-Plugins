@@ -1,6 +1,6 @@
 /**
  * @name VoiceEvents
- * @version 2.5.1
+ * @version 2.5.2
  * @author Zerthox
  * @authorLink https://github.com/Zerthox
  * @description Adds TTS Event Notifications to your selected Voice Channel. TeamSpeak feeling.
@@ -68,6 +68,7 @@ const setMeta = (newMeta) => {
 const load = (key) => BdApi.Data.load(getMeta().name, key);
 const save = (key, value) => BdApi.Data.save(getMeta().name, key, value);
 
+const checkObjectValues = (target) => target !== window && target instanceof Object && target.constructor?.prototype !== target;
 const byName$1 = (name) => {
     return (target) => (target?.displayName ?? target?.constructor?.displayName) === name;
 };
@@ -77,7 +78,7 @@ const byKeys$1 = (...keys) => {
 const byProtos = (...protos) => {
     return (target) => target instanceof Object && target.prototype instanceof Object && protos.every((proto) => proto in target.prototype);
 };
-const bySource$1 = (...fragments) => {
+const bySource = (...fragments) => {
     return (target) => {
         while (target instanceof Object && "$$typeof" in target) {
             target = target.render ?? target.type;
@@ -132,11 +133,9 @@ const find = (filter, { resolve = true, entries = false } = {}) => BdApi.Webpack
 });
 const byName = (name, options) => find(byName$1(name), options);
 const byKeys = (keys, options) => find(byKeys$1(...keys), options);
-const bySource = (contents, options) => find(bySource$1(...contents), options);
 const demangle = (mapping, required, proxy = false) => {
     const req = required ?? Object.keys(mapping);
-    const found = find((target) => (target instanceof Object
-        && target !== window
+    const found = find((target) => (checkObjectValues(target)
         && req.every((req) => Object.values(target).some((value) => mapping[req](value)))));
     return proxy ? mappedProxy(found, Object.fromEntries(Object.entries(mapping).map(([key, filter]) => [
         key,
@@ -146,7 +145,6 @@ const demangle = (mapping, required, proxy = false) => {
         Object.values(found ?? {}).find((value) => filter(value))
     ]));
 };
-
 let controller = new AbortController();
 const abort = () => {
     controller.abort();
@@ -202,7 +200,7 @@ const Flux = /* @__PURE__ */ demangle({
     Dispatcher: byProtos("dispatch"),
     Store: byProtos("emitChange"),
     BatchedStoreListener: byProtos("attach", "detach"),
-    useStateFromStores: bySource$1("useStateFromStores")
+    useStateFromStores: bySource("useStateFromStores")
 }, ["Store", "Dispatcher", "useStateFromStores"]);
 
 const GuildMemberStore = /* @__PURE__ */ byName("GuildMemberStore");
@@ -212,39 +210,25 @@ const classNames = /* @__PURE__ */ find((exports) => exports instanceof Object &
 
 const UserStore = /* @__PURE__ */ byName("UserStore");
 
-const Button = /* @__PURE__ */ byKeys(["Colors", "Link"], { entries: true });
+const Common = /* @__PURE__ */ byKeys(["Button", "Switch", "Select"]);
+
+const Button = Common.Button;
 
 const Flex = /* @__PURE__ */ byKeys(["Child", "Justify"], { entries: true });
 
-const { FormSection, FormItem, FormTitle, FormText, FormDivider, FormNotice } = /* @__PURE__ */ demangle({
-    FormSection: bySource$1(".titleClassName", ".sectionTitle"),
-    FormItem: bySource$1(".titleClassName", ".required"),
-    FormTitle: bySource$1(".faded", ".required"),
-    FormText: (target) => target.Types?.INPUT_PLACEHOLDER,
-    FormDivider: bySource$1(".divider", ".style"),
-    FormNotice: bySource$1(".imageData", "formNotice")
-}, ["FormSection", "FormItem", "FormDivider"]);
+const { FormSection, FormItem, FormTitle, FormText, FormLabel, FormDivider, FormSwitch, FormNotice } = Common;
 
-const { Menu: Menu, Group: MenuGroup, Item: MenuItem, Separator: MenuSeparator, CheckboxItem: MenuCheckboxItem, RadioItem: MenuRadioItem, ControlItem: MenuControlItem } = BdApi.ContextMenu;
+const { Menu, Group: MenuGroup, Item: MenuItem, Separator: MenuSeparator, CheckboxItem: MenuCheckboxItem, RadioItem: MenuRadioItem, ControlItem: MenuControlItem } = BdApi.ContextMenu;
 
-const { Select, SingleSelect } =  demangle({
-    Select: bySource$1(".renderOptionLabel", ".renderOptionValue"),
-    SingleSelect: bySource$1("select:", "onChange:")
-}, ["Select"]);
+const { Select, SingleSelect } = Common;
 
-const Slider = /* @__PURE__ */ bySource([".asValueChanges"], { entries: true });
+const Slider = Common.Slider;
 
-const { SwitchItem, Switch } = /* @__PURE__ */ demangle({
-    SwitchItem: bySource$1(".tooltipNote"),
-    Switch: byName$1("withDefaultColorContext()")
-});
+const Switch = Common.Switch;
 
-const { TextInput, TextInputError } = /* @__PURE__ */ demangle({
-    TextInput: (target) => target?.defaultProps?.type === "text",
-    TextInputError: bySource$1(".error", "text-danger")
-}, ["TextInput"]);
+const { TextInput, InputError } = Common;
 
-const Text = /* @__PURE__ */ bySource([".lineClamp", ".variant"], { entries: true });
+const Text = Common.Text;
 
 const margins = /* @__PURE__ */ byKeys(["marginLarge"]);
 
@@ -520,11 +504,11 @@ const SettingsPanel = () => {
             React.createElement(Slider, { initialValue: speed, maxValue: 10, minValue: 0.1, asValueChanges: (value) => setSettings({ speed: value }), onValueRender: (value) => `${value.toFixed(2)}x`, markers: [0.1, 1, 2, 5, 10], onMarkerRender: (value) => `${value.toFixed(2)}x` })),
         React.createElement(FormDivider, { className: classNames(margins.marginTop20, margins.marginBottom20) }),
         React.createElement(FormItem, null,
-            React.createElement(SwitchItem, { value: filterNames, onChange: (checked) => setSettings({ filterNames: checked }), note: "Limit user & channel names to alphanumeric characters." }, "Enable Name Filter")),
+            React.createElement(FormSwitch, { value: filterNames, onChange: (checked) => setSettings({ filterNames: checked }), note: "Limit user & channel names to alphanumeric characters." }, "Enable Name Filter")),
         React.createElement(FormItem, null,
-            React.createElement(SwitchItem, { value: filterBots, onChange: (checked) => setSettings({ filterBots: checked }), note: "Disable notifications for bot users in voice." }, "Enable Bot Filter")),
+            React.createElement(FormSwitch, { value: filterBots, onChange: (checked) => setSettings({ filterBots: checked }), note: "Disable notifications for bot users in voice." }, "Enable Bot Filter")),
         React.createElement(FormItem, null,
-            React.createElement(SwitchItem, { value: filterStages, onChange: (checked) => setSettings({ filterStages: checked }), note: "Disable notifications for stage voice channels." }, "Enable Stage Filter")),
+            React.createElement(FormSwitch, { value: filterStages, onChange: (checked) => setSettings({ filterStages: checked }), note: "Disable notifications for stage voice channels." }, "Enable Stage Filter")),
         React.createElement(FormSection, null,
             React.createElement(FormTitle, { tag: "h3" }, "Notifications"),
             React.createElement(FormText, { type: "description", className: margins.marginBottom20 },

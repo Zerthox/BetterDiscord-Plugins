@@ -1,6 +1,6 @@
 /**
  * @name CollapseEmbeds
- * @version 1.0.0
+ * @version 1.0.1
  * @author Zerthox
  * @authorLink https://github.com/Zerthox
  * @description Adds a button to collapse embeds & attachments.
@@ -68,9 +68,7 @@ const setMeta = (newMeta) => {
 const load = (key) => BdApi.Data.load(getMeta().name, key);
 const save = (key, value) => BdApi.Data.save(getMeta().name, key, value);
 
-const byName = (name) => {
-    return (target) => (target?.displayName ?? target?.constructor?.displayName) === name;
-};
+const checkObjectValues = (target) => target !== window && target instanceof Object && target.constructor?.prototype !== target;
 const byKeys$1 = (...keys) => {
     return (target) => target instanceof Object && keys.every((key) => key in target);
 };
@@ -134,8 +132,7 @@ const byProtos = (protos, options) => find(byProtos$1(...protos), options);
 const bySource = (contents, options) => find(bySource$1(...contents), options);
 const demangle = (mapping, required, proxy = false) => {
     const req = required ?? Object.keys(mapping);
-    const found = find((target) => (target instanceof Object
-        && target !== window
+    const found = find((target) => (checkObjectValues(target)
         && req.every((req) => Object.values(target).some((value) => mapping[req](value)))));
     return proxy ? mappedProxy(found, Object.fromEntries(Object.entries(mapping).map(([key, filter]) => [
         key,
@@ -201,31 +198,21 @@ const Flux = /* @__PURE__ */ demangle({
 const { React } = BdApi;
 const classNames = /* @__PURE__ */ find((exports) => exports instanceof Object && exports.default === exports && Object.keys(exports).length === 1);
 
-const Button = /* @__PURE__ */ byKeys(["Colors", "Link"], { entries: true });
+const Common = /* @__PURE__ */ byKeys(["Button", "Switch", "Select"]);
 
-const Clickable = /* @__PURE__ */ bySource([".ignoreKeyPress"], { entries: true });
+const Button = Common.Button;
+
+const Clickable = Common.Clickable;
 
 const Embed = /* @__PURE__ */ byProtos(["renderSuppressButton"], { entries: true });
 
 const Flex = /* @__PURE__ */ byKeys(["Child", "Justify"], { entries: true });
 
-const { FormSection, FormItem, FormTitle, FormText, FormDivider, FormNotice } = /* @__PURE__ */ demangle({
-    FormSection: bySource$1(".titleClassName", ".sectionTitle"),
-    FormItem: bySource$1(".titleClassName", ".required"),
-    FormTitle: bySource$1(".faded", ".required"),
-    FormText: (target) => target.Types?.INPUT_PLACEHOLDER,
-    FormDivider: bySource$1(".divider", ".style"),
-    FormNotice: bySource$1(".imageData", "formNotice")
-}, ["FormSection", "FormItem", "FormDivider"]);
+const { FormSection, FormItem, FormTitle, FormText, FormLabel, FormDivider, FormSwitch, FormNotice } = Common;
 
 const MessageFooter = /* @__PURE__ */ byProtos(["renderRemoveAttachmentConfirmModal"], { entries: true });
 
-const { SwitchItem, Switch } = /* @__PURE__ */ demangle({
-    SwitchItem: bySource$1(".tooltipNote"),
-    Switch: byName("withDefaultColorContext()")
-});
-
-const Text = /* @__PURE__ */ bySource([".lineClamp", ".variant"], { entries: true });
+const Text = Common.Text;
 
 const margins = /* @__PURE__ */ byKeys(["marginLarge"]);
 
@@ -409,7 +396,7 @@ const index = createPlugin({
     Settings,
     SettingsPanel: () => {
         const [{ hideByDefault }, setSettings] = Settings.useState();
-        return (React.createElement(SwitchItem, { note: "Collapse all embeds & attachments initially.", hideBorder: true, value: hideByDefault, onChange: (checked) => setSettings({ hideByDefault: checked }) }, "Collapse by default"));
+        return (React.createElement(FormSwitch, { note: "Collapse all embeds & attachments initially.", hideBorder: true, value: hideByDefault, onChange: (checked) => setSettings({ hideByDefault: checked }) }, "Collapse by default"));
     }
 });
 

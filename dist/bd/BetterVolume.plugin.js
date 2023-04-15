@@ -1,6 +1,6 @@
 /**
  * @name BetterVolume
- * @version 2.4.0
+ * @version 2.4.1
  * @author Zerthox
  * @authorLink https://github.com/Zerthox
  * @description Set user volume values manually instead of using a slider. Allows setting volumes higher than 200%.
@@ -68,6 +68,7 @@ const setMeta = (newMeta) => {
 const load = (key) => BdApi.Data.load(getMeta().name, key);
 const save = (key, value) => BdApi.Data.save(getMeta().name, key, value);
 
+const checkObjectValues = (target) => target !== window && target instanceof Object && target.constructor?.prototype !== target;
 const byName$1 = (name) => {
     return (target) => (target?.displayName ?? target?.constructor?.displayName) === name;
 };
@@ -77,7 +78,7 @@ const byKeys$1 = (...keys) => {
 const byProtos = (...protos) => {
     return (target) => target instanceof Object && target.prototype instanceof Object && protos.every((proto) => proto in target.prototype);
 };
-const bySource$1 = (...fragments) => {
+const bySource = (...fragments) => {
     return (target) => {
         while (target instanceof Object && "$$typeof" in target) {
             target = target.render ?? target.type;
@@ -131,12 +132,10 @@ const find = (filter, { resolve = true, entries = false } = {}) => BdApi.Webpack
 });
 const byName = (name, options) => find(byName$1(name), options);
 const byKeys = (keys, options) => find(byKeys$1(...keys), options);
-const bySource = (contents, options) => find(bySource$1(...contents), options);
 const resolveKey = (target, filter) => [target, Object.entries(target ?? {}).find(([, value]) => filter(value))?.[0]];
 const demangle = (mapping, required, proxy = false) => {
     const req = required ?? Object.keys(mapping);
-    const found = find((target) => (target instanceof Object
-        && target !== window
+    const found = find((target) => (checkObjectValues(target)
         && req.every((req) => Object.values(target).some((value) => mapping[req](value)))));
     return proxy ? mappedProxy(found, Object.fromEntries(Object.entries(mapping).map(([key, filter]) => [
         key,
@@ -206,33 +205,23 @@ const Flux = /* @__PURE__ */ demangle({
     Dispatcher: byProtos("dispatch"),
     Store: byProtos("emitChange"),
     BatchedStoreListener: byProtos("attach", "detach"),
-    useStateFromStores: bySource$1("useStateFromStores")
+    useStateFromStores: bySource("useStateFromStores")
 }, ["Store", "Dispatcher", "useStateFromStores"]);
 
 const { React } = BdApi;
 const classNames = /* @__PURE__ */ find((exports) => exports instanceof Object && exports.default === exports && Object.keys(exports).length === 1);
 
-const Button = /* @__PURE__ */ byKeys(["Colors", "Link"], { entries: true });
+const Common = /* @__PURE__ */ byKeys(["Button", "Switch", "Select"]);
+
+const Button = Common.Button;
 
 const Flex = /* @__PURE__ */ byKeys(["Child", "Justify"], { entries: true });
 
-const { FormSection, FormItem, FormTitle, FormText, FormDivider, FormNotice } = /* @__PURE__ */ demangle({
-    FormSection: bySource$1(".titleClassName", ".sectionTitle"),
-    FormItem: bySource$1(".titleClassName", ".required"),
-    FormTitle: bySource$1(".faded", ".required"),
-    FormText: (target) => target.Types?.INPUT_PLACEHOLDER,
-    FormDivider: bySource$1(".divider", ".style"),
-    FormNotice: bySource$1(".imageData", "formNotice")
-}, ["FormSection", "FormItem", "FormDivider"]);
+const { FormSection, FormItem, FormTitle, FormText, FormLabel, FormDivider, FormSwitch, FormNotice } = Common;
 
-const { Menu: Menu, Group: MenuGroup, Item: MenuItem, Separator: MenuSeparator, CheckboxItem: MenuCheckboxItem, RadioItem: MenuRadioItem, ControlItem: MenuControlItem } = BdApi.ContextMenu;
+const { Menu, Group: MenuGroup, Item: MenuItem, Separator: MenuSeparator, CheckboxItem: MenuCheckboxItem, RadioItem: MenuRadioItem, ControlItem: MenuControlItem } = BdApi.ContextMenu;
 
-const { SwitchItem, Switch } = /* @__PURE__ */ demangle({
-    SwitchItem: bySource$1(".tooltipNote"),
-    Switch: byName$1("withDefaultColorContext()")
-});
-
-const Text = /* @__PURE__ */ bySource([".lineClamp", ".variant"], { entries: true });
+const Text = Common.Text;
 
 const margins = /* @__PURE__ */ byKeys(["marginLarge"]);
 
@@ -371,8 +360,8 @@ const NumberInput = ({ value, min, max, fallback, onChange }) => {
 };
 
 const AudioConvert = demangle({
-    amplitudeToPerceptual: bySource$1("Math.log10"),
-    perceptualToAmplitude: bySource$1("Math.pow(10")
+    amplitudeToPerceptual: bySource("Math.log10"),
+    perceptualToAmplitude: bySource("Math.pow(10")
 });
 const AUDIO_EXPERIMENT = "2022-09_remote_audio_settings";
 const initialAudioBucket = ExperimentStore.getUserExperimentBucket(AUDIO_EXPERIMENT);
@@ -400,7 +389,7 @@ const index = createPlugin({
                 setAudioBucket(0);
             }
         }
-        const useUserVolumeItemFilter = bySource$1("user-volume");
+        const useUserVolumeItemFilter = bySource("user-volume");
         waitFor(useUserVolumeItemFilter, { resolve: false }).then((result) => {
             const useUserVolumeItem = resolveKey(result, useUserVolumeItemFilter);
             after(...useUserVolumeItem, ({ args: [userId, context], result }) => {
@@ -422,7 +411,7 @@ const index = createPlugin({
     Settings,
     SettingsPanel: () => {
         const [{ disableExperiment }, setSettings] = Settings.useState();
-        return (React.createElement(SwitchItem, { note: "Force disable experiment interfering with volumes greater than 200%.", hideBorder: true, value: disableExperiment, disabled: !hasAudioExperiment, onChange: (checked) => setSettings({ disableExperiment: checked }) }, "Disable Audio experiment"));
+        return (React.createElement(FormSwitch, { note: "Force disable experiment interfering with volumes greater than 200%.", hideBorder: true, value: disableExperiment, disabled: !hasAudioExperiment, onChange: (checked) => setSettings({ disableExperiment: checked }) }, "Disable Audio experiment"));
     }
 });
 

@@ -1,6 +1,6 @@
 /**
  * @name BetterFolders
- * @version 3.4.3
+ * @version 3.4.4
  * @author Zerthox
  * @authorLink https://github.com/Zerthox
  * @description Adds new functionality to server folders. Custom Folder Icons. Close other folders on open.
@@ -68,6 +68,7 @@ const setMeta = (newMeta) => {
 const load = (key) => BdApi.Data.load(getMeta().name, key);
 const save = (key, value) => BdApi.Data.save(getMeta().name, key, value);
 
+const checkObjectValues = (target) => target !== window && target instanceof Object && target.constructor?.prototype !== target;
 const byName$1 = (name) => {
     return (target) => (target?.displayName ?? target?.constructor?.displayName) === name;
 };
@@ -134,8 +135,7 @@ const byKeys = (keys, options) => find(byKeys$1(...keys), options);
 const bySource = (contents, options) => find(bySource$1(...contents), options);
 const demangle = (mapping, required, proxy = false) => {
     const req = required ?? Object.keys(mapping);
-    const found = find((target) => (target instanceof Object
-        && target !== window
+    const found = find((target) => (checkObjectValues(target)
         && req.every((req) => Object.values(target).some((value) => mapping[req](value)))));
     return proxy ? mappedProxy(found, Object.fromEntries(Object.entries(mapping).map(([key, filter]) => [
         key,
@@ -215,27 +215,17 @@ const { React } = BdApi;
 const { ReactDOM } = BdApi;
 const classNames = /* @__PURE__ */ find((exports) => exports instanceof Object && exports.default === exports && Object.keys(exports).length === 1);
 
-const Button = /* @__PURE__ */ byKeys(["Colors", "Link"], { entries: true });
+const Common = /* @__PURE__ */ byKeys(["Button", "Switch", "Select"]);
+
+const Button = Common.Button;
 
 const Flex = /* @__PURE__ */ byKeys(["Child", "Justify"], { entries: true });
 
-const { FormSection, FormItem, FormTitle, FormText, FormDivider, FormNotice } = /* @__PURE__ */ demangle({
-    FormSection: bySource$1(".titleClassName", ".sectionTitle"),
-    FormItem: bySource$1(".titleClassName", ".required"),
-    FormTitle: bySource$1(".faded", ".required"),
-    FormText: (target) => target.Types?.INPUT_PLACEHOLDER,
-    FormDivider: bySource$1(".divider", ".style"),
-    FormNotice: bySource$1(".imageData", "formNotice")
-}, ["FormSection", "FormItem", "FormDivider"]);
+const { FormSection, FormItem, FormTitle, FormText, FormLabel, FormDivider, FormSwitch, FormNotice } = Common;
 
 const GuildsNav = /* @__PURE__ */ bySource(["guildsnav"], { entries: true });
 
-const RadioGroup = /* @__PURE__ */ bySource([".radioItemClassName", ".options"], { entries: true });
-
-const { SwitchItem, Switch } = /* @__PURE__ */ demangle({
-    SwitchItem: bySource$1(".tooltipNote"),
-    Switch: byName$1("withDefaultColorContext()")
-});
+const RadioGroup = Common.RadioGroup;
 
 const margins = /* @__PURE__ */ byKeys(["marginLarge"]);
 
@@ -464,7 +454,7 @@ const BetterFolderUploader = ({ icon, always, folderNode, onChange, FolderIcon }
             React.createElement(ImageInput, { onChange: (img) => onChange({ icon: img, always }) })),
         React.createElement(FormText, { type: "description", style: { margin: "0 10px 0 40px" } }, "Preview:"),
         React.createElement(BetterFolderIcon, { data: { icon, always: true }, childProps: { expanded: false, folderNode }, FolderIcon: FolderIcon })),
-    React.createElement(SwitchItem, { hideBorder: true, className: margins.marginTop8, value: always, onChange: (checked) => onChange({ icon, always: checked }) }, "Always display icon")));
+    React.createElement(FormSwitch, { hideBorder: true, className: margins.marginTop8, value: always, onChange: (checked) => onChange({ icon, always: checked }) }, "Always display icon")));
 
 const folderModalPatch = ({ context, result }, FolderIcon) => {
     const { folderId } = context.props;
@@ -589,7 +579,7 @@ const index = createPlugin({
     Settings,
     SettingsPanel: () => {
         const [{ closeOnOpen }, setSettings] = Settings.useState();
-        return (React.createElement(SwitchItem, { note: "Close other folders when opening a new folder", hideBorder: true, value: closeOnOpen, onChange: (checked) => {
+        return (React.createElement(FormSwitch, { note: "Close other folders when opening a new folder", hideBorder: true, value: closeOnOpen, onChange: (checked) => {
                 if (checked) {
                     for (const id of Array.from(ExpandedGuildFolderStore.getExpandedFolders()).slice(1)) {
                         ClientActions.toggleGuildFolderExpand(id);
