@@ -1,4 +1,4 @@
-import {React, Flux, Comparator, StoreLike} from "./modules";
+import {React, Flux} from "./modules";
 import * as Data from "./api/data";
 
 export type Listener<T> = (current: T) => void;
@@ -9,7 +9,7 @@ export type Setter<T> = (update: Update<T>) => void;
 
 export type SettingsType<S extends SettingsStore<any>> = S["defaults"];
 
-export class SettingsStore<T extends Record<string, any>> implements StoreLike {
+export class SettingsStore<T extends Record<string, any>> implements Flux.StoreLike {
     /** Default settings values. */
     defaults: T;
 
@@ -68,6 +68,7 @@ export class SettingsStore<T extends Record<string, any>> implements StoreLike {
      * ```
      */
     update(settings: Update<T>): void {
+        // TODO: copy and use comparators?
         Object.assign(this.current, typeof settings === "function" ? settings(this.current) : settings);
         this._dispatch(true);
     }
@@ -112,7 +113,7 @@ export class SettingsStore<T extends Record<string, any>> implements StoreLike {
      * const entry = Settings.useSelector((current) => current.entry);
      * ```
      */
-    useSelector<R>(selector: (current: T) => R, deps?: React.DependencyList, compare?: Comparator<R>): R {
+    useSelector<R>(selector: (current: T) => R, deps?: React.DependencyList, compare?: Flux.Comparator<R>): R {
         return Flux.useStateFromStores([this], () => selector(this.current), deps, compare);
     }
 

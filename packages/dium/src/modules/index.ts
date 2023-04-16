@@ -1,8 +1,9 @@
 export * from "./channel";
 export * from "./client";
 export * from "./component-dispatch";
+export * from "./dispatcher";
 export * from "./experiment";
-export * from "./flux";
+export * as Flux from "./flux";
 export * from "./general";
 export * from "./guild";
 export * from "./message";

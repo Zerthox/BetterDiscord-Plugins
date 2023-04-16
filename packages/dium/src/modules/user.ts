@@ -1,5 +1,6 @@
 import {Finder} from "../api";
-import type {Snowflake, Store} from ".";
+import type {Snowflake} from ".";
+import type {Store} from "./flux";
 
 /** A User. */
 export interface User {

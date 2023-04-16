@@ -8,15 +8,15 @@ export interface Action {
 
 export type ActionHandler<A extends Action = any> = (action: A) => void;
 
-type ActionHandlerRecord = {
+export type ActionHandlerRecord = {
     [A in ActionType]: ActionHandler<{type: A}>;
 };
 
 export type DispatchToken = string;
 
-type StoreDidChange = (arg: any) => boolean;
+export type StoreDidChange = (arg: any) => boolean;
 
-interface DepGraph {
+export interface DepGraph {
     nodes: Record<DispatchToken, DepGraphNode>;
     incomingEdges: Record<DispatchToken, DispatchToken[]>;
     outgoingEdges: Record<DispatchToken, DispatchToken[]>;
@@ -38,19 +38,19 @@ interface DepGraph {
     removeDependency(e: any, t: any): any;
 }
 
-interface DepGraphNode {
+export interface DepGraphNode {
     name: string;
     actionHandler: ActionHandlerRecord;
     storeDidChange: StoreDidChange;
 }
 
-interface HandlerEntry {
+export interface HandlerEntry {
     name: string;
     actionHandler: ActionHandler;
     storeDidChange: StoreDidChange;
 }
 
-interface ActionHandlers {
+export interface ActionHandlers {
     _dependencyGraph: DepGraph;
     _lastID: number;
     _orderedActionHandlers: Record<string, HandlerEntry[]>;
@@ -91,13 +91,13 @@ export interface Dispatcher {
     wait<T>(callback: () => T): T | void;
 }
 
-export interface DispatcherConstructor {
+export interface DispatcherClass {
     new(): Dispatcher;
 }
 
-type Callback = () => void;
+export type Callback = () => void;
 
-interface Callbacks {
+export interface Callbacks {
     listeners: Set<Callback>;
     add(callback: Callback): void;
     addConditional(callback: Callback, condition: boolean): void;
@@ -151,9 +151,8 @@ export interface BatchedStoreListener {
     detach(): void;
 }
 
-export interface OldFluxModule {
+export interface LegacyModule {
     Store: StoreClass;
-    CachedStore: any;
     PersistedStore: any;
     OfflineCacheStore: any;
     DeviceSettingsStore: any;
@@ -172,11 +171,11 @@ export interface OldFluxModule {
 
 export type Comparator<T> = (a: T, b: T) => boolean;
 
-export interface FluxHooks {
-    default: OldFluxModule;
+export interface Module {
+    default: LegacyModule;
 
     Store: StoreClass;
-    Dispatcher: DispatcherConstructor;
+    Dispatcher: DispatcherClass;
     BatchedStoreListener: BatchedStoreListenerClass;
 
     useStateFromStores<T>(stores: StoreLike[], callback: () => T, deps?: React.DependencyList, compare?: Comparator<T>): T;
@@ -185,11 +184,13 @@ export interface FluxHooks {
     statesWillNeverBeEqual: Comparator<unknown>;
 }
 
-export const Dispatcher: Dispatcher = /* @__PURE__ */ Finder.byKeys(["dispatch", "subscribe"]);
-
-export type FluxModule = Pick<FluxHooks, "default" | "Store" | "Dispatcher" | "BatchedStoreListener" | "useStateFromStores">;
-
-export const Flux: FluxModule = /* @__PURE__ */ Finder.demangle({
+export const {
+    default: Legacy,
+    Dispatcher,
+    Store,
+    BatchedStoreListener,
+    useStateFromStores
+}: Partial<Module> = /* @__PURE__ */ Finder.demangle({
     default: Filters.byKeys("Store", "connectStores"),
     Dispatcher: Filters.byProtos("dispatch"),
     Store: Filters.byProtos("emitChange"),

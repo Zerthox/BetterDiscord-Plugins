@@ -1,5 +1,6 @@
 import {Filters, Finder} from "../api";
-import type {ActionModule, Snowflake, Store, Untyped} from ".";
+import type {ActionModule, Snowflake, Untyped} from ".";
+import type {Store} from "./flux";
 
 export interface Platforms {
     PlatformTypes: {

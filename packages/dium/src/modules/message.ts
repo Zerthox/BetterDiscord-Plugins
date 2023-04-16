@@ -1,5 +1,6 @@
 import {Finder} from "../api";
-import type {Untyped, Snowflake, Store, User, ActionModule} from ".";
+import type {Untyped, Snowflake, User, ActionModule} from ".";
+import type {Store} from "./flux";
 
 export const enum MessageTypes {
     Default = 0,

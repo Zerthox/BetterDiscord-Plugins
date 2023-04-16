@@ -1,5 +1,6 @@
 import {Finder} from "../api";
-import type {Snowflake, Store} from ".";
+import type {Snowflake} from ".";
+import type {Store} from "./flux";
 
 export interface Experiment<Config = Record<string, any>> {
     definition: {

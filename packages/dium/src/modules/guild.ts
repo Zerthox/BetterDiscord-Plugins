@@ -1,5 +1,6 @@
 import {Finder} from "../api";
-import type {Snowflake, Store, ActionModule, SnapshotStore} from ".";
+import type {Snowflake, ActionModule} from ".";
+import type {Store, SnapshotStore} from "./flux";
 
 /** A Guild (server). */
 export interface Guild {
