@@ -8,6 +8,7 @@ export interface TextProps {
     lineClamp?: number;
     color?: string;
     style?: React.CSSProperties;
+    children?: React.ReactNode;
 }
 
 type TextVariants =
