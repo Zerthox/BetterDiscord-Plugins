@@ -52,10 +52,10 @@ const applyFilter = (filter: Finder.Filter, keys: Keys = ["default", "Z", "ZP"])
 export const modules = (): Webpack.Module[] => Object.values(webpackRequire.c);
 
 /** Returns all module source functions. */
-export const sources = (): Webpack.ModuleFunction[] => Object.values(webpackRequire.m);
+export const sources = (): Webpack.ModuleFactory[] => Object.values(webpackRequire.m);
 
 /** Returns the source function for a specific module.  */
-export const sourceOf = (id: Webpack.Id | string): Webpack.ModuleFunction => webpackRequire.m[id] ?? null;
+export const sourceOf = (id: Webpack.Id | string): Webpack.ModuleFactory => webpackRequire.m[id] ?? null;
 
 /** Finds a raw module using a filter function. */
 export const find = (filter: Finder.Filter, keys?: Keys): Webpack.Module => modules().find(applyFilter(filter, keys)) ?? null;
