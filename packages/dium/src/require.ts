@@ -8,15 +8,15 @@ export interface Module {
     exports: Exports;
 }
 
-export type ModuleFunction = (this: Exports, module: Module, exports: Exports, require: Require) => void;
+export type ModuleFactory = (this: Exports, module: Module, exports: Exports, require: Require) => void;
 
 export interface Require {
     (id: Id): any;
 
-    /** Modules object. */
-    m: Record<string, ModuleFunction>;
+    /** Module factories. */
+    m: Record<string, ModuleFactory>;
 
-    /** Module cache. */
+    /** Module exports cache. */
     c: Record<string, Module>;
 
     /** Module execution interceptor. */
