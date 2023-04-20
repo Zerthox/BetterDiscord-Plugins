@@ -67,11 +67,11 @@ export class SettingsStore<T extends Record<string, any>> implements Flux.StoreL
      * Settings.update((current) => ({settingA: current.settingB}))
      * ```
      */
-    update(settings: Update<T>): void {
+    update = (settings: Update<T>): void => {
         // TODO: copy and use comparators?
         Object.assign(this.current, typeof settings === "function" ? settings(this.current) : settings);
         this._dispatch(true);
-    }
+    };
 
     /** Resets all settings to their defaults. */
     reset(): void {
@@ -130,7 +130,7 @@ export class SettingsStore<T extends Record<string, any>> implements Flux.StoreL
     useState(): [T, Setter<T>] {
         return Flux.useStateFromStores([this], () => [
             this.current,
-            (settings) => this.update(settings)
+            this.update
         ]);
     }
 
@@ -148,7 +148,7 @@ export class SettingsStore<T extends Record<string, any>> implements Flux.StoreL
         return Flux.useStateFromStores([this], () => [
             this.current,
             this.defaults,
-            (settings) => this.update(settings)
+            this.update
         ]);
     }
 
