@@ -1,5 +1,5 @@
 import {Logger, Utils, React, getMeta} from "dium";
-import {Channel, ChannelStore, User, UserStore, GuildMemberStore} from "@dium/modules";
+import {ChannelStore, UserStore, GuildMemberStore} from "@dium/modules";
 import {Text} from "@dium/components";
 import {Settings, NotificationType} from "./settings";
 
@@ -51,14 +51,15 @@ const processName = (name: string) => {
 
 export const notify = (type: NotificationType, userId: string, channelId: string): void => {
     const settings = Settings.current;
+    const notif = settings.notifs[type];
 
     // check for enabled
-    if (!settings.notifs[type].enabled) {
+    if (!notif.enabled) {
         return;
     }
 
-    const user = UserStore.getUser(userId) as User;
-    const channel = ChannelStore.getChannel(channelId) as Channel;
+    const user = UserStore.getUser(userId);
+    const channel = ChannelStore.getChannel(channelId);
 
     // check for filters
     if (
@@ -69,13 +70,15 @@ export const notify = (type: NotificationType, userId: string, channelId: string
     }
 
     // resolve names
-    const nick = GuildMemberStore.getMember(channel?.getGuildId(), userId)?.nick ?? user.username;
+    const displayName = user.globalName ?? user.username;
+    const nick = GuildMemberStore.getMember(channel?.getGuildId(), userId)?.nick ?? displayName;
     const channelName = (!channel || channel.isDM() || channel.isGroupDM()) ? settings.unknownChannel : channel.name;
 
     // speak message
-    speak(settings.notifs[type].message
-        .split("$username").join(processName(user.username))
-        .split("$user").join(processName(nick))
-        .split("$channel").join(processName(channelName))
-    );
+    const message = notif.message
+        .replaceAll("$username", processName(user.username))
+        .replaceAll("$displayname", processName(user.username))
+        .replaceAll("$user", processName(nick))
+        .replaceAll("$channel", processName(channelName));
+    speak(message);
 };

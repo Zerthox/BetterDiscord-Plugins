@@ -115,7 +115,7 @@ export const SettingsPanel = (): JSX.Element => {
             <FormSection>
                 <FormTitle tag="h3">Notifications</FormTitle>
                 <FormText type="description" className={margins.marginBottom20}>
-                    <Text tag="span" variant="code">$user</Text> will get replaced with the respective User Nickname, <Text tag="span" variant="code">$username</Text> with the User Account name and <Text tag="span" variant="code">$channel</Text> with the respective Voice Channel name.
+                    <Text tag="span" variant="code">$user</Text> will get replaced with the respective User Nickname, <Text tag="span" variant="code">$displayname</Text> with the global User Display Name, <Text tag="span" variant="code">$username</Text> with the User Account name and <Text tag="span" variant="code">$channel</Text> with the respective Voice Channel name.
                 </FormText>
                 {Object.entries(titles).map(([key, title]) => (
                     <FormItem key={key} className={margins.marginBottom20}>

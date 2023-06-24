@@ -6,6 +6,7 @@ import type {Store} from "./flux";
 export interface User {
     id: Snowflake;
     username: string;
+    globalName?: string;
     discriminator: string;
     avatar: string;
     email: string;
