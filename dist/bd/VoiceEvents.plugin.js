@@ -1,6 +1,6 @@
 /**
  * @name VoiceEvents
- * @version 2.5.2
+ * @version 2.6.0
  * @author Zerthox
  * @authorLink https://github.com/Zerthox
  * @description Adds TTS Event Notifications to your selected Voice Channel. TeamSpeak feeling.
@@ -194,8 +194,9 @@ const VoiceStateStore = /* @__PURE__ */ byName("VoiceStateStore");
 
 const MediaEngineStore = /* @__PURE__ */ byName("MediaEngineStore");
 
-const Dispatcher = /* @__PURE__ */ byKeys(["dispatch", "subscribe"]);
-const Flux = /* @__PURE__ */ demangle({
+const Dispatcher$1 = /* @__PURE__ */ byKeys(["dispatch", "subscribe"]);
+
+const { default: Legacy, Dispatcher, Store, BatchedStoreListener, useStateFromStores } = /* @__PURE__ */ demangle({
     default: byKeys$1("Store", "connectStores"),
     Dispatcher: byProtos("dispatch"),
     Store: byProtos("emitChange"),
@@ -269,16 +270,15 @@ const SettingsContainer = ({ name, children, onReset }) => (React.createElement(
                     onConfirm: () => onReset()
                 }) }, "Reset")))) : null));
 
-class SettingsStore extends Flux.Store {
+class SettingsStore {
     constructor(defaults, onLoad) {
-        super(new Flux.Dispatcher(), {
-            update: () => {
-                for (const listener of this.listeners) {
-                    listener(this.current);
-                }
-            }
-        });
         this.listeners = new Set();
+        this.update = (settings) => {
+            Object.assign(this.current, typeof settings === "function" ? settings(this.current) : settings);
+            this._dispatch(true);
+        };
+        this.addReactChangeListener = this.addListener;
+        this.removeReactChangeListener = this.removeListener;
         this.defaults = defaults;
         this.onLoad = onLoad;
     }
@@ -288,14 +288,12 @@ class SettingsStore extends Flux.Store {
         this._dispatch(false);
     }
     _dispatch(save$1) {
-        this._dispatcher.dispatch({ type: "update" });
+        for (const listener of this.listeners) {
+            listener(this.current);
+        }
         if (save$1) {
             save("settings", this.current);
         }
-    }
-    update(settings) {
-        Object.assign(this.current, typeof settings === "function" ? settings(this.current) : settings);
-        this._dispatch(true);
     }
     reset() {
         this.current = { ...this.defaults };
@@ -308,22 +306,22 @@ class SettingsStore extends Flux.Store {
         this._dispatch(true);
     }
     useCurrent() {
-        return Flux.useStateFromStores([this], () => this.current, undefined, () => false);
+        return useStateFromStores([this], () => this.current, undefined, () => false);
     }
     useSelector(selector, deps, compare) {
-        return Flux.useStateFromStores([this], () => selector(this.current), deps, compare);
+        return useStateFromStores([this], () => selector(this.current), deps, compare);
     }
     useState() {
-        return Flux.useStateFromStores([this], () => [
+        return useStateFromStores([this], () => [
             this.current,
-            (settings) => this.update(settings)
+            this.update
         ]);
     }
     useStateWithDefaults() {
-        return Flux.useStateFromStores([this], () => [
+        return useStateFromStores([this], () => [
             this.current,
             this.defaults,
-            (settings) => this.update(settings)
+            this.update
         ]);
     }
     useListener(listener, deps) {
@@ -455,7 +453,8 @@ const processName = (name) => {
 };
 const notify = (type, userId, channelId) => {
     const settings = Settings.current;
-    if (!settings.notifs[type].enabled) {
+    const notif = settings.notifs[type];
+    if (!notif.enabled) {
         return;
     }
     const user = UserStore.getUser(userId);
@@ -464,12 +463,15 @@ const notify = (type, userId, channelId) => {
         || settings.filterStages && channel?.isGuildStageVoice()) {
         return;
     }
-    const nick = GuildMemberStore.getMember(channel?.getGuildId(), userId)?.nick ?? user.username;
+    const displayName = user.globalName ?? user.username;
+    const nick = GuildMemberStore.getMember(channel?.getGuildId(), userId)?.nick ?? displayName;
     const channelName = (!channel || channel.isDM() || channel.isGroupDM()) ? settings.unknownChannel : channel.name;
-    speak(settings.notifs[type].message
-        .split("$username").join(processName(user.username))
-        .split("$user").join(processName(nick))
-        .split("$channel").join(processName(channelName)));
+    const message = notif.message
+        .replaceAll("$username", processName(user.username))
+        .replaceAll("$displayname", processName(user.username))
+        .replaceAll("$user", processName(nick))
+        .replaceAll("$channel", processName(channelName));
+    speak(message);
 };
 
 const titles = {
@@ -514,6 +516,8 @@ const SettingsPanel = () => {
             React.createElement(FormText, { type: "description", className: margins.marginBottom20 },
                 React.createElement(Text, { tag: "span", variant: "code" }, "$user"),
                 " will get replaced with the respective User Nickname, ",
+                React.createElement(Text, { tag: "span", variant: "code" }, "$displayname"),
+                " with the global User Display Name, ",
                 React.createElement(Text, { tag: "span", variant: "code" }, "$username"),
                 " with the User Account name and ",
                 React.createElement(Text, { tag: "span", variant: "code" }, "$channel"),
@@ -609,11 +613,11 @@ const index = createPlugin({
             Settings.update({ voice });
         }
         saveStates();
-        Dispatcher.subscribe("VOICE_STATE_UPDATES", voiceStateHandler);
+        Dispatcher$1.subscribe("VOICE_STATE_UPDATES", voiceStateHandler);
         log("Subscribed to voice state actions");
-        Dispatcher.subscribe("AUDIO_TOGGLE_SELF_MUTE", selfMuteHandler);
+        Dispatcher$1.subscribe("AUDIO_TOGGLE_SELF_MUTE", selfMuteHandler);
         log("Subscribed to self mute actions");
-        Dispatcher.subscribe("AUDIO_TOGGLE_SELF_DEAF", selfDeafHandler);
+        Dispatcher$1.subscribe("AUDIO_TOGGLE_SELF_DEAF", selfDeafHandler);
         log("Subscribed to self deaf actions");
         contextMenu("channel-context", (result) => {
             const [parent, index] = queryTreeForParent(result, (child) => child?.props?.id === "hide-voice-names");
@@ -624,11 +628,11 @@ const index = createPlugin({
     },
     stop() {
         prevStates = {};
-        Dispatcher.unsubscribe("VOICE_STATE_UPDATES", voiceStateHandler);
+        Dispatcher$1.unsubscribe("VOICE_STATE_UPDATES", voiceStateHandler);
         log("Unsubscribed from voice state actions");
-        Dispatcher.unsubscribe("AUDIO_TOGGLE_SELF_MUTE", selfMuteHandler);
+        Dispatcher$1.unsubscribe("AUDIO_TOGGLE_SELF_MUTE", selfMuteHandler);
         log("Unsubscribed from self mute actions");
-        Dispatcher.unsubscribe("AUDIO_TOGGLE_SELF_DEAF", selfDeafHandler);
+        Dispatcher$1.unsubscribe("AUDIO_TOGGLE_SELF_DEAF", selfDeafHandler);
         log("Unsubscribed from self deaf actions");
     },
     Settings,
