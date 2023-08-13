@@ -10,7 +10,7 @@ export interface BetterFolderIconProps {
 
 export const BetterFolderIcon = ({data, childProps, FolderIcon}: BetterFolderIconProps): JSX.Element => {
     if (FolderIcon) {
-        const result = FolderIcon(childProps);
+        const result = FolderIcon(childProps) as JSX.Element;
         if (data?.icon && (childProps.expanded || data.always)) {
             result.props.children = <div className={styles.customIcon} style={{backgroundImage: `url(${data.icon})`}}/>;
         }
