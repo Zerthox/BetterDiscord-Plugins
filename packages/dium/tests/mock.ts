@@ -5,6 +5,7 @@ import {LegacyRoot} from "react-reconciler/constants";
 (global as any).TESTING = true;
 
 (global as any).BdApi = {
+    React,
     Webpack: {
         getModule: () => null
     },

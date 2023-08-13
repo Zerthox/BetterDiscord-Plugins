@@ -2,7 +2,7 @@ import * as Patcher from "../api/patcher";
 import {React} from "../modules";
 import {ReactDOMInternals, Fiber, OwnerFiber} from "../react-internals";
 
-export type FCHookCallback<P> = (result: JSX.Element, targetProps: P) => JSX.Element | void;
+export type FCHookCallback<P> = (result: React.ReactNode, targetProps: P) => React.ReactNode | void;
 
 interface FCHookProps<P> {
     children: React.ReactElement<P, React.FunctionComponent<P>>;
@@ -10,7 +10,7 @@ interface FCHookProps<P> {
 }
 
 /** Utility component hooking into a function component. */
-const FCHook = <P>({children: {type, props}, callback}: FCHookProps<P>): JSX.Element => {
+const FCHook = <P>({children: {type, props}, callback}: FCHookProps<P>): React.ReactNode => {
     const result = type(props);
     return callback(result, props) as JSX.Element ?? result;
 };
@@ -33,26 +33,30 @@ export const hookFunctionComponent = <P>(
 
 export type Predicate<Arg> = (arg: Arg) => boolean;
 
+type ReactTree = React.ReactNode | React.ReactNode[];
+
 /**
  * Searches a React element tree for the first element matching the predicate.
  *
  * This uses a breadth first search (BFS).
  */
-export const queryTree = (node: JSX.Element | JSX.Element[], predicate: Predicate<JSX.Element>): JSX.Element | null => {
+export const queryTree = (node: ReactTree, predicate: Predicate<JSX.Element>): JSX.Element | null => {
     // TODO: queue impl?
     const worklist = [node].flat();
 
     while (worklist.length !== 0) {
         const node = worklist.shift();
+        if (React.isValidElement(node)) {
+            // check current node
+            if (predicate(node)) {
+                return node;
+            }
 
-        // check current node
-        if (predicate(node)) {
-            return node;
-        }
-
-        // add children to worklist
-        if (node?.props?.children) {
-            worklist.push(...[node.props.children].flat());
+            // add children to worklist
+            const children = node?.props?.children;
+            if (children) {
+                worklist.push(...[children].flat());
+            }
         }
     }
 
@@ -61,24 +65,26 @@ export const queryTree = (node: JSX.Element | JSX.Element[], predicate: Predicat
 
 /**
  * Searches a React element tree for all elements matching the predicate.
- *
- * This uses a breadth first search (BFS).
- */
-export const queryTreeAll = (node: JSX.Element | JSX.Element[], predicate: Predicate<JSX.Element>): JSX.Element[] => {
+*
+* This uses a breadth first search (BFS).
+*/
+export const queryTreeAll = (node: ReactTree, predicate: Predicate<JSX.Element>): JSX.Element[] => {
     const result = [];
     const worklist = [node].flat();
 
     while (worklist.length !== 0) {
         const node = worklist.shift();
+        if (React.isValidElement(node)) {
+            // check current node
+            if (predicate(node)) {
+                result.push(node);
+            }
 
-        // check current node
-        if (predicate(node)) {
-            result.push(node);
-        }
-
-        // add children to worklist
-        if (node?.props?.children) {
-            worklist.push(...[node.props.children].flat());
+            // add children to worklist
+            const children = node?.props?.children;
+            if (children) {
+                worklist.push(...[children].flat());
+            }
         }
     }
 
@@ -92,7 +98,7 @@ type ElementWithChildren = React.ReactElement<{children: JSX.Element[]} & Record
  *
  * Returns the parent node and the index.
  */
-export const queryTreeForParent = (tree: JSX.Element | JSX.Element[], predicate: Predicate<JSX.Element>): [ElementWithChildren | null, number] => {
+export const queryTreeForParent = (tree: ReactTree, predicate: Predicate<JSX.Element>): [ElementWithChildren | null, number] => {
     let childIndex = -1;
 
     const parent = queryTree(tree, (node) => {
