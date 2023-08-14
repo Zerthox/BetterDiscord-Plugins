@@ -14,7 +14,8 @@
     "bugs": "https://github.com/Zerthox/BetterDiscord-Plugins/issues",
     "homepage": "https://github.com/Zerthox/BetterDiscord-Plugins/tree/master/dium#readme",
     "dependencies": {
-        "@react-spring/web": "^9.5.2",
+        "@react-spring/rafz": "^9.7.3",
+        "@react-spring/web": "^9.7.3",
         "@types/betterdiscord": "github:zerthox/betterdiscord-types",
         "@types/history": "^4.7.11",
         "@types/immutable": "^3.8.7",
