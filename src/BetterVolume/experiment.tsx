@@ -1,24 +1,24 @@
 import {Logger, React, Utils, getMeta} from "dium";
-import {ExperimentStore} from "@dium/modules";
+import {ExperimentStore, ExperimentTreatment} from "@dium/modules";
 import {Text} from "@dium/components";
 import {Settings} from "./settings";
 
 const AUDIO_EXPERIMENT = "2022-09_remote_audio_settings";
 
-let initialAudioBucket = -1;
+let initialAudioBucket = ExperimentTreatment.NOT_ELIGIBLE;
 
-export const hasExperiment = (): boolean => initialAudioBucket > 0;
+export const hasExperiment = (): boolean => initialAudioBucket > ExperimentTreatment.CONTROL;
 
 const setAudioBucket = (bucket: number): void => {
-    Logger.log("Changing experiment bucket to", bucket);
-    const audioExperiment = ExperimentStore.getUserExperimentDescriptor(AUDIO_EXPERIMENT);
-    if (audioExperiment) {
+    if (hasExperiment()) {
+        Logger.log("Changing experiment bucket to", bucket);
+        const audioExperiment = ExperimentStore.getUserExperimentDescriptor(AUDIO_EXPERIMENT);
         audioExperiment.bucket = bucket;
     }
 };
 
 // update on settings change
-Settings.addListener(({disableExperiment}) => setAudioBucket(disableExperiment ? 0 : initialAudioBucket));
+Settings.addListener(({disableExperiment}) => setAudioBucket(disableExperiment ? ExperimentTreatment.CONTROL : initialAudioBucket));
 
 const onLoadExperiments = (): void => {
     // initialize bucket
