@@ -18,7 +18,7 @@ export interface Experiment<Config = Record<string, any>> {
 }
 
 export interface ExperimentInfo {
-    type: "user" | "guild";
+    type: ExperimentType;
     title: string;
     description: string[];
     buckets: number[];
@@ -31,6 +31,47 @@ export interface UserExperimentDescriptor {
     override: boolean;
     population: number;
     revision: number;
+}
+
+export const enum ExperimentType {
+    GUILD = "guild",
+    NONE_LEGACY = "none",
+    USER = "user"
+}
+
+export const enum ExperimentExposureType {
+    AUTO = "auto",
+    MANUAL = "manual"
+}
+
+export const enum ExperimentTreatment {
+    NOT_ELIGIBLE = -1,
+    CONTROL = 0,
+    TREATMENT_1 = 1,
+    TREATMENT_2 = 2,
+    TREATMENT_3 = 3,
+    TREATMENT_4 = 4,
+    TREATMENT_5 = 5,
+    TREATMENT_6 = 6,
+    TREATMENT_7 = 7,
+    TREATMENT_8 = 8,
+    TREATMENT_9 = 9,
+    TREATMENT_10 = 10,
+    TREATMENT_11 = 11,
+    TREATMENT_12 = 12,
+    TREATMENT_13 = 13,
+    TREATMENT_14 = 14,
+    TREATMENT_15 = 15,
+    TREATMENT_16 = 16,
+    TREATMENT_17 = 17,
+    TREATMENT_18 = 18,
+    TREATMENT_19 = 19,
+    TREATMENT_20 = 20,
+    TREATMENT_21 = 21,
+    TREATMENT_22 = 22,
+    TREATMENT_23 = 23,
+    TREATMENT_24 = 24,
+    TREATMENT_25 = 25
 }
 
 export type GuildExperimentDescriptor = Record<string, any>;
