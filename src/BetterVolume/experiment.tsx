@@ -17,6 +17,9 @@ const setAudioBucket = (bucket: number): void => {
     }
 };
 
+// update on settings change
+Settings.addListener(({disableExperiment}) => setAudioBucket(disableExperiment ? 0 : initialAudioBucket));
+
 const onLoadExperiments = (): void => {
     // initialize bucket
     initialAudioBucket = ExperimentStore.getUserExperimentBucket(AUDIO_EXPERIMENT);
@@ -44,7 +47,6 @@ const onLoadExperiments = (): void => {
 };
 
 export const handleExperiment = (): void => {
-    Settings.addListener(({disableExperiment}) => setAudioBucket(disableExperiment ? 0 : initialAudioBucket));
     if (ExperimentStore.hasLoadedExperiments) {
         Logger.log("Experiments already loaded");
         onLoadExperiments();
