@@ -1,7 +1,9 @@
-import {createPlugin, createSettings, Finder, Filters, Patcher, React, Utils, getMeta} from "dium";
-import {Snowflake, MediaEngineStore, MediaEngineActions, MediaEngineContext, ExperimentStore} from "@dium/modules";
-import {MenuItem, Text, FormSwitch} from "@dium/components";
+import {createPlugin, Finder, Filters, Patcher, React} from "dium";
+import {Snowflake, MediaEngineStore, MediaEngineActions, MediaEngineContext} from "@dium/modules";
+import {MenuItem, FormSwitch} from "@dium/components";
+import {Settings} from "./settings";
 import {NumberInput} from "./input";
+import {handleExperiment, hasExperiment, resetExperiment} from "./experiment";
 import {css} from "./styles.module.scss";
 
 interface AudioConvert {
@@ -16,44 +18,10 @@ const AudioConvert: AudioConvert = Finder.demangle({
 
 type UseUserVolumeItem = (userId: Snowflake, context: MediaEngineContext) => JSX.Element;
 
-const AUDIO_EXPERIMENT = "2022-09_remote_audio_settings";
-const initialAudioBucket = ExperimentStore.getUserExperimentBucket(AUDIO_EXPERIMENT);
-const hasAudioExperiment = initialAudioBucket > 0;
-const setAudioBucket = (bucket: number) => {
-    const audioExperiment = ExperimentStore.getUserExperimentDescriptor(AUDIO_EXPERIMENT);
-    if (audioExperiment) {
-        audioExperiment.bucket = bucket;
-    }
-};
-
-const Settings = createSettings({
-    disableExperiment: null
-});
-Settings.addListener(({disableExperiment}) => setAudioBucket(disableExperiment ? 0 : initialAudioBucket));
-
 export default createPlugin({
     start() {
-        // check for audio settings experiment
-        if (hasAudioExperiment) {
-            if (Settings.current.disableExperiment === null) {
-                // initial value means we set to false and ask the user
-                Settings.update({disableExperiment: false});
-                Utils.confirm(getMeta().name, (
-                    <Text color="text-normal">
-                        Your client has an experiment interfering with volumes greater than 200% enabled.
-                        Do you wish to disable it now and on future restarts?
-                    </Text>
-                ), {
-                    onConfirm: () => Settings.update({disableExperiment: true})
-                });
-            }
-
-            // check if we have to disable
-            if (Settings.current.disableExperiment) {
-                // simply setting this should be fine, seems to be only changed on connect etc.
-                setAudioBucket(0);
-            }
-        }
+        // handle audio experiment
+        handleExperiment();
 
         // add number input to user volume item
         const useUserVolumeItemFilter = Filters.bySource("user-volume");
@@ -91,10 +59,7 @@ export default createPlugin({
         });
     },
     stop() {
-        // reset experiment to initial bucket
-        if (Settings.current.disableExperiment) {
-            setAudioBucket(initialAudioBucket);
-        }
+        resetExperiment();
     },
     styles: css,
     Settings,
@@ -106,7 +71,7 @@ export default createPlugin({
                 note="Force disable experiment interfering with volumes greater than 200%."
                 hideBorder
                 value={disableExperiment}
-                disabled={!hasAudioExperiment}
+                disabled={hasExperiment()}
                 onChange={(checked) => setSettings({disableExperiment: checked})}
             >Disable Audio experiment</FormSwitch>
         );
