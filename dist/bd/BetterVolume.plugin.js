@@ -1,6 +1,6 @@
 /**
  * @name BetterVolume
- * @version 2.4.1
+ * @version 2.5.0
  * @author Zerthox
  * @authorLink https://github.com/Zerthox
  * @description Set user volume values manually instead of using a slider. Allows setting volumes higher than 200%.
@@ -200,7 +200,7 @@ const MediaEngineActions = /* @__PURE__ */ byKeys(["setLocalVolume"]);
 
 const ExperimentStore = /* @__PURE__ */ byName("ExperimentStore");
 
-const Flux = /* @__PURE__ */ demangle({
+const { default: Legacy, Dispatcher, Store, BatchedStoreListener, useStateFromStores } = /* @__PURE__ */ demangle({
     default: byKeys$1("Store", "connectStores"),
     Dispatcher: byProtos("dispatch"),
     Store: byProtos("emitChange"),
@@ -219,11 +219,11 @@ const Flex = /* @__PURE__ */ byKeys(["Child", "Justify"], { entries: true });
 
 const { FormSection, FormItem, FormTitle, FormText, FormLabel, FormDivider, FormSwitch, FormNotice } = Common;
 
+const margins = /* @__PURE__ */ byKeys(["marginBottom40", "marginTop4"]);
+
 const { Menu, Group: MenuGroup, Item: MenuItem, Separator: MenuSeparator, CheckboxItem: MenuCheckboxItem, RadioItem: MenuRadioItem, ControlItem: MenuControlItem } = BdApi.ContextMenu;
 
 const Text = Common.Text;
-
-const margins = /* @__PURE__ */ byKeys(["marginLarge"]);
 
 const SettingsContainer = ({ name, children, onReset }) => (React.createElement(FormSection, null,
     children,
@@ -234,16 +234,15 @@ const SettingsContainer = ({ name, children, onReset }) => (React.createElement(
                     onConfirm: () => onReset()
                 }) }, "Reset")))) : null));
 
-class SettingsStore extends Flux.Store {
+class SettingsStore {
     constructor(defaults, onLoad) {
-        super(new Flux.Dispatcher(), {
-            update: () => {
-                for (const listener of this.listeners) {
-                    listener(this.current);
-                }
-            }
-        });
         this.listeners = new Set();
+        this.update = (settings) => {
+            Object.assign(this.current, typeof settings === "function" ? settings(this.current) : settings);
+            this._dispatch(true);
+        };
+        this.addReactChangeListener = this.addListener;
+        this.removeReactChangeListener = this.removeListener;
         this.defaults = defaults;
         this.onLoad = onLoad;
     }
@@ -253,14 +252,12 @@ class SettingsStore extends Flux.Store {
         this._dispatch(false);
     }
     _dispatch(save$1) {
-        this._dispatcher.dispatch({ type: "update" });
+        for (const listener of this.listeners) {
+            listener(this.current);
+        }
         if (save$1) {
             save("settings", this.current);
         }
-    }
-    update(settings) {
-        Object.assign(this.current, typeof settings === "function" ? settings(this.current) : settings);
-        this._dispatch(true);
     }
     reset() {
         this.current = { ...this.defaults };
@@ -273,22 +270,22 @@ class SettingsStore extends Flux.Store {
         this._dispatch(true);
     }
     useCurrent() {
-        return Flux.useStateFromStores([this], () => this.current, undefined, () => false);
+        return useStateFromStores([this], () => this.current, undefined, () => false);
     }
     useSelector(selector, deps, compare) {
-        return Flux.useStateFromStores([this], () => selector(this.current), deps, compare);
+        return useStateFromStores([this], () => selector(this.current), deps, compare);
     }
     useState() {
-        return Flux.useStateFromStores([this], () => [
+        return useStateFromStores([this], () => [
             this.current,
-            (settings) => this.update(settings)
+            this.update
         ]);
     }
     useStateWithDefaults() {
-        return Flux.useStateFromStores([this], () => [
+        return useStateFromStores([this], () => [
             this.current,
             this.defaults,
-            (settings) => this.update(settings)
+            this.update
         ]);
     }
     useListener(listener, deps) {
@@ -332,6 +329,10 @@ const createPlugin = (plugin) => (meta) => {
     };
 };
 
+const Settings = createSettings({
+    disableExperiment: null
+});
+
 const css = ".container-BetterVolume {\n  margin: 0 8px;\n  padding: 3px 6px;\n  background: var(--background-primary);\n  border-radius: 3px;\n  display: flex;\n}\n\n.input-BetterVolume {\n  margin-right: 2px;\n  flex-grow: 1;\n  background: transparent;\n  border: none;\n  color: var(--interactive-normal);\n  font-weight: 500;\n}\n.input-BetterVolume:hover::-webkit-inner-spin-button {\n  appearance: auto;\n}";
 const styles = {
     container: "container-BetterVolume",
@@ -359,36 +360,63 @@ const NumberInput = ({ value, min, max, fallback, onChange }) => {
         React.createElement("span", { className: styles.unit }, "%")));
 };
 
+const AUDIO_EXPERIMENT = "2022-09_remote_audio_settings";
+let initialAudioBucket = -1 ;
+const hasExperiment = () => initialAudioBucket > 0 ;
+const setAudioBucket = (bucket) => {
+    if (hasExperiment()) {
+        log("Changing experiment bucket to", bucket);
+        const audioExperiment = ExperimentStore.getUserExperimentDescriptor(AUDIO_EXPERIMENT);
+        audioExperiment.bucket = bucket;
+    }
+};
+Settings.addListener(({ disableExperiment }) => setAudioBucket(disableExperiment ? 0  : initialAudioBucket));
+const onLoadExperiments = () => {
+    initialAudioBucket = ExperimentStore.getUserExperimentBucket(AUDIO_EXPERIMENT);
+    log("Initial experiment bucket", initialAudioBucket);
+    if (hasExperiment()) {
+        const { disableExperiment } = Settings.current;
+        if (disableExperiment) {
+            setAudioBucket(0);
+        }
+        else if (disableExperiment === null) {
+            Settings.update({ disableExperiment: false });
+            confirm(getMeta().name, (React.createElement(Text, { color: "text-normal" }, "Your client has an experiment interfering with volumes greater than 200% enabled. Do you wish to disable it now and on future restarts?")), {
+                onConfirm: () => Settings.update({ disableExperiment: true })
+            });
+        }
+    }
+};
+const handleExperiment = () => {
+    if (ExperimentStore.hasLoadedExperiments) {
+        log("Experiments already loaded");
+        onLoadExperiments();
+    }
+    else {
+        log("Waiting for experiments load");
+        const listener = () => {
+            if (ExperimentStore.hasLoadedExperiments) {
+                log("Experiments loaded after wait");
+                ExperimentStore.removeChangeListener(listener);
+                onLoadExperiments();
+            }
+        };
+        ExperimentStore.addChangeListener(listener);
+    }
+};
+const resetExperiment = () => {
+    if (Settings.current.disableExperiment) {
+        setAudioBucket(initialAudioBucket);
+    }
+};
+
 const AudioConvert = demangle({
     amplitudeToPerceptual: bySource("Math.log10"),
     perceptualToAmplitude: bySource("Math.pow(10")
 });
-const AUDIO_EXPERIMENT = "2022-09_remote_audio_settings";
-const initialAudioBucket = ExperimentStore.getUserExperimentBucket(AUDIO_EXPERIMENT);
-const hasAudioExperiment = initialAudioBucket > 0;
-const setAudioBucket = (bucket) => {
-    const audioExperiment = ExperimentStore.getUserExperimentDescriptor(AUDIO_EXPERIMENT);
-    if (audioExperiment) {
-        audioExperiment.bucket = bucket;
-    }
-};
-const Settings = createSettings({
-    disableExperiment: null
-});
-Settings.addListener(({ disableExperiment }) => setAudioBucket(disableExperiment ? 0 : initialAudioBucket));
 const index = createPlugin({
     start() {
-        if (hasAudioExperiment) {
-            if (Settings.current.disableExperiment === null) {
-                Settings.update({ disableExperiment: false });
-                confirm(getMeta().name, (React.createElement(Text, { color: "text-normal" }, "Your client has an experiment interfering with volumes greater than 200% enabled. Do you wish to disable it now and on future restarts?")), {
-                    onConfirm: () => Settings.update({ disableExperiment: true })
-                });
-            }
-            if (Settings.current.disableExperiment) {
-                setAudioBucket(0);
-            }
-        }
+        handleExperiment();
         const useUserVolumeItemFilter = bySource("user-volume");
         waitFor(useUserVolumeItemFilter, { resolve: false }).then((result) => {
             const useUserVolumeItem = resolveKey(result, useUserVolumeItemFilter);
@@ -403,15 +431,13 @@ const index = createPlugin({
         });
     },
     stop() {
-        if (Settings.current.disableExperiment) {
-            setAudioBucket(initialAudioBucket);
-        }
+        resetExperiment();
     },
     styles: css,
     Settings,
     SettingsPanel: () => {
         const [{ disableExperiment }, setSettings] = Settings.useState();
-        return (React.createElement(FormSwitch, { note: "Force disable experiment interfering with volumes greater than 200%.", hideBorder: true, value: disableExperiment, disabled: !hasAudioExperiment, onChange: (checked) => setSettings({ disableExperiment: checked }) }, "Disable Audio experiment"));
+        return (React.createElement(FormSwitch, { note: "Force disable experiment interfering with volumes greater than 200%.", hideBorder: true, value: disableExperiment, disabled: hasExperiment(), onChange: (checked) => setSettings({ disableExperiment: checked }) }, "Disable Audio experiment"));
     }
 });
 
