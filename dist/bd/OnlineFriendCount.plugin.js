@@ -1,6 +1,6 @@
 /**
  * @name OnlineFriendCount
- * @version 3.1.1
+ * @version 3.1.2
  * @author Zerthox
  * @authorLink https://github.com/Zerthox
  * @description Adds the old online friend count and similar counters back to server list. Because nostalgia.
@@ -68,6 +68,7 @@ const setMeta = (newMeta) => {
 const load = (key) => BdApi.Data.load(getMeta().name, key);
 const save = (key, value) => BdApi.Data.save(getMeta().name, key, value);
 
+const checkObjectValues = (target) => target !== window && target instanceof Object && target.constructor?.prototype !== target;
 const byName$1 = (name) => {
     return (target) => (target?.displayName ?? target?.constructor?.displayName) === name;
 };
@@ -134,8 +135,7 @@ const byKeys = (keys, options) => find(byKeys$1(...keys), options);
 const bySource = (contents, options) => find(bySource$1(...contents), options);
 const demangle = (mapping, required, proxy = false) => {
     const req = required ?? Object.keys(mapping);
-    const found = find((target) => (target instanceof Object
-        && target !== window
+    const found = find((target) => (checkObjectValues(target)
         && req.every((req) => Object.values(target).some((value) => mapping[req](value)))));
     return proxy ? mappedProxy(found, Object.fromEntries(Object.entries(mapping).map(([key, filter]) => [
         key,
@@ -193,7 +193,7 @@ const inject = (styles) => {
 };
 const clear = () => BdApi.DOM.removeStyle(getMeta().name);
 
-const Flux = /* @__PURE__ */ demangle({
+const { default: Legacy, Dispatcher, Store, BatchedStoreListener, useStateFromStores } = /* @__PURE__ */ demangle({
     default: byKeys$1("Store", "connectStores"),
     Dispatcher: byProtos("dispatch"),
     Store: byProtos("emitChange"),
@@ -210,18 +210,13 @@ const classNames = /* @__PURE__ */ find((exports) => exports instanceof Object &
 const PresenceStore = /* @__PURE__ */ byName("PresenceStore");
 const RelationshipStore = /* @__PURE__ */ byName("RelationshipStore");
 
-const Button = /* @__PURE__ */ byKeys(["Colors", "Link"], { entries: true });
+const Common = /* @__PURE__ */ byKeys(["Button", "Switch", "Select"]);
+
+const Button = Common.Button;
 
 const Flex = /* @__PURE__ */ byKeys(["Child", "Justify"], { entries: true });
 
-const { FormSection, FormItem, FormTitle, FormText, FormDivider, FormNotice } = /* @__PURE__ */ demangle({
-    FormSection: bySource$1(".titleClassName", ".sectionTitle"),
-    FormItem: bySource$1(".titleClassName", ".required"),
-    FormTitle: bySource$1(".faded", ".required"),
-    FormText: (target) => target.Types?.INPUT_PLACEHOLDER,
-    FormDivider: bySource$1(".divider", ".style"),
-    FormNotice: bySource$1(".imageData", "formNotice")
-}, ["FormSection", "FormItem", "FormDivider"]);
+const { FormSection, FormItem, FormTitle, FormText, FormLabel, FormDivider, FormSwitch, FormNotice } = Common;
 
 const GuildsNav = /* @__PURE__ */ bySource(["guildsnav"], { entries: true });
 
@@ -231,9 +226,9 @@ const { Link, NavLink, LinkRouter } = /* @__PURE__ */ demangle({
     LinkRouter: bySource$1("this.history")
 }, ["NavLink", "Link"]);
 
-const { Menu: Menu, Group: MenuGroup, Item: MenuItem, Separator: MenuSeparator, CheckboxItem: MenuCheckboxItem, RadioItem: MenuRadioItem, ControlItem: MenuControlItem } = BdApi.ContextMenu;
+const margins = /* @__PURE__ */ byKeys(["marginBottom40", "marginTop4"]);
 
-const margins = /* @__PURE__ */ byKeys(["marginLarge"]);
+const { Menu, Group: MenuGroup, Item: MenuItem, Separator: MenuSeparator, CheckboxItem: MenuCheckboxItem, RadioItem: MenuRadioItem, ControlItem: MenuControlItem } = BdApi.ContextMenu;
 
 const [getInstanceFromNode, getNodeFromInstance, getFiberCurrentPropsFromNode, enqueueStateRestore, restoreStateIfNeeded, batchedUpdates] = ReactDOM?.__SECRET_INTERNALS_DO_NOT_USE_OR_YOU_WILL_BE_FIRED?.Events ?? [];
 const ReactDOMInternals = {
@@ -262,11 +257,14 @@ const queryTree = (node, predicate) => {
     const worklist = [node].flat();
     while (worklist.length !== 0) {
         const node = worklist.shift();
-        if (predicate(node)) {
-            return node;
-        }
-        if (node?.props?.children) {
-            worklist.push(...[node.props.children].flat());
+        if (React.isValidElement(node)) {
+            if (predicate(node)) {
+                return node;
+            }
+            const children = node?.props?.children;
+            if (children) {
+                worklist.push(...[children].flat());
+            }
         }
     }
     return null;
@@ -326,16 +324,15 @@ const SettingsContainer = ({ name, children, onReset }) => (React.createElement(
                     onConfirm: () => onReset()
                 }) }, "Reset")))) : null));
 
-class SettingsStore extends Flux.Store {
+class SettingsStore {
     constructor(defaults, onLoad) {
-        super(new Flux.Dispatcher(), {
-            update: () => {
-                for (const listener of this.listeners) {
-                    listener(this.current);
-                }
-            }
-        });
         this.listeners = new Set();
+        this.update = (settings) => {
+            Object.assign(this.current, typeof settings === "function" ? settings(this.current) : settings);
+            this._dispatch(true);
+        };
+        this.addReactChangeListener = this.addListener;
+        this.removeReactChangeListener = this.removeListener;
         this.defaults = defaults;
         this.onLoad = onLoad;
     }
@@ -345,14 +342,12 @@ class SettingsStore extends Flux.Store {
         this._dispatch(false);
     }
     _dispatch(save$1) {
-        this._dispatcher.dispatch({ type: "update" });
+        for (const listener of this.listeners) {
+            listener(this.current);
+        }
         if (save$1) {
             save("settings", this.current);
         }
-    }
-    update(settings) {
-        Object.assign(this.current, typeof settings === "function" ? settings(this.current) : settings);
-        this._dispatch(true);
     }
     reset() {
         this.current = { ...this.defaults };
@@ -365,22 +360,22 @@ class SettingsStore extends Flux.Store {
         this._dispatch(true);
     }
     useCurrent() {
-        return Flux.useStateFromStores([this], () => this.current, undefined, () => false);
+        return useStateFromStores([this], () => this.current, undefined, () => false);
     }
     useSelector(selector, deps, compare) {
-        return Flux.useStateFromStores([this], () => selector(this.current), deps, compare);
+        return useStateFromStores([this], () => selector(this.current), deps, compare);
     }
     useState() {
-        return Flux.useStateFromStores([this], () => [
+        return useStateFromStores([this], () => [
             this.current,
-            (settings) => this.update(settings)
+            this.update
         ]);
     }
     useStateWithDefaults() {
-        return Flux.useStateFromStores([this], () => [
+        return useStateFromStores([this], () => [
             this.current,
             this.defaults,
-            (settings) => this.update(settings)
+            this.update
         ]);
     }
     useListener(listener, deps) {
@@ -482,9 +477,9 @@ const CounterItem = ({ type, count }) => (React.createElement(Item, { link: "/ch
     counterLabels[type].label));
 const countFilteredRelationships = (filter) => (Object.entries(RelationshipStore.getRelationships()).filter(([id, type]) => filter({ id, type })).length);
 const useCounters = () => {
-    const guilds = Flux.useStateFromStores([GuildStore], () => GuildStore.getGuildCount(), []);
-    const friendsOnline = Flux.useStateFromStores([PresenceStore, RelationshipStore], () => countFilteredRelationships(({ id, type }) => type === 1  && PresenceStore.getStatus(id) !== "offline" ), []);
-    const relationships = Flux.useStateFromStores([RelationshipStore], () => ({
+    const guilds = useStateFromStores([GuildStore], () => GuildStore.getGuildCount(), []);
+    const friendsOnline = useStateFromStores([PresenceStore, RelationshipStore], () => countFilteredRelationships(({ id, type }) => type === 1  && PresenceStore.getStatus(id) !== "offline" ), []);
+    const relationships = useStateFromStores([RelationshipStore], () => ({
         friends: countFilteredRelationships(({ type }) => type === 1 ),
         pending: countFilteredRelationships(({ type }) => type === 3  || type === 4 ),
         blocked: countFilteredRelationships(({ type }) => type === 2 )

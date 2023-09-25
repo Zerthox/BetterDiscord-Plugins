@@ -1,6 +1,6 @@
 /**
  * @name CollapseEmbeds
- * @version 1.0.1
+ * @version 1.0.2
  * @author Zerthox
  * @authorLink https://github.com/Zerthox
  * @description Adds a button to collapse embeds & attachments.
@@ -187,7 +187,7 @@ const inject = (styles) => {
 };
 const clear = () => BdApi.DOM.removeStyle(getMeta().name);
 
-const Flux = /* @__PURE__ */ demangle({
+const { default: Legacy, Dispatcher, Store, BatchedStoreListener, useStateFromStores } = /* @__PURE__ */ demangle({
     default: byKeys$1("Store", "connectStores"),
     Dispatcher: byProtos$1("dispatch"),
     Store: byProtos$1("emitChange"),
@@ -210,11 +210,11 @@ const Flex = /* @__PURE__ */ byKeys(["Child", "Justify"], { entries: true });
 
 const { FormSection, FormItem, FormTitle, FormText, FormLabel, FormDivider, FormSwitch, FormNotice } = Common;
 
+const margins = /* @__PURE__ */ byKeys(["marginBottom40", "marginTop4"]);
+
 const MessageFooter = /* @__PURE__ */ byProtos(["renderRemoveAttachmentConfirmModal"], { entries: true });
 
 const Text = Common.Text;
-
-const margins = /* @__PURE__ */ byKeys(["marginLarge"]);
 
 const FCHook = ({ children: { type, props }, callback }) => {
     const result = type(props);
@@ -234,11 +234,14 @@ const queryTreeAll = (node, predicate) => {
     const worklist = [node].flat();
     while (worklist.length !== 0) {
         const node = worklist.shift();
-        if (predicate(node)) {
-            result.push(node);
-        }
-        if (node?.props?.children) {
-            worklist.push(...[node.props.children].flat());
+        if (React.isValidElement(node)) {
+            if (predicate(node)) {
+                result.push(node);
+            }
+            const children = node?.props?.children;
+            if (children) {
+                worklist.push(...[children].flat());
+            }
         }
     }
     return result;
@@ -253,16 +256,15 @@ const SettingsContainer = ({ name, children, onReset }) => (React.createElement(
                     onConfirm: () => onReset()
                 }) }, "Reset")))) : null));
 
-class SettingsStore extends Flux.Store {
+class SettingsStore {
     constructor(defaults, onLoad) {
-        super(new Flux.Dispatcher(), {
-            update: () => {
-                for (const listener of this.listeners) {
-                    listener(this.current);
-                }
-            }
-        });
         this.listeners = new Set();
+        this.update = (settings) => {
+            Object.assign(this.current, typeof settings === "function" ? settings(this.current) : settings);
+            this._dispatch(true);
+        };
+        this.addReactChangeListener = this.addListener;
+        this.removeReactChangeListener = this.removeListener;
         this.defaults = defaults;
         this.onLoad = onLoad;
     }
@@ -272,14 +274,12 @@ class SettingsStore extends Flux.Store {
         this._dispatch(false);
     }
     _dispatch(save$1) {
-        this._dispatcher.dispatch({ type: "update" });
+        for (const listener of this.listeners) {
+            listener(this.current);
+        }
         if (save$1) {
             save("settings", this.current);
         }
-    }
-    update(settings) {
-        Object.assign(this.current, typeof settings === "function" ? settings(this.current) : settings);
-        this._dispatch(true);
     }
     reset() {
         this.current = { ...this.defaults };
@@ -292,22 +292,22 @@ class SettingsStore extends Flux.Store {
         this._dispatch(true);
     }
     useCurrent() {
-        return Flux.useStateFromStores([this], () => this.current, undefined, () => false);
+        return useStateFromStores([this], () => this.current, undefined, () => false);
     }
     useSelector(selector, deps, compare) {
-        return Flux.useStateFromStores([this], () => selector(this.current), deps, compare);
+        return useStateFromStores([this], () => selector(this.current), deps, compare);
     }
     useState() {
-        return Flux.useStateFromStores([this], () => [
+        return useStateFromStores([this], () => [
             this.current,
-            (settings) => this.update(settings)
+            this.update
         ]);
     }
     useStateWithDefaults() {
-        return Flux.useStateFromStores([this], () => [
+        return useStateFromStores([this], () => [
             this.current,
             this.defaults,
-            (settings) => this.update(settings)
+            this.update
         ]);
     }
     useListener(listener, deps) {

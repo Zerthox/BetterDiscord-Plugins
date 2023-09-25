@@ -1,6 +1,6 @@
 /**
  * @name VoiceEvents
- * @version 2.6.0
+ * @version 2.6.1
  * @author Zerthox
  * @authorLink https://github.com/Zerthox
  * @description Adds TTS Event Notifications to your selected Voice Channel. TeamSpeak feeling.
@@ -219,6 +219,8 @@ const Flex = /* @__PURE__ */ byKeys(["Child", "Justify"], { entries: true });
 
 const { FormSection, FormItem, FormTitle, FormText, FormLabel, FormDivider, FormSwitch, FormNotice } = Common;
 
+const margins = /* @__PURE__ */ byKeys(["marginBottom40", "marginTop4"]);
+
 const { Menu, Group: MenuGroup, Item: MenuItem, Separator: MenuSeparator, CheckboxItem: MenuCheckboxItem, RadioItem: MenuRadioItem, ControlItem: MenuControlItem } = BdApi.ContextMenu;
 
 const { Select, SingleSelect } = Common;
@@ -231,17 +233,18 @@ const { TextInput, InputError } = Common;
 
 const Text = Common.Text;
 
-const margins = /* @__PURE__ */ byKeys(["marginLarge"]);
-
 const queryTree = (node, predicate) => {
     const worklist = [node].flat();
     while (worklist.length !== 0) {
         const node = worklist.shift();
-        if (predicate(node)) {
-            return node;
-        }
-        if (node?.props?.children) {
-            worklist.push(...[node.props.children].flat());
+        if (React.isValidElement(node)) {
+            if (predicate(node)) {
+                return node;
+            }
+            const children = node?.props?.children;
+            if (children) {
+                worklist.push(...[children].flat());
+            }
         }
     }
     return null;

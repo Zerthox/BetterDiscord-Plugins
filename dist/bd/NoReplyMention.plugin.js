@@ -1,9 +1,9 @@
 /**
  * @name NoReplyMention
+ * @version 0.2.1
  * @author Zerthox
- * @version 0.2.0
- * @description Suppresses reply mentions.
  * @authorLink https://github.com/Zerthox
+ * @description Suppresses reply mentions.
  * @website https://github.com/Zerthox/BetterDiscord-Plugins
  * @source https://github.com/Zerthox/BetterDiscord-Plugins/tree/master/src/NoReplyMention
 **/
@@ -65,19 +65,19 @@ const setMeta = (newMeta) => {
     meta = newMeta;
 };
 
-const byProps$1 = (...props) => {
-    return (target) => target instanceof Object && props.every((prop) => prop in target);
+const checkObjectValues = (target) => target !== window && target instanceof Object && target.constructor?.prototype !== target;
+const byKeys$1 = (...keys) => {
+    return (target) => target instanceof Object && keys.every((key) => key in target);
 };
 const bySource = (...fragments) => {
     return (target) => {
+        while (target instanceof Object && "$$typeof" in target) {
+            target = target.render ?? target.type;
+        }
         if (target instanceof Function) {
             const source = target.toString();
             const renderSource = target.prototype?.render?.toString();
-            return fragments.every((fragment) => (typeof fragment === "string" ? (source.includes(fragment) || renderSource?.includes(fragment)) : (fragment(source) || renderSource && fragment(renderSource))));
-        }
-        else if (target instanceof Object && "$$typeof" in target) {
-            const source = (target.render ?? target.type)?.toString();
-            return source && fragments.every((fragment) => typeof fragment === "string" ? source.includes(fragment) : fragment(source));
+            return fragments.every((fragment) => typeof fragment === "string" ? (source.includes(fragment) || renderSource?.includes(fragment)) : (fragment(source) || renderSource && fragment(renderSource)));
         }
         else {
             return false;
@@ -121,11 +121,10 @@ const find = (filter, { resolve = true, entries = false } = {}) => BdApi.Webpack
     defaultExport: resolve,
     searchExports: entries
 });
-const byProps = (props, options) => find(byProps$1(...props), options);
+const byKeys = (keys, options) => find(byKeys$1(...keys), options);
 const demangle = (mapping, required, proxy = false) => {
     const req = required ?? Object.keys(mapping);
-    const found = find((target) => (target instanceof Object
-        && target !== window
+    const found = find((target) => (checkObjectValues(target)
         && req.every((req) => Object.values(target).some((value) => mapping[req](value)))));
     return proxy ? mappedProxy(found, Object.fromEntries(Object.entries(mapping).map(([key, filter]) => [
         key,
@@ -135,7 +134,6 @@ const demangle = (mapping, required, proxy = false) => {
         Object.values(found ?? {}).find((value) => filter(value))
     ]));
 };
-
 let controller = new AbortController();
 const abort = () => {
     controller.abort();
@@ -184,20 +182,15 @@ const clear = () => BdApi.DOM.removeStyle(getMeta().name);
 const { React } = BdApi;
 const classNames = /* @__PURE__ */ find((exports) => exports instanceof Object && exports.default === exports && Object.keys(exports).length === 1);
 
-const Button = /* @__PURE__ */ byProps(["Colors", "Link"], { entries: true });
+const Common = /* @__PURE__ */ byKeys(["Button", "Switch", "Select"]);
 
-const Flex = /* @__PURE__ */ byProps(["Child", "Justify"], { entries: true });
+const Button = Common.Button;
 
-const { FormSection, FormItem, FormTitle, FormText, FormDivider, FormNotice } = /* @__PURE__ */ demangle({
-    FormSection: bySource(".titleClassName", ".sectionTitle"),
-    FormItem: bySource(".titleClassName", ".required"),
-    FormTitle: bySource(".faded", ".required"),
-    FormText: (target) => target.Types?.INPUT_PLACEHOLDER,
-    FormDivider: bySource(".divider", ".style"),
-    FormNotice: bySource(".imageData", "formNotice")
-}, ["FormSection", "FormItem", "FormDivider"]);
+const Flex = /* @__PURE__ */ byKeys(["Child", "Justify"], { entries: true });
 
-const margins = /* @__PURE__ */ byProps(["marginLarge"]);
+const { FormSection, FormItem, FormTitle, FormText, FormLabel, FormDivider, FormSwitch, FormNotice } = Common;
+
+const margins = /* @__PURE__ */ byKeys(["marginBottom40", "marginTop4"]);
 
 const SettingsContainer = ({ name, children, onReset }) => (React.createElement(FormSection, null,
     children,
