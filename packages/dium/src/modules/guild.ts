@@ -217,17 +217,6 @@ export interface DeprecatedSortedGuild {
     folderColor?: number;
 }
 
-export interface SortedGuildDeprecatedStore extends SnapshotStore {
-    getGuildFolderById(id: number): DeprecatedGuildFolder;
-    getSortedGuilds(): DeprecatedSortedGuild[];
-    getFlattenedGuilds(): Guild[];
-    getFlattenedGuildIds(): Snowflake[];
-    get guildFolders(): DeprecatedGuildFolder[];
-    get persistKey(): string;
-}
-
-export const SortedGuildDeprecatedStore: SortedGuildDeprecatedStore = /* @__PURE__ */ Finder.byName("SortedGuildDeprecatedStore");
-
 export interface ExpandedGuildFolderStore extends Store {
     getExpandedFolders(): Set<number>;
     getState(): {expandedFolders: number[]};
