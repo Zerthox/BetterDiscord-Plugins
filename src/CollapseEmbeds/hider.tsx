@@ -4,7 +4,7 @@ import {Flex, Clickable, Text} from "@dium/components";
 import {Settings} from "./settings";
 import styles from "./styles.module.scss";
 
-const Arrow = Finder.bySource(["d:\"M16.", (source) => /\.open[,;]/.test(source)]);
+const Arrow = Finder.bySource(["d:\"m6 10"], {entries: true});
 
 export const enum AccessoryType {
     Embed = "embed",
@@ -37,7 +37,7 @@ export const Hider = ({placeholders, type, children}: HiderProps): JSX.Element =
                 className={styles.hideButton}
                 onClick={() => setShown(!shown)}
             >
-                <Arrow open={shown} className={styles.icon}/>
+                <Arrow className={classNames(styles.icon, shown ? styles.open : null)}/>
             </Clickable>
         </Flex>
     );
