@@ -1,6 +1,6 @@
 /**
  * @name CollapseEmbeds
- * @version 1.0.2
+ * @version 1.0.3
  * @author Zerthox
  * @authorLink https://github.com/Zerthox
  * @description Adds a button to collapse embeds & attachments.
@@ -355,7 +355,7 @@ const Settings = createSettings({
     hideByDefault: false
 });
 
-const css = ".container-CollapseEmbeds.embed-CollapseEmbeds {\n  justify-self: stretch;\n}\n.container-CollapseEmbeds.embed-CollapseEmbeds > article {\n  flex-grow: 1;\n  flex-shrink: 0;\n}\n\n.placeholder-CollapseEmbeds + .placeholder-CollapseEmbeds {\n  margin-left: 4px;\n}\n\n.hideButton-CollapseEmbeds {\n  margin-bottom: -4px;\n  align-self: flex-end;\n  color: var(--interactive-normal);\n  cursor: pointer;\n  visibility: hidden;\n}\n.hideButton-CollapseEmbeds:hover {\n  color: var(--interactive-hover);\n}\n.expanded-CollapseEmbeds > .hideButton-CollapseEmbeds {\n  margin-bottom: -6px;\n}\n.hideButton-CollapseEmbeds:hover, :hover + .hideButton-CollapseEmbeds, .collapsed-CollapseEmbeds > .hideButton-CollapseEmbeds {\n  visibility: visible;\n}\n\n.icon-CollapseEmbeds {\n  margin: -2px;\n}";
+const css = ".container-CollapseEmbeds.embed-CollapseEmbeds {\n  justify-self: stretch;\n}\n.container-CollapseEmbeds.embed-CollapseEmbeds > article {\n  flex-grow: 1;\n  flex-shrink: 0;\n}\n\n.placeholder-CollapseEmbeds + .placeholder-CollapseEmbeds {\n  margin-left: 4px;\n}\n\n.hideButton-CollapseEmbeds {\n  margin-bottom: -4px;\n  align-self: flex-end;\n  color: var(--interactive-normal);\n  cursor: pointer;\n  visibility: hidden;\n}\n.hideButton-CollapseEmbeds:hover {\n  color: var(--interactive-hover);\n}\n.expanded-CollapseEmbeds > .hideButton-CollapseEmbeds {\n  margin-bottom: -6px;\n}\n.hideButton-CollapseEmbeds:hover, :hover + .hideButton-CollapseEmbeds, .collapsed-CollapseEmbeds > .hideButton-CollapseEmbeds {\n  visibility: visible;\n}\n\n.icon-CollapseEmbeds {\n  margin: -2px;\n  transition: transform 0.2s ease-out;\n}\n.icon-CollapseEmbeds.open-CollapseEmbeds {\n  transform: rotate(180deg);\n}";
 const styles = {
     container: "container-CollapseEmbeds",
     embed: "embed-CollapseEmbeds",
@@ -364,17 +364,18 @@ const styles = {
     expanded: "expanded-CollapseEmbeds",
     collapsed: "collapsed-CollapseEmbeds",
     icon: "icon-CollapseEmbeds",
+    open: "open-CollapseEmbeds",
     attachment: "attachment-CollapseEmbeds"
 };
 
-const Arrow = bySource(["d:\"M16.", (source) => /\.open[,;]/.test(source)]);
+const Arrow = bySource(["d:\"m6 10"], { entries: true });
 const Hider = ({ placeholders, type, children }) => {
     const [shown, setShown] = React.useState(!Settings.current.hideByDefault);
     Settings.useListener(({ hideByDefault }) => setShown(!hideByDefault), []);
     return (React.createElement(Flex, { align: Flex.Align.CENTER, className: classNames(styles.container, styles[type], shown ? styles.expanded : styles.collapsed) },
         shown ? children : placeholders.filter(Boolean).map((placeholder, i) => (React.createElement(Text, { key: i, variant: "text-xs/normal", className: styles.placeholder }, placeholder))),
         React.createElement(Clickable, { className: styles.hideButton, onClick: () => setShown(!shown) },
-            React.createElement(Arrow, { open: shown, className: styles.icon }))));
+            React.createElement(Arrow, { className: classNames(styles.icon, shown ? styles.open : null) }))));
 };
 
 const index = createPlugin({
