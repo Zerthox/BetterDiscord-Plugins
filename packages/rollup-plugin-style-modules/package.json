@@ -4,7 +4,7 @@
     "author": "Zerthox",
     "dependencies": {
         "lodash.camelcase": "^4.3.0",
-        "postcss": "^8.4.21",
+        "postcss": "^8.4.31",
         "postcss-modules": "^6.0.0"
     },
     "peerDependencies": {
