@@ -20,6 +20,6 @@ interface Links {
 
 export const {Link, NavLink, LinkRouter}: Links = /* @__PURE__ */ Finder.demangle({
     NavLink: Filters.bySource(".sensitive", ".to"),
-    Link: Filters.bySource(".component"),
+    Link: Filters.bySource(".component", ".to"),
     LinkRouter: Filters.bySource("this.history")
 }, ["NavLink", "Link"]);
