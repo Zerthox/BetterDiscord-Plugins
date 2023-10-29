@@ -120,7 +120,7 @@ export class SettingsStore<T extends Record<string, any>> implements Flux.StoreL
     /**
      * Returns the current settings state & a setter function.
      *
-     * Similar to React's `useState()`;
+     * Similar to React's `useState()`.
      *
      * @example
      * ```js
