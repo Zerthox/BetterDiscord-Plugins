@@ -1,6 +1,6 @@
 /**
  * @name NoReplyMention
- * @version 0.2.1
+ * @version 0.2.2
  * @author Zerthox
  * @authorLink https://github.com/Zerthox
  * @description Suppresses reply mentions.
@@ -223,7 +223,10 @@ const createPlugin = (plugin) => (meta) => {
     };
 };
 
-const ReplyActions = demangle({ createPendingReply: bySource(".shouldMention") }, null, true);
+const ReplyActions = demangle({
+    createPendingReply: bySource("shouldMention", "CREATE_PENDING_REPLY"),
+    deletePendingReply: bySource("DELETE_PENDING_REPLY")
+}, null, true);
 const index = createPlugin({
     start() {
         before(ReplyActions, "createPendingReply", ({ args: [options] }) => {

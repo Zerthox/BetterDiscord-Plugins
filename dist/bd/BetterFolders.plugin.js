@@ -1,6 +1,6 @@
 /**
  * @name BetterFolders
- * @version 3.4.5
+ * @version 3.4.6
  * @author Zerthox
  * @authorLink https://github.com/Zerthox
  * @description Adds new functionality to server folders. Custom Folder Icons. Close other folders on open.
@@ -566,7 +566,7 @@ const index = createPlugin({
             }
         });
         triggerRerender(guildsOwner);
-        waitFor(bySource$1("GUILD_FOLDER_NAME"), { entries: true }).then((FolderSettingsModal) => {
+        waitFor(bySource$1(".GUILD_FOLDER_NAME"), { entries: true }).then((FolderSettingsModal) => {
             if (FolderSettingsModal) {
                 after(FolderSettingsModal.prototype, "render", (data) => folderModalPatch(data, FolderIcon), { name: "GuildFolderSettingsModal" });
             }
