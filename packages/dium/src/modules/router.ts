@@ -1,16 +1,20 @@
 import {Filters, Finder} from "../api";
 
+type ReactRouter = typeof import("react-router");
+
+type Keys = "Redirect" | "Route" | "Router" | "Switch" | "matchPath" | "useHistory" | "useLocation" | "useParams" | "useRouteMatch" | "withRouter" | "__RouterContext";
+
+export type Router = Pick<ReactRouter, Keys>;
+
 const mapping = {
     Redirect: Filters.bySource(".computedMatch", ".to"),
     Route: Filters.bySource(".computedMatch", ".location"),
     Router: Filters.byKeys("computeRootMatch"),
     Switch: Filters.bySource(".cloneElement"),
+    useLocation: Filters.bySource(").location"),
+    useParams: Filters.bySource(".params:"),
     withRouter: Filters.bySource("withRouter("),
-    RouterContext: Filters.byName("Router")
+    __RouterContext: Filters.byName("Router")
 };
 
-export interface Router extends Pick<typeof import("react-router"), Exclude<keyof typeof mapping, "RouterContext">> {
-    RouterContext: React.Context<any>;
-}
-
-export const Router: Router = /* @__PURE__ */ Finder.demangle(mapping, ["withRouter"]);
+export const Router: Pick<Router, keyof typeof mapping> = /* @__PURE__ */ Finder.demangle(mapping, ["withRouter"]);

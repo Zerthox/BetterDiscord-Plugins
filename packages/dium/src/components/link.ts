@@ -1,4 +1,5 @@
 import {Filters, Finder} from "../api";
+import type {Router} from "../modules";
 
 export interface LinkProps extends Record<string, any> {
     component?: any;
@@ -12,14 +13,16 @@ export interface LinkProps extends Record<string, any> {
     tabIndex?: number;
 }
 
-interface Links {
+interface Links extends Omit<Router, "__RouterContext"> {
+    BrowserRouter: React.ComponentClass<any, any>;
     Link: React.ForwardRefExoticComponent<LinkProps>;
     NavLink: React.ForwardRefExoticComponent<any>;
-    LinkRouter: React.ComponentClass<any, any>;
 }
 
-export const {Link, NavLink, LinkRouter}: Links = /* @__PURE__ */ Finder.demangle({
+const mapping = {
     NavLink: Filters.bySource(".sensitive", ".to"),
     Link: Filters.bySource(".component", ".to"),
-    LinkRouter: Filters.bySource("this.history")
-}, ["NavLink", "Link"]);
+    BrowserRouter: Filters.bySource("this.history")
+};
+
+export const {Link, NavLink, BrowserRouter}: Pick<Links, keyof typeof mapping> = /* @__PURE__ */ Finder.demangle(mapping, ["Link", "BrowserRouter"]);
