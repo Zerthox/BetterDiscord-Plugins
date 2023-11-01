@@ -4,7 +4,7 @@ import {Flex, Clickable, Text} from "@dium/components";
 import {Settings} from "./settings";
 import styles from "./styles.module.scss";
 
-const Arrow = Finder.bySource(["d:\"m6 10"], {entries: true});
+const Arrow = Finder.bySource(["d:\"M5.293 9"], {entries: true});
 
 export const enum AccessoryType {
     Embed = "embed",
