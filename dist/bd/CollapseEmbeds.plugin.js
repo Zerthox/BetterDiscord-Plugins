@@ -1,6 +1,6 @@
 /**
  * @name CollapseEmbeds
- * @version 1.0.3
+ * @version 1.0.4
  * @author Zerthox
  * @authorLink https://github.com/Zerthox
  * @description Adds a button to collapse embeds & attachments.
@@ -368,7 +368,7 @@ const styles = {
     attachment: "attachment-CollapseEmbeds"
 };
 
-const Arrow = bySource(["d:\"m6 10"], { entries: true });
+const Arrow = bySource(["d:\"M5.293 9"], { entries: true });
 const Hider = ({ placeholders, type, children }) => {
     const [shown, setShown] = React.useState(!Settings.current.hideByDefault);
     Settings.useListener(({ hideByDefault }) => setShown(!hideByDefault), []);
