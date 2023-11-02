@@ -1,6 +1,6 @@
 /**
  * @name OnlineFriendCount
- * @version 3.1.3
+ * @version 3.1.4
  * @author Zerthox
  * @authorLink https://github.com/Zerthox
  * @description Adds the old online friend count and similar counters back to server list. Because nostalgia.
@@ -220,11 +220,12 @@ const { FormSection, FormItem, FormTitle, FormText, FormLabel, FormDivider, Form
 
 const GuildsNav = /* @__PURE__ */ bySource(["guildsnav"], { entries: true });
 
-const { Link, NavLink, LinkRouter } = /* @__PURE__ */ demangle({
+const mapping = {
     NavLink: bySource$1(".sensitive", ".to"),
     Link: bySource$1(".component", ".to"),
-    LinkRouter: bySource$1("this.history")
-}, ["NavLink", "Link"]);
+    BrowserRouter: bySource$1("this.history")
+};
+const { Link, NavLink, BrowserRouter } = /* @__PURE__ */ demangle(mapping, ["Link", "BrowserRouter"]);
 
 const margins = /* @__PURE__ */ byKeys(["marginBottom40", "marginTop4"]);
 
