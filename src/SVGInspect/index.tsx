@@ -1,9 +1,10 @@
 import {createPlugin, Finder, React} from "dium";
 
-const components = Finder.all.bySource(
-    [(source) => /\.(?:createElement|jsxs?)\)?\("svg",/.test(source)],
-    {entries: true}
-);
+const excludes = [".bodyWaveGradient", ".circleOverlay"];
+
+const components = Finder.all.bySource([
+    (source) => /\.(?:createElement|jsxs?)\)?\("svg",/.test(source) && !excludes.some((fragment) => source.includes(fragment))
+], {entries: true});
 
 interface ErrorBoundaryProps {
     children?: React.ReactNode;
@@ -30,9 +31,11 @@ export default createPlugin({
     SettingsPanel: () => (
         <>
             {components.map((SVG, i) => (
-                <ErrorBoundary key={i}>
-                    <SVG open/>
-                </ErrorBoundary>
+                <div key={i}>
+                    <ErrorBoundary>
+                        <SVG open/>
+                    </ErrorBoundary>
+                </div>
             ))}
         </>
     )
