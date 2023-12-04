@@ -5,6 +5,7 @@ export * from "./embed";
 export * from "./flex";
 export * from "./form";
 export * from "./guild";
+export * from "./icon";
 export * from "./link";
 export * from "./margins";
 export * from "./menu";

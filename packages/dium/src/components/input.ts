@@ -1,3 +1,4 @@
+import {Finder} from "../api";
 import {Common} from "./common";
 
 export const enum TextInputSizes {
@@ -48,3 +49,7 @@ interface InputComponents {
 }
 
 export const {TextInput, InputError} = Common as InputComponents;
+
+export const ImageInput: React.ComponentClass<any> = /* @__PURE__ */ Finder.find(
+    (target) => typeof target.defaultProps?.multiple === "boolean" && typeof target.defaultProps?.maxFileSizeBytes === "number"
+);

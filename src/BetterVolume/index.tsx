@@ -1,20 +1,10 @@
 import {createPlugin, Finder, Filters, Patcher, React} from "dium";
-import {Snowflake, MediaEngineStore, MediaEngineActions, MediaEngineContext} from "@dium/modules";
+import {Snowflake, MediaEngineStore, MediaEngineActions, MediaEngineContext, AudioConvert} from "@dium/modules";
 import {MenuItem, FormSwitch} from "@dium/components";
 import {Settings} from "./settings";
 import {NumberInput} from "./input";
 import {handleExperiment, hasExperiment, resetExperiment} from "./experiment";
 import {css} from "./styles.module.scss";
-
-interface AudioConvert {
-    amplitudeToPerceptual(amplitude: number): number;
-    perceptualToAmplitude(perceptual: number): number;
-}
-
-const AudioConvert: AudioConvert = Finder.demangle({
-    amplitudeToPerceptual: Filters.bySource("Math.log10"),
-    perceptualToAmplitude: Filters.bySource("Math.pow(10")
-});
 
 type UseUserVolumeItem = (userId: Snowflake, context: MediaEngineContext) => JSX.Element;
 

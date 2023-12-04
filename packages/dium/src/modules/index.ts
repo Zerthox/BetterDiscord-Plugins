@@ -11,5 +11,6 @@ export * from "./npm";
 export * from "./popout-window";
 export * from "./router";
 export * from "./user";
+export * from "./util";
 
 export type Untyped<T> = T & Record<string, any>;

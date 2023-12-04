@@ -1,12 +1,8 @@
-import {Finder, React} from "dium";
+import {React} from "dium";
 import {GuildsTreeFolder} from "@dium/modules";
-import {Flex, Button, FormSwitch, FormText, margins} from "@dium/components";
+import {Flex, Button, FormSwitch, FormText, ImageInput, margins} from "@dium/components";
 import {FolderData} from "./settings";
 import {BetterFolderIcon} from "./icon";
-
-const ImageInput: React.ComponentClass<any> = Finder.find(
-    (target) => typeof target.defaultProps?.multiple === "boolean" && typeof target.defaultProps?.maxFileSizeBytes === "number"
-);
 
 export interface BetterFolderUploaderProps extends FolderData {
     folderNode: GuildsTreeFolder;
