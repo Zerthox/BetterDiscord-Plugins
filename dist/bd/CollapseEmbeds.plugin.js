@@ -1,6 +1,6 @@
 /**
  * @name CollapseEmbeds
- * @version 1.0.4
+ * @version 1.0.5
  * @author Zerthox
  * @authorLink https://github.com/Zerthox
  * @description Adds a button to collapse embeds & attachments.
@@ -210,6 +210,8 @@ const Flex = /* @__PURE__ */ byKeys(["Child", "Justify"], { entries: true });
 
 const { FormSection, FormItem, FormTitle, FormText, FormLabel, FormDivider, FormSwitch, FormNotice } = Common;
 
+const IconArrow = /* @__PURE__ */ bySource(["d:\"M5.29289 9"], { entries: true });
+
 const margins = /* @__PURE__ */ byKeys(["marginBottom40", "marginTop4"]);
 
 const MessageFooter = /* @__PURE__ */ byProtos(["renderRemoveAttachmentConfirmModal"], { entries: true });
@@ -368,14 +370,13 @@ const styles = {
     attachment: "attachment-CollapseEmbeds"
 };
 
-const Arrow = bySource(["d:\"M5.293 9"], { entries: true });
 const Hider = ({ placeholders, type, children }) => {
     const [shown, setShown] = React.useState(!Settings.current.hideByDefault);
     Settings.useListener(({ hideByDefault }) => setShown(!hideByDefault), []);
     return (React.createElement(Flex, { align: Flex.Align.CENTER, className: classNames(styles.container, styles[type], shown ? styles.expanded : styles.collapsed) },
         shown ? children : placeholders.filter(Boolean).map((placeholder, i) => (React.createElement(Text, { key: i, variant: "text-xs/normal", className: styles.placeholder }, placeholder))),
         React.createElement(Clickable, { className: styles.hideButton, onClick: () => setShown(!shown) },
-            React.createElement(Arrow, { className: classNames(styles.icon, shown ? styles.open : null) }))));
+            React.createElement(IconArrow, { className: classNames(styles.icon, shown ? styles.open : null) }))));
 };
 
 const index = createPlugin({
