@@ -1,6 +1,6 @@
 /**
  * @name CollapseEmbeds
- * @version 1.0.5
+ * @version 1.0.6
  * @author Zerthox
  * @authorLink https://github.com/Zerthox
  * @description Adds a button to collapse embeds & attachments.
@@ -210,7 +210,7 @@ const Flex = /* @__PURE__ */ byKeys(["Child", "Justify"], { entries: true });
 
 const { FormSection, FormItem, FormTitle, FormText, FormLabel, FormDivider, FormSwitch, FormNotice } = Common;
 
-const IconArrow = /* @__PURE__ */ bySource(["d:\"M5.29289 9"], { entries: true });
+const IconArrow = /* @__PURE__ */ bySource(["d:\"M5.3 9."], { entries: true });
 
 const margins = /* @__PURE__ */ byKeys(["marginBottom40", "marginTop4"]);
 
