@@ -1,4 +1,4 @@
-export type Id = number;
+export type Id = number | string;
 
 export type Exports = Record<string, any>;
 

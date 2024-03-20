@@ -8,7 +8,7 @@ const getWebpackRequire = (): Webpack.Require => {
 
     let webpackRequire: Webpack.Require;
     try {
-        chunk.push([["__DIUM__"], {}, (require: Webpack.Require) => {
+        chunk.push([[Symbol()], {}, (require: Webpack.Require) => {
             webpackRequire = require;
 
             // prevent webpack from updating anything by throwing an error
@@ -22,6 +22,7 @@ const getWebpackRequire = (): Webpack.Require => {
 };
 
 /** The webpack require. */
+// FIXME: sentry overrides with own require, pushes existing but private cache
 const webpackRequire = getWebpackRequire();
 export {webpackRequire as require};
 
@@ -31,8 +32,8 @@ const byExportsFilter = (exported: Webpack.Exports): Finder.Filter => {
 
 const byModuleSourceFilter = (contents: string[]): Finder.Filter => {
     return (_, module) => {
-        const source = sourceOf(module.id).toString();
-        return contents.every((content) => source.includes(content));
+        const source = sourceOf(module.id);
+        return source && contents.every((content) => source.toString().includes(content));
     };
 };
 
@@ -48,14 +49,28 @@ const applyFilter = (filter: Finder.Filter, keys: Keys = ["default", "Z", "ZP"])
     );
 };
 
+/** Returns the raw webpack cache. */
+export const cache = (): Record<Webpack.Id, Webpack.Module> => {
+    // FIXME: artificially creating fake module cache via bdapi for now
+    const cache = {};
+    BdApi.Webpack.getModules((_, module) => {
+        cache[module.id] = module;
+        return false;
+    });
+    return cache;
+};
+
 /** Returns all raw entires in the webpack cache. */
-export const modules = (): Webpack.Module[] => Object.values(webpackRequire.c);
+export const modules = (): Webpack.Module[] => Object.values(cache());
 
 /** Returns all module source functions. */
 export const sources = (): Webpack.ModuleFactory[] => Object.values(webpackRequire.m);
 
+/** Returns the corresponding module id for a specific module's exports.  */
+export const idOf = (exported: Webpack.Exports): Webpack.Id => modules().find((module) => module.exports == exported)?.id;
+
 /** Returns the source function for a specific module.  */
-export const sourceOf = (id: Webpack.Id | string): Webpack.ModuleFactory => webpackRequire.m[id] ?? null;
+export const sourceOf = (id: Webpack.Id): Webpack.ModuleFactory => webpackRequire.m[id] ?? null;
 
 /** Finds a raw module using a filter function. */
 export const find = (filter: Finder.Filter, keys?: Keys): Webpack.Module => modules().find(applyFilter(filter, keys)) ?? null;
@@ -68,7 +83,7 @@ export const query = (query: Filters.Query, keys?: Keys): Webpack.Module => find
  *
  * Module ids should be considered volatile across Discord updates.
  */
-export const byId = (id: Webpack.Id | string): Webpack.Module => webpackRequire.c[id] ?? null;
+export const byId = (id: Webpack.Id | string): Webpack.Module => cache()[id] ?? null;
 
 /** Finds a module using its exports. */
 export const byExports = (exported: Webpack.Exports, keys?: Keys): Webpack.Module => find(byExportsFilter(exported), keys);
@@ -118,18 +133,19 @@ export const all = {
 /** Returns module ids of all other modules imported in the module. */
 export const resolveImportIds = (module: Webpack.Module): Webpack.Id[] => {
     // get module as source code
-    const source = sourceOf(module.id).toString();
-
-    // find require parameter name
-    const match = source.match(/^(?:function)?\s*\(\w+,\w+,(\w+)\)\s*(?:=>)?\s*{/);
-    if (match) {
-        // find require calls
-        const requireName = match[1];
-        const calls = Array.from(source.matchAll(new RegExp(`\\W${requireName}\\((\\d+)\\)`, "g")));
-        return calls.map((call) => parseInt(call[1]));
-    } else {
-        return [];
+    const factory = sourceOf(module.id);
+    if (factory) {
+        const source = factory.toString();
+        // find require parameter name
+        const match = source.match(/^(?:function)?\s*\(\w+,\w+,(\w+)\)\s*(?:=>)?\s*{/);
+        if (match) {
+            // find require calls
+            const requireName = match[1];
+            const calls = Array.from(source.matchAll(new RegExp(`\\W${requireName}\\("?(\\d+)"?\\)`, "g")));
+            return calls.map((call) => parseInt(call[1]));
+        }
     }
+    return [];
 };
 
 /** Returns all other raw modules imported in the module. */
