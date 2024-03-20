@@ -6,6 +6,7 @@ export * from "./experiment";
 export * as Flux from "./flux";
 export * from "./general";
 export * from "./guild";
+export * from "./media";
 export * from "./message";
 export * from "./npm";
 export * from "./popout-window";
