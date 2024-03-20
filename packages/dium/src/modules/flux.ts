@@ -68,7 +68,7 @@ export interface ActionHandlers {
 export interface Dispatcher {
     _currentDispatchActionType: any;
     _actionHandlers: ActionHandlers;
-    _subscriptions: Record<string, any>;
+    _subscriptions: Record<string, Set<ActionHandler>>;
     _processingWaitQueue: boolean;
     _waitQueue: any[];
     _interceptor: (arg: any) => any;

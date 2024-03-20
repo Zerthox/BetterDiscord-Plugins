@@ -1,3 +1,5 @@
+// legacy code for disabling audio experiment
+
 import {Logger, React, Utils, getMeta} from "dium";
 import {ExperimentStore, ExperimentTreatment} from "@dium/modules";
 import {Text} from "@dium/components";
@@ -27,6 +29,7 @@ const onLoadExperiments = (): void => {
 
     if (hasExperiment()) {
         const {disableExperiment} = Settings.current;
+        Logger.log("Experiment setting:", disableExperiment);
         // check if we have to disable
         if (disableExperiment) {
             // simply setting this should be fine, seems to be only changed on connect etc.

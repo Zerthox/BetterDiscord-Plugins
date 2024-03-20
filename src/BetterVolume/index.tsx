@@ -1,20 +1,21 @@
-import {createPlugin, Finder, Filters, Patcher, React} from "dium";
-import {Snowflake, MediaEngineStore, MediaEngineActions, MediaEngineContext, AudioConvert} from "@dium/modules";
-import {MenuItem, FormSwitch} from "@dium/components";
+import {createPlugin, Finder, Filters, Patcher, React, Logger} from "dium";
+import {Snowflake, MediaEngineStore, MediaEngineContext, AudioConvert, MediaEngineActions, Dispatcher} from "@dium/modules";
 import {Settings} from "./settings";
-import {NumberInput} from "./input";
-import {handleExperiment, hasExperiment, resetExperiment} from "./experiment";
 import {css} from "./styles.module.scss";
+import {MenuItem} from "@dium/components";
+import {NumberInput} from "./input";
+import {handleVolumeSync, resetVolumeSync} from "./sync";
 
 type UseUserVolumeItem = (userId: Snowflake, context: MediaEngineContext) => JSX.Element;
 
+const useUserVolumeItemFilter = Filters.bySource("user-volume");
+
 export default createPlugin({
     start() {
-        // handle audio experiment
-        handleExperiment();
+        // handle volume override sync
+        handleVolumeSync();
 
         // add number input to user volume item
-        const useUserVolumeItemFilter = Filters.bySource("user-volume");
         Finder.waitFor(useUserVolumeItemFilter, {resolve: false}).then((result: Record<string, UseUserVolumeItem>) => {
             const useUserVolumeItem = Finder.resolveKey(result, useUserVolumeItemFilter);
             Patcher.after(...useUserVolumeItem, ({args: [userId, context], result}) => {
@@ -49,21 +50,8 @@ export default createPlugin({
         });
     },
     stop() {
-        resetExperiment();
+        resetVolumeSync();
     },
     styles: css,
-    Settings,
-    SettingsPanel: () => {
-        const [{disableExperiment}, setSettings] = Settings.useState();
-
-        return (
-            <FormSwitch
-                note="Force disable experiment interfering with volumes greater than 200%."
-                hideBorder
-                value={disableExperiment}
-                disabled={hasExperiment()}
-                onChange={(checked) => setSettings({disableExperiment: checked})}
-            >Disable Audio experiment</FormSwitch>
-        );
-    }
+    Settings
 });
