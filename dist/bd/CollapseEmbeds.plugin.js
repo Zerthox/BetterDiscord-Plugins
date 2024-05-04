@@ -1,6 +1,6 @@
 /**
  * @name CollapseEmbeds
- * @version 1.0.6
+ * @version 1.1.0
  * @author Zerthox
  * @authorLink https://github.com/Zerthox
  * @description Adds a button to collapse embeds & attachments.
@@ -357,13 +357,14 @@ const Settings = createSettings({
     hideByDefault: false
 });
 
-const css = ".container-CollapseEmbeds.embed-CollapseEmbeds {\n  justify-self: stretch;\n}\n.container-CollapseEmbeds.embed-CollapseEmbeds > article {\n  flex-grow: 1;\n  flex-shrink: 0;\n}\n\n.placeholder-CollapseEmbeds + .placeholder-CollapseEmbeds {\n  margin-left: 4px;\n}\n\n.hideButton-CollapseEmbeds {\n  margin-bottom: -4px;\n  align-self: flex-end;\n  color: var(--interactive-normal);\n  cursor: pointer;\n  visibility: hidden;\n}\n.hideButton-CollapseEmbeds:hover {\n  color: var(--interactive-hover);\n}\n.expanded-CollapseEmbeds > .hideButton-CollapseEmbeds {\n  margin-bottom: -6px;\n}\n.hideButton-CollapseEmbeds:hover, :hover + .hideButton-CollapseEmbeds, .collapsed-CollapseEmbeds > .hideButton-CollapseEmbeds {\n  visibility: visible;\n}\n\n.icon-CollapseEmbeds {\n  margin: -2px;\n  transition: transform 0.2s ease-out;\n}\n.icon-CollapseEmbeds.open-CollapseEmbeds {\n  transform: rotate(180deg);\n}";
+const css = ".container-CollapseEmbeds.embed-CollapseEmbeds {\n  justify-self: stretch;\n}\n.container-CollapseEmbeds.embed-CollapseEmbeds > article {\n  flex-grow: 1;\n  flex-shrink: 0;\n}\n.container-CollapseEmbeds.mediaItem-CollapseEmbeds.expanded-CollapseEmbeds {\n  position: relative;\n}\n.container-CollapseEmbeds.mediaItem-CollapseEmbeds.expanded-CollapseEmbeds > .hideButton-CollapseEmbeds {\n  position: absolute;\n  right: 2px;\n  bottom: 2px;\n  z-index: 1;\n}\n\n.placeholder-CollapseEmbeds + .placeholder-CollapseEmbeds {\n  margin-left: 4px;\n}\n\n.hideButton-CollapseEmbeds {\n  margin-bottom: -4px;\n  align-self: flex-end;\n  color: var(--interactive-normal);\n  cursor: pointer;\n  visibility: hidden;\n}\n.hideButton-CollapseEmbeds:hover {\n  color: var(--interactive-hover);\n}\n.expanded-CollapseEmbeds > .hideButton-CollapseEmbeds {\n  margin-bottom: -6px;\n}\n.hideButton-CollapseEmbeds:hover, :hover + .hideButton-CollapseEmbeds, .collapsed-CollapseEmbeds > .hideButton-CollapseEmbeds {\n  visibility: visible;\n}\n\n.icon-CollapseEmbeds {\n  margin: -2px;\n  transition: transform 0.2s ease-out;\n}\n.icon-CollapseEmbeds.open-CollapseEmbeds {\n  transform: rotate(180deg);\n}";
 const styles = {
     container: "container-CollapseEmbeds",
     embed: "embed-CollapseEmbeds",
-    placeholder: "placeholder-CollapseEmbeds",
-    hideButton: "hideButton-CollapseEmbeds",
+    mediaItem: "mediaItem-CollapseEmbeds",
     expanded: "expanded-CollapseEmbeds",
+    hideButton: "hideButton-CollapseEmbeds",
+    placeholder: "placeholder-CollapseEmbeds",
     collapsed: "collapsed-CollapseEmbeds",
     icon: "icon-CollapseEmbeds",
     open: "open-CollapseEmbeds",
@@ -376,9 +377,12 @@ const Hider = ({ placeholders, type, children }) => {
     return (React.createElement(Flex, { align: Flex.Align.CENTER, className: classNames(styles.container, styles[type], shown ? styles.expanded : styles.collapsed) },
         shown ? children : placeholders.filter(Boolean).map((placeholder, i) => (React.createElement(Text, { key: i, variant: "text-xs/normal", className: styles.placeholder }, placeholder))),
         React.createElement(Clickable, { className: styles.hideButton, onClick: () => setShown(!shown) },
-            React.createElement(IconArrow, { className: classNames(styles.icon, shown ? styles.open : null) }))));
+            React.createElement(IconArrow, { color: "currentColor", className: classNames(styles.icon, shown ? styles.open : null) }))));
 };
 
+const MediaModule = demangle({
+    MediaItem: bySource$1("getObscureReason", "useFullWidth")
+}, null, true);
 const index = createPlugin({
     start() {
         after(Embed.prototype, "render", ({ result, context }) => {
@@ -386,10 +390,16 @@ const index = createPlugin({
             const placeholder = embed.provider?.name ?? embed.author?.name ?? embed.rawTitle ?? new URL(embed.url).hostname;
             return (React.createElement(Hider, { type: "embed" , placeholders: [placeholder] }, result));
         }, { name: "Embed render" });
+        after(MediaModule, "MediaItem", ({ args: [props], result }) => {
+            const attachment = props.item.originalItem;
+            const placeholder = attachment.filename ?? new URL(attachment.url).hostname;
+            return (React.createElement(Hider, { type: "mediaItem" , placeholders: [placeholder] }, result));
+        }, { name: "MediaItem render" });
         after(MessageFooter.prototype, "renderAttachments", ({ result }) => {
             for (const element of queryTreeAll(result, (node) => node?.props?.attachments)) {
                 hookFunctionComponent(element, (result, { attachments }) => {
-                    return (React.createElement(Hider, { type: "attachment" , placeholders: attachments.map(({ attachment }) => attachment.filename ?? new URL(attachment.url).hostname) }, result));
+                    const placeholders = attachments.map(({ attachment }) => attachment.filename ?? new URL(attachment.url).hostname);
+                    return (React.createElement(Hider, { type: "attachment" , placeholders: placeholders }, result));
                 });
             }
         }, { name: "MessageFooter renderAttachments" });
