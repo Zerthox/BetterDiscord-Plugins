@@ -40,6 +40,7 @@ interface AudioSettingsManager {
 }
 
 const wrappedSettingsManagerHandler: Flux.ActionHandler<SetVolumeAction> = (action) => {
+    // TODO: handle contexts
     const isOverCap = action.volume > MAX_VOLUME_AMP;
     if (isOverCap) {
         const isNew = updateVolumeOverride(action.userId, action.volume);
@@ -73,6 +74,7 @@ export const handleVolumeSync = () => {
     Dispatcher.subscribe(ActionType.USER_SETTINGS_PROTO_UPDATE, settingsUpdateHandler);
     Logger.log(`Subscribed to ${ActionType.USER_SETTINGS_PROTO_UPDATE} events`);
 
+    // TODO: needed on connection open?
     dispatchVolumeOverrides();
 
     Finder.waitFor((exported) => exported.actions && hasSetVolume(exported.actions)).then((AudioSettingsManager: AudioSettingsManager) => {
