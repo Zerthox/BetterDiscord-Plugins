@@ -7,6 +7,7 @@ import styles from "./styles.module.scss";
 export const enum AccessoryType {
     Embed = "embed",
     MediaItem = "mediaItem",
+    MediaItemSingle = "mediaItemSingle",
     Attachment = "attachment"
 }
 

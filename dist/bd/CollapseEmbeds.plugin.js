@@ -1,6 +1,6 @@
 /**
  * @name CollapseEmbeds
- * @version 1.1.0
+ * @version 1.1.1
  * @author Zerthox
  * @authorLink https://github.com/Zerthox
  * @description Adds a button to collapse embeds & attachments.
@@ -368,7 +368,8 @@ const styles = {
     collapsed: "collapsed-CollapseEmbeds",
     icon: "icon-CollapseEmbeds",
     open: "open-CollapseEmbeds",
-    attachment: "attachment-CollapseEmbeds"
+    attachment: "attachment-CollapseEmbeds",
+    mediaItemSingle: "mediaItemSingle-CollapseEmbeds"
 };
 
 const Hider = ({ placeholders, type, children }) => {
@@ -381,7 +382,7 @@ const Hider = ({ placeholders, type, children }) => {
 };
 
 const MediaModule = demangle({
-    MediaItem: bySource$1("getObscureReason", "useFullWidth")
+    MediaItem: bySource$1("getObscureReason", "isSingleMosaicItem")
 }, null, true);
 const index = createPlugin({
     start() {
@@ -393,7 +394,7 @@ const index = createPlugin({
         after(MediaModule, "MediaItem", ({ args: [props], result }) => {
             const attachment = props.item.originalItem;
             const placeholder = attachment.filename ?? new URL(attachment.url).hostname;
-            return (React.createElement(Hider, { type: "mediaItem" , placeholders: [placeholder] }, result));
+            return (React.createElement(Hider, { type: props.isSingleMosaicItem ? "mediaItemSingle"  : "mediaItem" , placeholders: [placeholder] }, result));
         }, { name: "MediaItem render" });
         after(MessageFooter.prototype, "renderAttachments", ({ result }) => {
             for (const element of queryTreeAll(result, (node) => node?.props?.attachments)) {

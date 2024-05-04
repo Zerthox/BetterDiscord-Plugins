@@ -23,7 +23,7 @@ interface MediaModule {
 }
 
 const MediaModule: MediaModule = Finder.demangle({
-    MediaItem: Filters.bySource("getObscureReason", "useFullWidth")
+    MediaItem: Filters.bySource("getObscureReason", "isSingleMosaicItem")
 }, null, true);
 
 export default createPlugin({
@@ -44,7 +44,7 @@ export default createPlugin({
             const placeholder = attachment.filename ?? new URL(attachment.url).hostname;
             return (
                 <Hider
-                    type={AccessoryType.MediaItem}
+                    type={props.isSingleMosaicItem ? AccessoryType.MediaItemSingle : AccessoryType.MediaItem}
                     placeholders={[placeholder]}
                 >{result}</Hider>
             );

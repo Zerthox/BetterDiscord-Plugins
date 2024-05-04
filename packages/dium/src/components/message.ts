@@ -72,4 +72,4 @@ export interface MediaItemProps extends Record<string, any> {
     gifFavoriteButton(): any;
 }
 
-export const MediaItem: React.FunctionComponent<MediaItemProps> = /* @__PURE__ */ Finder.bySource(["getObscureReason", "useFullWidth"]);
+export const MediaItem: React.FunctionComponent<MediaItemProps> = /* @__PURE__ */ Finder.bySource(["getObscureReason", "isSingleMosaicItem"]);
