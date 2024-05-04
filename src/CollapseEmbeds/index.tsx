@@ -1,6 +1,6 @@
-import {createPlugin, PatchDataWithResult, Patcher, React, Utils} from "dium";
+import {createPlugin, Filters, Finder, PatchDataWithResult, Patcher, React, Logger, Utils} from "dium";
 import {Message, Attachment} from "@dium/modules";
-import {FormSwitch, MessageFooter, Embed} from "@dium/components";
+import {FormSwitch, MessageFooter, Embed, MediaItem, MediaItemProps} from "@dium/components";
 import {Settings} from "./settings";
 import {Hider, AccessoryType} from "./hider";
 import {css} from "./styles.module.scss";
@@ -18,6 +18,14 @@ interface AttachmentProps extends Record<string, any> {
     autoPlayGif: boolean;
 }
 
+interface MediaModule {
+    MediaItem: React.FunctionComponent<MediaItemProps>;
+}
+
+const MediaModule: MediaModule = Finder.demangle({
+    MediaItem: Filters.bySource("getObscureReason", "useFullWidth")
+}, null, true);
+
 export default createPlugin({
     start() {
         Patcher.after(Embed.prototype as InstanceType<typeof Embed>, "render", ({result, context}) => {
@@ -31,13 +39,26 @@ export default createPlugin({
             );
         }, {name: "Embed render"});
 
+        Patcher.after(MediaModule, "MediaItem", ({args: [props], result}) => {
+            const attachment = props.item.originalItem;
+            const placeholder = attachment.filename ?? new URL(attachment.url).hostname;
+            return (
+                <Hider
+                    type={AccessoryType.MediaItem}
+                    placeholders={[placeholder]}
+                >{result}</Hider>
+            );
+        }, {name: "MediaItem render"});
+
+        // leaving in for now, might be unused?
         Patcher.after(MessageFooter.prototype, "renderAttachments", ({result}: PatchDataWithResult<JSX.Element>) => {
             for (const element of Utils.queryTreeAll(result, (node) => node?.props?.attachments)) {
                 Utils.hookFunctionComponent<AttachmentsProps>(element, (result, {attachments}) => {
+                    const placeholders = attachments.map(({attachment}) => attachment.filename ?? new URL(attachment.url).hostname);
                     return (
                         <Hider
                             type={AccessoryType.Attachment}
-                            placeholders={attachments.map(({attachment}) => attachment.filename ?? new URL(attachment.url).hostname)}
+                            placeholders={placeholders}
                         >{result}</Hider>
                     );
                 });

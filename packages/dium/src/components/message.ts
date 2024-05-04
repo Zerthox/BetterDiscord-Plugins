@@ -1,5 +1,5 @@
 import {Finder} from "../api";
-import {Channel, Message} from "../modules";
+import {Attachment, Channel, Message} from "../modules";
 
 export interface MessageFooterProps {
     channel: Channel;
@@ -35,3 +35,41 @@ export interface MessageFooter extends React.ComponentClass<MessageFooterProps, 
 }
 
 export const MessageFooter: MessageFooter = /* @__PURE__ */ Finder.byProtos(["renderRemoveAttachmentConfirmModal"], {entries: true});
+
+export interface MediaItemProps extends Record<string, any> {
+    mediaLayoutType: string;
+    isSingleMosaicItem: boolean;
+    maxWidth: number;
+    maxHeight: number;
+    message: Message;
+    item: {
+        uniqueId: string;
+        type: string;
+        contentType: string;
+        height: number;
+        width: number;
+        downloadUrl: string;
+        originalItem: Attachment;
+        spoiler: boolean;
+    };
+    useFullWidth: boolean;
+    canRemoveItem: boolean;
+    autoPlayGif: boolean;
+    className: string;
+    imgClassName: string;
+    imgContainerClassName: string;
+    footer?: any;
+    onClick();
+    onPlay();
+    onRemoveItem();
+    renderAudioComponent(): any;
+    renderGenericFileComponent(): any;
+    renderImageComponent(): any;
+    renderMosaicItemFooter(): any;
+    renderPlaintextFilePreview(): any;
+    renderVideoComponent(): any;
+    getObscureReason(): any;
+    gifFavoriteButton(): any;
+}
+
+export const MediaItem: React.FunctionComponent<MediaItemProps> = /* @__PURE__ */ Finder.bySource(["getObscureReason", "useFullWidth"]);

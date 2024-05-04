@@ -6,6 +6,7 @@ import styles from "./styles.module.scss";
 
 export const enum AccessoryType {
     Embed = "embed",
+    MediaItem = "mediaItem",
     Attachment = "attachment"
 }
 
@@ -35,7 +36,10 @@ export const Hider = ({placeholders, type, children}: HiderProps): JSX.Element =
                 className={styles.hideButton}
                 onClick={() => setShown(!shown)}
             >
-                <IconArrow className={classNames(styles.icon, shown ? styles.open : null)}/>
+                <IconArrow
+                    color="currentColor"
+                    className={classNames(styles.icon, shown ? styles.open : null)}
+                />
             </Clickable>
         </Flex>
     );
