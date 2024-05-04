@@ -1,6 +1,6 @@
-import {createPlugin, Filters, Finder, PatchDataWithResult, Patcher, React, Logger, Utils} from "dium";
+import {createPlugin, Filters, Finder, PatchDataWithResult, Patcher, React, Utils} from "dium";
 import {Message, Attachment} from "@dium/modules";
-import {FormSwitch, MessageFooter, Embed, MediaItem, MediaItemProps} from "@dium/components";
+import {FormSwitch, MessageFooter, Embed, MediaItemProps} from "@dium/components";
 import {Settings} from "./settings";
 import {Hider, AccessoryType} from "./hider";
 import {css} from "./styles.module.scss";

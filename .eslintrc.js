@@ -17,6 +17,9 @@ module.exports = {
             version: "17.0.2" // stable Discord
         }
     },
+    parserOptions: {
+        project: ["./tsconfig.json"]
+    },
     extends: [
         "eslint:recommended",
         "plugin:react/recommended",

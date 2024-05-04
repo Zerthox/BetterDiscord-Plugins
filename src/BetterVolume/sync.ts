@@ -11,7 +11,7 @@ const MAX_VOLUME_PERC = 200;
 
 const MAX_VOLUME_AMP = AudioConvert.perceptualToAmplitude(MAX_VOLUME_PERC);
 
-export const dispatchVolumeOverrides = () => {
+export const dispatchVolumeOverrides = (): void => {
     for (const [userId, volume] of Object.entries(Settings.current.volumeOverrides)) {
         Dispatcher.dispatch<SetVolumeAction>({
             type: ActionType.AUDIO_SET_LOCAL_VOLUME,
@@ -29,11 +29,11 @@ interface SetVolumeAction extends Flux.Action {
     context: MediaEngineContext;
 }
 
-const settingsUpdateHandler = (action: Flux.Action) => dispatchVolumeOverrides();
+const settingsUpdateHandler = (_action: Flux.Action) => dispatchVolumeOverrides();
 
 interface AudioSettingsManager {
     actions: Record<string, Flux.ActionHandler> & {
-        AUDIO_SET_LOCAL_VOLUME: Flux.ActionHandler<SetVolumeAction>
+        AUDIO_SET_LOCAL_VOLUME: Flux.ActionHandler<SetVolumeAction>;
     };
     initializedCount: number;
     stores: Map<any, any>;
@@ -70,7 +70,7 @@ let originalHandler = null;
 
 const hasSetVolume = Filters.byKeys(ActionType.AUDIO_SET_LOCAL_VOLUME);
 
-export const handleVolumeSync = () => {
+export const handleVolumeSync = (): void => {
     Dispatcher.subscribe(ActionType.USER_SETTINGS_PROTO_UPDATE, settingsUpdateHandler);
     Logger.log(`Subscribed to ${ActionType.USER_SETTINGS_PROTO_UPDATE} events`);
 
@@ -88,7 +88,7 @@ export const handleVolumeSync = () => {
     });
 };
 
-export const resetVolumeSync = () => {
+export const resetVolumeSync = (): void => {
     Dispatcher.unsubscribe(ActionType.USER_SETTINGS_PROTO_UPDATE, settingsUpdateHandler);
     Logger.log(`Unsubscribed from ${ActionType.USER_SETTINGS_PROTO_UPDATE} events`);
 

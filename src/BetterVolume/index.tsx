@@ -1,5 +1,5 @@
-import {createPlugin, Finder, Filters, Patcher, React, Logger} from "dium";
-import {Snowflake, MediaEngineStore, MediaEngineContext, AudioConvert, MediaEngineActions, Dispatcher} from "@dium/modules";
+import {createPlugin, Finder, Filters, Patcher, React} from "dium";
+import {Snowflake, MediaEngineStore, MediaEngineContext, AudioConvert, MediaEngineActions} from "@dium/modules";
 import {Settings} from "./settings";
 import {css} from "./styles.module.scss";
 import {MenuItem} from "@dium/components";
