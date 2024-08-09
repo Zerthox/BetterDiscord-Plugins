@@ -1,6 +1,6 @@
 /**
  * @name BetterVolume
- * @version 2.5.0
+ * @version 3.0.0
  * @author Zerthox
  * @authorLink https://github.com/Zerthox
  * @description Set user volume values manually instead of using a slider. Allows setting volumes higher than 200%.
@@ -159,6 +159,7 @@ const abort = () => {
 const COLOR = "#3a71c1";
 const print = (output, ...data) => output(`%c[${getMeta().name}] %c${getMeta().version ? `(v${getMeta().version})` : ""}`, `color: ${COLOR}; font-weight: 700;`, "color: #666; font-size: .8em;", ...data);
 const log = (...data) => print(console.log, ...data);
+const warn = (...data) => print(console.warn, ...data);
 
 const patch = (type, object, method, callback, options) => {
     const original = object?.[method];
@@ -195,10 +196,7 @@ const inject = (styles) => {
 };
 const clear = () => BdApi.DOM.removeStyle(getMeta().name);
 
-const MediaEngineStore = /* @__PURE__ */ byName("MediaEngineStore");
-const MediaEngineActions = /* @__PURE__ */ byKeys(["setLocalVolume"]);
-
-const ExperimentStore = /* @__PURE__ */ byName("ExperimentStore");
+const Dispatcher$1 = /* @__PURE__ */ byKeys(["dispatch", "subscribe"]);
 
 const { default: Legacy, Dispatcher, Store, BatchedStoreListener, useStateFromStores } = /* @__PURE__ */ demangle({
     default: byKeys$1("Store", "connectStores"),
@@ -208,8 +206,16 @@ const { default: Legacy, Dispatcher, Store, BatchedStoreListener, useStateFromSt
     useStateFromStores: bySource("useStateFromStores")
 }, ["Store", "Dispatcher", "useStateFromStores"]);
 
+const MediaEngineStore = /* @__PURE__ */ byName("MediaEngineStore");
+const MediaEngineActions = /* @__PURE__ */ byKeys(["setLocalVolume"]);
+
 const { React } = BdApi;
 const classNames = /* @__PURE__ */ find((exports) => exports instanceof Object && exports.default === exports && Object.keys(exports).length === 1);
+
+const AudioConvert = /* @__PURE__ */ demangle({
+    amplitudeToPerceptual: bySource("Math.log10"),
+    perceptualToAmplitude: bySource("Math.pow(10")
+});
 
 const Common = /* @__PURE__ */ byKeys(["Button", "Switch", "Select"]);
 
@@ -222,8 +228,6 @@ const { FormSection, FormItem, FormTitle, FormText, FormLabel, FormDivider, Form
 const margins = /* @__PURE__ */ byKeys(["marginBottom40", "marginTop4"]);
 
 const { Menu, Group: MenuGroup, Item: MenuItem, Separator: MenuSeparator, CheckboxItem: MenuCheckboxItem, RadioItem: MenuRadioItem, ControlItem: MenuControlItem } = BdApi.ContextMenu;
-
-const Text = Common.Text;
 
 const SettingsContainer = ({ name, children, onReset }) => (React.createElement(FormSection, null,
     children,
@@ -330,8 +334,31 @@ const createPlugin = (plugin) => (meta) => {
 };
 
 const Settings = createSettings({
+    volumeOverrides: {},
     disableExperiment: null
 });
+const hasOverride = (userId, context) => context in (Settings.current.volumeOverrides[userId] ?? {});
+const updateVolumeOverride = (userId, volume, context) => {
+    const isNew = !hasOverride(userId, context);
+    Settings.update(({ volumeOverrides }) => {
+        volumeOverrides[userId] = { [context]: volume, ...volumeOverrides[userId] };
+        return { volumeOverrides };
+    });
+    return isNew;
+};
+const tryResetVolumeOverride = (userId, context) => {
+    if (hasOverride(userId, context)) {
+        Settings.update(({ volumeOverrides }) => {
+            delete volumeOverrides[userId][context];
+            if (Object.keys(volumeOverrides[userId]).length === 0) {
+                delete volumeOverrides[userId];
+            }
+            return { volumeOverrides };
+        });
+        return true;
+    }
+    return false;
+};
 
 const css = ".container-BetterVolume {\n  margin: 0 8px;\n  padding: 3px 6px;\n  background: var(--background-primary);\n  border-radius: 3px;\n  display: flex;\n}\n\n.input-BetterVolume {\n  margin-right: 2px;\n  flex-grow: 1;\n  background: transparent;\n  border: none;\n  color: var(--interactive-normal);\n  font-weight: 500;\n}\n.input-BetterVolume:hover::-webkit-inner-spin-button {\n  appearance: auto;\n}";
 const styles = {
@@ -360,64 +387,78 @@ const NumberInput = ({ value, min, max, fallback, onChange }) => {
         React.createElement("span", { className: styles.unit }, "%")));
 };
 
-const AUDIO_EXPERIMENT = "2022-09_remote_audio_settings";
-let initialAudioBucket = -1 ;
-const hasExperiment = () => initialAudioBucket > 0 ;
-const setAudioBucket = (bucket) => {
-    if (hasExperiment()) {
-        log("Changing experiment bucket to", bucket);
-        const audioExperiment = ExperimentStore.getUserExperimentDescriptor(AUDIO_EXPERIMENT);
-        audioExperiment.bucket = bucket;
-    }
-};
-Settings.addListener(({ disableExperiment }) => setAudioBucket(disableExperiment ? 0  : initialAudioBucket));
-const onLoadExperiments = () => {
-    initialAudioBucket = ExperimentStore.getUserExperimentBucket(AUDIO_EXPERIMENT);
-    log("Initial experiment bucket", initialAudioBucket);
-    if (hasExperiment()) {
-        const { disableExperiment } = Settings.current;
-        if (disableExperiment) {
-            setAudioBucket(0);
-        }
-        else if (disableExperiment === null) {
-            Settings.update({ disableExperiment: false });
-            confirm(getMeta().name, (React.createElement(Text, { color: "text-normal" }, "Your client has an experiment interfering with volumes greater than 200% enabled. Do you wish to disable it now and on future restarts?")), {
-                onConfirm: () => Settings.update({ disableExperiment: true })
+const MAX_VOLUME_PERC = 200;
+const MAX_VOLUME_AMP = AudioConvert.perceptualToAmplitude(MAX_VOLUME_PERC);
+const dispatchVolumeOverrides = () => {
+    log("Dispatching volume overrides");
+    for (const [userId, contexts] of Object.entries(Settings.current.volumeOverrides)) {
+        for (const [context, volume] of Object.entries(contexts)) {
+            Dispatcher$1.dispatch({
+                type: "AUDIO_SET_LOCAL_VOLUME" ,
+                userId,
+                context,
+                volume
             });
         }
     }
 };
-const handleExperiment = () => {
-    if (ExperimentStore.hasLoadedExperiments) {
-        log("Experiments already loaded");
-        onLoadExperiments();
+const settingsUpdateHandler = (_action) => dispatchVolumeOverrides();
+let originalHandler = null;
+const wrappedSettingsManagerHandler = (action) => {
+    const { userId, volume, context } = action;
+    const isOverCap = volume > MAX_VOLUME_AMP;
+    if (isOverCap) {
+        const isNew = updateVolumeOverride(userId, volume, context);
+        if (isNew) {
+            log(`New volume override ${AudioConvert.amplitudeToPerceptual(volume)} for user ${userId} context ${context}`);
+            originalHandler({ ...action, volume: MAX_VOLUME_AMP });
+        }
     }
     else {
-        log("Waiting for experiments load");
-        const listener = () => {
-            if (ExperimentStore.hasLoadedExperiments) {
-                log("Experiments loaded after wait");
-                ExperimentStore.removeChangeListener(listener);
-                onLoadExperiments();
-            }
-        };
-        ExperimentStore.addChangeListener(listener);
+        const wasRemoved = tryResetVolumeOverride(userId, context);
+        if (wasRemoved) {
+            log(`Removed volume override for user ${userId} context ${context}`);
+        }
+        originalHandler(action);
     }
 };
-const resetExperiment = () => {
-    if (Settings.current.disableExperiment) {
-        setAudioBucket(initialAudioBucket);
+const trySwapHandler = (action, prev, next) => {
+    const isPresent = Dispatcher$1._subscriptions[action].has(prev);
+    if (isPresent) {
+        Dispatcher$1.unsubscribe(action, prev);
+        Dispatcher$1.subscribe(action, next);
+    }
+    return isPresent;
+};
+const hasSetVolume = byKeys$1("AUDIO_SET_LOCAL_VOLUME" );
+const handleVolumeSync = () => {
+    Dispatcher$1.subscribe("USER_SETTINGS_PROTO_UPDATE" , settingsUpdateHandler);
+    log(`Subscribed to ${"USER_SETTINGS_PROTO_UPDATE" } events`);
+    dispatchVolumeOverrides();
+    waitFor((exported) => exported.actions && hasSetVolume(exported.actions)).then((AudioSettingsManager) => {
+        originalHandler = AudioSettingsManager.actions["AUDIO_SET_LOCAL_VOLUME" ];
+        const swapped = trySwapHandler("AUDIO_SET_LOCAL_VOLUME" , originalHandler, wrappedSettingsManagerHandler);
+        if (swapped) {
+            log(`Replaced ${"AUDIO_SET_LOCAL_VOLUME" } handler`);
+        }
+        else {
+            warn(`${"AUDIO_SET_LOCAL_VOLUME" } handler not present`);
+        }
+    });
+};
+const resetVolumeSync = () => {
+    Dispatcher$1.unsubscribe("USER_SETTINGS_PROTO_UPDATE" , settingsUpdateHandler);
+    log(`Unsubscribed from ${"USER_SETTINGS_PROTO_UPDATE" } events`);
+    const swapped = trySwapHandler("AUDIO_SET_LOCAL_VOLUME" , wrappedSettingsManagerHandler, originalHandler);
+    if (swapped) {
+        log(`Reset ${"AUDIO_SET_LOCAL_VOLUME" } handler`);
     }
 };
 
-const AudioConvert = demangle({
-    amplitudeToPerceptual: bySource("Math.log10"),
-    perceptualToAmplitude: bySource("Math.pow(10")
-});
+const useUserVolumeItemFilter = bySource("user-volume");
 const index = createPlugin({
     start() {
-        handleExperiment();
-        const useUserVolumeItemFilter = bySource("user-volume");
+        handleVolumeSync();
         waitFor(useUserVolumeItemFilter, { resolve: false }).then((result) => {
             const useUserVolumeItem = resolveKey(result, useUserVolumeItemFilter);
             after(...useUserVolumeItem, ({ args: [userId, context], result }) => {
@@ -431,14 +472,10 @@ const index = createPlugin({
         });
     },
     stop() {
-        resetExperiment();
+        resetVolumeSync();
     },
     styles: css,
-    Settings,
-    SettingsPanel: () => {
-        const [{ disableExperiment }, setSettings] = Settings.useState();
-        return (React.createElement(FormSwitch, { note: "Force disable experiment interfering with volumes greater than 200%.", hideBorder: true, value: disableExperiment, disabled: hasExperiment(), onChange: (checked) => setSettings({ disableExperiment: checked }) }, "Disable Audio experiment"));
-    }
+    Settings
 });
 
 module.exports = index;
