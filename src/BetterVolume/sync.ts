@@ -1,5 +1,5 @@
 import {Finder, Filters, Flux, Logger} from "dium";
-import {Snowflake, Dispatcher, MediaEngineContext, AudioConvert, MediaEngineContextType} from "@dium/modules";
+import {Snowflake, Dispatcher, MediaEngineContext, AudioConvert} from "@dium/modules";
 import {Settings, updateVolumeOverride as updateVolumeOverride, tryResetVolumeOverride} from "./settings";
 
 const enum ActionType {
@@ -12,13 +12,16 @@ const MAX_VOLUME_PERC = 200;
 const MAX_VOLUME_AMP = AudioConvert.perceptualToAmplitude(MAX_VOLUME_PERC);
 
 export const dispatchVolumeOverrides = (): void => {
-    for (const [userId, volume] of Object.entries(Settings.current.volumeOverrides)) {
-        Dispatcher.dispatch<SetVolumeAction>({
-            type: ActionType.AUDIO_SET_LOCAL_VOLUME,
-            context: MediaEngineContextType.DEFAULT,
-            userId,
-            volume
-        });
+    Logger.log("Dispatching volume overrides");
+    for (const [userId, contexts] of Object.entries(Settings.current.volumeOverrides)) {
+        for (const [context, volume] of Object.entries(contexts)) {
+            Dispatcher.dispatch<SetVolumeAction>({
+                type: ActionType.AUDIO_SET_LOCAL_VOLUME,
+                userId,
+                context,
+                volume
+            });
+        }
     }
 };
 
@@ -39,19 +42,21 @@ interface AudioSettingsManager {
     stores: Map<any, any>;
 }
 
+let originalHandler = null;
+
 const wrappedSettingsManagerHandler: Flux.ActionHandler<SetVolumeAction> = (action) => {
-    // TODO: handle contexts
-    const isOverCap = action.volume > MAX_VOLUME_AMP;
+    const {userId, volume, context} = action;
+    const isOverCap = volume > MAX_VOLUME_AMP;
     if (isOverCap) {
-        const isNew = updateVolumeOverride(action.userId, action.volume);
+        const isNew = updateVolumeOverride(userId, volume, context);
         if (isNew) {
-            Logger.log(`New volume override ${AudioConvert.amplitudeToPerceptual(action.volume)} for user ${action.userId}`);
+            Logger.log(`New volume override ${AudioConvert.amplitudeToPerceptual(volume)} for user ${userId} context ${context}`);
             originalHandler({...action, volume: MAX_VOLUME_AMP});
         }
     } else {
-        const wasRemoved = tryResetVolumeOverride(action.userId);
+        const wasRemoved = tryResetVolumeOverride(userId, context);
         if (wasRemoved) {
-            Logger.log(`Removed volume override for user ${action.userId}`);
+            Logger.log(`Removed volume override for user ${userId} context ${context}`);
         }
         originalHandler(action);
     }
@@ -65,8 +70,6 @@ const trySwapHandler = <A extends Flux.Action>(action: Flux.Action["type"], prev
     }
     return isPresent;
 };
-
-let originalHandler = null;
 
 const hasSetVolume = Filters.byKeys(ActionType.AUDIO_SET_LOCAL_VOLUME);
 
