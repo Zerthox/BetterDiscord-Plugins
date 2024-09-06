@@ -1,6 +1,6 @@
 /**
  * @name BetterFolders
- * @version 3.4.6
+ * @version 3.5.0
  * @author Zerthox
  * @authorLink https://github.com/Zerthox
  * @description Adds new functionality to server folders. Custom Folder Icons. Close other folders on open.
@@ -69,6 +69,17 @@ const load = (key) => BdApi.Data.load(getMeta().name, key);
 const save = (key, value) => BdApi.Data.save(getMeta().name, key, value);
 
 const checkObjectValues = (target) => target !== window && target instanceof Object && target.constructor?.prototype !== target;
+const byEntry = (filter, every = false) => {
+    return ((target, ...args) => {
+        if (checkObjectValues(target)) {
+            const values = Object.values(target);
+            return values.length > 0 && values[every ? "every" : "some"]((value) => filter(value, ...args));
+        }
+        else {
+            return false;
+        }
+    });
+};
 const byName$1 = (name) => {
     return (target) => (target?.displayName ?? target?.constructor?.displayName) === name;
 };
@@ -78,7 +89,7 @@ const byKeys$1 = (...keys) => {
 const byProtos = (...protos) => {
     return (target) => target instanceof Object && target.prototype instanceof Object && protos.every((proto) => proto in target.prototype);
 };
-const bySource$1 = (...fragments) => {
+const bySource = (...fragments) => {
     return (target) => {
         while (target instanceof Object && "$$typeof" in target) {
             target = target.render ?? target.type;
@@ -132,7 +143,8 @@ const find = (filter, { resolve = true, entries = false } = {}) => BdApi.Webpack
 });
 const byName = (name, options) => find(byName$1(name), options);
 const byKeys = (keys, options) => find(byKeys$1(...keys), options);
-const bySource = (contents, options) => find(bySource$1(...contents), options);
+const resolveKey = (target, filter) => [target, Object.entries(target ?? {}).find(([, value]) => filter(value))?.[0]];
+const findWithKey = (filter) => resolveKey(find(byEntry(filter)), filter);
 const demangle = (mapping, required, proxy = false) => {
     const req = required ?? Object.keys(mapping);
     const found = find((target) => (checkObjectValues(target)
@@ -205,7 +217,7 @@ const { default: Legacy, Dispatcher, Store, BatchedStoreListener, useStateFromSt
     Dispatcher: byProtos("dispatch"),
     Store: byProtos("emitChange"),
     BatchedStoreListener: byProtos("attach", "detach"),
-    useStateFromStores: bySource$1("useStateFromStores")
+    useStateFromStores: bySource("useStateFromStores")
 }, ["Store", "Dispatcher", "useStateFromStores"]);
 
 const SortedGuildStore = /* @__PURE__ */ byName("SortedGuildStore");
@@ -223,11 +235,11 @@ const Flex = /* @__PURE__ */ byKeys(["Child", "Justify"], { entries: true });
 
 const { FormSection, FormItem, FormTitle, FormText, FormLabel, FormDivider, FormSwitch, FormNotice } = Common;
 
-const GuildsNav = /* @__PURE__ */ bySource(["guildsnav"], { entries: true });
-
 const margins = /* @__PURE__ */ byKeys(["marginBottom40", "marginTop4"]);
 
 const RadioGroup = Common.RadioGroup;
+
+const ImageInput = /* @__PURE__ */ find((target) => typeof target.defaultProps?.multiple === "boolean" && typeof target.defaultProps?.maxFileSizeBytes === "number");
 
 const [getInstanceFromNode, getNodeFromInstance, getFiberCurrentPropsFromNode, enqueueStateRestore, restoreStateIfNeeded, batchedUpdates] = ReactDOM?.__SECRET_INTERNALS_DO_NOT_USE_OR_YOU_WILL_BE_FIRED?.Events ?? [];
 const ReactDOMInternals = {
@@ -239,19 +251,6 @@ const ReactDOMInternals = {
     batchedUpdates
 };
 
-const FCHook = ({ children: { type, props }, callback }) => {
-    const result = type(props);
-    return callback(result, props) ?? result;
-};
-const hookFunctionComponent = (target, callback) => {
-    const props = {
-        children: { ...target },
-        callback
-    };
-    target.props = props;
-    target.type = FCHook;
-    return target;
-};
 const queryTree = (node, predicate) => {
     const worklist = [node].flat();
     while (worklist.length !== 0) {
@@ -446,7 +445,6 @@ const ConnectedBetterFolderIcon = ({ folderId, ...props }) => {
     return React.createElement(BetterFolderIcon, { data: data, ...props });
 };
 
-const ImageInput = find((target) => typeof target.defaultProps?.multiple === "boolean" && typeof target.defaultProps?.maxFileSizeBytes === "number");
 const BetterFolderUploader = ({ icon, always, folderNode, onChange, FolderIcon }) => (React.createElement(React.Fragment, null,
     React.createElement(Flex, { align: Flex.Align.CENTER },
         React.createElement(Button, { color: Button.Colors.WHITE, look: Button.Looks.OUTLINED },
@@ -512,50 +510,22 @@ const triggerRerender = async (guildsFiber) => {
 };
 const index = createPlugin({
     start() {
-        let foundItem = false;
         let FolderIcon = null;
         const guildsOwner = getGuildsOwner();
-        after(GuildsNav, "type", ({ result, cancel }) => {
-            const target = queryTree(result, (node) => node?.props?.className?.split(" ").includes(guildStyles.guilds));
-            if (!target) {
-                return error("Unable to find chain patch target");
+        const FolderIconWrapper = findWithKey(bySource(".expandedFolderIconWrapper"));
+        after(...FolderIconWrapper, ({ args: [props], result }) => {
+            const iconParent = queryTree(result, (node) => node?.props?.children?.props?.folderNode);
+            if (!iconParent) {
+                return error("Unable to find FolderIcon component");
             }
-            hookFunctionComponent(target, (result) => {
-                if (foundItem) {
-                    return;
-                }
-                const guildItem = queryTree(result, (node) => node?.props?.folderNode);
-                if (!guildItem) {
-                    return error("Unable to find guild item component");
-                }
-                foundItem = true;
-                cancel();
-                log("Unpatched GuildsNav");
-                after(guildItem.type, "type", ({ args: [props], result }) => {
-                    if (!props.folderNode) {
-                        return;
-                    }
-                    hookFunctionComponent(result, (result, props) => {
-                        const iconContainer = queryTree(result, (node) => "folderIconContent" in (node?.props ?? {}));
-                        if (!iconContainer) {
-                            return error("Unable to find folder icon container component");
-                        }
-                        hookFunctionComponent(iconContainer, (result) => {
-                            const iconParent = queryTree(result, (node) => node?.props?.children?.props?.folderNode);
-                            if (!iconParent) {
-                                return error("Unable to find folder icon component");
-                            }
-                            const icon = iconParent.props.children;
-                            if (!FolderIcon) {
-                                FolderIcon = icon.type;
-                            }
-                            iconParent.props.children = React.createElement(ConnectedBetterFolderIcon, { folderId: props.folderNode.id, childProps: icon.props, FolderIcon: FolderIcon });
-                        });
-                    });
-                }, { name: "GuildItem" });
-                triggerRerender(guildsOwner);
-            });
-        }, { name: "GuildsNav" });
+            const icon = iconParent.props.children;
+            if (!FolderIcon) {
+                log("Found FolderIcon component");
+                FolderIcon = icon.type;
+            }
+            iconParent.props.children = React.createElement(ConnectedBetterFolderIcon, { folderId: props.folderNode.id, childProps: icon.props, FolderIcon: FolderIcon });
+        }, { name: "FolderIconWrapper" });
+        triggerRerender(guildsOwner);
         after(ClientActions, "toggleGuildFolderExpand", ({ original, args: [folderId] }) => {
             if (Settings.current.closeOnOpen) {
                 for (const id of ExpandedGuildFolderStore.getExpandedFolders()) {
@@ -565,8 +535,7 @@ const index = createPlugin({
                 }
             }
         });
-        triggerRerender(guildsOwner);
-        waitFor(bySource$1(".GUILD_FOLDER_NAME"), { entries: true }).then((FolderSettingsModal) => {
+        waitFor(bySource(".GUILD_FOLDER_NAME"), { entries: true }).then((FolderSettingsModal) => {
             if (FolderSettingsModal) {
                 after(FolderSettingsModal.prototype, "render", (data) => folderModalPatch(data, FolderIcon), { name: "GuildFolderSettingsModal" });
             }
