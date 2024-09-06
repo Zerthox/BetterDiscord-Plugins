@@ -66,6 +66,9 @@ export const all = {
 /** Resolves the key corresponding to the value matching the filter function. */
 export const resolveKey = <T>(target: T, filter: Filters.Filter): [T, string] => [target, Object.entries(target ?? {}).find(([, value]) => filter(value))?.[0]];
 
+/** Resolves the key corresponding to the value matching the filter function. */
+export const findWithKey = <T>(filter: Filters.Filter): [Record<string, T>, string] => resolveKey(find(Filters.byEntry(filter)), filter);
+
 type Mapping = Record<string, (entry: any) => boolean>;
 type Mapped<M extends Mapping> = {[K in keyof M]: any};
 
