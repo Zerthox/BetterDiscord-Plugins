@@ -1,6 +1,6 @@
 /**
  * @name OnlineFriendCount
- * @version 3.1.4
+ * @version 3.2.0
  * @author Zerthox
  * @authorLink https://github.com/Zerthox
  * @description Adds the old online friend count and similar counters back to server list. Because nostalgia.
@@ -219,13 +219,13 @@ const Flex = /* @__PURE__ */ byKeys(["Child", "Justify"], { entries: true });
 const { FormSection, FormItem, FormTitle, FormText, FormLabel, FormDivider, FormSwitch, FormNotice } = Common;
 
 const GuildsNav = /* @__PURE__ */ bySource(["guildsnav"], { entries: true });
+const HomeButton = /* @__PURE__ */ bySource([".getPendingCount", ".getHomeLink"], { entries: true });
 
 const mapping = {
-    NavLink: bySource$1(".sensitive", ".to"),
     Link: bySource$1(".component", ".to"),
     BrowserRouter: bySource$1("this.history")
 };
-const { Link, NavLink, BrowserRouter } = /* @__PURE__ */ demangle(mapping, ["Link", "BrowserRouter"]);
+const { Link, BrowserRouter } = /* @__PURE__ */ demangle(mapping, ["Link", "BrowserRouter"]);
 
 const margins = /* @__PURE__ */ byKeys(["marginBottom40", "marginTop4"]);
 
@@ -269,6 +269,20 @@ const queryTree = (node, predicate) => {
         }
     }
     return null;
+};
+const queryTreeForParent = (tree, predicate) => {
+    let childIndex = -1;
+    const parent = queryTree(tree, (node) => {
+        const children = node?.props?.children;
+        if (children instanceof Array) {
+            const index = children.findIndex(predicate);
+            if (index > -1) {
+                childIndex = index;
+                return true;
+            }
+        }
+    });
+    return [parent, childIndex];
 };
 const getFiber = (node) => ReactDOMInternals.getInstanceFromNode(node ?? {});
 const queryFiber = (fiber, predicate, direction = "up" , depth = 30) => {
@@ -507,7 +521,6 @@ const CountersContainer = () => {
 };
 
 const guildStyles = byKeys(["guilds", "base"]);
-const treeStyles = byKeys(["tree", "scroller"]);
 const triggerRerender = async () => {
     const node = document.getElementsByClassName(guildStyles.guilds)?.[0];
     const fiber = getFiber(node);
@@ -518,23 +531,25 @@ const triggerRerender = async () => {
         warn("Unable to rerender guilds");
     }
 };
-const homeButtonFilter = bySource$1(".getPendingCount");
 const index = createPlugin({
     start() {
         after(GuildsNav, "type", ({ result }) => {
-            const target = queryTree(result, (node) => node?.props?.className?.split(" ").includes(guildStyles.guilds));
-            if (!target) {
-                return error("Unable to find chain patch target");
+            const guildsParent = queryTree(result, (node) => node?.props?.className?.split(" ").includes(guildStyles.guilds));
+            if (!guildsParent) {
+                return error("Unable to find guilds parent");
             }
-            hookFunctionComponent(target, (result) => {
-                const scroller = queryTree(result, (node) => node?.props?.className?.split(" ").includes(treeStyles.scroller));
-                if (!scroller) {
-                    return error("Unable to find scroller");
+            hookFunctionComponent(guildsParent, (result) => {
+                const themeParent = queryTree(result, (node) => typeof node?.props?.children === "function");
+                if (!themeParent) {
+                    return error("Unable to find theme parent");
                 }
-                const { children } = scroller.props;
-                const homeButtonIndex = children.findIndex((child) => homeButtonFilter(child?.type));
-                const index = homeButtonIndex > -1 ? homeButtonIndex + 1 : 2;
-                children.splice(index, 0, React.createElement(CountersContainer, null));
+                hookFunctionComponent(themeParent, (result) => {
+                    const [scroller, index] = queryTreeForParent(result, (child) => child?.type === HomeButton);
+                    if (!scroller) {
+                        return error("Unable to find home button");
+                    }
+                    scroller.props.children.splice(index + 1, 0, React.createElement(CountersContainer, null));
+                });
             });
         }, { name: "GuildsNav" });
         triggerRerender();

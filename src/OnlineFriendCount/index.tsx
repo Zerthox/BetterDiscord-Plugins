@@ -1,11 +1,10 @@
-import {createPlugin, Logger, Finder, Patcher, Utils, React, Filters} from "dium";
-import {GuildsNav} from "@dium/components";
+import {createPlugin, Logger, Finder, Patcher, Utils, React} from "dium";
+import {GuildsNav, HomeButton} from "@dium/components";
 import {Settings} from "./settings";
 import {CountersContainer} from "./counter";
 import {css} from "./styles.module.scss";
 
 const guildStyles = Finder.byKeys(["guilds", "base"]);
-const treeStyles = Finder.byKeys(["tree", "scroller"]);
 
 const triggerRerender = async () => {
     const node = document.getElementsByClassName(guildStyles.guilds)?.[0];
@@ -17,30 +16,33 @@ const triggerRerender = async () => {
     }
 };
 
-const homeButtonFilter = Filters.bySource(".getPendingCount");
-
 export default createPlugin({
     start() {
         // patch guilds nav
         Patcher.after(GuildsNav, "type", ({result}) => {
-            const target = Utils.queryTree(result, (node) => node?.props?.className?.split(" ").includes(guildStyles.guilds));
-            if (!target) {
-                return Logger.error("Unable to find chain patch target");
+            const guildsParent = Utils.queryTree(result, (node) => node?.props?.className?.split(" ").includes(guildStyles.guilds));
+            if (!guildsParent) {
+                return Logger.error("Unable to find guilds parent");
             }
 
-            // chain patch into the component
-            Utils.hookFunctionComponent(target, (result) => {
-                // find scroller
-                const scroller = Utils.queryTree(result, (node) => node?.props?.className?.split(" ").includes(treeStyles.scroller));
-                if (!scroller) {
-                    return Logger.error("Unable to find scroller");
+            // chain patch
+            Utils.hookFunctionComponent(guildsParent, (result) => {
+                const themeParent = Utils.queryTree(result, (node) => typeof node?.props?.children === "function");
+                if (!themeParent) {
+                    return Logger.error("Unable to find theme parent");
                 }
 
-                // insert after home button or default to position 2
-                const {children} = scroller.props as {children: JSX.Element[]};
-                const homeButtonIndex = children.findIndex((child) => homeButtonFilter(child?.type));
-                const index = homeButtonIndex > -1 ? homeButtonIndex + 1 : 2;
-                children.splice(index, 0, <CountersContainer/>);
+                // chain patch again
+                Utils.hookFunctionComponent(themeParent, (result) => {
+                    // find home button & parent
+                    const [scroller, index] = Utils.queryTreeForParent(result, (child) => child?.type === HomeButton);
+                    if (!scroller) {
+                        return Logger.error("Unable to find home button");
+                    }
+
+                    // insert after home button
+                    scroller.props.children.splice(index + 1, 0, <CountersContainer/>);
+                });
             });
         }, {name: "GuildsNav"});
 
