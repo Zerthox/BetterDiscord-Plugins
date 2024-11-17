@@ -60,7 +60,7 @@ export default createPlugin({
         });
 
         // patch folder settings render
-        Finder.waitFor(Filters.bySource(".GUILD_FOLDER_NAME"), {entries: true}).then((FolderSettingsModal: FolderSettingsModal) => {
+        Finder.waitFor(Filters.bySource(".folderName", ".onClose"), {entries: true}).then((FolderSettingsModal: FolderSettingsModal) => {
             if (FolderSettingsModal) {
                 Patcher.after(
                     FolderSettingsModal.prototype,
