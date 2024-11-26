@@ -1,6 +1,6 @@
 /**
  * @name BetterVolume
- * @version 3.0.0
+ * @version 3.1.0
  * @author Zerthox
  * @authorLink https://github.com/Zerthox
  * @description Set user volume values manually instead of using a slider. Allows setting volumes higher than 200%.
@@ -402,7 +402,31 @@ const dispatchVolumeOverrides = () => {
         }
     }
 };
-const settingsUpdateHandler = (_action) => dispatchVolumeOverrides();
+const findAudioSettingsManager = () => {
+    const hasSetVolume = byKeys$1("AUDIO_SET_LOCAL_VOLUME" );
+    return find((exported) => exported.actions && hasSetVolume(exported.actions));
+};
+const handleAudioSettingsManager = (AudioSettingsManager) => {
+    originalHandler = AudioSettingsManager.actions["AUDIO_SET_LOCAL_VOLUME" ];
+    const swapped = trySwapHandler("AUDIO_SET_LOCAL_VOLUME" , originalHandler, wrappedSettingsManagerHandler);
+    if (swapped) {
+        log(`Replaced AudioSettingsManager ${"AUDIO_SET_LOCAL_VOLUME" } handler`);
+    }
+    else {
+        warn(`AudioSettingsManager ${"AUDIO_SET_LOCAL_VOLUME" } handler not present`);
+    }
+};
+const postConnectionOpenHandler = (_action) => {
+    log(`Received ${"POST_CONNECTION_OPEN" }`);
+    dispatchVolumeOverrides();
+    const AudioSettingsManager = findAudioSettingsManager();
+    if (AudioSettingsManager) {
+        handleAudioSettingsManager(AudioSettingsManager);
+    }
+    else {
+        warn("Failed to find AudioSettingsManager");
+    }
+};
 let originalHandler = null;
 const wrappedSettingsManagerHandler = (action) => {
     const { userId, volume, context } = action;
@@ -430,24 +454,24 @@ const trySwapHandler = (action, prev, next) => {
     }
     return isPresent;
 };
-const hasSetVolume = byKeys$1("AUDIO_SET_LOCAL_VOLUME" );
 const handleVolumeSync = () => {
-    Dispatcher$1.subscribe("USER_SETTINGS_PROTO_UPDATE" , settingsUpdateHandler);
+    Dispatcher$1.subscribe("POST_CONNECTION_OPEN" , postConnectionOpenHandler);
+    log(`Subscribed to ${"POST_CONNECTION_OPEN" } events`);
+    Dispatcher$1.subscribe("USER_SETTINGS_PROTO_UPDATE" , dispatchVolumeOverrides);
     log(`Subscribed to ${"USER_SETTINGS_PROTO_UPDATE" } events`);
-    dispatchVolumeOverrides();
-    waitFor((exported) => exported.actions && hasSetVolume(exported.actions)).then((AudioSettingsManager) => {
-        originalHandler = AudioSettingsManager.actions["AUDIO_SET_LOCAL_VOLUME" ];
-        const swapped = trySwapHandler("AUDIO_SET_LOCAL_VOLUME" , originalHandler, wrappedSettingsManagerHandler);
-        if (swapped) {
-            log(`Replaced ${"AUDIO_SET_LOCAL_VOLUME" } handler`);
-        }
-        else {
-            warn(`${"AUDIO_SET_LOCAL_VOLUME" } handler not present`);
-        }
-    });
+    const AudioSettingsManager = findAudioSettingsManager();
+    if (AudioSettingsManager) {
+        dispatchVolumeOverrides();
+        handleAudioSettingsManager(AudioSettingsManager);
+    }
+    else {
+        log(`AudioSettingsManager not found, waiting for ${"POST_CONNECTION_OPEN" }`);
+    }
 };
 const resetVolumeSync = () => {
-    Dispatcher$1.unsubscribe("USER_SETTINGS_PROTO_UPDATE" , settingsUpdateHandler);
+    Dispatcher$1.unsubscribe("POST_CONNECTION_OPEN" , postConnectionOpenHandler);
+    log(`Unsubscribed from ${"POST_CONNECTION_OPEN" } events`);
+    Dispatcher$1.unsubscribe("USER_SETTINGS_PROTO_UPDATE" , dispatchVolumeOverrides);
     log(`Unsubscribed from ${"USER_SETTINGS_PROTO_UPDATE" } events`);
     const swapped = trySwapHandler("AUDIO_SET_LOCAL_VOLUME" , wrappedSettingsManagerHandler, originalHandler);
     if (swapped) {

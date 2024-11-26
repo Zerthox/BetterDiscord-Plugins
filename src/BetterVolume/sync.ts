@@ -3,6 +3,7 @@ import {Snowflake, Dispatcher, MediaEngineContext, AudioConvert} from "@dium/mod
 import {Settings, updateVolumeOverride as updateVolumeOverride, tryResetVolumeOverride} from "./settings";
 
 const enum ActionType {
+    POST_CONNECTION_OPEN = "POST_CONNECTION_OPEN",
     AUDIO_SET_LOCAL_VOLUME = "AUDIO_SET_LOCAL_VOLUME",
     USER_SETTINGS_PROTO_UPDATE = "USER_SETTINGS_PROTO_UPDATE"
 }
@@ -32,7 +33,33 @@ interface SetVolumeAction extends Flux.Action {
     context: MediaEngineContext;
 }
 
-const settingsUpdateHandler = (_action: Flux.Action) => dispatchVolumeOverrides();
+const findAudioSettingsManager = (): AudioSettingsManager => {
+    const hasSetVolume = Filters.byKeys(ActionType.AUDIO_SET_LOCAL_VOLUME);
+    return Finder.find((exported) => exported.actions && hasSetVolume(exported.actions));
+};
+
+const handleAudioSettingsManager = (AudioSettingsManager: AudioSettingsManager): void => {
+    originalHandler = AudioSettingsManager.actions[ActionType.AUDIO_SET_LOCAL_VOLUME];
+    const swapped = trySwapHandler(ActionType.AUDIO_SET_LOCAL_VOLUME, originalHandler, wrappedSettingsManagerHandler);
+    if (swapped) {
+        Logger.log(`Replaced AudioSettingsManager ${ActionType.AUDIO_SET_LOCAL_VOLUME} handler`);
+    } else {
+        Logger.warn(`AudioSettingsManager ${ActionType.AUDIO_SET_LOCAL_VOLUME} handler not present`);
+    }
+};
+
+const postConnectionOpenHandler = (_action: Flux.Action): void => {
+    Logger.log(`Received ${ActionType.POST_CONNECTION_OPEN}`);
+
+    dispatchVolumeOverrides();
+
+    const AudioSettingsManager = findAudioSettingsManager();
+    if (AudioSettingsManager) {
+        handleAudioSettingsManager(AudioSettingsManager);
+    } else {
+        Logger.warn("Failed to find AudioSettingsManager");
+    }
+};
 
 interface AudioSettingsManager {
     actions: Record<string, Flux.ActionHandler> & {
@@ -71,28 +98,27 @@ const trySwapHandler = <A extends Flux.Action>(action: Flux.Action["type"], prev
     return isPresent;
 };
 
-const hasSetVolume = Filters.byKeys(ActionType.AUDIO_SET_LOCAL_VOLUME);
-
 export const handleVolumeSync = (): void => {
-    Dispatcher.subscribe(ActionType.USER_SETTINGS_PROTO_UPDATE, settingsUpdateHandler);
+    Dispatcher.subscribe(ActionType.POST_CONNECTION_OPEN, postConnectionOpenHandler);
+    Logger.log(`Subscribed to ${ActionType.POST_CONNECTION_OPEN} events`);
+
+    Dispatcher.subscribe(ActionType.USER_SETTINGS_PROTO_UPDATE, dispatchVolumeOverrides);
     Logger.log(`Subscribed to ${ActionType.USER_SETTINGS_PROTO_UPDATE} events`);
 
-    // TODO: needed on connection open?
-    dispatchVolumeOverrides();
-
-    Finder.waitFor((exported) => exported.actions && hasSetVolume(exported.actions)).then((AudioSettingsManager: AudioSettingsManager) => {
-        originalHandler = AudioSettingsManager.actions[ActionType.AUDIO_SET_LOCAL_VOLUME];
-        const swapped = trySwapHandler(ActionType.AUDIO_SET_LOCAL_VOLUME, originalHandler, wrappedSettingsManagerHandler);
-        if (swapped) {
-            Logger.log(`Replaced ${ActionType.AUDIO_SET_LOCAL_VOLUME} handler`);
-        } else {
-            Logger.warn(`${ActionType.AUDIO_SET_LOCAL_VOLUME} handler not present`);
-        }
-    });
+    const AudioSettingsManager = findAudioSettingsManager();
+    if (AudioSettingsManager) {
+        dispatchVolumeOverrides();
+        handleAudioSettingsManager(AudioSettingsManager);
+    } else {
+        Logger.log(`AudioSettingsManager not found, waiting for ${ActionType.POST_CONNECTION_OPEN}`);
+    }
 };
 
 export const resetVolumeSync = (): void => {
-    Dispatcher.unsubscribe(ActionType.USER_SETTINGS_PROTO_UPDATE, settingsUpdateHandler);
+    Dispatcher.unsubscribe(ActionType.POST_CONNECTION_OPEN, postConnectionOpenHandler);
+    Logger.log(`Unsubscribed from ${ActionType.POST_CONNECTION_OPEN} events`);
+
+    Dispatcher.unsubscribe(ActionType.USER_SETTINGS_PROTO_UPDATE, dispatchVolumeOverrides);
     Logger.log(`Unsubscribed from ${ActionType.USER_SETTINGS_PROTO_UPDATE} events`);
 
     const swapped = trySwapHandler(ActionType.AUDIO_SET_LOCAL_VOLUME, wrappedSettingsManagerHandler, originalHandler);

@@ -71,7 +71,7 @@ export interface Dispatcher {
     _subscriptions: Record<string, Set<ActionHandler>>;
     _processingWaitQueue: boolean;
     _waitQueue: any[];
-    _interceptor: (arg: any) => any;
+    _interceptors: ActionHandler[];
 
     _dispatch<A extends Action>(action: A): void;
     _dispatchWithDevtools<A extends Action>(action: A): void;
