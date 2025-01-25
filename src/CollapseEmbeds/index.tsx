@@ -2,7 +2,7 @@ import {createPlugin, Filters, Finder, PatchDataWithResult, Patcher, React, Util
 import {Message, Attachment} from "@dium/modules";
 import {FormSwitch, MessageFooter, Embed, MediaItemProps} from "@dium/components";
 import {Settings} from "./settings";
-import {Hider, AccessoryType} from "./hider";
+import {Hider, AccessoryType, STORAGE_KEY, collapsedStates} from "./hider";
 import {css} from "./styles.module.scss";
 
 interface AttachmentsProps extends Record<string, any> {
@@ -35,6 +35,7 @@ export default createPlugin({
                 <Hider
                     type={AccessoryType.Embed}
                     placeholders={[placeholder]}
+                    id={embed.url}
                 >{result}</Hider>
             );
         }, {name: "Embed render"});
@@ -46,24 +47,31 @@ export default createPlugin({
                 <Hider
                     type={props.isSingleMosaicItem ? AccessoryType.MediaItemSingle : AccessoryType.MediaItem}
                     placeholders={[placeholder]}
+                    id={attachment.url}
                 >{result}</Hider>
             );
         }, {name: "MediaItem render"});
 
-        // leaving in for now, might be unused?
         Patcher.after(MessageFooter.prototype, "renderAttachments", ({result}: PatchDataWithResult<JSX.Element>) => {
             for (const element of Utils.queryTreeAll(result, (node) => node?.props?.attachments)) {
                 Utils.hookFunctionComponent<AttachmentsProps>(element, (result, {attachments}) => {
                     const placeholders = attachments.map(({attachment}) => attachment.filename ?? new URL(attachment.url).hostname);
+                    const id = attachments[0]?.attachment?.url;
                     return (
                         <Hider
                             type={AccessoryType.Attachment}
                             placeholders={placeholders}
+                            id={id}
                         >{result}</Hider>
                     );
                 });
             }
         }, {name: "MessageFooter renderAttachments"});
+    },
+    stop() {
+        try {
+            localStorage.setItem(STORAGE_KEY, JSON.stringify(collapsedStates));
+        } catch {}
     },
     styles: css,
     Settings,

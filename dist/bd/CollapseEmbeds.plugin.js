@@ -357,7 +357,7 @@ const Settings = createSettings({
     hideByDefault: false
 });
 
-const css = ".container-CollapseEmbeds.embed-CollapseEmbeds {\n  justify-self: stretch;\n}\n.container-CollapseEmbeds.embed-CollapseEmbeds > article {\n  flex-grow: 1;\n  flex-shrink: 0;\n}\n.container-CollapseEmbeds.mediaItem-CollapseEmbeds.expanded-CollapseEmbeds {\n  position: relative;\n}\n.container-CollapseEmbeds.mediaItem-CollapseEmbeds.expanded-CollapseEmbeds > .hideButton-CollapseEmbeds {\n  position: absolute;\n  right: 2px;\n  bottom: 2px;\n  z-index: 1;\n}\n\n.placeholder-CollapseEmbeds + .placeholder-CollapseEmbeds {\n  margin-left: 4px;\n}\n\n.hideButton-CollapseEmbeds {\n  margin-bottom: -4px;\n  align-self: flex-end;\n  color: var(--interactive-normal);\n  cursor: pointer;\n  visibility: hidden;\n}\n.hideButton-CollapseEmbeds:hover {\n  color: var(--interactive-hover);\n}\n.expanded-CollapseEmbeds > .hideButton-CollapseEmbeds {\n  margin-bottom: -6px;\n}\n.hideButton-CollapseEmbeds:hover, :hover + .hideButton-CollapseEmbeds, .collapsed-CollapseEmbeds > .hideButton-CollapseEmbeds {\n  visibility: visible;\n}\n\n.icon-CollapseEmbeds {\n  margin: -2px;\n  transition: transform 0.2s ease-out;\n}\n.icon-CollapseEmbeds.open-CollapseEmbeds {\n  transform: rotate(180deg);\n}";
+const css = ".container-CollapseEmbeds.embed-CollapseEmbeds {\n  justify-self: stretch;\n}\n.container-CollapseEmbeds.embed-CollapseEmbeds > article {\n  flex-grow: 1;\n  flex-shrink: 0;\n}\n.container-CollapseEmbeds.mediaItem-CollapseEmbeds.expanded-CollapseEmbeds {\n  position: relative;\n}\n.container-CollapseEmbeds.mediaItem-CollapseEmbeds.expanded-CollapseEmbeds > .hideButton-CollapseEmbeds {\n  position: absolute;\n  right: 2px;\n  bottom: 2px;\n  z-index: 1;\n}\n\n.placeholder-CollapseEmbeds + .placeholder-CollapseEmbeds {\n  margin-left: 4px;\n}\n\n.hideButton-CollapseEmbeds {\n  margin-bottom: -4px;\n  align-self: flex-end;\n  color: var(--interactive-normal);\n  cursor: pointer;\n  visibility: hidden;\n  padding: 4px;\n  margin: -4px;\n}\n.hideButton-CollapseEmbeds:hover {\n  color: var(--interactive-hover);\n}\n.expanded-CollapseEmbeds > .hideButton-CollapseEmbeds {\n  margin-bottom: -6px;\n}\n.hideButton-CollapseEmbeds:hover, :hover + .hideButton-CollapseEmbeds, .collapsed-CollapseEmbeds > .hideButton-CollapseEmbeds {\n  visibility: visible;\n}\n\n.icon-CollapseEmbeds {\n  margin: -2px;\n  transition: transform 0.2s ease-out;\n}\n.icon-CollapseEmbeds.open-CollapseEmbeds {\n  transform: rotate(180deg);\n}";
 const styles = {
     container: "container-CollapseEmbeds",
     embed: "embed-CollapseEmbeds",
@@ -372,12 +372,39 @@ const styles = {
     mediaItemSingle: "mediaItemSingle-CollapseEmbeds"
 };
 
-const Hider = ({ placeholders, type, children }) => {
-    const [shown, setShown] = React.useState(!Settings.current.hideByDefault);
-    Settings.useListener(({ hideByDefault }) => setShown(!hideByDefault), []);
+const STORAGE_KEY = 'dium-collapsed-states';
+let collapsedStates;
+try {
+    const stored = localStorage.getItem(STORAGE_KEY);
+    collapsedStates = stored ? JSON.parse(stored) : {};
+}
+catch {
+    collapsedStates = {};
+}
+const Hider = ({ placeholders, type, children, id }) => {
+    const [shown, setShown] = React.useState(() => {
+        if (!id)
+            return !Settings.current.hideByDefault;
+        return !collapsedStates[id];
+    });
+    const toggleShown = () => {
+        const newShown = !shown;
+        setShown(newShown);
+        if (id) {
+            try {
+                collapsedStates[id] = !newShown;
+                localStorage.setItem(STORAGE_KEY, JSON.stringify(collapsedStates));
+            }
+            catch { }
+        }
+    };
+    Settings.useListener(({ hideByDefault }) => {
+        if (!id)
+            setShown(!hideByDefault);
+    }, [id]);
     return (React.createElement(Flex, { align: Flex.Align.CENTER, className: classNames(styles.container, styles[type], shown ? styles.expanded : styles.collapsed) },
         shown ? children : placeholders.filter(Boolean).map((placeholder, i) => (React.createElement(Text, { key: i, variant: "text-xs/normal", className: styles.placeholder }, placeholder))),
-        React.createElement(Clickable, { className: styles.hideButton, onClick: () => setShown(!shown) },
+        React.createElement(Clickable, { className: styles.hideButton, onClick: toggleShown },
             React.createElement(IconArrow, { color: "currentColor", className: classNames(styles.icon, shown ? styles.open : null) }))));
 };
 
@@ -389,21 +416,28 @@ const index = createPlugin({
         after(Embed.prototype, "render", ({ result, context }) => {
             const { embed } = context.props;
             const placeholder = embed.provider?.name ?? embed.author?.name ?? embed.rawTitle ?? new URL(embed.url).hostname;
-            return (React.createElement(Hider, { type: "embed" , placeholders: [placeholder] }, result));
+            return (React.createElement(Hider, { type: "embed" , placeholders: [placeholder], id: embed.url }, result));
         }, { name: "Embed render" });
         after(MediaModule, "MediaItem", ({ args: [props], result }) => {
             const attachment = props.item.originalItem;
             const placeholder = attachment.filename ?? new URL(attachment.url).hostname;
-            return (React.createElement(Hider, { type: props.isSingleMosaicItem ? "mediaItemSingle"  : "mediaItem" , placeholders: [placeholder] }, result));
+            return (React.createElement(Hider, { type: props.isSingleMosaicItem ? "mediaItemSingle"  : "mediaItem" , placeholders: [placeholder], id: attachment.url }, result));
         }, { name: "MediaItem render" });
         after(MessageFooter.prototype, "renderAttachments", ({ result }) => {
             for (const element of queryTreeAll(result, (node) => node?.props?.attachments)) {
                 hookFunctionComponent(element, (result, { attachments }) => {
                     const placeholders = attachments.map(({ attachment }) => attachment.filename ?? new URL(attachment.url).hostname);
-                    return (React.createElement(Hider, { type: "attachment" , placeholders: placeholders }, result));
+                    const id = attachments[0]?.attachment?.url;
+                    return (React.createElement(Hider, { type: "attachment" , placeholders: placeholders, id: id }, result));
                 });
             }
         }, { name: "MessageFooter renderAttachments" });
+    },
+    stop() {
+        try {
+            localStorage.setItem(STORAGE_KEY, JSON.stringify(collapsedStates));
+        }
+        catch { }
     },
     styles: css,
     Settings,

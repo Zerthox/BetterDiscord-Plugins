@@ -11,15 +11,45 @@ export const enum AccessoryType {
     Attachment = "attachment"
 }
 
+// Global storage for collapsed states
+export const STORAGE_KEY = 'dium-collapsed-states';
+export let collapsedStates: Record<string, boolean>;
+
+try {
+    const stored = localStorage.getItem(STORAGE_KEY);
+    collapsedStates = stored ? JSON.parse(stored) : {};
+} catch {
+    collapsedStates = {};
+}
+
 export interface HiderProps {
     placeholders: string[];
     type: AccessoryType;
     children: React.ReactNode;
+    id?: string;
 }
 
-export const Hider = ({placeholders, type, children}: HiderProps): JSX.Element => {
-    const [shown, setShown] = React.useState(!Settings.current.hideByDefault);
-    Settings.useListener(({hideByDefault}) => setShown(!hideByDefault), []);
+export const Hider = ({placeholders, type, children, id}: HiderProps): JSX.Element => {
+    const [shown, setShown] = React.useState(() => {
+        if (!id) return !Settings.current.hideByDefault;
+        return !collapsedStates[id];
+    });
+
+    const toggleShown = () => {
+        const newShown = !shown;
+        setShown(newShown);
+        
+        if (id) {
+            try {
+                collapsedStates[id] = !newShown;
+                localStorage.setItem(STORAGE_KEY, JSON.stringify(collapsedStates));
+            } catch {}
+        }
+    };
+
+    Settings.useListener(({hideByDefault}) => {
+        if (!id) setShown(!hideByDefault);
+    }, [id]);
 
     return (
         <Flex
@@ -35,7 +65,7 @@ export const Hider = ({placeholders, type, children}: HiderProps): JSX.Element =
             ))}
             <Clickable
                 className={styles.hideButton}
-                onClick={() => setShown(!shown)}
+                onClick={toggleShown}
             >
                 <IconArrow
                     color="currentColor"
