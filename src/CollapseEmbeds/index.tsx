@@ -1,8 +1,8 @@
 import {createPlugin, Filters, Finder, PatchDataWithResult, Patcher, React, Utils} from "dium";
 import {Message, Attachment} from "@dium/modules";
 import {FormSwitch, MessageFooter, Embed, MediaItemProps} from "@dium/components";
-import {Settings} from "./settings";
-import {Hider, AccessoryType, STORAGE_KEY, collapsedStates} from "./hider";
+import {Settings, cleanupOldEntries} from "./settings";
+import {Hider, AccessoryType} from "./hider";
 import {css} from "./styles.module.scss";
 
 interface AttachmentsProps extends Record<string, any> {
@@ -28,6 +28,9 @@ const MediaModule: MediaModule = Finder.demangle({
 
 export default createPlugin({
     start() {
+        // Run cleanup on start
+        cleanupOldEntries();
+        
         Patcher.after(Embed.prototype as InstanceType<typeof Embed>, "render", ({result, context}) => {
             const {embed} = context.props;
             const placeholder = embed.provider?.name ?? embed.author?.name ?? embed.rawTitle ?? new URL(embed.url).hostname;
@@ -69,9 +72,8 @@ export default createPlugin({
         }, {name: "MessageFooter renderAttachments"});
     },
     stop() {
-        try {
-            localStorage.setItem(STORAGE_KEY, JSON.stringify(collapsedStates));
-        } catch {}
+        // Run cleanup on stop
+        cleanupOldEntries();
     },
     styles: css,
     Settings,

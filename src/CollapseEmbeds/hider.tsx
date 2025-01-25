@@ -1,7 +1,7 @@
 import {React} from "dium";
 import {classNames} from "@dium/modules";
 import {Flex, Clickable, Text, IconArrow} from "@dium/components";
-import {Settings} from "./settings";
+import {Settings, cleanupOldEntries} from "./settings";
 import styles from "./styles.module.scss";
 
 export const enum AccessoryType {
@@ -9,17 +9,6 @@ export const enum AccessoryType {
     MediaItem = "mediaItem",
     MediaItemSingle = "mediaItemSingle",
     Attachment = "attachment"
-}
-
-// Global storage for collapsed states
-export const STORAGE_KEY = 'dium-collapsed-states';
-export let collapsedStates: Record<string, boolean>;
-
-try {
-    const stored = localStorage.getItem(STORAGE_KEY);
-    collapsedStates = stored ? JSON.parse(stored) : {};
-} catch {
-    collapsedStates = {};
 }
 
 export interface HiderProps {
@@ -30,25 +19,66 @@ export interface HiderProps {
 }
 
 export const Hider = ({placeholders, type, children, id}: HiderProps): JSX.Element => {
+    // Update lastSeen timestamp on mount and track component mounted state
+    const mounted = React.useRef(true);
+
+    React.useEffect(() => {
+        mounted.current = true;
+        
+        if (id) {
+            const state = Settings.current.collapsedStates[id];
+            if (state) {
+                const newStates = {
+                    ...Settings.current.collapsedStates,
+                    [id]: { ...state, lastSeen: Date.now() }
+                };
+                Settings.update({
+                    ...Settings.current,
+                    collapsedStates: newStates
+                });
+            }
+        }
+
+        return () => {
+            mounted.current = false;
+        };
+    }, [id]);
+
     const [shown, setShown] = React.useState(() => {
         if (!id) return !Settings.current.hideByDefault;
-        return !collapsedStates[id];
+        return !Settings.current.collapsedStates[id]?.collapsed;
     });
 
-    const toggleShown = () => {
+    const toggleShown = React.useCallback(() => {
+        if (!mounted.current) return;
+        
         const newShown = !shown;
         setShown(newShown);
         
         if (id) {
-            try {
-                collapsedStates[id] = !newShown;
-                localStorage.setItem(STORAGE_KEY, JSON.stringify(collapsedStates));
-            } catch {}
+            const newStates = {
+                ...Settings.current.collapsedStates,
+                [id]: {
+                    collapsed: !newShown,
+                    lastSeen: Date.now()
+                }
+            };
+            Settings.update({
+                ...Settings.current,
+                collapsedStates: newStates
+            });
         }
-    };
+    }, [shown, id]);
 
-    Settings.useListener(({hideByDefault}) => {
-        if (!id) setShown(!hideByDefault);
+    // Update shown state when settings change
+    Settings.useListener(({hideByDefault, collapsedStates}) => {
+        if (!mounted.current) return;
+        
+        if (!id) {
+            setShown(!hideByDefault);
+        } else if (collapsedStates[id]) {
+            setShown(!collapsedStates[id].collapsed);
+        }
     }, [id]);
 
     return (
