@@ -1,4 +1,4 @@
-import {Common} from "./common";
+import {Finder} from "../api";
 
 export interface SwitchProps {
     id?: any;
@@ -10,4 +10,4 @@ export interface SwitchProps {
     innerRef?: any;
 }
 
-export const Switch: React.FunctionComponent<SwitchProps> = Common.Switch;
+export const Switch: React.FunctionComponent<SwitchProps> = /* @__PURE__ */ Finder.bySource(["checked:", "reducedMotion:"], {entries: true});

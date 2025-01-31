@@ -135,24 +135,28 @@ export const SettingsPanel = (): JSX.Element => {
                                 </div>
                             </Flex.Child>
                             <Flex.Child grow={0}>
-                                <Switch
-                                    checked={settings.notifs[key].enabled}
-                                    onChange={(value: boolean) => {
-                                        const {notifs} = settings;
-                                        notifs[key].enabled = value;
-                                        setSettings({notifs});
-                                    }}
-                                />
+                                <div>
+                                    <Switch
+                                        checked={settings.notifs[key].enabled}
+                                        onChange={(value: boolean) => {
+                                            const {notifs} = settings;
+                                            notifs[key].enabled = value;
+                                            setSettings({notifs});
+                                        }}
+                                    />
+                                </div>
                             </Flex.Child>
                             <Flex.Child grow={0}>
-                                <Button
-                                    size={Button.Sizes.SMALL}
-                                    onClick={() => speak(
-                                        settings.notifs[key].message
-                                            .split("$user").join("user")
-                                            .split("$channel").join("channel")
-                                    )}
-                                >Test</Button>
+                                <div>
+                                    <Button
+                                        size={Button.Sizes.SMALL}
+                                        onClick={() => speak(
+                                            settings.notifs[key].message
+                                                .split("$user").join("user")
+                                                .split("$channel").join("channel")
+                                        )}
+                                    >Test</Button>
+                                </div>
                             </Flex.Child>
                         </Flex>
                     </FormItem>

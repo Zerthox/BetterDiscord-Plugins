@@ -1,4 +1,4 @@
-import {Common} from "./common";
+import {Finder} from "../api";
 
 export interface SliderProps extends Record<string, any> {
     initialValue?: number;
@@ -55,4 +55,4 @@ export interface Slider extends React.ComponentClass<SliderProps, SliderState> {
     };
 }
 
-export const Slider: Slider = Common.Slider;
+export const Slider: Slider = /* @__PURE__ */ Finder.bySource(["markerPositions:", "asValueChanges:"], {entries: true});
