@@ -1,6 +1,6 @@
 /**
  * @name NoReplyMention
- * @version 0.2.2
+ * @version 0.2.3
  * @author Zerthox
  * @authorLink https://github.com/Zerthox
  * @description Suppresses reply mentions.
@@ -182,13 +182,20 @@ const clear = () => BdApi.DOM.removeStyle(getMeta().name);
 const { React } = BdApi;
 const classNames = /* @__PURE__ */ find((exports) => exports instanceof Object && exports.default === exports && Object.keys(exports).length === 1);
 
-const Common = /* @__PURE__ */ byKeys(["Button", "Switch", "Select"]);
+const Button = /* @__PURE__ */ byKeys(["Colors", "Link"], { entries: true });
 
-const Button = Common.Button;
+const Flex = /* @__PURE__ */ byKeys(["Child", "Justify", "Align"], { entries: true });
 
-const Flex = /* @__PURE__ */ byKeys(["Child", "Justify"], { entries: true });
-
-const { FormSection, FormItem, FormTitle, FormText, FormLabel, FormDivider, FormSwitch, FormNotice } = Common;
+const { FormSection, FormItem, FormTitle, FormText,
+FormDivider, FormSwitch, FormNotice } = /* @__PURE__ */ demangle({
+    FormSection: bySource("titleClassName:", ".sectionTitle"),
+    FormItem: bySource("titleClassName:", "required:"),
+    FormTitle: bySource("faded:", "required:"),
+    FormText: (target) => target.Types?.INPUT_PLACEHOLDER,
+    FormDivider: bySource(".divider", "style:"),
+    FormSwitch: bySource("tooltipNote:"),
+    FormNotice: bySource("imageData:", ".formNotice")
+}, ["FormSection", "FormItem", "FormDivider"]);
 
 const margins = /* @__PURE__ */ byKeys(["marginBottom40", "marginTop4"]);
 

@@ -1,6 +1,6 @@
 /**
  * @name BetterFolders
- * @version 3.5.1
+ * @version 3.5.2
  * @author Zerthox
  * @authorLink https://github.com/Zerthox
  * @description Adds new functionality to server folders. Custom Folder Icons. Close other folders on open.
@@ -89,7 +89,7 @@ const byKeys$1 = (...keys) => {
 const byProtos = (...protos) => {
     return (target) => target instanceof Object && target.prototype instanceof Object && protos.every((proto) => proto in target.prototype);
 };
-const bySource = (...fragments) => {
+const bySource$1 = (...fragments) => {
     return (target) => {
         while (target instanceof Object && "$$typeof" in target) {
             target = target.render ?? target.type;
@@ -143,6 +143,7 @@ const find = (filter, { resolve = true, entries = false } = {}) => BdApi.Webpack
 });
 const byName = (name, options) => find(byName$1(name), options);
 const byKeys = (keys, options) => find(byKeys$1(...keys), options);
+const bySource = (contents, options) => find(bySource$1(...contents), options);
 const resolveKey = (target, filter) => [target, Object.entries(target ?? {}).find(([, value]) => filter(value))?.[0]];
 const findWithKey = (filter) => resolveKey(find(byEntry(filter)), filter);
 const demangle = (mapping, required, proxy = false) => {
@@ -217,7 +218,7 @@ const { default: Legacy, Dispatcher, Store, BatchedStoreListener, useStateFromSt
     Dispatcher: byProtos("dispatch"),
     Store: byProtos("emitChange"),
     BatchedStoreListener: byProtos("attach", "detach"),
-    useStateFromStores: bySource("useStateFromStores")
+    useStateFromStores: bySource$1("useStateFromStores")
 }, ["Store", "Dispatcher", "useStateFromStores"]);
 
 const SortedGuildStore = /* @__PURE__ */ byName("SortedGuildStore");
@@ -227,17 +228,24 @@ const { React } = BdApi;
 const { ReactDOM } = BdApi;
 const classNames = /* @__PURE__ */ find((exports) => exports instanceof Object && exports.default === exports && Object.keys(exports).length === 1);
 
-const Common = /* @__PURE__ */ byKeys(["Button", "Switch", "Select"]);
+const Button = /* @__PURE__ */ byKeys(["Colors", "Link"], { entries: true });
 
-const Button = Common.Button;
+const Flex = /* @__PURE__ */ byKeys(["Child", "Justify", "Align"], { entries: true });
 
-const Flex = /* @__PURE__ */ byKeys(["Child", "Justify"], { entries: true });
-
-const { FormSection, FormItem, FormTitle, FormText, FormLabel, FormDivider, FormSwitch, FormNotice } = Common;
+const { FormSection, FormItem, FormTitle, FormText,
+FormDivider, FormSwitch, FormNotice } = /* @__PURE__ */ demangle({
+    FormSection: bySource$1("titleClassName:", ".sectionTitle"),
+    FormItem: bySource$1("titleClassName:", "required:"),
+    FormTitle: bySource$1("faded:", "required:"),
+    FormText: (target) => target.Types?.INPUT_PLACEHOLDER,
+    FormDivider: bySource$1(".divider", "style:"),
+    FormSwitch: bySource$1("tooltipNote:"),
+    FormNotice: bySource$1("imageData:", ".formNotice")
+}, ["FormSection", "FormItem", "FormDivider"]);
 
 const margins = /* @__PURE__ */ byKeys(["marginBottom40", "marginTop4"]);
 
-const RadioGroup = Common.RadioGroup;
+const RadioGroup = /* @__PURE__ */ bySource(["radioItemClassName:", "options:"], { entries: true });
 
 const ImageInput = /* @__PURE__ */ find((target) => typeof target.defaultProps?.multiple === "boolean" && typeof target.defaultProps?.maxFileSizeBytes === "number");
 
@@ -512,7 +520,7 @@ const index = createPlugin({
     start() {
         let FolderIcon = null;
         const guildsOwner = getGuildsOwner();
-        const FolderIconWrapper = findWithKey(bySource(".expandedFolderIconWrapper"));
+        const FolderIconWrapper = findWithKey(bySource$1(".expandedFolderIconWrapper"));
         after(...FolderIconWrapper, ({ args: [props], result }) => {
             const iconParent = queryTree(result, (node) => node?.props?.children?.props?.folderNode);
             if (!iconParent) {
@@ -535,7 +543,7 @@ const index = createPlugin({
                 }
             }
         });
-        waitFor(bySource(".folderName", ".onClose"), { entries: true }).then((FolderSettingsModal) => {
+        waitFor(bySource$1(".folderName", ".onClose"), { entries: true }).then((FolderSettingsModal) => {
             if (FolderSettingsModal) {
                 after(FolderSettingsModal.prototype, "render", (data) => folderModalPatch(data, FolderIcon), { name: "GuildFolderSettingsModal" });
             }

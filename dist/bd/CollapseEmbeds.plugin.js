@@ -1,6 +1,6 @@
 /**
  * @name CollapseEmbeds
- * @version 1.1.1
+ * @version 1.1.2
  * @author Zerthox
  * @authorLink https://github.com/Zerthox
  * @description Adds a button to collapse embeds & attachments.
@@ -198,17 +198,24 @@ const { default: Legacy, Dispatcher, Store, BatchedStoreListener, useStateFromSt
 const { React } = BdApi;
 const classNames = /* @__PURE__ */ find((exports) => exports instanceof Object && exports.default === exports && Object.keys(exports).length === 1);
 
-const Common = /* @__PURE__ */ byKeys(["Button", "Switch", "Select"]);
+const Button = /* @__PURE__ */ byKeys(["Colors", "Link"], { entries: true });
 
-const Button = Common.Button;
-
-const Clickable = Common.Clickable;
+const Clickable = /* @__PURE__ */ bySource(["ignoreKeyPress:"], { entries: true });
 
 const Embed = /* @__PURE__ */ byProtos(["renderSuppressButton"], { entries: true });
 
-const Flex = /* @__PURE__ */ byKeys(["Child", "Justify"], { entries: true });
+const Flex = /* @__PURE__ */ byKeys(["Child", "Justify", "Align"], { entries: true });
 
-const { FormSection, FormItem, FormTitle, FormText, FormLabel, FormDivider, FormSwitch, FormNotice } = Common;
+const { FormSection, FormItem, FormTitle, FormText,
+FormDivider, FormSwitch, FormNotice } = /* @__PURE__ */ demangle({
+    FormSection: bySource$1("titleClassName:", ".sectionTitle"),
+    FormItem: bySource$1("titleClassName:", "required:"),
+    FormTitle: bySource$1("faded:", "required:"),
+    FormText: (target) => target.Types?.INPUT_PLACEHOLDER,
+    FormDivider: bySource$1(".divider", "style:"),
+    FormSwitch: bySource$1("tooltipNote:"),
+    FormNotice: bySource$1("imageData:", ".formNotice")
+}, ["FormSection", "FormItem", "FormDivider"]);
 
 const IconArrow = /* @__PURE__ */ bySource(["d:\"M5.3 9."], { entries: true });
 
@@ -216,7 +223,7 @@ const margins = /* @__PURE__ */ byKeys(["marginBottom40", "marginTop4"]);
 
 const MessageFooter = /* @__PURE__ */ byProtos(["renderRemoveAttachmentConfirmModal"], { entries: true });
 
-const Text = Common.Text;
+const Text = /* @__PURE__ */ bySource(["lineClamp:", "variant:", "tabularNumbers:"], { entries: true });
 
 const FCHook = ({ children: { type, props }, callback }) => {
     const result = type(props);
