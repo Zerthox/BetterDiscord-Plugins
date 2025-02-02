@@ -1,6 +1,6 @@
 /**
  * @name BetterVolume
- * @version 3.1.0
+ * @version 3.1.1
  * @author Zerthox
  * @authorLink https://github.com/Zerthox
  * @description Set user volume values manually instead of using a slider. Allows setting volumes higher than 200%.
@@ -217,13 +217,20 @@ const AudioConvert = /* @__PURE__ */ demangle({
     perceptualToAmplitude: bySource("Math.pow(10")
 });
 
-const Common = /* @__PURE__ */ byKeys(["Button", "Switch", "Select"]);
+const Button = /* @__PURE__ */ byKeys(["Colors", "Link"], { entries: true });
 
-const Button = Common.Button;
+const Flex = /* @__PURE__ */ byKeys(["Child", "Justify", "Align"], { entries: true });
 
-const Flex = /* @__PURE__ */ byKeys(["Child", "Justify"], { entries: true });
-
-const { FormSection, FormItem, FormTitle, FormText, FormLabel, FormDivider, FormSwitch, FormNotice } = Common;
+const { FormSection, FormItem, FormTitle, FormText,
+FormDivider, FormSwitch, FormNotice } = /* @__PURE__ */ demangle({
+    FormSection: bySource("titleClassName:", ".sectionTitle"),
+    FormItem: bySource("titleClassName:", "required:"),
+    FormTitle: bySource("faded:", "required:"),
+    FormText: (target) => target.Types?.INPUT_PLACEHOLDER,
+    FormDivider: bySource(".divider", "style:"),
+    FormSwitch: bySource("tooltipNote:"),
+    FormNotice: bySource("imageData:", ".formNotice")
+}, ["FormSection", "FormItem", "FormDivider"]);
 
 const margins = /* @__PURE__ */ byKeys(["marginBottom40", "marginTop4"]);
 

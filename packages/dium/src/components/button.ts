@@ -1,4 +1,4 @@
-import {Common} from "./common";
+import {Finder} from "../api";
 
 type Handlers = Pick<React.ComponentProps<"button">, "onClick" | "onDoubleClick" | "onMouseDown" | "onMouseUp" | "onMouseEnter" | "onMouseLeave" | "onKeyDown">;
 
@@ -85,4 +85,4 @@ export interface Button extends React.FunctionComponent<ButtonProps> {
     Link: React.FunctionComponent<any>;
 }
 
-export const Button: Button = Common.Button;
+export const Button: Button = /* @__PURE__ */ Finder.byKeys(["Colors", "Link"], {entries: true});

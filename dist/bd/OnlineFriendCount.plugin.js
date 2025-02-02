@@ -1,6 +1,6 @@
 /**
  * @name OnlineFriendCount
- * @version 3.2.0
+ * @version 3.2.1
  * @author Zerthox
  * @authorLink https://github.com/Zerthox
  * @description Adds the old online friend count and similar counters back to server list. Because nostalgia.
@@ -210,16 +210,23 @@ const classNames = /* @__PURE__ */ find((exports) => exports instanceof Object &
 const PresenceStore = /* @__PURE__ */ byName("PresenceStore");
 const RelationshipStore = /* @__PURE__ */ byName("RelationshipStore");
 
-const Common = /* @__PURE__ */ byKeys(["Button", "Switch", "Select"]);
+const Button = /* @__PURE__ */ byKeys(["Colors", "Link"], { entries: true });
 
-const Button = Common.Button;
+const Flex = /* @__PURE__ */ byKeys(["Child", "Justify", "Align"], { entries: true });
 
-const Flex = /* @__PURE__ */ byKeys(["Child", "Justify"], { entries: true });
-
-const { FormSection, FormItem, FormTitle, FormText, FormLabel, FormDivider, FormSwitch, FormNotice } = Common;
+const { FormSection, FormItem, FormTitle, FormText,
+FormDivider, FormSwitch, FormNotice } = /* @__PURE__ */ demangle({
+    FormSection: bySource$1("titleClassName:", ".sectionTitle"),
+    FormItem: bySource$1("titleClassName:", "required:"),
+    FormTitle: bySource$1("faded:", "required:"),
+    FormText: (target) => target.Types?.INPUT_PLACEHOLDER,
+    FormDivider: bySource$1(".divider", "style:"),
+    FormSwitch: bySource$1("tooltipNote:"),
+    FormNotice: bySource$1("imageData:", ".formNotice")
+}, ["FormSection", "FormItem", "FormDivider"]);
 
 const GuildsNav = /* @__PURE__ */ bySource(["guildsnav"], { entries: true });
-const HomeButton = /* @__PURE__ */ bySource([".getPendingCount", ".getHomeLink"], { entries: true });
+const HomeButton = /* @__PURE__ */ bySource(["unviewedTrialCount", "unviewedDiscountCount"], { entries: true });
 
 const mapping = {
     Link: bySource$1(".component", ".to"),

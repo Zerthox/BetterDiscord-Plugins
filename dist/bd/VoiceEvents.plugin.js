@@ -1,6 +1,6 @@
 /**
  * @name VoiceEvents
- * @version 2.6.1
+ * @version 2.6.2
  * @author Zerthox
  * @authorLink https://github.com/Zerthox
  * @description Adds TTS Event Notifications to your selected Voice Channel. TeamSpeak feeling.
@@ -78,7 +78,7 @@ const byKeys$1 = (...keys) => {
 const byProtos = (...protos) => {
     return (target) => target instanceof Object && target.prototype instanceof Object && protos.every((proto) => proto in target.prototype);
 };
-const bySource = (...fragments) => {
+const bySource$1 = (...fragments) => {
     return (target) => {
         while (target instanceof Object && "$$typeof" in target) {
             target = target.render ?? target.type;
@@ -133,6 +133,7 @@ const find = (filter, { resolve = true, entries = false } = {}) => BdApi.Webpack
 });
 const byName = (name, options) => find(byName$1(name), options);
 const byKeys = (keys, options) => find(byKeys$1(...keys), options);
+const bySource = (contents, options) => find(bySource$1(...contents), options);
 const demangle = (mapping, required, proxy = false) => {
     const req = required ?? Object.keys(mapping);
     const found = find((target) => (checkObjectValues(target)
@@ -192,8 +193,6 @@ const ChannelStore = /* @__PURE__ */ byName("ChannelStore");
 const SelectedChannelStore = /* @__PURE__ */ byName("SelectedChannelStore");
 const VoiceStateStore = /* @__PURE__ */ byName("VoiceStateStore");
 
-const MediaEngineStore = /* @__PURE__ */ byName("MediaEngineStore");
-
 const Dispatcher$1 = /* @__PURE__ */ byKeys(["dispatch", "subscribe"]);
 
 const { default: Legacy, Dispatcher, Store, BatchedStoreListener, useStateFromStores } = /* @__PURE__ */ demangle({
@@ -201,37 +200,52 @@ const { default: Legacy, Dispatcher, Store, BatchedStoreListener, useStateFromSt
     Dispatcher: byProtos("dispatch"),
     Store: byProtos("emitChange"),
     BatchedStoreListener: byProtos("attach", "detach"),
-    useStateFromStores: bySource("useStateFromStores")
+    useStateFromStores: bySource$1("useStateFromStores")
 }, ["Store", "Dispatcher", "useStateFromStores"]);
 
 const GuildMemberStore = /* @__PURE__ */ byName("GuildMemberStore");
+
+const MediaEngineStore = /* @__PURE__ */ byName("MediaEngineStore");
 
 const { React } = BdApi;
 const classNames = /* @__PURE__ */ find((exports) => exports instanceof Object && exports.default === exports && Object.keys(exports).length === 1);
 
 const UserStore = /* @__PURE__ */ byName("UserStore");
 
-const Common = /* @__PURE__ */ byKeys(["Button", "Switch", "Select"]);
+const Button = /* @__PURE__ */ byKeys(["Colors", "Link"], { entries: true });
 
-const Button = Common.Button;
+const Flex = /* @__PURE__ */ byKeys(["Child", "Justify", "Align"], { entries: true });
 
-const Flex = /* @__PURE__ */ byKeys(["Child", "Justify"], { entries: true });
-
-const { FormSection, FormItem, FormTitle, FormText, FormLabel, FormDivider, FormSwitch, FormNotice } = Common;
+const { FormSection, FormItem, FormTitle, FormText,
+FormDivider, FormSwitch, FormNotice } = /* @__PURE__ */ demangle({
+    FormSection: bySource$1("titleClassName:", ".sectionTitle"),
+    FormItem: bySource$1("titleClassName:", "required:"),
+    FormTitle: bySource$1("faded:", "required:"),
+    FormText: (target) => target.Types?.INPUT_PLACEHOLDER,
+    FormDivider: bySource$1(".divider", "style:"),
+    FormSwitch: bySource$1("tooltipNote:"),
+    FormNotice: bySource$1("imageData:", ".formNotice")
+}, ["FormSection", "FormItem", "FormDivider"]);
 
 const margins = /* @__PURE__ */ byKeys(["marginBottom40", "marginTop4"]);
 
 const { Menu, Group: MenuGroup, Item: MenuItem, Separator: MenuSeparator, CheckboxItem: MenuCheckboxItem, RadioItem: MenuRadioItem, ControlItem: MenuControlItem } = BdApi.ContextMenu;
 
-const { Select, SingleSelect } = Common;
+const { Select, SingleSelect } =  demangle({
+    Select: bySource$1("renderOptionLabel:", "renderOptionValue:", "popoutWidth:"),
+    SingleSelect: bySource$1((source) => /{value:[a-zA-Z_$],onChange:[a-zA-Z_$],...[a-zA-Z_$]}/.test(source))
+}, ["Select"]);
 
-const Slider = Common.Slider;
+const Slider = /* @__PURE__ */ bySource(["markerPositions:", "asValueChanges:"], { entries: true });
 
-const Switch = Common.Switch;
+const Switch = /* @__PURE__ */ bySource(["checked:", "reducedMotion:"], { entries: true });
 
-const { TextInput, InputError } = Common;
+const { TextInput, InputError } = /* @__PURE__ */ demangle({
+    TextInput: (target) => target?.defaultProps?.type === "text",
+    InputError: bySource$1("error:", "text-danger")
+}, ["TextInput"]);
 
-const Text = Common.Text;
+const Text = /* @__PURE__ */ bySource(["lineClamp:", "variant:", "tabularNumbers:"], { entries: true });
 
 const queryTree = (node, predicate) => {
     const worklist = [node].flat();
@@ -536,15 +550,17 @@ const SettingsPanel = () => {
                                     setSettings({ notifs });
                                 } }))),
                     React.createElement(Flex.Child, { grow: 0 },
-                        React.createElement(Switch, { checked: settings.notifs[key].enabled, onChange: (value) => {
-                                const { notifs } = settings;
-                                notifs[key].enabled = value;
-                                setSettings({ notifs });
-                            } })),
+                        React.createElement("div", null,
+                            React.createElement(Switch, { checked: settings.notifs[key].enabled, onChange: (value) => {
+                                    const { notifs } = settings;
+                                    notifs[key].enabled = value;
+                                    setSettings({ notifs });
+                                } }))),
                     React.createElement(Flex.Child, { grow: 0 },
-                        React.createElement(Button, { size: Button.Sizes.SMALL, onClick: () => speak(settings.notifs[key].message
-                                .split("$user").join("user")
-                                .split("$channel").join("channel")) }, "Test")))))),
+                        React.createElement("div", null,
+                            React.createElement(Button, { size: Button.Sizes.SMALL, onClick: () => speak(settings.notifs[key].message
+                                    .split("$user").join("user")
+                                    .split("$channel").join("channel")) }, "Test"))))))),
             React.createElement(FormItem, { key: "unknownChannel", className: margins.marginBottom20 },
                 React.createElement(FormTitle, null, "Unknown Channel Name"),
                 React.createElement(Flex, { align: Flex.Align.CENTER },

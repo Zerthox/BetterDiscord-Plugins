@@ -1,4 +1,4 @@
-import {Common} from "./common";
+import {Finder} from "../api";
 
 export interface ClickableProps {
     role?: string;
@@ -23,4 +23,4 @@ export interface Clickable extends React.ComponentClass<ClickableProps, any> {
     };
 }
 
-export const Clickable: Clickable = Common.Clickable;
+export const Clickable: Clickable = /* @__PURE__ */ Finder.bySource(["ignoreKeyPress:"], {entries: true});

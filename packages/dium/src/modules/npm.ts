@@ -30,4 +30,4 @@ export const platform: typeof import("platform") = /* @__PURE__ */ Finder.byKeys
 
 export const lottie: typeof import("lottie-web").default = /* @__PURE__ */ Finder.byKeys(["setSubframeRendering"]);
 
-export const stemmer: typeof import("stemmer").stemmer = /* @__PURE__ */ Finder.bySource([".test", ".exec", ".substr"]);
+export const stemmer: typeof import("stemmer").stemmer = /* @__PURE__ */ Finder.bySource([".codePointAt", ".test", ".exec"], {entries: true});
