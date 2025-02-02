@@ -19,12 +19,7 @@ export interface HiderProps {
 }
 
 export const Hider = ({placeholders, type, children, id}: HiderProps): JSX.Element => {
-    // Update lastSeen timestamp on mount and track component mounted state
-    const mounted = React.useRef(true);
-
     React.useEffect(() => {
-        mounted.current = true;
-        
         if (id) {
             const state = Settings.current.collapsedStates[id];
             if (state) {
@@ -38,10 +33,6 @@ export const Hider = ({placeholders, type, children, id}: HiderProps): JSX.Eleme
                 });
             }
         }
-
-        return () => {
-            mounted.current = false;
-        };
     }, [id]);
 
     const [shown, setShown] = React.useState(() => {
@@ -50,11 +41,8 @@ export const Hider = ({placeholders, type, children, id}: HiderProps): JSX.Eleme
     });
 
     const toggleShown = React.useCallback(() => {
-        if (!mounted.current) return;
-        
         const newShown = !shown;
         setShown(newShown);
-        
         if (id) {
             const newStates = {
                 ...Settings.current.collapsedStates,
@@ -70,10 +58,7 @@ export const Hider = ({placeholders, type, children, id}: HiderProps): JSX.Eleme
         }
     }, [shown, id]);
 
-    // Update shown state when settings change
     Settings.useListener(({hideByDefault, collapsedStates}) => {
-        if (!mounted.current) return;
-        
         if (!id) {
             setShown(!hideByDefault);
         } else if (collapsedStates[id]) {

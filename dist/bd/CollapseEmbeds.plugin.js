@@ -399,9 +399,7 @@ const styles = {
 };
 
 const Hider = ({ placeholders, type, children, id }) => {
-    const mounted = React.useRef(true);
     React.useEffect(() => {
-        mounted.current = true;
         if (id) {
             const state = Settings.current.collapsedStates[id];
             if (state) {
@@ -415,9 +413,6 @@ const Hider = ({ placeholders, type, children, id }) => {
                 });
             }
         }
-        return () => {
-            mounted.current = false;
-        };
     }, [id]);
     const [shown, setShown] = React.useState(() => {
         if (!id)
@@ -425,8 +420,6 @@ const Hider = ({ placeholders, type, children, id }) => {
         return !Settings.current.collapsedStates[id]?.collapsed;
     });
     const toggleShown = React.useCallback(() => {
-        if (!mounted.current)
-            return;
         const newShown = !shown;
         setShown(newShown);
         if (id) {
@@ -444,8 +437,6 @@ const Hider = ({ placeholders, type, children, id }) => {
         }
     }, [shown, id]);
     Settings.useListener(({ hideByDefault, collapsedStates }) => {
-        if (!mounted.current)
-            return;
         if (!id) {
             setShown(!hideByDefault);
         }
