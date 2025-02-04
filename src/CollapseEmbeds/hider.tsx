@@ -36,8 +36,10 @@ export const Hider = ({placeholders, type, children, id}: HiderProps): JSX.Eleme
     }, [id]);
 
     const [shown, setShown] = React.useState(() => {
-        if (!id) return !Settings.current.hideByDefault;
-        return !Settings.current.collapsedStates[id]?.collapsed;
+        if (id && Settings.current.collapsedStates[id]) {
+            return !Settings.current.collapsedStates[id].collapsed;
+        }
+        return !Settings.current.hideByDefault;
     });
 
     const toggleShown = React.useCallback(() => {
@@ -59,10 +61,10 @@ export const Hider = ({placeholders, type, children, id}: HiderProps): JSX.Eleme
     }, [shown, id]);
 
     Settings.useListener(({hideByDefault, collapsedStates}) => {
-        if (!id) {
-            setShown(!hideByDefault);
-        } else if (collapsedStates[id]) {
+        if (id && collapsedStates[id]) {
             setShown(!collapsedStates[id].collapsed);
+        } else {
+            setShown(!hideByDefault);
         }
     }, [id]);
 
