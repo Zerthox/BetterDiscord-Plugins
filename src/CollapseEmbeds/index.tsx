@@ -30,7 +30,6 @@ export default createPlugin({
     start() {
         // Run cleanup on start
         cleanupOldEntries();
-        
         Patcher.after(Embed.prototype as InstanceType<typeof Embed>, "render", ({result, context}) => {
             const {embed} = context.props;
             const placeholder = embed.provider?.name ?? embed.author?.name ?? embed.rawTitle ?? new URL(embed.url).hostname;

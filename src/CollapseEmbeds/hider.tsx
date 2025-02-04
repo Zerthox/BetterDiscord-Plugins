@@ -1,7 +1,7 @@
 import {React} from "dium";
 import {classNames} from "@dium/modules";
 import {Flex, Clickable, Text, IconArrow} from "@dium/components";
-import {Settings, cleanupOldEntries} from "./settings";
+import {Settings} from "./settings";
 import styles from "./styles.module.scss";
 
 export const enum AccessoryType {
@@ -25,7 +25,7 @@ export const Hider = ({placeholders, type, children, id}: HiderProps): JSX.Eleme
             if (state) {
                 const newStates = {
                     ...Settings.current.collapsedStates,
-                    [id]: { ...state, lastSeen: Date.now() }
+                    [id]: {...state, lastSeen: Date.now()}
                 };
                 Settings.update({
                     ...Settings.current,
