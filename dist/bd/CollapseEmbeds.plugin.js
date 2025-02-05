@@ -400,22 +400,22 @@ const styles = {
 
 const Hider = ({ placeholders, type, children, id }) => {
     React.useEffect(() => {
-        if (id) {
-            const state = Settings.current.collapsedStates[id];
-            if (state) {
-                const newStates = {
-                    ...Settings.current.collapsedStates,
-                    [id]: { ...state, lastSeen: Date.now() }
-                };
-                Settings.update({
-                    ...Settings.current,
-                    collapsedStates: newStates
-                });
-            }
+        if (id && !Settings.current.collapsedStates[id]) {
+            const newStates = {
+                ...Settings.current.collapsedStates,
+                [id]: {
+                    collapsed: Settings.current.hideByDefault,
+                    lastSeen: Date.now()
+                }
+            };
+            Settings.update({
+                ...Settings.current,
+                collapsedStates: newStates
+            });
         }
     }, [id]);
     const [shown, setShown] = React.useState(() => {
-        if (id && Settings.current.collapsedStates[id]) {
+        if (id && id in Settings.current.collapsedStates) {
             return !Settings.current.collapsedStates[id].collapsed;
         }
         return !Settings.current.hideByDefault;
@@ -438,7 +438,7 @@ const Hider = ({ placeholders, type, children, id }) => {
         }
     }, [shown, id]);
     Settings.useListener(({ hideByDefault, collapsedStates }) => {
-        if (id && collapsedStates[id]) {
+        if (id && id in collapsedStates) {
             setShown(!collapsedStates[id].collapsed);
         }
         else {
