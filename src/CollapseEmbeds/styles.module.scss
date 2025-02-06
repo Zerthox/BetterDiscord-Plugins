@@ -25,6 +25,8 @@
     color: var(--interactive-normal);
     cursor: pointer;
     visibility: hidden;
+    padding: 4px;
+    margin: -4px;
     &:hover {
         color: var(--interactive-hover);
     }
