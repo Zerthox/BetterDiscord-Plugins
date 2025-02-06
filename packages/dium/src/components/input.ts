@@ -5,8 +5,7 @@ export const enum TextInputSizes {
     MINI = "mini"
 }
 
-export interface TextInputProps {
-    type?: string;
+export interface TextInputProps extends Omit<React.InputHTMLAttributes<HTMLInputElement>, "size" | "onChange"> {
     value?: string;
     name?: string;
     placeholder?: string;

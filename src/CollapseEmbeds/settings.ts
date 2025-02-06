@@ -1,10 +1,14 @@
-import {createSettings} from "dium";
+import {createSettings, Logger} from "dium";
+
+export const DAYS_TO_MILLIS = 24 * 60 * 60 * 1000;
 
 export interface CollapsedState {
     hideByDefault: boolean;
+    saveStates: boolean;
+    saveDuration: number;
     collapsedStates: {
         [id: string]: {
-            collapsed: boolean;
+            shown: boolean;
             lastSeen: number;
         };
     };
@@ -12,25 +16,44 @@ export interface CollapsedState {
 
 export const Settings = createSettings<CollapsedState>({
     hideByDefault: false,
+    saveStates: true,
+    saveDuration: 30 * DAYS_TO_MILLIS,
     collapsedStates: {}
 });
 
-// Cleanup function to remove old entries (older than 30 days)
+export function getCollapsedState(id: string | undefined): boolean {
+    const {hideByDefault, saveStates, collapsedStates} = Settings.current;
+    if (saveStates && id) {
+        return collapsedStates[id]?.shown ?? !hideByDefault;
+    } else {
+        return !hideByDefault;
+    }
+}
+
+export function updateCollapsedState(id: string | undefined, shown: boolean): void {
+    const {saveStates, collapsedStates} = Settings.current;
+    if (saveStates && id) {
+        collapsedStates[id] = {
+            shown,
+            lastSeen: Date.now()
+        };
+        Settings.update({collapsedStates});
+    }
+}
+
 export function cleanupOldEntries(): void {
-    const THIRTY_DAYS = 30 * 24 * 60 * 60 * 1000;
-    const now = Date.now();
-    const newStates = {...Settings.current.collapsedStates};
-    let hasChanges = false;
-    for (const [id, state] of Object.entries(newStates)) {
-        if (now - state.lastSeen > THIRTY_DAYS) {
-            delete newStates[id];
-            hasChanges = true;
+    const {saveDuration, collapsedStates} = Settings.current;
+    const oldestAllowed = Date.now() - saveDuration;
+    const entries = Object.entries(collapsedStates);
+
+    let count = 0;
+    for (const [id, state] of Object.entries(collapsedStates)) {
+        if (state.lastSeen < oldestAllowed) {
+            delete collapsedStates[id];
+            count++;
         }
     }
-    if (hasChanges) {
-        Settings.update({
-            hideByDefault: Settings.current.hideByDefault,
-            collapsedStates: newStates
-        });
-    }
+
+    Settings.update({collapsedStates});
+    Logger.log(`Cleaned ${count} out of ${entries.length} entries`);
 }

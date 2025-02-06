@@ -42,8 +42,8 @@ export class SettingsStore<T extends Record<string, any>> implements Flux.StoreL
 
     /**
      * Dispatches a settings update.
-    *
-    * @param save Whether to save the settings.
+     *
+     * @param save Whether to save the settings.
     */
     _dispatch(save: boolean): void {
         for (const listener of this.listeners) {

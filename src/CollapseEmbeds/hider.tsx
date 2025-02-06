@@ -1,7 +1,7 @@
 import {React} from "dium";
 import {classNames} from "@dium/modules";
 import {Flex, Clickable, Text, IconArrow} from "@dium/components";
-import {Settings} from "./settings";
+import {getCollapsedState, updateCollapsedState} from "./settings";
 import styles from "./styles.module.scss";
 
 export const enum AccessoryType {
@@ -19,55 +19,15 @@ export interface HiderProps {
 }
 
 export const Hider = ({placeholders, type, children, id}: HiderProps): JSX.Element => {
-    React.useEffect(() => {
-        if (id && !Settings.current.collapsedStates[id]) {
-            // Only create initial state if it doesn't exist yet
-            const newStates = {
-                ...Settings.current.collapsedStates,
-                [id]: {
-                    collapsed: Settings.current.hideByDefault,
-                    lastSeen: Date.now()
-                }
-            };
-            Settings.update({
-                ...Settings.current,
-                collapsedStates: newStates
-            });
-        }
-    }, [id]);
+    const [shown, setShown] = React.useState(() => getCollapsedState(id));
 
-    const [shown, setShown] = React.useState(() => {
-        if (id && id in Settings.current.collapsedStates) {
-            return !Settings.current.collapsedStates[id].collapsed;
-        }
-        return !Settings.current.hideByDefault;
-    });
+    // refresh saved when id changes
+    React.useEffect(() => updateCollapsedState(id, shown), [id]);
 
     const toggleShown = React.useCallback(() => {
-        const newShown = !shown;
-        setShown(newShown);
-        if (id) {
-            const newStates = {
-                ...Settings.current.collapsedStates,
-                [id]: {
-                    collapsed: !newShown,
-                    lastSeen: Date.now()
-                }
-            };
-            Settings.update({
-                ...Settings.current,
-                collapsedStates: newStates
-            });
-        }
-    }, [shown, id]);
-
-    Settings.useListener(({hideByDefault, collapsedStates}) => {
-        if (id && id in collapsedStates) {
-            setShown(!collapsedStates[id].collapsed);
-        } else {
-            setShown(!hideByDefault);
-        }
-    }, [id]);
+        setShown(!shown);
+        updateCollapsedState(id, !shown);
+    }, [id, shown]);
 
     return (
         <Flex

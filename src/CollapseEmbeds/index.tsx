@@ -1,7 +1,8 @@
 import {createPlugin, Filters, Finder, PatchDataWithResult, Patcher, React, Utils} from "dium";
 import {Message, Attachment} from "@dium/modules";
-import {FormSwitch, MessageFooter, Embed, MediaItemProps} from "@dium/components";
+import {MessageFooter, Embed, MediaItemProps} from "@dium/components";
 import {Settings, cleanupOldEntries} from "./settings";
+import {SettingsPanel} from "./settings-panel";
 import {Hider, AccessoryType} from "./hider";
 import {css} from "./styles.module.scss";
 
@@ -76,16 +77,5 @@ export default createPlugin({
     },
     styles: css,
     Settings,
-    SettingsPanel: () => {
-        const [{hideByDefault}, setSettings] = Settings.useState();
-
-        return (
-            <FormSwitch
-                note="Collapse all embeds &amp; attachments initially."
-                hideBorder
-                value={hideByDefault}
-                onChange={(checked) => setSettings({hideByDefault: checked})}
-            >Collapse by default</FormSwitch>
-        );
-    }
+    SettingsPanel
 });
