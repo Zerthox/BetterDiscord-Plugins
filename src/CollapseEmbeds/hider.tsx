@@ -15,59 +15,11 @@ export interface HiderProps {
     placeholders: string[];
     type: AccessoryType;
     children: React.ReactNode;
-    id?: string;
 }
 
-export const Hider = ({placeholders, type, children, id}: HiderProps): JSX.Element => {
-    React.useEffect(() => {
-        if (id && !Settings.current.collapsedStates[id]) {
-            // Only create initial state if it doesn't exist yet
-            const newStates = {
-                ...Settings.current.collapsedStates,
-                [id]: {
-                    collapsed: Settings.current.hideByDefault,
-                    lastSeen: Date.now()
-                }
-            };
-            Settings.update({
-                ...Settings.current,
-                collapsedStates: newStates
-            });
-        }
-    }, [id]);
-
-    const [shown, setShown] = React.useState(() => {
-        if (id && id in Settings.current.collapsedStates) {
-            return !Settings.current.collapsedStates[id].collapsed;
-        }
-        return !Settings.current.hideByDefault;
-    });
-
-    const toggleShown = React.useCallback(() => {
-        const newShown = !shown;
-        setShown(newShown);
-        if (id) {
-            const newStates = {
-                ...Settings.current.collapsedStates,
-                [id]: {
-                    collapsed: !newShown,
-                    lastSeen: Date.now()
-                }
-            };
-            Settings.update({
-                ...Settings.current,
-                collapsedStates: newStates
-            });
-        }
-    }, [shown, id]);
-
-    Settings.useListener(({hideByDefault, collapsedStates}) => {
-        if (id && id in collapsedStates) {
-            setShown(!collapsedStates[id].collapsed);
-        } else {
-            setShown(!hideByDefault);
-        }
-    }, [id]);
+export const Hider = ({placeholders, type, children}: HiderProps): JSX.Element => {
+    const [shown, setShown] = React.useState(!Settings.current.hideByDefault);
+    Settings.useListener(({hideByDefault}) => setShown(!hideByDefault), []);
 
     return (
         <Flex
@@ -83,7 +35,7 @@ export const Hider = ({placeholders, type, children, id}: HiderProps): JSX.Eleme
             ))}
             <Clickable
                 className={styles.hideButton}
-                onClick={toggleShown}
+                onClick={() => setShown(!shown)}
             >
                 <IconArrow
                     color="currentColor"
