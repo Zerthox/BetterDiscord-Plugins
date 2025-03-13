@@ -44,5 +44,5 @@ interface SelectComponents {
 
 export const {Select, SingleSelect}: SelectComponents = /* @__PURE */ Finder.demangle({
     Select: Filters.bySource("renderOptionLabel:", "renderOptionValue:", "popoutWidth:"),
-    SingleSelect: Filters.bySource((source) => /{value:[a-zA-Z_$],onChange:[a-zA-Z_$],...[a-zA-Z_$]}/.test(source))
+    SingleSelect: Filters.bySource((source) => /{value:[a-zA-Z_$],onChange:[a-zA-Z_$]}/.test(source))
 }, ["Select"]);

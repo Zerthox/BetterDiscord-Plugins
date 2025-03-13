@@ -1,6 +1,6 @@
 /**
  * @name VoiceEvents
- * @version 2.6.2
+ * @version 2.6.3
  * @author Zerthox
  * @authorLink https://github.com/Zerthox
  * @description Adds TTS Event Notifications to your selected Voice Channel. TeamSpeak feeling.
@@ -233,7 +233,7 @@ const { Menu, Group: MenuGroup, Item: MenuItem, Separator: MenuSeparator, Checkb
 
 const { Select, SingleSelect } =  demangle({
     Select: bySource$1("renderOptionLabel:", "renderOptionValue:", "popoutWidth:"),
-    SingleSelect: bySource$1((source) => /{value:[a-zA-Z_$],onChange:[a-zA-Z_$],...[a-zA-Z_$]}/.test(source))
+    SingleSelect: bySource$1((source) => /{value:[a-zA-Z_$],onChange:[a-zA-Z_$]}/.test(source))
 }, ["Select"]);
 
 const Slider = /* @__PURE__ */ bySource(["markerPositions:", "asValueChanges:"], { entries: true });
