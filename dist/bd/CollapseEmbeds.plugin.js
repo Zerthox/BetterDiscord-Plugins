@@ -1,6 +1,6 @@
 /**
  * @name CollapseEmbeds
- * @version 1.1.2
+ * @version 2.0.0
  * @author Zerthox
  * @authorLink https://github.com/Zerthox
  * @description Adds a button to collapse embeds & attachments.
@@ -187,7 +187,7 @@ const inject = (styles) => {
 };
 const clear = () => BdApi.DOM.removeStyle(getMeta().name);
 
-const { default: Legacy, Dispatcher, Store, BatchedStoreListener, useStateFromStores } = /* @__PURE__ */ demangle({
+const { useStateFromStores } = /* @__PURE__ */ demangle({
     default: byKeys$1("Store", "connectStores"),
     Dispatcher: byProtos$1("dispatch"),
     Store: byProtos$1("emitChange"),
@@ -206,8 +206,8 @@ const Embed = /* @__PURE__ */ byProtos(["renderSuppressButton"], { entries: true
 
 const Flex = /* @__PURE__ */ byKeys(["Child", "Justify", "Align"], { entries: true });
 
-const { FormSection, FormItem, FormTitle, FormText,
-FormDivider, FormSwitch, FormNotice } = /* @__PURE__ */ demangle({
+const { FormSection, FormItem, FormText,
+FormDivider, FormSwitch} = /* @__PURE__ */ demangle({
     FormSection: bySource$1("titleClassName:", ".sectionTitle"),
     FormItem: bySource$1("titleClassName:", "required:"),
     FormTitle: bySource$1("faded:", "required:"),
@@ -222,6 +222,11 @@ const IconArrow = /* @__PURE__ */ bySource(["d:\"M5.3 9."], { entries: true });
 const margins = /* @__PURE__ */ byKeys(["marginBottom40", "marginTop4"]);
 
 const MessageFooter = /* @__PURE__ */ byProtos(["renderRemoveAttachmentConfirmModal"], { entries: true });
+
+const { TextInput} = /* @__PURE__ */ demangle({
+    TextInput: (target) => target?.defaultProps?.type === "text",
+    InputError: bySource$1("error:", "text-danger")
+}, ["TextInput"]);
 
 const Text = /* @__PURE__ */ bySource(["lineClamp:", "variant:", "tabularNumbers:"], { entries: true });
 
@@ -360,11 +365,70 @@ const createPlugin = (plugin) => (meta) => {
     };
 };
 
+const DAYS_TO_MILLIS = 24 * 60 * 60 * 1000;
 const Settings = createSettings({
-    hideByDefault: false
+    hideByDefault: false,
+    saveStates: true,
+    saveDuration: 30 * DAYS_TO_MILLIS,
+    collapsedStates: {}
 });
+function getCollapsedState(id) {
+    const { hideByDefault, saveStates, collapsedStates } = Settings.current;
+    if (saveStates && id) {
+        return collapsedStates[id]?.shown ?? !hideByDefault;
+    }
+    else {
+        return !hideByDefault;
+    }
+}
+function updateCollapsedState(id, shown) {
+    const { saveStates, collapsedStates } = Settings.current;
+    if (saveStates && id) {
+        collapsedStates[id] = {
+            shown,
+            lastSeen: Date.now()
+        };
+        Settings.update({ collapsedStates });
+    }
+}
+function cleanupOldEntries() {
+    const { saveDuration, collapsedStates } = Settings.current;
+    const oldestAllowed = Date.now() - saveDuration;
+    const entries = Object.entries(collapsedStates);
+    let count = 0;
+    for (const [id, state] of Object.entries(collapsedStates)) {
+        if (state.lastSeen < oldestAllowed) {
+            delete collapsedStates[id];
+            count++;
+        }
+    }
+    Settings.update({ collapsedStates });
+    log(`Cleaned ${count} out of ${entries.length} entries`);
+}
 
-const css = ".container-CollapseEmbeds.embed-CollapseEmbeds {\n  justify-self: stretch;\n}\n.container-CollapseEmbeds.embed-CollapseEmbeds > article {\n  flex-grow: 1;\n  flex-shrink: 0;\n}\n.container-CollapseEmbeds.mediaItem-CollapseEmbeds.expanded-CollapseEmbeds {\n  position: relative;\n}\n.container-CollapseEmbeds.mediaItem-CollapseEmbeds.expanded-CollapseEmbeds > .hideButton-CollapseEmbeds {\n  position: absolute;\n  right: 2px;\n  bottom: 2px;\n  z-index: 1;\n}\n\n.placeholder-CollapseEmbeds + .placeholder-CollapseEmbeds {\n  margin-left: 4px;\n}\n\n.hideButton-CollapseEmbeds {\n  margin-bottom: -4px;\n  align-self: flex-end;\n  color: var(--interactive-normal);\n  cursor: pointer;\n  visibility: hidden;\n}\n.hideButton-CollapseEmbeds:hover {\n  color: var(--interactive-hover);\n}\n.expanded-CollapseEmbeds > .hideButton-CollapseEmbeds {\n  margin-bottom: -6px;\n}\n.hideButton-CollapseEmbeds:hover, :hover + .hideButton-CollapseEmbeds, .collapsed-CollapseEmbeds > .hideButton-CollapseEmbeds {\n  visibility: visible;\n}\n\n.icon-CollapseEmbeds {\n  margin: -2px;\n  transition: transform 0.2s ease-out;\n}\n.icon-CollapseEmbeds.open-CollapseEmbeds {\n  transform: rotate(180deg);\n}";
+function SettingsPanel() {
+    const [{ hideByDefault, saveStates, saveDuration }, setSettings] = Settings.useState();
+    const [{ text, valid }, setDurationState] = React.useState({
+        text: (saveDuration / DAYS_TO_MILLIS).toString(),
+        valid: true
+    });
+    return (React.createElement(React.Fragment, null,
+        React.createElement(FormSwitch, { note: "Collapse all embeds & attachments initially.", hideBorder: true, value: hideByDefault, onChange: (checked) => setSettings({ hideByDefault: checked }) }, "Collapse by default"),
+        React.createElement(FormSwitch, { note: "Persist individual embed & attachment states between restarts.", hideBorder: true, value: saveStates, onChange: (checked) => setSettings({ saveStates: checked }) }, "Save collapsed states"),
+        React.createElement(FormItem, { title: "Save duration in days", disabled: !saveStates, error: !valid ? "Duration must be a positive number of days" : null },
+            React.createElement(TextInput, { type: "number", min: 0, disabled: !saveStates, value: text, onChange: (text) => {
+                    const duration = Number.parseFloat(text) * DAYS_TO_MILLIS;
+                    const valid = !Number.isNaN(duration) && duration >= 0;
+                    if (valid) {
+                        setSettings({ saveDuration: duration });
+                        cleanupOldEntries();
+                    }
+                    setDurationState({ text, valid });
+                } }),
+            React.createElement(FormText, { type: "description" , disabled: !saveStates }, "How long to keep embed & attachment states after not seeing them."))));
+}
+
+const css = ".container-CollapseEmbeds.embed-CollapseEmbeds {\n  justify-self: stretch;\n}\n.container-CollapseEmbeds.embed-CollapseEmbeds > article {\n  flex-grow: 1;\n  flex-shrink: 0;\n}\n.container-CollapseEmbeds.mediaItem-CollapseEmbeds.expanded-CollapseEmbeds {\n  position: relative;\n}\n.container-CollapseEmbeds.mediaItem-CollapseEmbeds.expanded-CollapseEmbeds > .hideButton-CollapseEmbeds {\n  position: absolute;\n  right: 2px;\n  bottom: 2px;\n  z-index: 1;\n}\n\n.placeholder-CollapseEmbeds + .placeholder-CollapseEmbeds {\n  margin-left: 4px;\n}\n\n.hideButton-CollapseEmbeds {\n  margin-bottom: -4px;\n  align-self: flex-end;\n  color: var(--interactive-normal);\n  cursor: pointer;\n  visibility: hidden;\n  padding: 4px;\n  margin: -4px;\n}\n.hideButton-CollapseEmbeds:hover {\n  color: var(--interactive-hover);\n}\n.expanded-CollapseEmbeds > .hideButton-CollapseEmbeds {\n  margin-bottom: -6px;\n}\n.hideButton-CollapseEmbeds:hover, :hover + .hideButton-CollapseEmbeds, .collapsed-CollapseEmbeds > .hideButton-CollapseEmbeds {\n  visibility: visible;\n}\n\n.icon-CollapseEmbeds {\n  margin: -2px;\n  transition: transform 0.2s ease-out;\n}\n.icon-CollapseEmbeds.open-CollapseEmbeds {\n  transform: rotate(180deg);\n}";
 const styles = {
     container: "container-CollapseEmbeds",
     embed: "embed-CollapseEmbeds",
@@ -379,12 +443,16 @@ const styles = {
     mediaItemSingle: "mediaItemSingle-CollapseEmbeds"
 };
 
-const Hider = ({ placeholders, type, children }) => {
-    const [shown, setShown] = React.useState(!Settings.current.hideByDefault);
-    Settings.useListener(({ hideByDefault }) => setShown(!hideByDefault), []);
+const Hider = ({ placeholders, type, children, id }) => {
+    const [shown, setShown] = React.useState(() => getCollapsedState(id));
+    React.useEffect(() => updateCollapsedState(id, shown), [id]);
+    const toggleShown = React.useCallback(() => {
+        setShown(!shown);
+        updateCollapsedState(id, !shown);
+    }, [id, shown]);
     return (React.createElement(Flex, { align: Flex.Align.CENTER, className: classNames(styles.container, styles[type], shown ? styles.expanded : styles.collapsed) },
         shown ? children : placeholders.filter(Boolean).map((placeholder, i) => (React.createElement(Text, { key: i, variant: "text-xs/normal", className: styles.placeholder }, placeholder))),
-        React.createElement(Clickable, { className: styles.hideButton, onClick: () => setShown(!shown) },
+        React.createElement(Clickable, { className: styles.hideButton, onClick: toggleShown },
             React.createElement(IconArrow, { color: "currentColor", className: classNames(styles.icon, shown ? styles.open : null) }))));
 };
 
@@ -393,31 +461,33 @@ const MediaModule = demangle({
 }, null, true);
 const index = createPlugin({
     start() {
+        cleanupOldEntries();
         after(Embed.prototype, "render", ({ result, context }) => {
             const { embed } = context.props;
             const placeholder = embed.provider?.name ?? embed.author?.name ?? embed.rawTitle ?? new URL(embed.url).hostname;
-            return (React.createElement(Hider, { type: "embed" , placeholders: [placeholder] }, result));
+            return (React.createElement(Hider, { type: "embed" , placeholders: [placeholder], id: embed.url }, result));
         }, { name: "Embed render" });
         after(MediaModule, "MediaItem", ({ args: [props], result }) => {
             const attachment = props.item.originalItem;
             const placeholder = attachment.filename ?? new URL(attachment.url).hostname;
-            return (React.createElement(Hider, { type: props.isSingleMosaicItem ? "mediaItemSingle"  : "mediaItem" , placeholders: [placeholder] }, result));
+            return (React.createElement(Hider, { type: props.isSingleMosaicItem ? "mediaItemSingle"  : "mediaItem" , placeholders: [placeholder], id: attachment.url }, result));
         }, { name: "MediaItem render" });
         after(MessageFooter.prototype, "renderAttachments", ({ result }) => {
             for (const element of queryTreeAll(result, (node) => node?.props?.attachments)) {
                 hookFunctionComponent(element, (result, { attachments }) => {
                     const placeholders = attachments.map(({ attachment }) => attachment.filename ?? new URL(attachment.url).hostname);
-                    return (React.createElement(Hider, { type: "attachment" , placeholders: placeholders }, result));
+                    const id = attachments[0]?.attachment?.url;
+                    return (React.createElement(Hider, { type: "attachment" , placeholders: placeholders, id: id }, result));
                 });
             }
         }, { name: "MessageFooter renderAttachments" });
     },
+    stop() {
+        cleanupOldEntries();
+    },
     styles: css,
     Settings,
-    SettingsPanel: () => {
-        const [{ hideByDefault }, setSettings] = Settings.useState();
-        return (React.createElement(FormSwitch, { note: "Collapse all embeds & attachments initially.", hideBorder: true, value: hideByDefault, onChange: (checked) => setSettings({ hideByDefault: checked }) }, "Collapse by default"));
-    }
+    SettingsPanel
 });
 
 module.exports = index;
