@@ -1,5 +1,5 @@
 import {createPlugin, Logger, Finder, Patcher, Utils, React} from "dium";
-import {GuildsNav, HomeButton} from "@dium/components";
+import {GuildsNav} from "@dium/components";
 import {Settings} from "./settings";
 import {CountersContainer} from "./counter";
 import {css} from "./styles.module.scss";
@@ -34,13 +34,13 @@ export default createPlugin({
 
                 // chain patch again
                 Utils.hookFunctionComponent(themeParent, (result) => {
-                    // find home button & parent
-                    const [scroller, index] = Utils.queryTreeForParent(result, (child) => child?.type === HomeButton);
+                    // find home button wrapper & parent
+                    const [scroller, index] = Utils.queryTreeForParent(result, (child) => child?.props?.lurkingGuildIds);
                     if (!scroller) {
-                        return Logger.error("Unable to find home button");
+                        return Logger.error("Unable to find home button wrapper");
                     }
 
-                    // insert after home button
+                    // insert after home button wrapper
                     scroller.props.children.splice(index + 1, 0, <CountersContainer/>);
                 });
             });

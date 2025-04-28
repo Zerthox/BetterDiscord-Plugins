@@ -1,6 +1,6 @@
 /**
  * @name OnlineFriendCount
- * @version 3.2.1
+ * @version 3.2.2
  * @author Zerthox
  * @authorLink https://github.com/Zerthox
  * @description Adds the old online friend count and similar counters back to server list. Because nostalgia.
@@ -193,7 +193,7 @@ const inject = (styles) => {
 };
 const clear = () => BdApi.DOM.removeStyle(getMeta().name);
 
-const { default: Legacy, Dispatcher, Store, BatchedStoreListener, useStateFromStores } = /* @__PURE__ */ demangle({
+const { useStateFromStores } = /* @__PURE__ */ demangle({
     default: byKeys$1("Store", "connectStores"),
     Dispatcher: byProtos("dispatch"),
     Store: byProtos("emitChange"),
@@ -214,8 +214,7 @@ const Button = /* @__PURE__ */ byKeys(["Colors", "Link"], { entries: true });
 
 const Flex = /* @__PURE__ */ byKeys(["Child", "Justify", "Align"], { entries: true });
 
-const { FormSection, FormItem, FormTitle, FormText,
-FormDivider, FormSwitch, FormNotice } = /* @__PURE__ */ demangle({
+const { FormSection, FormDivider} = /* @__PURE__ */ demangle({
     FormSection: bySource$1("titleClassName:", ".sectionTitle"),
     FormItem: bySource$1("titleClassName:", "required:"),
     FormTitle: bySource$1("faded:", "required:"),
@@ -226,17 +225,16 @@ FormDivider, FormSwitch, FormNotice } = /* @__PURE__ */ demangle({
 }, ["FormSection", "FormItem", "FormDivider"]);
 
 const GuildsNav = /* @__PURE__ */ bySource(["guildsnav"], { entries: true });
-const HomeButton = /* @__PURE__ */ bySource(["unviewedTrialCount", "unviewedDiscountCount"], { entries: true });
 
 const mapping = {
     Link: bySource$1(".component", ".to"),
     BrowserRouter: bySource$1("this.history")
 };
-const { Link, BrowserRouter } = /* @__PURE__ */ demangle(mapping, ["Link", "BrowserRouter"]);
+const { Link} = /* @__PURE__ */ demangle(mapping, ["Link", "BrowserRouter"]);
 
 const margins = /* @__PURE__ */ byKeys(["marginBottom40", "marginTop4"]);
 
-const { Menu, Group: MenuGroup, Item: MenuItem, Separator: MenuSeparator, CheckboxItem: MenuCheckboxItem, RadioItem: MenuRadioItem, ControlItem: MenuControlItem } = BdApi.ContextMenu;
+const { Menu, Group: MenuGroup, CheckboxItem: MenuCheckboxItem} = BdApi.ContextMenu;
 
 const [getInstanceFromNode, getNodeFromInstance, getFiberCurrentPropsFromNode, enqueueStateRestore, restoreStateIfNeeded, batchedUpdates] = ReactDOM?.__SECRET_INTERNALS_DO_NOT_USE_OR_YOU_WILL_BE_FIRED?.Events ?? [];
 const ReactDOMInternals = {
@@ -551,9 +549,9 @@ const index = createPlugin({
                     return error("Unable to find theme parent");
                 }
                 hookFunctionComponent(themeParent, (result) => {
-                    const [scroller, index] = queryTreeForParent(result, (child) => child?.type === HomeButton);
+                    const [scroller, index] = queryTreeForParent(result, (child) => child?.props?.lurkingGuildIds);
                     if (!scroller) {
-                        return error("Unable to find home button");
+                        return error("Unable to find home button wrapper");
                     }
                     scroller.props.children.splice(index + 1, 0, React.createElement(CountersContainer, null));
                 });
