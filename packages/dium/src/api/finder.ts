@@ -91,7 +91,7 @@ export const demangle = <M extends Mapping>(mapping: M, required?: (keyof M)[], 
     return proxy ? mappedProxy(found, Object.fromEntries(Object.entries(mapping).map(([key, filter]) => [
         key,
         Object.entries(found ?? {}).find(([, value]) => filter(value))?.[0]
-    ]))) : Object.fromEntries(
+    ]))) as any : Object.fromEntries(
         Object.entries(mapping).map(([key, filter]) => [
             key,
             Object.values(found ?? {}).find((value) => filter(value))
