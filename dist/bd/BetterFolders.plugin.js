@@ -1,6 +1,6 @@
 /**
  * @name BetterFolders
- * @version 3.5.2
+ * @version 3.5.3
  * @author Zerthox
  * @authorLink https://github.com/Zerthox
  * @description Adds new functionality to server folders. Custom Folder Icons. Close other folders on open.
@@ -213,7 +213,7 @@ const clear = () => BdApi.DOM.removeStyle(getMeta().name);
 
 const ClientActions = /* @__PURE__ */ byKeys(["toggleGuildFolderExpand"]);
 
-const { default: Legacy, Dispatcher, Store, BatchedStoreListener, useStateFromStores } = /* @__PURE__ */ demangle({
+const { useStateFromStores } = /* @__PURE__ */ demangle({
     default: byKeys$1("Store", "connectStores"),
     Dispatcher: byProtos("dispatch"),
     Store: byProtos("emitChange"),
@@ -232,8 +232,8 @@ const Button = /* @__PURE__ */ byKeys(["Colors", "Link"], { entries: true });
 
 const Flex = /* @__PURE__ */ byKeys(["Child", "Justify", "Align"], { entries: true });
 
-const { FormSection, FormItem, FormTitle, FormText,
-FormDivider, FormSwitch, FormNotice } = /* @__PURE__ */ demangle({
+const { FormSection, FormItem, FormText,
+FormDivider, FormSwitch} = /* @__PURE__ */ demangle({
     FormSection: bySource$1("titleClassName:", ".sectionTitle"),
     FormItem: bySource$1("titleClassName:", "required:"),
     FormTitle: bySource$1("faded:", "required:"),
@@ -522,16 +522,17 @@ const index = createPlugin({
         const guildsOwner = getGuildsOwner();
         const FolderIconWrapper = findWithKey(bySource$1(".expandedFolderIconWrapper"));
         after(...FolderIconWrapper, ({ args: [props], result }) => {
-            const iconParent = queryTree(result, (node) => node?.props?.children?.props?.folderNode);
-            if (!iconParent) {
+            const icon = queryTree(result, (node) => node?.props?.folderNode);
+            if (!icon) {
                 return error("Unable to find FolderIcon component");
             }
-            const icon = iconParent.props.children;
             if (!FolderIcon) {
                 log("Found FolderIcon component");
                 FolderIcon = icon.type;
             }
-            iconParent.props.children = React.createElement(ConnectedBetterFolderIcon, { folderId: props.folderNode.id, childProps: icon.props, FolderIcon: FolderIcon });
+            const replace = React.createElement(ConnectedBetterFolderIcon, { folderId: props.folderNode.id, childProps: icon.props, FolderIcon: FolderIcon });
+            icon.type = replace.type;
+            icon.props = replace.props;
         }, { name: "FolderIconWrapper" });
         triggerRerender(guildsOwner);
         after(ClientActions, "toggleGuildFolderExpand", ({ original, args: [folderId] }) => {

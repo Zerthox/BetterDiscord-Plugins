@@ -27,11 +27,10 @@ export default createPlugin({
         // icon is in same module, not exported
         const FolderIconWrapper = Finder.findWithKey<React.FunctionComponent<any>>(Filters.bySource(".expandedFolderIconWrapper"));
         Patcher.after(...FolderIconWrapper, ({args: [props], result}) => {
-            const iconParent = Utils.queryTree(result, (node) => node?.props?.children?.props?.folderNode);
-            if (!iconParent) {
+            const icon = Utils.queryTree(result, (node) => node?.props?.folderNode) as React.ReactElement<any, React.FunctionComponent<any>>;
+            if (!icon) {
                 return Logger.error("Unable to find FolderIcon component");
             }
-            const icon = iconParent.props.children as React.ReactElement<any, React.FunctionComponent<any>>;
 
             // save icon component
             if (!FolderIcon) {
@@ -40,11 +39,13 @@ export default createPlugin({
             }
 
             // replace icon with own component
-            iconParent.props.children = <ConnectedBetterFolderIcon
+            const replace = <ConnectedBetterFolderIcon
                 folderId={props.folderNode.id}
                 childProps={icon.props}
                 FolderIcon={FolderIcon}
             />;
+            icon.type = replace.type;
+            icon.props = replace.props;
         }, {name: "FolderIconWrapper"});
         triggerRerender(guildsOwner);
 
