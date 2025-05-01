@@ -1,6 +1,6 @@
 /**
  * @name BetterFolders
- * @version 3.5.3
+ * @version 3.6.0
  * @author Zerthox
  * @authorLink https://github.com/Zerthox
  * @description Adds new functionality to server folders. Custom Folder Icons. Close other folders on open.
@@ -259,6 +259,11 @@ const ReactDOMInternals = {
     batchedUpdates
 };
 
+const replaceElement = (target, replace) => {
+    target.type = replace.type;
+    target.key = replace.key ?? target.key;
+    target.props = replace.props;
+};
 const queryTree = (node, predicate) => {
     const worklist = [node].flat();
     while (worklist.length !== 0) {
@@ -430,16 +435,34 @@ const Settings = createSettings({
     folders: {}
 });
 
-const css = ".customIcon-BetterFolders {\n  width: 100%;\n  height: 100%;\n  background-size: contain;\n  background-position: center;\n  background-repeat: no-repeat;\n}";
+const css = ".customIcon-BetterFolders {\n  box-sizing: border-box;\n  border-radius: var(--radius-lg);\n  width: var(--guildbar-folder-size);\n  height: var(--guildbar-folder-size);\n  padding: var(--custom-folder-preview-padding);\n  background-size: contain;\n  background-position: center;\n  background-repeat: no-repeat;\n}";
 const styles = {
     customIcon: "customIcon-BetterFolders"
 };
 
+const folderStyles = byKeys(["folderIcon", "folderIconWrapper", "folderPreviewWrapper"]);
+const renderIcon = (data) => (React.createElement("div", { className: styles.customIcon, style: { backgroundImage: data?.icon ? `url(${data.icon})` : null } }));
 const BetterFolderIcon = ({ data, childProps, FolderIcon }) => {
     if (FolderIcon) {
         const result = FolderIcon(childProps);
-        if (data?.icon && (childProps.expanded || data.always)) {
-            result.props.children = React.createElement("div", { className: styles.customIcon, style: { backgroundImage: `url(${data.icon})` } });
+        if (data?.icon) {
+            const replace = renderIcon(data);
+            const iconWrapper = queryTree(result, (node) => node?.props?.className === folderStyles.folderIconWrapper);
+            if (iconWrapper) {
+                replaceElement(iconWrapper, replace);
+            }
+            else {
+                error("Failed to find folderIconWrapper element");
+            }
+            if (data.always) {
+                const previewWrapper = queryTree(result, (node) => node?.props?.className === folderStyles.folderPreviewWrapper);
+                if (previewWrapper) {
+                    replaceElement(previewWrapper, replace);
+                }
+                else {
+                    error("Failed to find folderPreviewWrapper element");
+                }
+            }
         }
         return result;
     }
@@ -453,16 +476,16 @@ const ConnectedBetterFolderIcon = ({ folderId, ...props }) => {
     return React.createElement(BetterFolderIcon, { data: data, ...props });
 };
 
-const BetterFolderUploader = ({ icon, always, folderNode, onChange, FolderIcon }) => (React.createElement(React.Fragment, null,
+const BetterFolderUploader = ({ icon, always, onChange }) => (React.createElement(React.Fragment, null,
     React.createElement(Flex, { align: Flex.Align.CENTER },
         React.createElement(Button, { color: Button.Colors.WHITE, look: Button.Looks.OUTLINED },
             "Upload Image",
             React.createElement(ImageInput, { onChange: (img) => onChange({ icon: img, always }) })),
         React.createElement(FormText, { type: "description", style: { margin: "0 10px 0 40px" } }, "Preview:"),
-        React.createElement(BetterFolderIcon, { data: { icon, always: true }, childProps: { expanded: false, folderNode }, FolderIcon: FolderIcon })),
+        renderIcon({ icon})),
     React.createElement(FormSwitch, { hideBorder: true, className: margins.marginTop8, value: always, onChange: (checked) => onChange({ icon, always: checked }) }, "Always display icon")));
 
-const folderModalPatch = ({ context, result }, FolderIcon) => {
+const folderModalPatch = ({ context, result }) => {
     const { folderId } = context.props;
     const { state } = context;
     const form = queryTree(result, (node) => node?.type === "form");
@@ -488,7 +511,7 @@ const folderModalPatch = ({ context, result }, FolderIcon) => {
     if (state.iconType === "custom" ) {
         const tree = SortedGuildStore.getGuildsTree();
         children.push(React.createElement(FormItem, { title: "Custom Icon", className: className },
-            React.createElement(BetterFolderUploader, { icon: state.icon, always: state.always, folderNode: tree.nodes[folderId], onChange: ({ icon, always }) => context.setState({ icon, always }), FolderIcon: FolderIcon })));
+            React.createElement(BetterFolderUploader, { icon: state.icon, always: state.always, folderNode: tree.nodes[folderId], onChange: ({ icon, always }) => context.setState({ icon, always }) })));
     }
     const button = queryTree(result, (node) => node?.props?.type === "submit");
     const original = button.props.onClick;
@@ -520,7 +543,7 @@ const index = createPlugin({
     start() {
         let FolderIcon = null;
         const guildsOwner = getGuildsOwner();
-        const FolderIconWrapper = findWithKey(bySource$1(".expandedFolderIconWrapper"));
+        const FolderIconWrapper = findWithKey(bySource$1("folderIconWrapper"));
         after(...FolderIconWrapper, ({ args: [props], result }) => {
             const icon = queryTree(result, (node) => node?.props?.folderNode);
             if (!icon) {
@@ -531,8 +554,7 @@ const index = createPlugin({
                 FolderIcon = icon.type;
             }
             const replace = React.createElement(ConnectedBetterFolderIcon, { folderId: props.folderNode.id, childProps: icon.props, FolderIcon: FolderIcon });
-            icon.type = replace.type;
-            icon.props = replace.props;
+            replaceElement(icon, replace);
         }, { name: "FolderIconWrapper" });
         triggerRerender(guildsOwner);
         after(ClientActions, "toggleGuildFolderExpand", ({ original, args: [folderId] }) => {
@@ -546,7 +568,7 @@ const index = createPlugin({
         });
         waitFor(bySource$1(".folderName", ".onClose"), { entries: true }).then((FolderSettingsModal) => {
             if (FolderSettingsModal) {
-                after(FolderSettingsModal.prototype, "render", (data) => folderModalPatch(data, FolderIcon), { name: "GuildFolderSettingsModal" });
+                after(FolderSettingsModal.prototype, "render", folderModalPatch, { name: "GuildFolderSettingsModal" });
             }
         });
     },

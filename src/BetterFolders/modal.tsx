@@ -32,7 +32,7 @@ interface PatchedFolderSettingsModalState extends FolderSettingsModalState {
 
 type PatchedModal = React.Component<FolderSettingsModalProps, PatchedFolderSettingsModalState>;
 
-export const folderModalPatch = ({context, result}: PatchDataWithResult<PatchedModal["render"], PatchedModal>, FolderIcon: React.FunctionComponent<any>): void => {
+export const folderModalPatch = ({context, result}: PatchDataWithResult<PatchedModal["render"], PatchedModal>): void => {
     const {folderId} = context.props;
     const {state} = context;
 
@@ -79,7 +79,6 @@ export const folderModalPatch = ({context, result}: PatchDataWithResult<PatchedM
                     always={state.always}
                     folderNode={tree.nodes[folderId] as GuildsTreeFolder}
                     onChange={({icon, always}) => context.setState({icon, always})}
-                    FolderIcon={FolderIcon}
                 />
             </FormItem>
         );

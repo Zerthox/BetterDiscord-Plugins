@@ -1,6 +1,9 @@
 .customIcon {
-    width: 100%;
-    height: 100%;
+    box-sizing: border-box;
+    border-radius: var(--radius-lg);
+    width: var(--guildbar-folder-size);
+    height: var(--guildbar-folder-size);
+    padding: var(--custom-folder-preview-padding);
     background-size: contain;
     background-position: center;
     background-repeat: no-repeat;

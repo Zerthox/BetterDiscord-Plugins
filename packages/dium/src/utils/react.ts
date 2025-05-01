@@ -36,6 +36,15 @@ export type Predicate<Arg> = (arg: Arg) => boolean;
 type ReactTree = React.ReactNode | React.ReactNode[];
 
 /**
+ * Replaces a React element with another.
+ */
+export const replaceElement = (target: JSX.Element, replace: JSX.Element): void => {
+    target.type = replace.type;
+    target.key = replace.key ?? target.key;
+    target.props = replace.props;
+};
+
+/**
  * Searches a React element tree for the first element matching the predicate.
  *
  * This uses a breadth first search (BFS).

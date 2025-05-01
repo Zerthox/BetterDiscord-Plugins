@@ -25,7 +25,7 @@ export default createPlugin({
 
         // patch folder icon wrapper
         // icon is in same module, not exported
-        const FolderIconWrapper = Finder.findWithKey<React.FunctionComponent<any>>(Filters.bySource(".expandedFolderIconWrapper"));
+        const FolderIconWrapper = Finder.findWithKey<React.FunctionComponent<any>>(Filters.bySource("folderIconWrapper"));
         Patcher.after(...FolderIconWrapper, ({args: [props], result}) => {
             const icon = Utils.queryTree(result, (node) => node?.props?.folderNode) as React.ReactElement<any, React.FunctionComponent<any>>;
             if (!icon) {
@@ -44,8 +44,7 @@ export default createPlugin({
                 childProps={icon.props}
                 FolderIcon={FolderIcon}
             />;
-            icon.type = replace.type;
-            icon.props = replace.props;
+            Utils.replaceElement(icon, replace);
         }, {name: "FolderIconWrapper"});
         triggerRerender(guildsOwner);
 
@@ -66,7 +65,7 @@ export default createPlugin({
                 Patcher.after(
                     FolderSettingsModal.prototype,
                     "render",
-                    (data) => folderModalPatch(data, FolderIcon),
+                    folderModalPatch,
                     {name: "GuildFolderSettingsModal"}
                 );
             }
