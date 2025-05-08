@@ -26,7 +26,7 @@ export interface MenuItemProps extends BaseItemProps {
     iconProps?: any;
     showIconFirst?: boolean;
     imageUrl?: any;
-    render?: () => JSX.Element;
+    render?: () => React.JSX.Element;
 }
 
 export interface MenuCheckboxItemProps extends BaseItemProps {
@@ -40,7 +40,7 @@ export interface MenuRadioItemProps extends BaseItemProps {
 }
 
 export interface MenuControlItemProps extends BaseItemProps {
-    control: (props: ControlProps, ref: React.MutableRefObject<any>) => JSX.Element;
+    control: (props: ControlProps, ref: React.MutableRefObject<any>) => React.JSX.Element;
 }
 
 interface ControlProps {

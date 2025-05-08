@@ -22,7 +22,7 @@ export interface RadioGroupProps<T> {
 }
 
 export interface RadioGroup {
-    <T>(props: RadioGroupProps<T>): JSX.Element;
+    <T>(props: RadioGroupProps<T>): React.JSX.Element;
     Sizes: {
         MEDIUM: string;
         NONE: string;

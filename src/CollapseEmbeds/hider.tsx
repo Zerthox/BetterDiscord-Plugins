@@ -18,7 +18,7 @@ export interface HiderProps {
     id?: string;
 }
 
-export const Hider = ({placeholders, type, children, id}: HiderProps): JSX.Element => {
+export const Hider = ({placeholders, type, children, id}: HiderProps): React.JSX.Element => {
     const [shown, setShown] = React.useState(() => getCollapsedState(id));
 
     // refresh saved when id changes

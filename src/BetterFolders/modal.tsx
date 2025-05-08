@@ -37,7 +37,7 @@ export const folderModalPatch = ({context, result}: PatchDataWithResult<PatchedM
     const {state} = context;
 
     // find form
-    const form = Utils.queryTree(result as JSX.Element, (node) => node?.type === "form");
+    const form = Utils.queryTree(result, (node) => node?.type === "form");
     if (!form) {
         Logger.warn("Unable to find form");
         return;
@@ -85,7 +85,7 @@ export const folderModalPatch = ({context, result}: PatchDataWithResult<PatchedM
     }
 
     // override submit onclick
-    const button = Utils.queryTree(result as JSX.Element, (node) => node?.props?.type === "submit");
+    const button = Utils.queryTree(result, (node) => node?.props?.type === "submit");
     const original = button.props.onClick;
     button.props.onClick = (...args: any[]) => {
         original(...args);

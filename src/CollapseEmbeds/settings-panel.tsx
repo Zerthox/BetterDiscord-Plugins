@@ -2,7 +2,7 @@ import {React} from "dium";
 import {FormItem, FormSwitch, FormText, FormTextTypes, TextInput} from "@dium/components";
 import {Settings, DAYS_TO_MILLIS, cleanupOldEntries} from "./settings";
 
-export function SettingsPanel(): JSX.Element {
+export function SettingsPanel(): React.JSX.Element {
     const [{hideByDefault, saveStates, saveDuration}, setSettings] = Settings.useState();
 
     const [{text, valid}, setDurationState] = React.useState({

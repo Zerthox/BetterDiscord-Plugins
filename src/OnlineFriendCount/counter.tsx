@@ -55,12 +55,12 @@ const useCounters = (): Counter[] => {
         .map(([type, count]) => ({type, count} as Counter));
 };
 
-export const CountersContainer = (): JSX.Element => {
+export const CountersContainer = (): React.JSX.Element => {
     const {interval, ...settings} = Settings.useCurrent();
     const counters = useCounters().filter(({type}) => settings[type]);
     const [current, setCurrent] = React.useState(0);
 
-    const callback = React.useRef<() => void>();
+    const callback = React.useRef<() => void>(null);
     React.useEffect(() => {
         callback.current = () => setCurrent((current + 1) % counters.length);
     }, [current, counters.length]);

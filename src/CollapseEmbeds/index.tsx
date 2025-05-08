@@ -51,11 +51,11 @@ export default createPlugin({
                     type={props.isSingleMosaicItem ? AccessoryType.MediaItemSingle : AccessoryType.MediaItem}
                     placeholders={[placeholder]}
                     id={attachment.url}
-                >{result}</Hider>
+                >{result as React.ReactNode}</Hider>
             );
         }, {name: "MediaItem render"});
 
-        Patcher.after(MessageFooter.prototype, "renderAttachments", ({result}: PatchDataWithResult<JSX.Element>) => {
+        Patcher.after(MessageFooter.prototype, "renderAttachments", ({result}: PatchDataWithResult<() => React.JSX.Element>) => {
             for (const element of Utils.queryTreeAll(result, (node) => node?.props?.attachments)) {
                 Utils.hookFunctionComponent<AttachmentsProps>(element, (result, {attachments}) => {
                     const placeholders = attachments.map(({attachment}) => attachment.filename ?? new URL(attachment.url).hostname);

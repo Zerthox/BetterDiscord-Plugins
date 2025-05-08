@@ -11,7 +11,7 @@ export interface NumberInputProps {
     onChange(value: number): void;
 }
 
-export const NumberInput = ({value, min, max, fallback, onChange}: NumberInputProps): JSX.Element => {
+export const NumberInput = ({value, min, max, fallback, onChange}: NumberInputProps): React.JSX.Element => {
     const [isEmpty, setEmpty] = React.useState(false);
 
     return (

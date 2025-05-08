@@ -8,7 +8,7 @@ export interface SettingsContainerProps {
     onReset?: () => void;
 }
 
-export const SettingsContainer = ({name, children, onReset}: SettingsContainerProps): JSX.Element => (
+export const SettingsContainer = ({name, children, onReset}: SettingsContainerProps): React.JSX.Element => (
     <FormSection>
         {children}
         {onReset ? (

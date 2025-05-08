@@ -4,13 +4,13 @@ export const hasOwnProperty = (object: unknown, property: PropertyKey): boolean 
 
 export const sleep = (duration: number): Promise<void> => new Promise((resolve) => setTimeout(resolve, duration));
 
-export const alert = (title: string, content: string | JSX.Element): void => BdApi.UI.alert(title, content);
+export const alert = (title: string, content: string | React.ReactNode): void => BdApi.UI.alert(title, content);
 
 export type ConfirmOptions = BD.ConfirmationModalOptions;
 
 /** Shows a confirmation modal. */
 // TODO: change to promise<boolean>?
-export const confirm = (title: string, content: string | JSX.Element, options: ConfirmOptions = {}): string => BdApi.UI.showConfirmationModal(title, content, options);
+export const confirm = (title: string, content: string | React.ReactNode, options: ConfirmOptions = {}): string => BdApi.UI.showConfirmationModal(title, content, options);
 
 export const enum ToastType {
     Default = "",

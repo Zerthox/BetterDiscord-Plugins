@@ -17,8 +17,8 @@ export interface SelectProps<T, O extends SelectOption<T>> {
     clearable?: boolean;
     onClose?: (...args: any) => void;
     onOpen?: (...args: any) => void;
-    renderOptionLabel?: (option: O) => JSX.Element;
-    renderOptionValue?: (option: O[]) => JSX.Element;
+    renderOptionLabel?: (option: O) => React.JSX.Element;
+    renderOptionValue?: (option: O[]) => React.JSX.Element;
     popoutClassName?: string;
     popoutPosition?: any;
     optionClassName?: string;
@@ -38,8 +38,8 @@ export interface SingleSelectProps<T, O extends SelectOption<T>> extends Omit<Se
 }
 
 interface SelectComponents {
-    Select: <T, O extends SelectOption<T>>(props: SelectProps<T, O>) => JSX.Element;
-    SingleSelect: <T, O extends SelectOption<T>>(props: SingleSelectProps<T, O>) => JSX.Element;
+    Select: <T, O extends SelectOption<T>>(props: SelectProps<T, O>) => React.JSX.Element;
+    SingleSelect: <T, O extends SelectOption<T>>(props: SingleSelectProps<T, O>) => React.JSX.Element;
 }
 
 export const {Select, SingleSelect}: SelectComponents = /* @__PURE */ Finder.demangle({

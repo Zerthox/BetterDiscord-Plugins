@@ -9,7 +9,7 @@ export interface BetterFolderUploaderProps extends FolderData {
     onChange(data: FolderData): void;
 }
 
-export const BetterFolderUploader = ({icon, always, onChange}: BetterFolderUploaderProps): JSX.Element => (
+export const BetterFolderUploader = ({icon, always, onChange}: BetterFolderUploaderProps): React.JSX.Element => (
     <>
         <Flex align={Flex.Align.CENTER}>
             <Button color={Button.Colors.WHITE} look={Button.Looks.OUTLINED}>

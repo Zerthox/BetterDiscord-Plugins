@@ -4,7 +4,7 @@ import styles from "./styles.module.scss";
 
 const folderStyles = Finder.byKeys(["folderIcon", "folderIconWrapper", "folderPreviewWrapper"]);
 
-export const renderIcon = (data: FolderData): JSX.Element => (
+export const renderIcon = (data: FolderData): React.JSX.Element => (
     <div
         className={styles.customIcon}
         style={{backgroundImage: data?.icon ? `url(${data.icon})` : null}}
@@ -17,9 +17,9 @@ export interface BetterFolderIconProps {
     FolderIcon: React.FunctionComponent<any>;
 }
 
-export const BetterFolderIcon = ({data, childProps, FolderIcon}: BetterFolderIconProps): JSX.Element => {
+export const BetterFolderIcon = ({data, childProps, FolderIcon}: BetterFolderIconProps): React.JSX.Element => {
     if (FolderIcon) {
-        const result = FolderIcon(childProps) as JSX.Element;
+        const result = FolderIcon(childProps) as React.JSX.Element;
         if (data?.icon) {
             const replace = renderIcon(data);
             const iconWrapper = Utils.queryTree(result, (node) => node?.props?.className === folderStyles.folderIconWrapper);
@@ -51,7 +51,7 @@ export interface ConnectedBetterFolderIconProps {
 
 const compareFolderData = (a?: FolderData, b?: FolderData): boolean => a?.icon === b?.icon && a?.always === b?.always;
 
-export const ConnectedBetterFolderIcon = ({folderId, ...props}: ConnectedBetterFolderIconProps): JSX.Element => {
+export const ConnectedBetterFolderIcon = ({folderId, ...props}: ConnectedBetterFolderIconProps): React.JSX.Element => {
     const data = Settings.useSelector(
         (current) => current.folders[folderId],
         [folderId],

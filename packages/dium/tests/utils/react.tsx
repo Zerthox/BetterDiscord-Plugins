@@ -6,7 +6,7 @@ import {createFiber} from "../mock";
 import {Direction, Predicate, queryFiber, queryTree, queryTreeAll} from "../../src/utils/react";
 import type {Fiber} from "../../src/react-internals";
 
-const TestComponent = ({children}: {children: JSX.Element}): JSX.Element => children;
+const TestComponent = ({children}: {children: React.JSX.Element}): React.JSX.Element => children;
 
 const elements = (
     <div className="foo">

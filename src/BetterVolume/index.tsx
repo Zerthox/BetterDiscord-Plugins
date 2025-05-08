@@ -6,7 +6,7 @@ import {MenuItem} from "@dium/components";
 import {NumberInput} from "./input";
 import {handleVolumeSync, resetVolumeSync} from "./sync";
 
-type UseUserVolumeItem = (userId: Snowflake, context: MediaEngineContext) => JSX.Element;
+type UseUserVolumeItem = (userId: Snowflake, context: MediaEngineContext) => React.JSX.Element;
 
 const useUserVolumeItemFilter = Filters.bySource("user-volume");
 

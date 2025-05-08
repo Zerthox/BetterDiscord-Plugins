@@ -122,7 +122,7 @@ let menuPatches: Cancel[] = [];
 /** Patches a context menu using its "navId". */
 export const contextMenu = (
     navId: string,
-    callback: (result: JSX.Element) => JSX.Element | void,
+    callback: (result: React.JSX.Element) => React.JSX.Element | void,
     options: Options = {}
 ): Cancel => {
     const cancel = BdApi.ContextMenu.patch(navId, options.once ? (tree) => {

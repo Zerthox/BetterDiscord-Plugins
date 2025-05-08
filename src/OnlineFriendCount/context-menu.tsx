@@ -2,7 +2,7 @@ import {React} from "dium";
 import {Settings, counterLabels} from "./settings";
 import {Menu, MenuGroup, MenuCheckboxItem} from "@dium/components";
 
-export const CountContextMenu = (props: React.ComponentProps<typeof Menu>): JSX.Element => {
+export const CountContextMenu = (props: React.ComponentProps<typeof Menu>): React.JSX.Element => {
     const [settings, setSettings] = Settings.useState();
 
     return (

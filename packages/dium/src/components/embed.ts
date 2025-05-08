@@ -13,8 +13,8 @@ export interface EmbedProps {
     maxThumbnailWidth?: number;
     spoiler?: boolean;
     onSuppressEmbed?: (event: React.MouseEvent) => void;
-    renderTitle: (embed: MessageEmbed, title: string) => JSX.Element;
-    renderDescription: (embed: MessageEmbed, description: string) => JSX.Element;
+    renderTitle: (embed: MessageEmbed, title: string) => React.JSX.Element;
+    renderDescription: (embed: MessageEmbed, description: string) => React.JSX.Element;
     renderLinkComponent: React.FunctionComponent<any>;
     renderImageComponent: React.FunctionComponent<any>;
     renderVideoComponent: React.FunctionComponent<any>;

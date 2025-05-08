@@ -36,7 +36,7 @@ interface VoiceLabelProps {
     lang: string;
 }
 
-const VoiceLabel = ({name, lang}: VoiceLabelProps): JSX.Element => (
+const VoiceLabel = ({name, lang}: VoiceLabelProps): React.JSX.Element => (
     <Flex direction={Flex.Direction.HORIZONTAL} align={Flex.Align.CENTER}>
         <Text variant="text-md/normal">{name}</Text>
         <Text
@@ -46,7 +46,7 @@ const VoiceLabel = ({name, lang}: VoiceLabelProps): JSX.Element => (
     </Flex>
 );
 
-export const SettingsPanel = (): JSX.Element => {
+export const SettingsPanel = (): React.JSX.Element => {
     const [
         {voice, volume, speed, filterNames, filterBots, filterStages, ...settings},
         defaults,
