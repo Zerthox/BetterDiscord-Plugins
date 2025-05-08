@@ -1,6 +1,6 @@
 import React from "react";
-import ReactReconciler, {Fiber} from "react-reconciler";
-import {LegacyRoot} from "react-reconciler/constants";
+import Reconciler, {Fiber} from "react-reconciler";
+import {DefaultEventPriority, LegacyRoot} from "react-reconciler/constants";
 
 (global as any).TESTING = true;
 
@@ -14,53 +14,59 @@ import {LegacyRoot} from "react-reconciler/constants";
     }
 };
 
-const noop: any = () => {};
-
-const reconciler = ReactReconciler({
-    supportsMutation: true,
-    supportsPersistence: false,
-    createInstance: noop,
-    createTextInstance: noop,
-    appendInitialChild: noop,
-    finalizeInitialChildren: noop,
-    shouldSetTextContent: noop,
-    getRootHostContext: noop,
-    getChildHostContext: noop,
-    getPublicInstance: noop,
-    prepareForCommit: noop,
-    resetAfterCommit: noop,
-    preparePortalMount: noop,
-    scheduleTimeout: noop,
-    cancelTimeout: noop,
+const reconciler = Reconciler({
+    supportsMutation: false,
+    supportsPersistence: true,
+    createInstance() {},
+    createTextInstance() {},
+    appendInitialChild() {},
+    finalizeInitialChildren: () => false,
+    shouldSetTextContent: () => false,
+    getRootHostContext: () => null,
+    getChildHostContext: (parent) => parent,
+    getPublicInstance: (instance) => instance,
+    prepareForCommit: () => null,
+    resetAfterCommit() {},
+    preparePortalMount() {},
+    scheduleTimeout: setTimeout,
+    cancelTimeout: clearTimeout,
     noTimeout: -1,
     isPrimaryRenderer: true,
-    getInstanceFromNode: noop,
-    beforeActiveInstanceBlur: noop,
-    afterActiveInstanceBlur: noop,
-    prepareScopeUpdate: noop,
-    getInstanceFromScope: noop,
-    detachDeletedInstance: noop,
+    cloneInstance() {},
+    createContainerChildSet() {},
+    appendChildToContainerChildSet() {},
+    finalizeContainerChildren() {},
+    replaceContainerChildren() {},
+    cloneHiddenInstance() {},
+    cloneHiddenTextInstance() {},
+    getInstanceFromNode: () => null,
+    beforeActiveInstanceBlur() {},
+    afterActiveInstanceBlur() {},
+    prepareScopeUpdate() {},
+    getInstanceFromScope() {},
+    detachDeletedInstance() {},
     supportsHydration: false,
     NotPendingTransition: null,
-    HostTransitionContext: null,
-    setCurrentUpdatePriority: noop,
-    getCurrentUpdatePriority: noop,
-    resolveUpdatePriority: noop,
-    resetFormInstance: noop,
-    requestPostPaintCallback: noop,
-    shouldAttemptEagerTransition: noop,
-    trackSchedulerEvent: noop,
-    resolveEventType: noop,
-    resolveEventTimeStamp: noop,
-    maySuspendCommit: noop,
-    preloadInstance: noop,
-    startSuspendingCommit: noop,
-    suspendInstance: noop,
-    waitForCommitToBeReady: noop
+    HostTransitionContext: React.createContext(null) as any,
+    setCurrentUpdatePriority() {},
+    getCurrentUpdatePriority: () => DefaultEventPriority,
+    resolveUpdatePriority: () => DefaultEventPriority,
+    resetFormInstance() {},
+    requestPostPaintCallback() {},
+    shouldAttemptEagerTransition: () => true,
+    trackSchedulerEvent() {},
+    resolveEventType: () => null,
+    resolveEventTimeStamp: () => 0,
+    maySuspendCommit: () => false,
+    preloadInstance: () => true,
+    startSuspendingCommit() {},
+    suspendInstance() {},
+    waitForCommitToBeReady: () => null
 });
 
 export const createFiber = (element: React.ReactElement<any>): Fiber => {
-    const root = reconciler.createContainer({}, LegacyRoot, null, false, false, "", null, null);
-    reconciler.updateContainer(element, root);
+    const root = reconciler.createContainer({}, LegacyRoot, null, false, false, "", console.error, null);
+    (reconciler as any).updateContainerSync(element, root);
+    (reconciler as any).flushSyncWork();
     return root.current;
 };
