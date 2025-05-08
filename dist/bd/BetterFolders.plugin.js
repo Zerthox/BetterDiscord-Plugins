@@ -1,6 +1,6 @@
 /**
  * @name BetterFolders
- * @version 3.6.0
+ * @version 3.6.1
  * @author Zerthox
  * @authorLink https://github.com/Zerthox
  * @description Adds new functionality to server folders. Custom Folder Icons. Close other folders on open.
@@ -225,7 +225,6 @@ const SortedGuildStore = /* @__PURE__ */ byName("SortedGuildStore");
 const ExpandedGuildFolderStore = /* @__PURE__ */ byName("ExpandedGuildFolderStore");
 
 const { React } = BdApi;
-const { ReactDOM } = BdApi;
 const classNames = /* @__PURE__ */ find((exports) => exports instanceof Object && exports.default === exports && Object.keys(exports).length === 1);
 
 const Button = /* @__PURE__ */ byKeys(["Colors", "Link"], { entries: true });
@@ -249,16 +248,6 @@ const RadioGroup = /* @__PURE__ */ bySource(["radioItemClassName:", "options:"],
 
 const ImageInput = /* @__PURE__ */ find((target) => typeof target.defaultProps?.multiple === "boolean" && typeof target.defaultProps?.maxFileSizeBytes === "number");
 
-const [getInstanceFromNode, getNodeFromInstance, getFiberCurrentPropsFromNode, enqueueStateRestore, restoreStateIfNeeded, batchedUpdates] = ReactDOM?.__SECRET_INTERNALS_DO_NOT_USE_OR_YOU_WILL_BE_FIRED?.Events ?? [];
-const ReactDOMInternals = {
-    getInstanceFromNode,
-    getNodeFromInstance,
-    getFiberCurrentPropsFromNode,
-    enqueueStateRestore,
-    restoreStateIfNeeded,
-    batchedUpdates
-};
-
 const replaceElement = (target, replace) => {
     target.type = replace.type;
     target.key = replace.key ?? target.key;
@@ -280,7 +269,10 @@ const queryTree = (node, predicate) => {
     }
     return null;
 };
-const getFiber = (node) => ReactDOMInternals.getInstanceFromNode(node ?? {});
+const getFiber = (node) => {
+    const key = Object.keys(node).find((key) => key.startsWith("__reactFiber"));
+    return node?.[key];
+};
 const queryFiber = (fiber, predicate, direction = "up" , depth = 30) => {
     if (depth < 0) {
         return null;
