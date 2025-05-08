@@ -1,6 +1,6 @@
 /**
  * @name OnlineFriendCount
- * @version 3.2.2
+ * @version 3.2.3
  * @author Zerthox
  * @authorLink https://github.com/Zerthox
  * @description Adds the old online friend count and similar counters back to server list. Because nostalgia.
@@ -204,7 +204,6 @@ const { useStateFromStores } = /* @__PURE__ */ demangle({
 const GuildStore = /* @__PURE__ */ byName("GuildStore");
 
 const { React } = BdApi;
-const { ReactDOM } = BdApi;
 const classNames = /* @__PURE__ */ find((exports) => exports instanceof Object && exports.default === exports && Object.keys(exports).length === 1);
 
 const PresenceStore = /* @__PURE__ */ byName("PresenceStore");
@@ -235,16 +234,6 @@ const { Link} = /* @__PURE__ */ demangle(mapping, ["Link", "BrowserRouter"]);
 const margins = /* @__PURE__ */ byKeys(["marginBottom40", "marginTop4"]);
 
 const { Menu, Group: MenuGroup, CheckboxItem: MenuCheckboxItem} = BdApi.ContextMenu;
-
-const [getInstanceFromNode, getNodeFromInstance, getFiberCurrentPropsFromNode, enqueueStateRestore, restoreStateIfNeeded, batchedUpdates] = ReactDOM?.__SECRET_INTERNALS_DO_NOT_USE_OR_YOU_WILL_BE_FIRED?.Events ?? [];
-const ReactDOMInternals = {
-    getInstanceFromNode,
-    getNodeFromInstance,
-    getFiberCurrentPropsFromNode,
-    enqueueStateRestore,
-    restoreStateIfNeeded,
-    batchedUpdates
-};
 
 const FCHook = ({ children: { type, props }, callback }) => {
     const result = type(props);
@@ -289,7 +278,10 @@ const queryTreeForParent = (tree, predicate) => {
     });
     return [parent, childIndex];
 };
-const getFiber = (node) => ReactDOMInternals.getInstanceFromNode(node ?? {});
+const getFiber = (node) => {
+    const key = Object.keys(node).find((key) => key.startsWith("__reactFiber"));
+    return node?.[key];
+};
 const queryFiber = (fiber, predicate, direction = "up" , depth = 30) => {
     if (depth < 0) {
         return null;
@@ -511,7 +503,7 @@ const CountersContainer = () => {
     const { interval, ...settings } = Settings.useCurrent();
     const counters = useCounters().filter(({ type }) => settings[type]);
     const [current, setCurrent] = React.useState(0);
-    const callback = React.useRef();
+    const callback = React.useRef(null);
     React.useEffect(() => {
         callback.current = () => setCurrent((current + 1) % counters.length);
     }, [current, counters.length]);

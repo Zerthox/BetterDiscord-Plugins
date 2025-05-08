@@ -1,7 +1,7 @@
 {
     "name": "OnlineFriendCount",
     "author": "Zerthox",
-    "version": "3.2.2",
+    "version": "3.2.3",
     "description": "Adds the old online friend count and similar counters back to server list. Because nostalgia.",
     "dependencies": {
         "dium": "*"
