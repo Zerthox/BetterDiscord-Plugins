@@ -21,9 +21,9 @@
     ],
     "dependencies": {
         "@types/betterdiscord": "github:zerthox/betterdiscord-types",
-        "@types/node": "^20.15.0",
-        "@types/react": "^18.0.37",
-        "@types/react-dom": "^18.0.11",
+        "@types/node": "^22.15.16",
+        "@types/react": "^19.0.0",
+        "@types/react-dom": "^19.0.0",
         "dium": "*"
     },
     "devDependencies": {
