@@ -31,4 +31,4 @@ export interface RadioGroup {
     };
 }
 
-export const RadioGroup: RadioGroup = /* @__PURE__ */ Finder.bySource(["radioItemClassName:", "options:"], {entries: true});
+export const RadioGroup: RadioGroup = /* @__PURE__ */ Finder.bySource(["radioPosition:", "radioItemClassName:", "options:"], {entries: true});
