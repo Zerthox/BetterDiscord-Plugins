@@ -23,12 +23,11 @@
         "@types/betterdiscord": "github:zerthox/betterdiscord-types",
         "@types/node": "^22.15.16",
         "@types/react": "^19.0.0",
-        "@types/react-dom": "^19.0.0",
-        "dium": "*"
+        "@types/react-dom": "^19.0.0"
     },
     "devDependencies": {
         "@rollup/plugin-json": "^6.0.0",
-        "@rollup/plugin-typescript": "^11.0.0",
+        "@rollup/plugin-typescript": "^12.1.3",
         "@types/eslint": "^8.4.10",
         "@types/lodash.camelcase": "^4.3.7",
         "@types/minimist": "^1.2.2",

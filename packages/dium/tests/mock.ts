@@ -22,7 +22,7 @@ const reconciler = Reconciler({
     appendInitialChild() {},
     finalizeInitialChildren: () => false,
     shouldSetTextContent: () => false,
-    getRootHostContext: () => null,
+    getRootHostContext: () => ({}),
     getChildHostContext: (parent) => parent,
     getPublicInstance: (instance) => instance,
     prepareForCommit: () => null,

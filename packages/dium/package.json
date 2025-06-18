@@ -36,7 +36,7 @@
     },
     "devDependencies": {
         "@types/mocha": "^10.0.0",
-        "mocha": "^10.0.0",
+        "mocha": "^11.7.0",
         "react": "^19.0.0",
         "react-reconciler": "^0.32.0",
         "ts-node": "^10.4.0",
