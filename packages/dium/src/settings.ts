@@ -54,6 +54,9 @@ export class SettingsStore<T extends Record<string, any>> implements Flux.StoreL
         }
     }
 
+    /** Returns the current settings. */
+    getCurrent = (): T => this.current;
+
     /**
      * Updates settings state.
      *
@@ -68,8 +71,8 @@ export class SettingsStore<T extends Record<string, any>> implements Flux.StoreL
      * ```
      */
     update = (settings: Update<T>): void => {
-        // TODO: copy and use comparators?
-        Object.assign(this.current, typeof settings === "function" ? settings(this.current) : settings);
+        const update = typeof settings === "function" ? settings(this.current) : settings;
+        this.current = {...this.current, ...update};
         this._dispatch(true);
     };
 
@@ -81,6 +84,7 @@ export class SettingsStore<T extends Record<string, any>> implements Flux.StoreL
 
     /** Deletes settings using their keys. */
     delete(...keys: string[]): void {
+        this.current = {...this.current};
         for (const key of keys) {
             delete this.current[key];
         }
@@ -96,7 +100,7 @@ export class SettingsStore<T extends Record<string, any>> implements Flux.StoreL
      * ```
      */
     useCurrent(): T {
-        return Flux.useStateFromStores([this], () => this.current, undefined, () => false);
+        return React.useSyncExternalStore(this.addListenerEffect, this.getCurrent);
     }
 
     /**
@@ -106,15 +110,23 @@ export class SettingsStore<T extends Record<string, any>> implements Flux.StoreL
      *
      * @param selector A function selecting a part of the current settings.
      * @param deps Dependencies of the selector.
-     * @param compare An equality function to compare two results of the selector. Strict equality `===` by default.
+     * @param compare An equality function to compare two results of the selector. `Object.is` by default.
      *
      * @example
      * ```js
      * const entry = Settings.useSelector((current) => current.entry);
      * ```
      */
-    useSelector<R>(selector: (current: T) => R, deps?: React.DependencyList, compare?: Flux.Comparator<R>): R {
-        return Flux.useStateFromStores([this], () => selector(this.current), deps, compare);
+    useSelector<R>(selector: (current: T) => R, deps: React.DependencyList = null, compare: (a: R, b: R) => boolean = Object.is): R {
+        const state = React.useRef(null);
+        const snapshot = React.useCallback(() => {
+            const next = selector(this.current);
+            if (!compare(state.current, next)) {
+                state.current = next;
+            }
+            return state.current;
+        }, deps ?? [selector]);
+        return React.useSyncExternalStore(this.addListenerEffect, snapshot);
     }
 
     /**
@@ -128,10 +140,8 @@ export class SettingsStore<T extends Record<string, any>> implements Flux.StoreL
      * ```
      */
     useState(): [T, Setter<T>] {
-        return Flux.useStateFromStores([this], () => [
-            this.current,
-            this.update
-        ]);
+        const current = this.useCurrent();
+        return [current, this.update];
     }
 
     /**
@@ -145,11 +155,8 @@ export class SettingsStore<T extends Record<string, any>> implements Flux.StoreL
      * ```
      */
     useStateWithDefaults(): [T, T, Setter<T>] {
-        return Flux.useStateFromStores([this], () => [
-            this.current,
-            this.defaults,
-            this.update
-        ]);
+        const current = this.useCurrent();
+        return [current, this.defaults, this.update];
     }
 
     /**
@@ -159,10 +166,7 @@ export class SettingsStore<T extends Record<string, any>> implements Flux.StoreL
      * @param deps Dependencies of the listener function. Defaults to the listener function itself.
      */
     useListener(listener: Listener<T>, deps?: React.DependencyList): void {
-        React.useEffect(() => {
-            this.addListener(listener);
-            return () => this.removeListener(listener);
-        }, deps ?? [listener]);
+        React.useEffect(() => this.addListenerEffect(listener), deps ?? [listener]);
     }
 
     /** Registers a new settings change listener. */
@@ -170,6 +174,12 @@ export class SettingsStore<T extends Record<string, any>> implements Flux.StoreL
         this.listeners.add(listener);
         return listener;
     }
+
+    /** Registers a new settings change listener, returning a callback to remove it. */
+    addListenerEffect = (listener: Listener<T>): () => void => {
+        this.addListener(listener);
+        return () => this.removeListener(listener);
+    };
 
     /** Removes a previously added settings change listener. */
     removeListener(listener: Listener<T>): void {
