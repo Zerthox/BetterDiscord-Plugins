@@ -1,5 +1,5 @@
 import {Finder} from "../api";
-import type {Snowflake} from ".";
+import type {Message, Snowflake} from ".";
 import type {Store} from "./flux";
 
 /** A User. */
@@ -139,19 +139,38 @@ export const enum RelationshipTypes {
     BLOCKED = 2,
     PENDING_INCOMING = 3,
     PENDING_OUTGOING = 4,
-    IMPLICIT = 5
+    IMPLICIT = 5,
+    SUGGESTION = 6
 }
 
 export interface RelationshipStore extends Store {
+    getBlockedIDs(): Snowflake[];
+    getBlockedOrIngoredIDs(): Snowflake[];
+    getFriendCount(): number;
     getFriendIDs(): Snowflake[];
-    getNickname(arg: any): any;
+    getIgnoredIDs(): Snowflake[];
+    getMutableRelationships(): Record<Snowflake, RelationshipTypes>;
+    getNickname(user: Snowflake): string;
+    getOriginApplicationId(application: any): any;
+    getOutgoingCount(): number;
     getPendingCount(): number;
+    getPendingIgnoredCount(): number;
     getRelationshipCount(): number;
     getRelationshipType(user: Snowflake): RelationshipTypes;
-    getRelationships(): Record<Snowflake, RelationshipTypes>;
+    getSince(user: Snowflake): string;
+    getSinces(): Record<Snowflake, string>;
+    getSpamCount(): number;
+    getVersion(): number;
     isBlocked(user: Snowflake): boolean;
+    isBlockedForMessage(message: Message): boolean;
+    isBlockedOrIgnored(user: Snowflake): boolean;
+    isBlockedOrIgnoredForMessage(message: Message): boolean;
     isFriend(user: Snowflake): boolean;
-    __getLocalVars();
+    isIgnored(user: Snowflake): boolean;
+    isIgnoredForMessage(message: Message): boolean;
+    isSpam(message: Message): boolean;
+    isStranger(user: Snowflake): boolean;
+    isUnfilteredPendingIncoming(message: Message): boolean;
 }
 
 export const RelationshipStore: RelationshipStore = /* @__PURE__ */ Finder.byName("RelationshipStore");

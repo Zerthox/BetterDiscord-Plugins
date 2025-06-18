@@ -1,5 +1,5 @@
 import {Finder, React, Flux} from "dium";
-import {GuildStore, PresenceStore, RelationshipStore, RelationshipTypes, StatusTypes, classNames} from "@dium/modules";
+import {GuildStore, PresenceStore, RelationshipStore, StatusTypes, classNames} from "@dium/modules";
 import {Link} from "@dium/components";
 import {Settings, CounterType, counterLabels} from "./settings";
 import {CountContextMenu} from "./context-menu";
@@ -31,29 +31,18 @@ const CounterItem = ({type, count}: Counter) => (
     >{count} {counterLabels[type].label}</Item>
 );
 
-const countFilteredRelationships = (filter: (relationship: {id: string; type: RelationshipTypes}) => boolean): number => (
-    Object.entries(RelationshipStore.getRelationships()).filter(([id, type]) => filter({id, type})).length
-);
-
 interface Counter {
     type: CounterType;
     count: number;
 }
 
-const useCounters = (): Counter[] => {
-    const guilds = Flux.useStateFromStores([GuildStore], () => GuildStore.getGuildCount(), []);
-    const friendsOnline = Flux.useStateFromStores([PresenceStore, RelationshipStore], () => countFilteredRelationships(
-        ({id, type}) => type === RelationshipTypes.FRIEND && PresenceStore.getStatus(id) !== StatusTypes.OFFLINE
-    ), []);
-    const relationships = Flux.useStateFromStores([RelationshipStore], () => ({
-        friends: countFilteredRelationships(({type}) => type === RelationshipTypes.FRIEND),
-        pending: countFilteredRelationships(({type}) => type === RelationshipTypes.PENDING_INCOMING || type === RelationshipTypes.PENDING_OUTGOING),
-        blocked: countFilteredRelationships(({type}) => type === RelationshipTypes.BLOCKED)
-    }), []);
-
-    return Object.entries({guilds, friendsOnline, ...relationships})
-        .map(([type, count]) => ({type, count} as Counter));
-};
+const useCounters = (): Counter[] => Flux.useStateFromStores([GuildStore, PresenceStore, RelationshipStore], () => [
+    {type: CounterType.Guilds, count: GuildStore.getGuildCount()},
+    {type: CounterType.Friends, count: RelationshipStore.getFriendCount()},
+    {type: CounterType.FriendsOnline, count: RelationshipStore.getFriendIDs().filter((id) => PresenceStore.getStatus(id) !== StatusTypes.OFFLINE).length},
+    {type: CounterType.Pending, count: RelationshipStore.getPendingCount()},
+    {type: CounterType.Blocked, count: RelationshipStore.getBlockedIDs().length}
+]);
 
 export const CountersContainer = (): React.JSX.Element => {
     const {interval, ...settings} = Settings.useCurrent();

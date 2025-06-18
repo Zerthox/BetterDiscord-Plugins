@@ -9,7 +9,13 @@ export const Settings = createSettings({
     interval: false
 });
 
-export type CounterType = "guilds" | "friends" | "friendsOnline" | "pending" | "blocked";
+export const enum CounterType {
+    Guilds = "guilds",
+    Friends = "friends",
+    FriendsOnline = "friendsOnline",
+    Pending = "pending",
+    Blocked = "blocked"
+}
 
 export const counterLabels: Record<CounterType, {label: string; long?: string}> = {
     guilds: {
@@ -23,7 +29,7 @@ export const counterLabels: Record<CounterType, {label: string; long?: string}> 
         long: "Online Friends"
     },
     pending: {
-        label: "Pendings",
+        label: "Pending",
         long: "Pending Friend Requests"
     },
     blocked: {
