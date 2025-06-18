@@ -1,6 +1,6 @@
 /**
  * @name OnlineFriendCount
- * @version 3.2.3
+ * @version 3.3.0
  * @author Zerthox
  * @authorLink https://github.com/Zerthox
  * @description Adds the old online friend count and similar counters back to server list. Because nostalgia.
@@ -339,9 +339,15 @@ const SettingsContainer = ({ name, children, onReset }) => (React.createElement(
 class SettingsStore {
     constructor(defaults, onLoad) {
         this.listeners = new Set();
+        this.getCurrent = () => this.current;
         this.update = (settings) => {
-            Object.assign(this.current, typeof settings === "function" ? settings(this.current) : settings);
+            const update = typeof settings === "function" ? settings(this.current) : settings;
+            this.current = { ...this.current, ...update };
             this._dispatch(true);
+        };
+        this.addListenerEffect = (listener) => {
+            this.addListener(listener);
+            return () => this.removeListener(listener);
         };
         this.addReactChangeListener = this.addListener;
         this.removeReactChangeListener = this.removeListener;
@@ -366,35 +372,36 @@ class SettingsStore {
         this._dispatch(true);
     }
     delete(...keys) {
+        this.current = { ...this.current };
         for (const key of keys) {
             delete this.current[key];
         }
         this._dispatch(true);
     }
     useCurrent() {
-        return useStateFromStores([this], () => this.current, undefined, () => false);
+        return React.useSyncExternalStore(this.addListenerEffect, this.getCurrent);
     }
-    useSelector(selector, deps, compare) {
-        return useStateFromStores([this], () => selector(this.current), deps, compare);
+    useSelector(selector, deps = null, compare = Object.is) {
+        const state = React.useRef(null);
+        const snapshot = React.useCallback(() => {
+            const next = selector(this.current);
+            if (!compare(state.current, next)) {
+                state.current = next;
+            }
+            return state.current;
+        }, deps ?? [selector]);
+        return React.useSyncExternalStore(this.addListenerEffect, snapshot);
     }
     useState() {
-        return useStateFromStores([this], () => [
-            this.current,
-            this.update
-        ]);
+        const current = this.useCurrent();
+        return [current, this.update];
     }
     useStateWithDefaults() {
-        return useStateFromStores([this], () => [
-            this.current,
-            this.defaults,
-            this.update
-        ]);
+        const current = this.useCurrent();
+        return [current, this.defaults, this.update];
     }
     useListener(listener, deps) {
-        React.useEffect(() => {
-            this.addListener(listener);
-            return () => this.removeListener(listener);
-        }, deps ?? [listener]);
+        React.useEffect(() => this.addListenerEffect(listener), deps ?? [listener]);
     }
     addListener(listener) {
         this.listeners.add(listener);
@@ -451,7 +458,7 @@ const counterLabels = {
         long: "Online Friends"
     },
     pending: {
-        label: "Pendings",
+        label: "Pending",
         long: "Pending Friend Requests"
     },
     blocked: {
@@ -487,18 +494,13 @@ const CounterItem = ({ type, count }) => (React.createElement(Item, { link: "/ch
     count,
     " ",
     counterLabels[type].label));
-const countFilteredRelationships = (filter) => (Object.entries(RelationshipStore.getRelationships()).filter(([id, type]) => filter({ id, type })).length);
-const useCounters = () => {
-    const guilds = useStateFromStores([GuildStore], () => GuildStore.getGuildCount(), []);
-    const friendsOnline = useStateFromStores([PresenceStore, RelationshipStore], () => countFilteredRelationships(({ id, type }) => type === 1  && PresenceStore.getStatus(id) !== "offline" ), []);
-    const relationships = useStateFromStores([RelationshipStore], () => ({
-        friends: countFilteredRelationships(({ type }) => type === 1 ),
-        pending: countFilteredRelationships(({ type }) => type === 3  || type === 4 ),
-        blocked: countFilteredRelationships(({ type }) => type === 2 )
-    }), []);
-    return Object.entries({ guilds, friendsOnline, ...relationships })
-        .map(([type, count]) => ({ type, count }));
-};
+const useCounters = () => useStateFromStores([GuildStore, PresenceStore, RelationshipStore], () => [
+    { type: "guilds" , count: GuildStore.getGuildCount() },
+    { type: "friends" , count: RelationshipStore.getFriendCount() },
+    { type: "friendsOnline" , count: RelationshipStore.getFriendIDs().filter((id) => PresenceStore.getStatus(id) !== "offline" ).length },
+    { type: "pending" , count: RelationshipStore.getPendingCount() },
+    { type: "blocked" , count: RelationshipStore.getBlockedIDs().length }
+]);
 const CountersContainer = () => {
     const { interval, ...settings } = Settings.useCurrent();
     const counters = useCounters().filter(({ type }) => settings[type]);
