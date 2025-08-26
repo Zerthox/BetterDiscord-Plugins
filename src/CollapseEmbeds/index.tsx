@@ -33,7 +33,7 @@ export default createPlugin({
         cleanupOldEntries();
         Patcher.after(Embed.prototype as InstanceType<typeof Embed>, "render", ({result, context}) => {
             const {embed} = context.props;
-            const placeholder = embed.provider?.name ?? embed.author?.name ?? embed.rawTitle ?? new URL(embed.url).hostname;
+            const placeholder = embed.provider?.name ?? embed.author?.name ?? embed.rawTitle ?? (embed.url ? new URL(embed.url).hostname : "Embed");
             return (
                 <Hider
                     type={AccessoryType.Embed}

@@ -1,6 +1,6 @@
 /**
  * @name CollapseEmbeds
- * @version 2.0.0
+ * @version 2.1.0
  * @author Zerthox
  * @authorLink https://github.com/Zerthox
  * @description Adds a button to collapse embeds & attachments.
@@ -187,14 +187,6 @@ const inject = (styles) => {
 };
 const clear = () => BdApi.DOM.removeStyle(getMeta().name);
 
-const { useStateFromStores } = /* @__PURE__ */ demangle({
-    default: byKeys$1("Store", "connectStores"),
-    Dispatcher: byProtos$1("dispatch"),
-    Store: byProtos$1("emitChange"),
-    BatchedStoreListener: byProtos$1("attach", "detach"),
-    useStateFromStores: bySource$1("useStateFromStores")
-}, ["Store", "Dispatcher", "useStateFromStores"]);
-
 const { React } = BdApi;
 const classNames = /* @__PURE__ */ find((exports) => exports instanceof Object && exports.default === exports && Object.keys(exports).length === 1);
 
@@ -223,10 +215,7 @@ const margins = /* @__PURE__ */ byKeys(["marginBottom40", "marginTop4"]);
 
 const MessageFooter = /* @__PURE__ */ byProtos(["renderRemoveAttachmentConfirmModal"], { entries: true });
 
-const { TextInput} = /* @__PURE__ */ demangle({
-    TextInput: (target) => target?.defaultProps?.type === "text",
-    InputError: bySource$1("error:", "text-danger")
-}, ["TextInput"]);
+const TextInput = /* @__PURE__ */ bySource(["placeholder", "maxLength", "clearable"], { entries: true });
 
 const Text = /* @__PURE__ */ bySource(["lineClamp:", "variant:", "tabularNumbers:"], { entries: true });
 
@@ -273,9 +262,15 @@ const SettingsContainer = ({ name, children, onReset }) => (React.createElement(
 class SettingsStore {
     constructor(defaults, onLoad) {
         this.listeners = new Set();
+        this.getCurrent = () => this.current;
         this.update = (settings) => {
-            Object.assign(this.current, typeof settings === "function" ? settings(this.current) : settings);
+            const update = typeof settings === "function" ? settings(this.current) : settings;
+            this.current = { ...this.current, ...update };
             this._dispatch(true);
+        };
+        this.addListenerEffect = (listener) => {
+            this.addListener(listener);
+            return () => this.removeListener(listener);
         };
         this.addReactChangeListener = this.addListener;
         this.removeReactChangeListener = this.removeListener;
@@ -300,35 +295,36 @@ class SettingsStore {
         this._dispatch(true);
     }
     delete(...keys) {
+        this.current = { ...this.current };
         for (const key of keys) {
             delete this.current[key];
         }
         this._dispatch(true);
     }
     useCurrent() {
-        return useStateFromStores([this], () => this.current, undefined, () => false);
+        return React.useSyncExternalStore(this.addListenerEffect, this.getCurrent);
     }
-    useSelector(selector, deps, compare) {
-        return useStateFromStores([this], () => selector(this.current), deps, compare);
+    useSelector(selector, deps = null, compare = Object.is) {
+        const state = React.useRef(null);
+        const snapshot = React.useCallback(() => {
+            const next = selector(this.current);
+            if (!compare(state.current, next)) {
+                state.current = next;
+            }
+            return state.current;
+        }, deps ?? [selector]);
+        return React.useSyncExternalStore(this.addListenerEffect, snapshot);
     }
     useState() {
-        return useStateFromStores([this], () => [
-            this.current,
-            this.update
-        ]);
+        const current = this.useCurrent();
+        return [current, this.update];
     }
     useStateWithDefaults() {
-        return useStateFromStores([this], () => [
-            this.current,
-            this.defaults,
-            this.update
-        ]);
+        const current = this.useCurrent();
+        return [current, this.defaults, this.update];
     }
     useListener(listener, deps) {
-        React.useEffect(() => {
-            this.addListener(listener);
-            return () => this.removeListener(listener);
-        }, deps ?? [listener]);
+        React.useEffect(() => this.addListenerEffect(listener), deps ?? [listener]);
     }
     addListener(listener) {
         this.listeners.add(listener);
@@ -464,7 +460,7 @@ const index = createPlugin({
         cleanupOldEntries();
         after(Embed.prototype, "render", ({ result, context }) => {
             const { embed } = context.props;
-            const placeholder = embed.provider?.name ?? embed.author?.name ?? embed.rawTitle ?? new URL(embed.url).hostname;
+            const placeholder = embed.provider?.name ?? embed.author?.name ?? embed.rawTitle ?? (embed.url ? new URL(embed.url).hostname : "Embed");
             return (React.createElement(Hider, { type: "embed" , placeholders: [placeholder], id: embed.url }, result));
         }, { name: "Embed render" });
         after(MediaModule, "MediaItem", ({ args: [props], result }) => {
