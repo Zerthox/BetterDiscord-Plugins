@@ -39,4 +39,4 @@ jobs:
               with:
                   node-version: 22
             - run: npm ci
-            - run: npm run format
+            - run: npm run format-check
