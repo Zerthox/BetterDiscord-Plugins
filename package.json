@@ -9,8 +9,8 @@
         "build": "ts-node scripts/build.ts",
         "dev": "ts-node scripts/build.ts --dev --watch",
         "check": "tsc --noemit",
-        "lint": "eslint .",
-        "lint-fix": "eslint --fix .",
+        "lint": "eslint --max-warnings=0",
+        "lint-fix": "eslint --max-warnings=0 --fix .",
         "format-check": "prettier --check .",
         "format-fix": "prettier --write ."
     },

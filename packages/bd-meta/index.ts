@@ -14,7 +14,6 @@ export interface PackageWithMeta extends PackageJson.PackageJsonStandard {
 export async function resolvePkg(dir: string): Promise<string> {
     let current = path.resolve(dir);
 
-    // eslint-disable-next-line no-constant-condition
     while (true) {
         try {
             const file = path.join(dir, "package.json");
