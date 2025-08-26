@@ -1,6 +1,6 @@
 /**
  * @name VoiceEvents
- * @version 2.6.3
+ * @version 2.7.0
  * @author Zerthox
  * @authorLink https://github.com/Zerthox
  * @description Adds TTS Event Notifications to your selected Voice Channel. TeamSpeak feeling.
@@ -74,9 +74,6 @@ const byName$1 = (name) => {
 };
 const byKeys$1 = (...keys) => {
     return (target) => target instanceof Object && keys.every((key) => key in target);
-};
-const byProtos = (...protos) => {
-    return (target) => target instanceof Object && target.prototype instanceof Object && protos.every((proto) => proto in target.prototype);
 };
 const bySource$1 = (...fragments) => {
     return (target) => {
@@ -193,15 +190,7 @@ const ChannelStore = /* @__PURE__ */ byName("ChannelStore");
 const SelectedChannelStore = /* @__PURE__ */ byName("SelectedChannelStore");
 const VoiceStateStore = /* @__PURE__ */ byName("VoiceStateStore");
 
-const Dispatcher$1 = /* @__PURE__ */ byKeys(["dispatch", "subscribe"]);
-
-const { default: Legacy, Dispatcher, Store, BatchedStoreListener, useStateFromStores } = /* @__PURE__ */ demangle({
-    default: byKeys$1("Store", "connectStores"),
-    Dispatcher: byProtos("dispatch"),
-    Store: byProtos("emitChange"),
-    BatchedStoreListener: byProtos("attach", "detach"),
-    useStateFromStores: bySource$1("useStateFromStores")
-}, ["Store", "Dispatcher", "useStateFromStores"]);
+const Dispatcher = /* @__PURE__ */ byKeys(["dispatch", "subscribe"]);
 
 const GuildMemberStore = /* @__PURE__ */ byName("GuildMemberStore");
 
@@ -217,7 +206,7 @@ const Button = /* @__PURE__ */ byKeys(["Colors", "Link"], { entries: true });
 const Flex = /* @__PURE__ */ byKeys(["Child", "Justify", "Align"], { entries: true });
 
 const { FormSection, FormItem, FormTitle, FormText,
-FormDivider, FormSwitch, FormNotice } = /* @__PURE__ */ demangle({
+FormDivider, FormSwitch} = /* @__PURE__ */ demangle({
     FormSection: bySource$1("titleClassName:", ".sectionTitle"),
     FormItem: bySource$1("titleClassName:", "required:"),
     FormTitle: bySource$1("faded:", "required:"),
@@ -229,9 +218,9 @@ FormDivider, FormSwitch, FormNotice } = /* @__PURE__ */ demangle({
 
 const margins = /* @__PURE__ */ byKeys(["marginBottom40", "marginTop4"]);
 
-const { Menu, Group: MenuGroup, Item: MenuItem, Separator: MenuSeparator, CheckboxItem: MenuCheckboxItem, RadioItem: MenuRadioItem, ControlItem: MenuControlItem } = BdApi.ContextMenu;
+const { Item: MenuItem} = BdApi.ContextMenu;
 
-const { Select, SingleSelect } =  demangle({
+const { SingleSelect } =  demangle({
     Select: bySource$1("renderOptionLabel:", "renderOptionValue:", "popoutWidth:"),
     SingleSelect: bySource$1((source) => /{value:[a-zA-Z_$],onChange:[a-zA-Z_$]}/.test(source))
 }, ["Select"]);
@@ -240,10 +229,7 @@ const Slider = /* @__PURE__ */ bySource(["markerPositions:", "asValueChanges:"],
 
 const Switch = /* @__PURE__ */ bySource(["checked:", "reducedMotion:"], { entries: true });
 
-const { TextInput, InputError } = /* @__PURE__ */ demangle({
-    TextInput: (target) => target?.defaultProps?.type === "text",
-    InputError: bySource$1("error:", "text-danger")
-}, ["TextInput"]);
+const TextInput = /* @__PURE__ */ bySource(["placeholder", "maxLength", "clearable"], { entries: true });
 
 const Text = /* @__PURE__ */ bySource(["lineClamp:", "variant:", "tabularNumbers:"], { entries: true });
 
@@ -290,9 +276,15 @@ const SettingsContainer = ({ name, children, onReset }) => (React.createElement(
 class SettingsStore {
     constructor(defaults, onLoad) {
         this.listeners = new Set();
+        this.getCurrent = () => this.current;
         this.update = (settings) => {
-            Object.assign(this.current, typeof settings === "function" ? settings(this.current) : settings);
+            const update = typeof settings === "function" ? settings(this.current) : settings;
+            this.current = { ...this.current, ...update };
             this._dispatch(true);
+        };
+        this.addListenerEffect = (listener) => {
+            this.addListener(listener);
+            return () => this.removeListener(listener);
         };
         this.addReactChangeListener = this.addListener;
         this.removeReactChangeListener = this.removeListener;
@@ -317,35 +309,36 @@ class SettingsStore {
         this._dispatch(true);
     }
     delete(...keys) {
+        this.current = { ...this.current };
         for (const key of keys) {
             delete this.current[key];
         }
         this._dispatch(true);
     }
     useCurrent() {
-        return useStateFromStores([this], () => this.current, undefined, () => false);
+        return React.useSyncExternalStore(this.addListenerEffect, this.getCurrent);
     }
-    useSelector(selector, deps, compare) {
-        return useStateFromStores([this], () => selector(this.current), deps, compare);
+    useSelector(selector, deps = null, compare = Object.is) {
+        const state = React.useRef(null);
+        const snapshot = React.useCallback(() => {
+            const next = selector(this.current);
+            if (!compare(state.current, next)) {
+                state.current = next;
+            }
+            return state.current;
+        }, deps ?? [selector]);
+        return React.useSyncExternalStore(this.addListenerEffect, snapshot);
     }
     useState() {
-        return useStateFromStores([this], () => [
-            this.current,
-            this.update
-        ]);
+        const current = this.useCurrent();
+        return [current, this.update];
     }
     useStateWithDefaults() {
-        return useStateFromStores([this], () => [
-            this.current,
-            this.defaults,
-            this.update
-        ]);
+        const current = this.useCurrent();
+        return [current, this.defaults, this.update];
     }
     useListener(listener, deps) {
-        React.useEffect(() => {
-            this.addListener(listener);
-            return () => this.removeListener(listener);
-        }, deps ?? [listener]);
+        React.useEffect(() => this.addListenerEffect(listener), deps ?? [listener]);
     }
     addListener(listener) {
         this.listeners.add(listener);
@@ -632,11 +625,11 @@ const index = createPlugin({
             Settings.update({ voice });
         }
         saveStates();
-        Dispatcher$1.subscribe("VOICE_STATE_UPDATES", voiceStateHandler);
+        Dispatcher.subscribe("VOICE_STATE_UPDATES", voiceStateHandler);
         log("Subscribed to voice state actions");
-        Dispatcher$1.subscribe("AUDIO_TOGGLE_SELF_MUTE", selfMuteHandler);
+        Dispatcher.subscribe("AUDIO_TOGGLE_SELF_MUTE", selfMuteHandler);
         log("Subscribed to self mute actions");
-        Dispatcher$1.subscribe("AUDIO_TOGGLE_SELF_DEAF", selfDeafHandler);
+        Dispatcher.subscribe("AUDIO_TOGGLE_SELF_DEAF", selfDeafHandler);
         log("Subscribed to self deaf actions");
         contextMenu("channel-context", (result) => {
             const [parent, index] = queryTreeForParent(result, (child) => child?.props?.id === "hide-voice-names");
@@ -647,11 +640,11 @@ const index = createPlugin({
     },
     stop() {
         prevStates = {};
-        Dispatcher$1.unsubscribe("VOICE_STATE_UPDATES", voiceStateHandler);
+        Dispatcher.unsubscribe("VOICE_STATE_UPDATES", voiceStateHandler);
         log("Unsubscribed from voice state actions");
-        Dispatcher$1.unsubscribe("AUDIO_TOGGLE_SELF_MUTE", selfMuteHandler);
+        Dispatcher.unsubscribe("AUDIO_TOGGLE_SELF_MUTE", selfMuteHandler);
         log("Unsubscribed from self mute actions");
-        Dispatcher$1.unsubscribe("AUDIO_TOGGLE_SELF_DEAF", selfDeafHandler);
+        Dispatcher.unsubscribe("AUDIO_TOGGLE_SELF_DEAF", selfDeafHandler);
         log("Unsubscribed from self deaf actions");
     },
     Settings,
