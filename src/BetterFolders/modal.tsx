@@ -1,8 +1,8 @@
-import {React, Logger, PatchDataWithResult, Utils} from "dium";
-import {SortedGuildStore, GuildsTreeFolder} from "@dium/modules";
-import {RadioGroup, FormItem} from "@dium/components";
-import {BetterFolderUploader} from "./uploader";
-import {Settings} from "./settings";
+import { React, Logger, PatchDataWithResult, Utils } from "dium";
+import { SortedGuildStore, GuildsTreeFolder } from "@dium/modules";
+import { RadioGroup, FormItem } from "@dium/components";
+import { BetterFolderUploader } from "./uploader";
+import { Settings } from "./settings";
 
 export interface FolderSettingsModalProps {
     folderId: number;
@@ -21,7 +21,7 @@ export type FolderSettingsModal = typeof React.Component<FolderSettingsModalProp
 
 const enum IconType {
     Default = "default",
-    Custom = "custom"
+    Custom = "custom",
 }
 
 interface PatchedFolderSettingsModalState extends FolderSettingsModalState {
@@ -32,9 +32,12 @@ interface PatchedFolderSettingsModalState extends FolderSettingsModalState {
 
 type PatchedModal = React.Component<FolderSettingsModalProps, PatchedFolderSettingsModalState>;
 
-export const folderModalPatch = ({context, result}: PatchDataWithResult<PatchedModal["render"], PatchedModal>): void => {
-    const {folderId} = context.props;
-    const {state} = context;
+export const folderModalPatch = ({
+    context,
+    result,
+}: PatchDataWithResult<PatchedModal["render"], PatchedModal>): void => {
+    const { folderId } = context.props;
+    const { state } = context;
 
     // find form
     const form = Utils.queryTree(result, (node) => node?.type === "form");
@@ -45,28 +48,28 @@ export const folderModalPatch = ({context, result}: PatchDataWithResult<PatchedM
 
     // add custom state
     if (!state.iconType) {
-        const {icon = null, always = false} = Settings.current.folders[folderId] ?? {};
+        const { icon = null, always = false } = Settings.current.folders[folderId] ?? {};
         Object.assign(state, {
             iconType: icon ? IconType.Custom : IconType.Default,
             icon,
-            always
+            always,
         });
     }
 
     // render icon select
-    const {children} = form.props;
-    const {className} = children[0].props;
+    const { children } = form.props;
+    const { className } = children[0].props;
     children.push(
         <FormItem title="Icon" className={className}>
             <RadioGroup
                 value={state.iconType}
                 options={[
-                    {value: IconType.Default, name: "Default Icon"},
-                    {value: IconType.Custom, name: "Custom Icon"}
+                    { value: IconType.Default, name: "Default Icon" },
+                    { value: IconType.Custom, name: "Custom Icon" },
                 ]}
-                onChange={({value}) => context.setState({iconType: value})}
+                onChange={({ value }) => context.setState({ iconType: value })}
             />
-        </FormItem>
+        </FormItem>,
     );
 
     if (state.iconType === IconType.Custom) {
@@ -78,9 +81,9 @@ export const folderModalPatch = ({context, result}: PatchDataWithResult<PatchedM
                     icon={state.icon}
                     always={state.always}
                     folderNode={tree.nodes[folderId] as GuildsTreeFolder}
-                    onChange={({icon, always}) => context.setState({icon, always})}
+                    onChange={({ icon, always }) => context.setState({ icon, always })}
                 />
-            </FormItem>
+            </FormItem>,
         );
     }
 
@@ -91,13 +94,13 @@ export const folderModalPatch = ({context, result}: PatchDataWithResult<PatchedM
         original(...args);
 
         // update folders if necessary
-        const {folders} = Settings.current;
+        const { folders } = Settings.current;
         if (state.iconType === IconType.Custom && state.icon) {
-            folders[folderId] = {icon: state.icon, always: state.always};
-            Settings.update({folders});
+            folders[folderId] = { icon: state.icon, always: state.always };
+            Settings.update({ folders });
         } else if ((state.iconType === IconType.Default || !state.icon) && folders[folderId]) {
             delete folders[folderId];
-            Settings.update({folders});
+            Settings.update({ folders });
         }
     };
 };

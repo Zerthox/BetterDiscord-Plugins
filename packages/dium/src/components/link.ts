@@ -1,5 +1,5 @@
-import {Filters, Finder} from "../api";
-import type {Router} from "../modules";
+import { Filters, Finder } from "../api";
+import type { Router } from "../modules";
 
 export interface LinkProps extends Record<string, any> {
     component?: any;
@@ -20,8 +20,11 @@ interface Links extends Omit<Router, "__RouterContext"> {
 
 const mapping = {
     Link: Filters.bySource(".component", ".to"),
-    BrowserRouter: Filters.bySource("this.history")
+    BrowserRouter: Filters.bySource("this.history"),
     // NavLink: Filters.bySource(".sensitive", ".to"),
 };
 
-export const {Link, BrowserRouter}: Pick<Links, keyof typeof mapping> = /* @__PURE__ */ Finder.demangle(mapping, ["Link", "BrowserRouter"]);
+export const { Link, BrowserRouter }: Pick<Links, keyof typeof mapping> = /* @__PURE__ */ Finder.demangle(mapping, [
+    "Link",
+    "BrowserRouter",
+]);

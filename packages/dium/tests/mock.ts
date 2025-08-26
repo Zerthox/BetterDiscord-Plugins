@@ -1,17 +1,17 @@
 import React from "react";
-import Reconciler, {Fiber} from "react-reconciler";
-import {DefaultEventPriority, LegacyRoot} from "react-reconciler/constants";
+import Reconciler, { Fiber } from "react-reconciler";
+import { DefaultEventPriority, LegacyRoot } from "react-reconciler/constants";
 
 (global as any).TESTING = true;
 
 (global as any).BdApi = {
     React,
     Webpack: {
-        getModule: () => null
+        getModule: () => null,
     },
     Plugins: {
-        get: () => ({})
-    }
+        get: () => ({}),
+    },
 };
 
 const reconciler = Reconciler({
@@ -61,7 +61,7 @@ const reconciler = Reconciler({
     preloadInstance: () => true,
     startSuspendingCommit() {},
     suspendInstance() {},
-    waitForCommitToBeReady: () => null
+    waitForCommitToBeReady: () => null,
 });
 
 export const createFiber = (element: React.ReactElement<any>): Fiber => {

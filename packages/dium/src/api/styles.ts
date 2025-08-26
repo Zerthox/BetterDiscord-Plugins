@@ -1,4 +1,4 @@
-import {getMeta} from "../meta";
+import { getMeta } from "../meta";
 
 /** Inject CSS. */
 export const inject = (styles?: string): void => {
@@ -20,12 +20,12 @@ export const suffix = <T extends string = never>(...classNames: T[]): Record<T, 
                 Object.defineProperty(result, className, {
                     value,
                     configurable: true,
-                    enumerable: true
+                    enumerable: true,
                 });
                 return value;
             },
             configurable: true,
-            enumerable: true
+            enumerable: true,
         });
     }
     return result;

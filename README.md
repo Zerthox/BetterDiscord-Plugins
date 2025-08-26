@@ -5,6 +5,7 @@ Plugins for the [BetterDiscord](https://betterdiscord.app) client modification f
 To get to the **distributed plugin files [click here](dist/bd/)**.
 
 ## Building from source
+
 ```sh
 # install dependencies
 npm install

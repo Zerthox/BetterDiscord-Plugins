@@ -1,4 +1,4 @@
-import {createSettings, SettingsType} from "dium";
+import { createSettings, SettingsType } from "dium";
 
 export const Settings = createSettings({
     voice: null as string, // set later
@@ -10,42 +10,42 @@ export const Settings = createSettings({
     notifs: {
         mute: {
             enabled: true,
-            message: "Muted"
+            message: "Muted",
         },
         unmute: {
             enabled: true,
-            message: "Unmuted"
+            message: "Unmuted",
         },
         deafen: {
             enabled: true,
-            message: "Deafened"
+            message: "Deafened",
         },
         undeafen: {
             enabled: true,
-            message: "Undeafened"
+            message: "Undeafened",
         },
         join: {
             enabled: true,
-            message: "$user joined $channel"
+            message: "$user joined $channel",
         },
         leave: {
             enabled: true,
-            message: "$user left $channel"
+            message: "$user left $channel",
         },
         joinSelf: {
             enabled: true,
-            message: "You joined $channel"
+            message: "You joined $channel",
         },
         moveSelf: {
             enabled: true,
-            message: "You were moved to $channel"
+            message: "You were moved to $channel",
         },
         leaveSelf: {
             enabled: true,
-            message: "You left $channel"
-        }
+            message: "You left $channel",
+        },
     },
-    unknownChannel: "The call"
+    unknownChannel: "The call",
 });
 
 export type NotificationType = keyof SettingsType<typeof Settings>["notifs"];

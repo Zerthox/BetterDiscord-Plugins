@@ -1,8 +1,8 @@
-import type {Usable} from "react";
-import {React, ReactDOM} from "./modules";
-import type {Fiber, ReactContext, EventPriority} from "react-reconciler";
+import type { Usable } from "react";
+import { React, ReactDOM } from "./modules";
+import type { Fiber, ReactContext, EventPriority } from "react-reconciler";
 
-export type {Fiber} from "react-reconciler";
+export type { Fiber } from "react-reconciler";
 
 export interface ForwardRefExoticComponent<P, T = any> extends React.ForwardRefExoticComponent<P> {
     render: React.ForwardRefRenderFunction<T, P>;
@@ -75,7 +75,8 @@ export interface ReactInternals {
     S?(transition: BatchConfigTransition, mixed: any): void; // onStartTransitionFinish
 }
 
-export const ReactInternals: ReactInternals = (React as any)?.__CLIENT_INTERNALS_DO_NOT_USE_OR_WARN_USERS_THEY_CANNOT_UPGRADE;
+export const ReactInternals: ReactInternals = (React as any)
+    ?.__CLIENT_INTERNALS_DO_NOT_USE_OR_WARN_USERS_THEY_CANNOT_UPGRADE;
 
 export type CrossOriginEnum = any;
 export type PreloadImplOptions = any;
@@ -102,4 +103,5 @@ export interface ReactDOMInternals {
     findDOMNode?(componentOrElement: React.Component<any, any>): null | Element | Text;
 }
 
-export const ReactDOMInternals: ReactDOMInternals = (ReactDOM as any)?.__DOM_INTERNALS_DO_NOT_USE_OR_WARN_USERS_THEY_CANNOT_UPGRADE;
+export const ReactDOMInternals: ReactDOMInternals = (ReactDOM as any)
+    ?.__DOM_INTERNALS_DO_NOT_USE_OR_WARN_USERS_THEY_CANNOT_UPGRADE;

@@ -1,4 +1,4 @@
-import {Filters, Finder} from "../api";
+import { Filters, Finder } from "../api";
 
 export type ActionType = string;
 
@@ -9,7 +9,7 @@ export interface Action {
 export type ActionHandler<A extends Action = any> = (action: A) => void;
 
 export type ActionHandlerRecord = {
-    [A in ActionType]: ActionHandler<{type: A}>;
+    [A in ActionType]: ActionHandler<{ type: A }>;
 };
 
 export type DispatchToken = string;
@@ -92,7 +92,7 @@ export interface Dispatcher {
 }
 
 export interface DispatcherClass {
-    new(): Dispatcher;
+    new (): Dispatcher;
 }
 
 export type Callback = () => void;
@@ -108,7 +108,7 @@ export interface Callbacks {
 }
 
 export interface StoreClass {
-    new(dispatcher: Dispatcher, actions: ActionHandlerRecord): Store;
+    new (dispatcher: Dispatcher, actions: ActionHandlerRecord): Store;
     destroy(): any;
     getAll(): any;
     initialize(): any;
@@ -143,7 +143,7 @@ export interface StoreLike {
 }
 
 export interface BatchedStoreListenerClass {
-    new(stores: StoreLike[], changeCallback: Callback): BatchedStoreListener;
+    new (stores: StoreLike[], changeCallback: Callback): BatchedStoreListener;
 }
 
 export interface BatchedStoreListener {
@@ -165,7 +165,7 @@ export interface LegacyModule {
     connectStores<OuterProps, InnerProps>(
         stores: StoreLike[],
         callback: (props: OuterProps) => InnerProps,
-        options?: {forwardRef: boolean}
+        options?: { forwardRef: boolean },
     ): (component: React.ComponentType<InnerProps & OuterProps>) => React.ComponentClass<OuterProps>;
 }
 
@@ -178,7 +178,12 @@ export interface Module {
     Dispatcher: DispatcherClass;
     BatchedStoreListener: BatchedStoreListenerClass;
 
-    useStateFromStores<T>(stores: StoreLike[], callback: () => T, deps?: React.DependencyList, compare?: Comparator<T>): T;
+    useStateFromStores<T>(
+        stores: StoreLike[],
+        callback: () => T,
+        deps?: React.DependencyList,
+        compare?: Comparator<T>,
+    ): T;
     useStateFromStoresArray<T>(stores: StoreLike[], callback: () => T, deps?: React.DependencyList): T;
     useStateFromStoresObject<T>(stores: StoreLike[], callback: () => T, deps?: React.DependencyList): T;
     statesWillNeverBeEqual: Comparator<unknown>;
@@ -189,17 +194,20 @@ export const {
     Dispatcher,
     Store,
     BatchedStoreListener,
-    useStateFromStores
-}: Partial<Module> = /* @__PURE__ */ Finder.demangle({
-    default: Filters.byKeys("Store", "connectStores"),
-    Dispatcher: Filters.byProtos("dispatch"),
-    Store: Filters.byProtos("emitChange"),
-    BatchedStoreListener: Filters.byProtos("attach", "detach"),
-    useStateFromStores: Filters.bySource("useStateFromStores")
-}, ["Store", "Dispatcher", "useStateFromStores"]);
+    useStateFromStores,
+}: Partial<Module> = /* @__PURE__ */ Finder.demangle(
+    {
+        default: Filters.byKeys("Store", "connectStores"),
+        Dispatcher: Filters.byProtos("dispatch"),
+        Store: Filters.byProtos("emitChange"),
+        BatchedStoreListener: Filters.byProtos("attach", "detach"),
+        useStateFromStores: Filters.bySource("useStateFromStores"),
+    },
+    ["Store", "Dispatcher", "useStateFromStores"],
+);
 
 export interface SnapshotStoreClass {
-    new(): SnapshotStore;
+    new (): SnapshotStore;
     allStores: SnapshotStore[];
     clearAll(): void;
 }

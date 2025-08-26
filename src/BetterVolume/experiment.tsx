@@ -1,9 +1,9 @@
 // legacy code for disabling audio experiment
 
-import {Logger, React, Utils, getMeta} from "dium";
-import {ExperimentStore, ExperimentTreatment} from "@dium/modules";
-import {Text} from "@dium/components";
-import {Settings} from "./settings";
+import { Logger, React, Utils, getMeta } from "dium";
+import { ExperimentStore, ExperimentTreatment } from "@dium/modules";
+import { Text } from "@dium/components";
+import { Settings } from "./settings";
 
 const AUDIO_EXPERIMENT = "2022-09_remote_audio_settings";
 
@@ -20,7 +20,9 @@ const setAudioBucket = (bucket: number): void => {
 };
 
 // update on settings change
-Settings.addListener(({disableExperiment}) => setAudioBucket(disableExperiment ? ExperimentTreatment.CONTROL : initialAudioBucket));
+Settings.addListener(({ disableExperiment }) =>
+    setAudioBucket(disableExperiment ? ExperimentTreatment.CONTROL : initialAudioBucket),
+);
 
 const onLoadExperiments = (): void => {
     // initialize bucket
@@ -28,7 +30,7 @@ const onLoadExperiments = (): void => {
     Logger.log("Initial experiment bucket", initialAudioBucket);
 
     if (hasExperiment()) {
-        const {disableExperiment} = Settings.current;
+        const { disableExperiment } = Settings.current;
         Logger.log("Experiment setting:", disableExperiment);
         // check if we have to disable
         if (disableExperiment) {
@@ -36,15 +38,17 @@ const onLoadExperiments = (): void => {
             setAudioBucket(0);
         } else if (disableExperiment === null) {
             // initial value means we set to false and ask the user
-            Settings.update({disableExperiment: false});
-            Utils.confirm(getMeta().name, (
+            Settings.update({ disableExperiment: false });
+            Utils.confirm(
+                getMeta().name,
                 <Text color="text-normal">
-                    Your client has an experiment interfering with volumes greater than 200% enabled.
-                    Do you wish to disable it now and on future restarts?
-                </Text>
-            ), {
-                onConfirm: () => Settings.update({disableExperiment: true})
-            });
+                    Your client has an experiment interfering with volumes greater than 200% enabled. Do you wish to
+                    disable it now and on future restarts?
+                </Text>,
+                {
+                    onConfirm: () => Settings.update({ disableExperiment: true }),
+                },
+            );
         }
     }
 };

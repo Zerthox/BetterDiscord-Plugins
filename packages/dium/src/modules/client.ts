@@ -1,5 +1,5 @@
-import {Filters, Finder} from "../api";
-import type {Store} from "./flux";
+import { Filters, Finder } from "../api";
+import type { Store } from "./flux";
 
 export interface Platforms {
     PlatformTypes: {
@@ -81,7 +81,9 @@ export interface UserSetting<T> {
 
 export type UserSettings = Record<string, UserSetting<any>>;
 
-export const UserSettings: UserSettings = /* @__PURE__ */ Finder.find(Filters.byEntry(Filters.byKeys("updateSetting"), true));
+export const UserSettings: UserSettings = /* @__PURE__ */ Finder.find(
+    Filters.byEntry(Filters.byKeys("updateSetting"), true),
+);
 
 export interface UserSettingsProtoStore extends Store {
     computeState(): any;

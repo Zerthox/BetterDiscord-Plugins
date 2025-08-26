@@ -1,14 +1,14 @@
-import {React} from "dium";
-import {classNames} from "@dium/modules";
-import {Flex, Clickable, Text, IconArrow} from "@dium/components";
-import {getCollapsedState, updateCollapsedState} from "./settings";
+import { React } from "dium";
+import { classNames } from "@dium/modules";
+import { Flex, Clickable, Text, IconArrow } from "@dium/components";
+import { getCollapsedState, updateCollapsedState } from "./settings";
 import styles from "./styles.module.scss";
 
 export const enum AccessoryType {
     Embed = "embed",
     MediaItem = "mediaItem",
     MediaItemSingle = "mediaItemSingle",
-    Attachment = "attachment"
+    Attachment = "attachment",
 }
 
 export interface HiderProps {
@@ -18,7 +18,7 @@ export interface HiderProps {
     id?: string;
 }
 
-export const Hider = ({placeholders, type, children, id}: HiderProps): React.JSX.Element => {
+export const Hider = ({ placeholders, type, children, id }: HiderProps): React.JSX.Element => {
     const [shown, setShown] = React.useState(() => getCollapsedState(id));
 
     // refresh saved when id changes
@@ -32,23 +32,17 @@ export const Hider = ({placeholders, type, children, id}: HiderProps): React.JSX
     return (
         <Flex
             align={Flex.Align.CENTER}
-            className={classNames(
-                styles.container,
-                styles[type],
-                shown ? styles.expanded : styles.collapsed
-            )}
+            className={classNames(styles.container, styles[type], shown ? styles.expanded : styles.collapsed)}
         >
-            {shown ? children : placeholders.filter(Boolean).map((placeholder, i) => (
-                <Text key={i} variant="text-xs/normal" className={styles.placeholder}>{placeholder}</Text>
-            ))}
-            <Clickable
-                className={styles.hideButton}
-                onClick={toggleShown}
-            >
-                <IconArrow
-                    color="currentColor"
-                    className={classNames(styles.icon, shown ? styles.open : null)}
-                />
+            {shown
+                ? children
+                : placeholders.filter(Boolean).map((placeholder, i) => (
+                      <Text key={i} variant="text-xs/normal" className={styles.placeholder}>
+                          {placeholder}
+                      </Text>
+                  ))}
+            <Clickable className={styles.hideButton} onClick={toggleShown}>
+                <IconArrow color="currentColor" className={classNames(styles.icon, shown ? styles.open : null)} />
             </Clickable>
         </Flex>
     );

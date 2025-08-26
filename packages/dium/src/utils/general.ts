@@ -1,6 +1,7 @@
 import type * as BD from "betterdiscord";
 
-export const hasOwnProperty = (object: unknown, property: PropertyKey): boolean => Object.prototype.hasOwnProperty.call(object, property);
+export const hasOwnProperty = (object: unknown, property: PropertyKey): boolean =>
+    Object.prototype.hasOwnProperty.call(object, property);
 
 export const sleep = (duration: number): Promise<void> => new Promise((resolve) => setTimeout(resolve, duration));
 
@@ -10,7 +11,8 @@ export type ConfirmOptions = BD.ConfirmationModalOptions;
 
 /** Shows a confirmation modal. */
 // TODO: change to promise<boolean>?
-export const confirm = (title: string, content: string | React.ReactNode, options: ConfirmOptions = {}): string => BdApi.UI.showConfirmationModal(title, content, options);
+export const confirm = (title: string, content: string | React.ReactNode, options: ConfirmOptions = {}): string =>
+    BdApi.UI.showConfirmationModal(title, content, options);
 
 export const enum ToastType {
     Default = "",
@@ -19,7 +21,7 @@ export const enum ToastType {
     Warn = "warn",
     Warning = "warning",
     Danger = "danger",
-    Error = "error"
+    Error = "error",
 }
 
 export interface ToastOptions extends BD.ToastOptions {
@@ -29,18 +31,15 @@ export interface ToastOptions extends BD.ToastOptions {
 /** Shows a toast notification. */
 export const toast = (content: string, options: ToastOptions): void => BdApi.UI.showToast(content, options);
 
-export type MappedProxy<
-    T extends Record<any, any>,
-    M extends Record<any, keyof T>
-> = {
+export type MappedProxy<T extends Record<any, any>, M extends Record<any, keyof T>> = {
     [K in keyof M | keyof T]: T[M[K] extends never ? K : M[K]];
 };
 
 /** Creates a proxy mapping additional properties to other properties on the original. */
-export const mappedProxy = <
-    T extends Record<any, any>,
-    M extends Record<any, keyof T>
->(target: T, mapping: M): MappedProxy<T, M> => {
+export const mappedProxy = <T extends Record<any, any>, M extends Record<any, keyof T>>(
+    target: T,
+    mapping: M,
+): MappedProxy<T, M> => {
     const map = new Map(Object.entries(mapping));
     return new Proxy(target, {
         get(target, prop) {
@@ -67,6 +66,6 @@ export const mappedProxy = <
         defineProperty(target, prop, attributes) {
             Object.defineProperty(target, map.get(prop as any) ?? prop, attributes);
             return true;
-        }
+        },
     }) as any;
 };

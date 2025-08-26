@@ -1,6 +1,6 @@
-import {React} from "dium";
-import {Settings, counterLabels} from "./settings";
-import {Menu, MenuGroup, MenuCheckboxItem} from "@dium/components";
+import { React } from "dium";
+import { Settings, counterLabels } from "./settings";
+import { Menu, MenuGroup, MenuCheckboxItem } from "@dium/components";
 
 export const CountContextMenu = (props: React.ComponentProps<typeof Menu>): React.JSX.Element => {
     const [settings, setSettings] = Settings.useState();
@@ -8,13 +8,13 @@ export const CountContextMenu = (props: React.ComponentProps<typeof Menu>): Reac
     return (
         <Menu {...props}>
             <MenuGroup>
-                {Object.entries(counterLabels).map(([id, {label, long}]) => (
+                {Object.entries(counterLabels).map(([id, { label, long }]) => (
                     <MenuCheckboxItem
                         key={id}
                         id={id}
                         label={long ?? label}
                         checked={settings[id]}
-                        action={() => setSettings({[id]: !settings[id]})}
+                        action={() => setSettings({ [id]: !settings[id] })}
                     />
                 ))}
             </MenuGroup>
@@ -23,7 +23,7 @@ export const CountContextMenu = (props: React.ComponentProps<typeof Menu>): Reac
                     id="interval"
                     label="Auto rotate"
                     checked={settings.interval}
-                    action={() => setSettings({interval: !settings.interval})}
+                    action={() => setSettings({ interval: !settings.interval })}
                 />
             </MenuGroup>
         </Menu>

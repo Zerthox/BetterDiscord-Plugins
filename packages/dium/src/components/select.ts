@@ -1,4 +1,4 @@
-import {Finder, Filters} from "../api";
+import { Finder, Filters } from "../api";
 
 export interface SelectOption<T> {
     label: React.ReactNode;
@@ -32,7 +32,8 @@ export interface SelectProps<T, O extends SelectOption<T>> {
     "aria-labelledby"?: any;
 }
 
-export interface SingleSelectProps<T, O extends SelectOption<T>> extends Omit<SelectProps<T, O>, "select" | "isSelected" | "clear"> {
+export interface SingleSelectProps<T, O extends SelectOption<T>>
+    extends Omit<SelectProps<T, O>, "select" | "isSelected" | "clear"> {
     value: T;
     onChange?: (value: T) => void;
 }
@@ -42,7 +43,10 @@ interface SelectComponents {
     SingleSelect: <T, O extends SelectOption<T>>(props: SingleSelectProps<T, O>) => React.JSX.Element;
 }
 
-export const {Select, SingleSelect}: SelectComponents = /* @__PURE */ Finder.demangle({
-    Select: Filters.bySource("renderOptionLabel:", "renderOptionValue:", "popoutWidth:"),
-    SingleSelect: Filters.bySource((source) => /{value:[a-zA-Z_$],onChange:[a-zA-Z_$]}/.test(source))
-}, ["Select"]);
+export const { Select, SingleSelect }: SelectComponents = /* @__PURE */ Finder.demangle(
+    {
+        Select: Filters.bySource("renderOptionLabel:", "renderOptionValue:", "popoutWidth:"),
+        SingleSelect: Filters.bySource((source) => /{value:[a-zA-Z_$],onChange:[a-zA-Z_$]}/.test(source)),
+    },
+    ["Select"],
+);

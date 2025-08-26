@@ -1,5 +1,5 @@
-import {React} from "dium";
-import {classNames} from "@dium/modules";
+import { React } from "dium";
+import { classNames } from "@dium/modules";
 import {
     Flex,
     Button,
@@ -14,10 +14,10 @@ import {
     FormSwitch,
     FormDivider,
     SingleSelect,
-    margins
+    margins,
 } from "@dium/components";
-import {Settings, NotificationType} from "./settings";
-import {speak} from "./voice";
+import { Settings, NotificationType } from "./settings";
+import { speak } from "./voice";
 
 const titles: Record<NotificationType, string> = {
     mute: "Mute (Self)",
@@ -28,7 +28,7 @@ const titles: Record<NotificationType, string> = {
     leave: "Leave (Other Users)",
     joinSelf: "Join (Self)",
     moveSelf: "Move (Self)",
-    leaveSelf: "Leave (Self)"
+    leaveSelf: "Leave (Self)",
 };
 
 interface VoiceLabelProps {
@@ -36,22 +36,18 @@ interface VoiceLabelProps {
     lang: string;
 }
 
-const VoiceLabel = ({name, lang}: VoiceLabelProps): React.JSX.Element => (
+const VoiceLabel = ({ name, lang }: VoiceLabelProps): React.JSX.Element => (
     <Flex direction={Flex.Direction.HORIZONTAL} align={Flex.Align.CENTER}>
         <Text variant="text-md/normal">{name}</Text>
-        <Text
-            variant="text-xs/semibold"
-            style={{marginLeft: 8}}
-        >{lang}</Text>
+        <Text variant="text-xs/semibold" style={{ marginLeft: 8 }}>
+            {lang}
+        </Text>
     </Flex>
 );
 
 export const SettingsPanel = (): React.JSX.Element => {
-    const [
-        {voice, volume, speed, filterNames, filterBots, filterStages, ...settings},
-        defaults,
-        setSettings
-    ] = Settings.useStateWithDefaults();
+    const [{ voice, volume, speed, filterNames, filterBots, filterStages, ...settings }, defaults, setSettings] =
+        Settings.useStateWithDefaults();
 
     return (
         <>
@@ -59,14 +55,14 @@ export const SettingsPanel = (): React.JSX.Element => {
                 <FormTitle>TTS Voice</FormTitle>
                 <SingleSelect
                     value={voice}
-                    options={speechSynthesis.getVoices().map(({name, lang, voiceURI}) => ({
+                    options={speechSynthesis.getVoices().map(({ name, lang, voiceURI }) => ({
                         value: voiceURI,
                         label: name,
-                        lang
+                        lang,
                     }))}
-                    onChange={(value) => setSettings({voice: value})}
-                    renderOptionLabel={({label, lang}) => <VoiceLabel name={label} lang={lang}/>}
-                    renderOptionValue={([{label, lang}]) => <VoiceLabel name={label} lang={lang}/>}
+                    onChange={(value) => setSettings({ voice: value })}
+                    renderOptionLabel={({ label, lang }) => <VoiceLabel name={label} lang={lang} />}
+                    renderOptionValue={([{ label, lang }]) => <VoiceLabel name={label} lang={lang} />}
                 />
             </FormItem>
             <FormItem className={margins.marginBottom20}>
@@ -75,7 +71,7 @@ export const SettingsPanel = (): React.JSX.Element => {
                     initialValue={volume}
                     maxValue={100}
                     minValue={0}
-                    asValueChanges={(value: number) => setSettings({volume: value})}
+                    asValueChanges={(value: number) => setSettings({ volume: value })}
                 />
             </FormItem>
             <FormItem className={margins.marginBottom20}>
@@ -84,38 +80,59 @@ export const SettingsPanel = (): React.JSX.Element => {
                     initialValue={speed}
                     maxValue={10}
                     minValue={0.1}
-                    asValueChanges={(value: number) => setSettings({speed: value})}
+                    asValueChanges={(value: number) => setSettings({ speed: value })}
                     onValueRender={(value: number) => `${value.toFixed(2)}x`}
                     markers={[0.1, 1, 2, 5, 10]}
                     onMarkerRender={(value: number) => `${value.toFixed(2)}x`}
                 />
             </FormItem>
-            <FormDivider className={classNames(margins.marginTop20, margins.marginBottom20)}/>
+            <FormDivider className={classNames(margins.marginTop20, margins.marginBottom20)} />
             <FormItem>
                 <FormSwitch
                     value={filterNames}
-                    onChange={(checked) => setSettings({filterNames: checked})}
+                    onChange={(checked) => setSettings({ filterNames: checked })}
                     note="Limit user & channel names to alphanumeric characters."
-                >Enable Name Filter</FormSwitch>
+                >
+                    Enable Name Filter
+                </FormSwitch>
             </FormItem>
             <FormItem>
                 <FormSwitch
                     value={filterBots}
-                    onChange={(checked) => setSettings({filterBots: checked})}
+                    onChange={(checked) => setSettings({ filterBots: checked })}
                     note="Disable notifications for bot users in voice."
-                >Enable Bot Filter</FormSwitch>
+                >
+                    Enable Bot Filter
+                </FormSwitch>
             </FormItem>
             <FormItem>
                 <FormSwitch
                     value={filterStages}
-                    onChange={(checked) => setSettings({filterStages: checked})}
+                    onChange={(checked) => setSettings({ filterStages: checked })}
                     note="Disable notifications for stage voice channels."
-                >Enable Stage Filter</FormSwitch>
+                >
+                    Enable Stage Filter
+                </FormSwitch>
             </FormItem>
             <FormSection>
                 <FormTitle tag="h3">Notifications</FormTitle>
                 <FormText type="description" className={margins.marginBottom20}>
-                    <Text tag="span" variant="code">$user</Text> will get replaced with the respective User Nickname, <Text tag="span" variant="code">$displayname</Text> with the global User Display Name, <Text tag="span" variant="code">$username</Text> with the User Account name and <Text tag="span" variant="code">$channel</Text> with the respective Voice Channel name.
+                    <Text tag="span" variant="code">
+                        $user
+                    </Text>{" "}
+                    will get replaced with the respective User Nickname,{" "}
+                    <Text tag="span" variant="code">
+                        $displayname
+                    </Text>{" "}
+                    with the global User Display Name,{" "}
+                    <Text tag="span" variant="code">
+                        $username
+                    </Text>{" "}
+                    with the User Account name and{" "}
+                    <Text tag="span" variant="code">
+                        $channel
+                    </Text>{" "}
+                    with the respective Voice Channel name.
                 </FormText>
                 {Object.entries(titles).map(([key, title]) => (
                     <FormItem key={key} className={margins.marginBottom20}>
@@ -127,9 +144,9 @@ export const SettingsPanel = (): React.JSX.Element => {
                                         value={settings.notifs[key].message}
                                         placeholder={defaults.notifs[key].message}
                                         onChange={(value: string) => {
-                                            const {notifs} = settings;
+                                            const { notifs } = settings;
                                             notifs[key].message = value;
-                                            setSettings({notifs});
+                                            setSettings({ notifs });
                                         }}
                                     />
                                 </div>
@@ -139,9 +156,9 @@ export const SettingsPanel = (): React.JSX.Element => {
                                     <Switch
                                         checked={settings.notifs[key].enabled}
                                         onChange={(value: boolean) => {
-                                            const {notifs} = settings;
+                                            const { notifs } = settings;
                                             notifs[key].enabled = value;
-                                            setSettings({notifs});
+                                            setSettings({ notifs });
                                         }}
                                     />
                                 </div>
@@ -150,12 +167,18 @@ export const SettingsPanel = (): React.JSX.Element => {
                                 <div>
                                     <Button
                                         size={Button.Sizes.SMALL}
-                                        onClick={() => speak(
-                                            settings.notifs[key].message
-                                                .split("$user").join("user")
-                                                .split("$channel").join("channel")
-                                        )}
-                                    >Test</Button>
+                                        onClick={() =>
+                                            speak(
+                                                settings.notifs[key].message
+                                                    .split("$user")
+                                                    .join("user")
+                                                    .split("$channel")
+                                                    .join("channel"),
+                                            )
+                                        }
+                                    >
+                                        Test
+                                    </Button>
                                 </div>
                             </Flex.Child>
                         </Flex>
@@ -169,15 +192,14 @@ export const SettingsPanel = (): React.JSX.Element => {
                                 <TextInput
                                     value={settings.unknownChannel}
                                     placeholder={defaults.unknownChannel}
-                                    onChange={(value: string) => setSettings({unknownChannel: value})}
+                                    onChange={(value: string) => setSettings({ unknownChannel: value })}
                                 />
                             </div>
                         </Flex.Child>
                         <Flex.Child grow={0}>
-                            <Button
-                                size={Button.Sizes.SMALL}
-                                onClick={() => speak(settings.unknownChannel)}
-                            >Test</Button>
+                            <Button size={Button.Sizes.SMALL} onClick={() => speak(settings.unknownChannel)}>
+                                Test
+                            </Button>
                         </Flex.Child>
                     </Flex>
                 </FormItem>

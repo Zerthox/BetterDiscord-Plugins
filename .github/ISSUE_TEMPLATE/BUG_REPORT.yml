@@ -1,26 +1,26 @@
 name: Bug Report
 description: Create a bug report
 body:
-  - type: textarea
-    attributes:
-      label: Bug description
-    validations:
-      required: true
-  - type: input
-    attributes:
-      label: Plugin
-      placeholder: BetterFolders, BetterVolume etc.
-    validations:
-      required: true
-  - type: input
-    attributes:
-      label: Plugin version
-      placeholder: v1.x.x
-    validations:
-      required: true
-  - type: dropdown
-    attributes:
-      label: Discord client
-      options: [Stable, PTB, Canary]
-    validations:
-      required: true
+    - type: textarea
+      attributes:
+          label: Bug description
+      validations:
+          required: true
+    - type: input
+      attributes:
+          label: Plugin
+          placeholder: BetterFolders, BetterVolume etc.
+      validations:
+          required: true
+    - type: input
+      attributes:
+          label: Plugin version
+          placeholder: v1.x.x
+      validations:
+          required: true
+    - type: dropdown
+      attributes:
+          label: Discord client
+          options: [Stable, PTB, Canary]
+      validations:
+          required: true

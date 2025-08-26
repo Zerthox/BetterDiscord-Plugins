@@ -1,13 +1,13 @@
-import {createPlugin, createSettings, Logger, Finder, Patcher, Utils, React} from "dium";
-import {Platforms} from "@dium/modules";
+import { createPlugin, createSettings, Logger, Finder, Patcher, Utils, React } from "dium";
+import { Platforms } from "@dium/modules";
 
-const {PlatformTypes} = Platforms;
+const { PlatformTypes } = Platforms;
 const OverlayBridgeStore = Finder.byName("OverlayBridgeStore");
 
 const RadioGroup = Finder.byName("RadioGroup");
 
 const Settings = createSettings({
-    platform: null // TODO: get platform
+    platform: null, // TODO: get platform
 });
 
 const notify = (message: string, options: Utils.ToastOptions) => {
@@ -20,17 +20,27 @@ const triggerRerender = async () => {
 };
 
 const changePlatform = async (platform: any) => {
-    Settings.update({platform});
+    Settings.update({ platform });
     await triggerRerender();
-    const platformName = Platforms.isWindows() ? "Windows" : Platforms.isOSX() ? "MacOS" : Platforms.isLinux() ? "Linux" : "Browser";
-    notify(`Emulating ${platformName}`, {type: Utils.ToastType.Info, timeout: 5000});
+    const platformName = Platforms.isWindows()
+        ? "Windows"
+        : Platforms.isOSX()
+          ? "MacOS"
+          : Platforms.isLinux()
+            ? "Linux"
+            : "Browser";
+    notify(`Emulating ${platformName}`, { type: Utils.ToastType.Info, timeout: 5000 });
 };
 
 export default createPlugin({
     start() {
         // patch platform specific getters
         for (const platform of ["Windows", "OSX", "Linux", "Web"] as const) {
-            Patcher.instead(Platforms, `is${platform}`, () => Settings.current.platform === PlatformTypes[platform.toUpperCase()]);
+            Patcher.instead(
+                Platforms,
+                `is${platform}`,
+                () => Settings.current.platform === PlatformTypes[platform.toUpperCase()],
+            );
         }
 
         // patch overlay requirement
@@ -38,23 +48,23 @@ export default createPlugin({
     },
     async stop() {
         await triggerRerender();
-        notify("Stopped emulating", {type: Utils.ToastType.Info, timeout: 5000});
+        notify("Stopped emulating", { type: Utils.ToastType.Info, timeout: 5000 });
     },
     Settings,
     SettingsPanel: () => {
-        const {platform} = Settings.useCurrent();
+        const { platform } = Settings.useCurrent();
 
         return (
             <RadioGroup
                 value={platform}
-                onChange={({value}) => changePlatform(value)}
+                onChange={({ value }) => changePlatform(value)}
                 options={[
-                    {value: PlatformTypes.WINDOWS, name: "Windows"},
-                    {value: PlatformTypes.OSX, name: "MacOS"},
-                    {value: PlatformTypes.LINUX, name: "Linux"},
-                    {value: PlatformTypes.WEB, name: "Browser"}
+                    { value: PlatformTypes.WINDOWS, name: "Windows" },
+                    { value: PlatformTypes.OSX, name: "MacOS" },
+                    { value: PlatformTypes.LINUX, name: "Linux" },
+                    { value: PlatformTypes.WEB, name: "Browser" },
                 ]}
             />
         );
-    }
+    },
 });

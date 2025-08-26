@@ -1,4 +1,4 @@
-import {Finder, Filters} from "../api";
+import { Finder, Filters } from "../api";
 
 export const enum FormTags {
     H1 = "h1",
@@ -7,7 +7,7 @@ export const enum FormTags {
     H4 = "h4",
     H5 = "h5",
     LABEL = "label",
-    LEGEND = "legend"
+    LEGEND = "legend",
 }
 
 export interface FormSectionProps {
@@ -71,7 +71,7 @@ export const enum FormTextTypes {
     LABEL_SELECTED = "labelSelected",
     LABEL_DESCRIPTOR = "labelDescriptor",
     ERROR = "error",
-    SUCCESS = "success"
+    SUCCESS = "success",
 }
 
 export interface FormText extends React.FunctionComponent<FormTextProps> {
@@ -97,7 +97,7 @@ export const enum FormNoticeTypes {
     DANGER = "cardDanger",
     PRIMARY = "cardPrimary",
     SUCCESS = "cardSuccess",
-    WARNING = "cardWarning"
+    WARNING = "cardWarning",
 }
 
 export interface FormNoticeProps {
@@ -140,13 +140,16 @@ export const {
     // FormLabel,
     FormDivider,
     FormSwitch,
-    FormNotice
-}: FormComponents = /* @__PURE__ */ Finder.demangle({
-    FormSection: Filters.bySource("titleClassName:", ".sectionTitle"),
-    FormItem: Filters.bySource("titleClassName:", "required:"),
-    FormTitle: Filters.bySource("faded:", "required:"),
-    FormText: (target) => target.Types?.INPUT_PLACEHOLDER,
-    FormDivider: Filters.bySource(".divider", "style:"),
-    FormSwitch: Filters.bySource("tooltipNote:"),
-    FormNotice: Filters.bySource("imageData:", ".formNotice")
-} as const, ["FormSection", "FormItem", "FormDivider"]);
+    FormNotice,
+}: FormComponents = /* @__PURE__ */ Finder.demangle(
+    {
+        FormSection: Filters.bySource("titleClassName:", ".sectionTitle"),
+        FormItem: Filters.bySource("titleClassName:", "required:"),
+        FormTitle: Filters.bySource("faded:", "required:"),
+        FormText: (target) => target.Types?.INPUT_PLACEHOLDER,
+        FormDivider: Filters.bySource(".divider", "style:"),
+        FormSwitch: Filters.bySource("tooltipNote:"),
+        FormNotice: Filters.bySource("imageData:", ".formNotice"),
+    } as const,
+    ["FormSection", "FormItem", "FormDivider"],
+);

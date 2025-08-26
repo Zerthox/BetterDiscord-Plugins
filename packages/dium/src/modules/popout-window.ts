@@ -1,5 +1,5 @@
 import * as Finder from "../api/finder";
-import type {Action, Store} from "./flux";
+import type { Action, Store } from "./flux";
 
 export type PopoutWindowKey = string;
 

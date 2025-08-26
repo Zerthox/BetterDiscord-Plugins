@@ -1,11 +1,11 @@
 import path from "path";
-import {promises as fs} from "fs";
+import { promises as fs } from "fs";
 import camelCase from "lodash.camelcase";
 import upperFirst from "lodash.upperfirst";
-import type {PackageJson} from "type-fest";
-import type {Meta} from "betterdiscord";
+import type { PackageJson } from "type-fest";
+import type { Meta } from "betterdiscord";
 
-export type {Meta} from "betterdiscord";
+export type { Meta } from "betterdiscord";
 
 export interface PackageWithMeta extends PackageJson.PackageJsonStandard {
     meta?: Partial<Meta>;
@@ -37,16 +37,21 @@ export interface Options {
     authorGithub?: boolean;
 }
 
-export async function readMetaFromPkg(file: string, {authorGithub = false}: Options = {}): Promise<Meta> {
+export async function readMetaFromPkg(file: string, { authorGithub = false }: Options = {}): Promise<Meta> {
     const pkg = JSON.parse(await fs.readFile(file, "utf8")) as PackageWithMeta;
     return {
         name: upperFirst(camelCase(pkg.name)),
         version: pkg.version,
         author: typeof pkg.author === "string" ? pkg.author : pkg.author.name,
-        authorLink: typeof pkg.author === "object" ? pkg.author.url : (authorGithub ? `https://github.com/${pkg.author}` : undefined),
+        authorLink:
+            typeof pkg.author === "object"
+                ? pkg.author.url
+                : authorGithub
+                  ? `https://github.com/${pkg.author}`
+                  : undefined,
         description: pkg.description,
         website: pkg.homepage,
-        ...pkg.meta
+        ...pkg.meta,
     };
 }
 

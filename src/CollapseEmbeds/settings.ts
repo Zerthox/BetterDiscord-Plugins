@@ -1,4 +1,4 @@
-import {createSettings, Logger} from "dium";
+import { createSettings, Logger } from "dium";
 
 export const DAYS_TO_MILLIS = 24 * 60 * 60 * 1000;
 
@@ -18,11 +18,11 @@ export const Settings = createSettings<CollapsedState>({
     hideByDefault: false,
     saveStates: true,
     saveDuration: 30 * DAYS_TO_MILLIS,
-    collapsedStates: {}
+    collapsedStates: {},
 });
 
 export function getCollapsedState(id: string | undefined): boolean {
-    const {hideByDefault, saveStates, collapsedStates} = Settings.current;
+    const { hideByDefault, saveStates, collapsedStates } = Settings.current;
     if (saveStates && id) {
         return collapsedStates[id]?.shown ?? !hideByDefault;
     } else {
@@ -31,18 +31,18 @@ export function getCollapsedState(id: string | undefined): boolean {
 }
 
 export function updateCollapsedState(id: string | undefined, shown: boolean): void {
-    const {saveStates, collapsedStates} = Settings.current;
+    const { saveStates, collapsedStates } = Settings.current;
     if (saveStates && id) {
         collapsedStates[id] = {
             shown,
-            lastSeen: Date.now()
+            lastSeen: Date.now(),
         };
-        Settings.update({collapsedStates});
+        Settings.update({ collapsedStates });
     }
 }
 
 export function cleanupOldEntries(): void {
-    const {saveDuration, collapsedStates} = Settings.current;
+    const { saveDuration, collapsedStates } = Settings.current;
     const oldestAllowed = Date.now() - saveDuration;
     const entries = Object.entries(collapsedStates);
 
@@ -54,6 +54,6 @@ export function cleanupOldEntries(): void {
         }
     }
 
-    Settings.update({collapsedStates});
+    Settings.update({ collapsedStates });
     Logger.log(`Cleaned ${count} out of ${entries.length} entries`);
 }

@@ -1,4 +1,4 @@
-import {Finder} from "../api";
+import { Finder } from "../api";
 
 type CommonComponents = Record<string, any>;
 

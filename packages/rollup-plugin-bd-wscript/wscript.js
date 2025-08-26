@@ -6,7 +6,7 @@ shell.Popup(
     "Do NOT run scripts from the internet with the Windows Script Host!\nMove this file to your BetterDiscord plugins folder.",
     0,
     pluginName + ": Warning!",
-    0x1030
+    0x1030,
 );
 
 var fso = new ActiveXObject("Scripting.FileSystemObject");
@@ -16,25 +16,20 @@ if (!fso.FolderExists(pluginsPath)) {
         "Unable to find BetterDiscord on your computer.\nOpen the download page of BetterDiscord?",
         0,
         pluginName + ": BetterDiscord not found",
-        0x34
+        0x34,
     );
     if (popup === 6) {
-        shell.Exec("explorer \"https://betterdiscord.app\"");
+        shell.Exec('explorer "https://betterdiscord.app"');
     }
 } else if (WScript.ScriptFullName === pluginsPath + "\\" + WScript.ScriptName) {
     shell.Popup(
-        "This plugin is already in the correct folder.\nNavigate to the \"Plugins\" settings tab in Discord and enable it there.",
+        'This plugin is already in the correct folder.\nNavigate to the "Plugins" settings tab in Discord and enable it there.',
         0,
         pluginName,
-        0x40
+        0x40,
     );
 } else {
-    var popup = shell.Popup(
-        "Open the BetterDiscord plugins folder?",
-        0,
-        pluginName,
-        0x34
-    );
+    var popup = shell.Popup("Open the BetterDiscord plugins folder?", 0, pluginName, 0x34);
     if (popup === 6) {
         shell.Exec("explorer " + pluginsPath);
     }

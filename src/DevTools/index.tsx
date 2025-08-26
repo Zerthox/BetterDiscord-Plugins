@@ -3,14 +3,14 @@ import * as Modules from "@dium/modules";
 import * as Components from "@dium/components";
 import * as DevFinder from "./finder";
 
-const {Logger} = dium;
+const { Logger } = dium;
 
 // add extensions
 const diumGlobal = {
     ...dium,
-    Finder: {...dium.Finder, dev: DevFinder},
+    Finder: { ...dium.Finder, dev: DevFinder },
     Modules,
-    Components
+    Components,
 };
 
 declare global {
@@ -39,5 +39,5 @@ export default dium.createPlugin({
     },
     stop() {
         delete window.dium;
-    }
+    },
 });

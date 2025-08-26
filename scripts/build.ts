@@ -1,14 +1,14 @@
 import path from "path";
-import {readdirSync} from "fs";
+import { readdirSync } from "fs";
 import minimist from "minimist";
 import chalk from "chalk";
 import * as rollup from "rollup";
 import styleModules from "rollup-plugin-style-modules";
-import {resolvePkg, readMetaFromPkg} from "bd-meta";
+import { resolvePkg, readMetaFromPkg } from "bd-meta";
 import bdMeta from "rollup-plugin-bd-meta";
 import bdWScript from "rollup-plugin-bd-wscript";
 import rollupConfig from "../rollup.config";
-import {repository} from "../package.json";
+import { repository } from "../package.json";
 
 const success = (msg: string) => console.log(chalk.green(msg));
 const warn = (msg: string) => console.warn(chalk.yellow(`Warn: ${msg}`));
@@ -16,10 +16,10 @@ const error = (msg: string) => console.error(chalk.red(`Error: ${msg}`));
 
 // find sources
 const sourceFolder = path.resolve(__dirname, "../src");
-const sourceEntries = readdirSync(sourceFolder, {withFileTypes: true}).filter((entry) => entry.isDirectory());
+const sourceEntries = readdirSync(sourceFolder, { withFileTypes: true }).filter((entry) => entry.isDirectory());
 
 // parse args
-const args = minimist(process.argv.slice(2), {boolean: ["dev", "watch"]});
+const args = minimist(process.argv.slice(2), { boolean: ["dev", "watch"] });
 
 // resolve input paths
 let inputPaths: string[] = [];
@@ -43,12 +43,16 @@ if (inputPaths.length === 0) {
 }
 
 // resolve output directory
-const outDir = args.dev ? path.resolve(
-    process.platform === "win32" ? process.env.APPDATA
-        : process.platform === "darwin" ? path.resolve(process.env.HOME, "Library/Application Support")
-            : path.resolve(process.env.HOME, ".config"),
-    "BetterDiscord/plugins"
-) : path.resolve(__dirname, "../dist/bd");
+const outDir = args.dev
+    ? path.resolve(
+          process.platform === "win32"
+              ? process.env.APPDATA
+              : process.platform === "darwin"
+                ? path.resolve(process.env.HOME, "Library/Application Support")
+                : path.resolve(process.env.HOME, ".config"),
+          "BetterDiscord/plugins",
+      )
+    : path.resolve(__dirname, "../dist/bd");
 
 const watchers: Record<string, rollup.RollupWatcher> = {};
 
@@ -89,7 +93,7 @@ async function build(inputPath: string, outputPath: string): Promise<void> {
 async function watch(inputPath: string, outputPath: string): Promise<void> {
     const pkgPath = await resolvePkg(inputPath);
     const meta = await readMetaFromPkg(pkgPath);
-    const {plugins, ...config} = generateRollupConfig(meta.name, inputPath, outputPath);
+    const { plugins, ...config } = generateRollupConfig(meta.name, inputPath, outputPath);
 
     // start watching
     const watcher = rollup.watch({
@@ -100,9 +104,9 @@ async function watch(inputPath: string, outputPath: string): Promise<void> {
                 name: "package-watcher",
                 buildStart() {
                     this.addWatchFile(pkgPath);
-                }
-            }
-        ]
+                },
+            },
+        ],
     });
 
     // close finished bundles
@@ -132,7 +136,7 @@ interface RollupConfig extends Omit<rollup.RollupOptions, "output"> {
 }
 
 function generateRollupConfig(name: string, inputPath: string, outputPath: string): RollupConfig {
-    const {output, plugins, ...rest} = rollupConfig;
+    const { output, plugins, ...rest } = rollupConfig;
 
     return {
         ...rest,
@@ -141,22 +145,22 @@ function generateRollupConfig(name: string, inputPath: string, outputPath: strin
             plugins,
             styleModules({
                 modules: {
-                    generateScopedName: `[local]-${name}`
+                    generateScopedName: `[local]-${name}`,
                 },
-                cleanup: true
+                cleanup: true,
             }),
             bdMeta({
                 meta: {
                     website: repository,
-                    source: `${repository}/tree/master/src/${path.basename(inputPath)}`
+                    source: `${repository}/tree/master/src/${path.basename(inputPath)}`,
                 },
-                authorGithub: true
+                authorGithub: true,
             }),
-            bdWScript()
+            bdWScript(),
         ],
         output: {
             ...output,
-            file: outputPath
-        }
+            file: outputPath,
+        },
     };
 }

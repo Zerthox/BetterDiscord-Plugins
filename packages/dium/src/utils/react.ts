@@ -1,7 +1,7 @@
 import * as Patcher from "../api/patcher";
-import {React} from "../modules";
-import type {JSX, ReactElement, ReactNode} from "react";
-import type {Fiber, OwnerFiber} from "../react-internals";
+import { React } from "../modules";
+import type { JSX, ReactElement, ReactNode } from "react";
+import type { Fiber, OwnerFiber } from "../react-internals";
 
 export type FCHookCallback<P> = (result: ReactNode, targetProps: P) => ReactNode | void;
 
@@ -11,9 +11,9 @@ interface FCHookProps<P> {
 }
 
 /** Utility component hooking into a function component. */
-const FCHook = <P>({children: {type, props}, callback}: FCHookProps<P>): ReactNode => {
+const FCHook = <P>({ children: { type, props }, callback }: FCHookProps<P>): ReactNode => {
     const result = type(props) as ReactNode;
-    return callback(result, props) as ReactNode ?? result;
+    return (callback(result, props) as ReactNode) ?? result;
 };
 
 /** Hooks into a function component, allowing to modify the rendered elements. */
@@ -23,8 +23,8 @@ export const hookFunctionComponent = <P>(
 ): React.JSX.Element => {
     // replace original with hook component, move target element to children
     const props: FCHookProps<P> = {
-        children: {...target},
-        callback
+        children: { ...target },
+        callback,
     };
     target.props = props as any;
     target.type = FCHook as any;
@@ -75,9 +75,9 @@ export const queryTree = (node: ReactTree, predicate: Predicate<JSX.Element>): J
 
 /**
  * Searches a React element tree for all elements matching the predicate.
-*
-* This uses a breadth first search (BFS).
-*/
+ *
+ * This uses a breadth first search (BFS).
+ */
 export const queryTreeAll = (node: ReactTree, predicate: Predicate<JSX.Element>): JSX.Element[] => {
     const result = [];
     const worklist = [node].flat();
@@ -101,14 +101,17 @@ export const queryTreeAll = (node: ReactTree, predicate: Predicate<JSX.Element>)
     return result;
 };
 
-export type ElementWithChildren = ReactElement<{children?: ReactElement[]} & Record<string, any>>;
+export type ElementWithChildren = ReactElement<{ children?: ReactElement[] } & Record<string, any>>;
 
 /**
  * Searches a React element tree for an element whose children are in an array and one child matches the predicate.
  *
  * Returns the parent node and the index.
  */
-export const queryTreeForParent = (tree: ReactTree, predicate: Predicate<JSX.Element>): [ElementWithChildren | null, number] => {
+export const queryTreeForParent = (
+    tree: ReactTree,
+    predicate: Predicate<JSX.Element>,
+): [ElementWithChildren | null, number] => {
     let childIndex = -1;
 
     const parent = queryTree(tree, (node) => {
@@ -136,7 +139,7 @@ export const enum Direction {
     None = "",
     Up = "up",
     Down = "down",
-    Both = "both"
+    Both = "both",
 }
 
 /**
@@ -149,7 +152,7 @@ export const queryFiber = (
     fiber: Fiber,
     predicate: Predicate<Fiber>,
     direction: Direction | null = Direction.Up,
-    depth = 30
+    depth = 30,
 ): Fiber | null => {
     // check depth
     if (depth < 0) {
@@ -195,34 +198,36 @@ export const findOwner = (fiber: Fiber, depth = 50): OwnerFiber | null => {
 };
 
 /** Triggers a force update on the fiber node's owner. */
-export const forceUpdateOwner = (fiber: Fiber): Promise<boolean> => new Promise((resolve) => {
-    // find owner
-    const owner = findOwner(fiber);
-    if (owner) {
-        // force update
-        owner.stateNode.forceUpdate(() => resolve(true));
-    } else {
-        resolve(false);
-    }
-});
+export const forceUpdateOwner = (fiber: Fiber): Promise<boolean> =>
+    new Promise((resolve) => {
+        // find owner
+        const owner = findOwner(fiber);
+        if (owner) {
+            // force update
+            owner.stateNode.forceUpdate(() => resolve(true));
+        } else {
+            resolve(false);
+        }
+    });
 
 /**
  * Forces a complete rerender on the fiber node's owner.
  *
  * This removes all child nodes currently rendered by the owner.
  */
-export const forceFullRerender = (fiber: Fiber): Promise<boolean> => new Promise((resolve) => {
-    // find owner
-    const owner = findOwner(fiber);
-    if (owner) {
-        const {stateNode} = owner;
+export const forceFullRerender = (fiber: Fiber): Promise<boolean> =>
+    new Promise((resolve) => {
+        // find owner
+        const owner = findOwner(fiber);
+        if (owner) {
+            const { stateNode } = owner;
 
-        // render no elements in next render
-        Patcher.instead(stateNode, "render", () => null, {once: true, silent: true});
+            // render no elements in next render
+            Patcher.instead(stateNode, "render", () => null, { once: true, silent: true });
 
-        // force update twice
-        stateNode.forceUpdate(() => stateNode.forceUpdate(() => resolve(true)));
-    } else {
-        resolve(false);
-    }
-});
+            // force update twice
+            stateNode.forceUpdate(() => stateNode.forceUpdate(() => resolve(true)));
+        } else {
+            resolve(false);
+        }
+    });

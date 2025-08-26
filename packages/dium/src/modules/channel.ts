@@ -1,6 +1,6 @@
-import {Finder} from "../api";
-import type {Snowflake, ActionModule} from "./general";
-import type {Store} from "./flux";
+import { Finder } from "../api";
+import type { Snowflake, ActionModule } from "./general";
+import type { Store } from "./flux";
 
 /** A Channel. */
 export interface Channel {
@@ -26,12 +26,15 @@ export interface Channel {
     originChannelId?: Snowflake;
     ownerId?: Snowflake;
 
-    permissionOverwrites: Record<Snowflake, {
-        type: number;
-        id: Snowflake;
-        allow: Permissions;
-        deny: Permissions;
-    }>;
+    permissionOverwrites: Record<
+        Snowflake,
+        {
+            type: number;
+            id: Snowflake;
+            allow: Permissions;
+            deny: Permissions;
+        }
+    >;
 
     position: number;
     lastMessageId: Snowflake;
@@ -86,7 +89,7 @@ export const enum ChannelTypes {
     PrivateThread = 12,
     GuildStageVoice = 13,
     GuildDirectory = 14,
-    GuildForum = 15
+    GuildForum = 15,
 }
 
 export interface ChannelStore extends Store {

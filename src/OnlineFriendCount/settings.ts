@@ -1,4 +1,4 @@
-import {createSettings} from "dium";
+import { createSettings } from "dium";
 
 export const Settings = createSettings({
     guilds: false,
@@ -6,7 +6,7 @@ export const Settings = createSettings({
     friendsOnline: true,
     pending: false,
     blocked: false,
-    interval: false
+    interval: false,
 });
 
 export const enum CounterType {
@@ -14,26 +14,26 @@ export const enum CounterType {
     Friends = "friends",
     FriendsOnline = "friendsOnline",
     Pending = "pending",
-    Blocked = "blocked"
+    Blocked = "blocked",
 }
 
-export const counterLabels: Record<CounterType, {label: string; long?: string}> = {
+export const counterLabels: Record<CounterType, { label: string; long?: string }> = {
     guilds: {
-        label: "Servers"
+        label: "Servers",
     },
     friends: {
-        label: "Friends"
+        label: "Friends",
     },
     friendsOnline: {
         label: "Online",
-        long: "Online Friends"
+        long: "Online Friends",
     },
     pending: {
         label: "Pending",
-        long: "Pending Friend Requests"
+        long: "Pending Friend Requests",
     },
     blocked: {
         label: "Blocked",
-        long: "Blocked Users"
-    }
+        long: "Blocked Users",
+    },
 };

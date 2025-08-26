@@ -1,4 +1,4 @@
-import {Finder} from "../api";
+import { Finder } from "../api";
 
 export interface FlexProps {
     children?: React.ReactNode;
@@ -46,4 +46,4 @@ export interface Flex extends React.FunctionComponent<FlexProps> {
     Child: React.FunctionComponent<any>;
 }
 
-export const Flex: Flex = /* @__PURE__ */ Finder.byKeys(["Child", "Justify", "Align"], {entries: true});
+export const Flex: Flex = /* @__PURE__ */ Finder.byKeys(["Child", "Justify", "Align"], { entries: true });

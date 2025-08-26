@@ -1,4 +1,4 @@
-import {React, Flux} from "./modules";
+import { React, Flux } from "./modules";
 import * as Data from "./api/data";
 
 export type Listener<T> = (current: T) => void;
@@ -35,7 +35,7 @@ export class SettingsStore<T extends Record<string, any>> implements Flux.StoreL
 
     /** Loads settings. */
     load(): void {
-        this.current = {...this.defaults, ...Data.load("settings")};
+        this.current = { ...this.defaults, ...Data.load("settings") };
         this.onLoad?.();
         this._dispatch(false);
     }
@@ -44,7 +44,7 @@ export class SettingsStore<T extends Record<string, any>> implements Flux.StoreL
      * Dispatches a settings update.
      *
      * @param save Whether to save the settings.
-    */
+     */
     _dispatch(save: boolean): void {
         for (const listener of this.listeners) {
             listener(this.current);
@@ -72,19 +72,19 @@ export class SettingsStore<T extends Record<string, any>> implements Flux.StoreL
      */
     update = (settings: Update<T>): void => {
         const update = typeof settings === "function" ? settings(this.current) : settings;
-        this.current = {...this.current, ...update};
+        this.current = { ...this.current, ...update };
         this._dispatch(true);
     };
 
     /** Resets all settings to their defaults. */
     reset(): void {
-        this.current = {...this.defaults};
+        this.current = { ...this.defaults };
         this._dispatch(true);
     }
 
     /** Deletes settings using their keys. */
     delete(...keys: string[]): void {
-        this.current = {...this.current};
+        this.current = { ...this.current };
         for (const key of keys) {
             delete this.current[key];
         }
@@ -117,15 +117,22 @@ export class SettingsStore<T extends Record<string, any>> implements Flux.StoreL
      * const entry = Settings.useSelector((current) => current.entry);
      * ```
      */
-    useSelector<R>(selector: (current: T) => R, deps: React.DependencyList = null, compare: (a: R, b: R) => boolean = Object.is): R {
+    useSelector<R>(
+        selector: (current: T) => R,
+        deps: React.DependencyList = null,
+        compare: (a: R, b: R) => boolean = Object.is,
+    ): R {
         const state = React.useRef(null);
-        const snapshot = React.useCallback(() => {
-            const next = selector(this.current);
-            if (!compare(state.current, next)) {
-                state.current = next;
-            }
-            return state.current;
-        }, deps ?? [selector]);
+        const snapshot = React.useCallback(
+            () => {
+                const next = selector(this.current);
+                if (!compare(state.current, next)) {
+                    state.current = next;
+                }
+                return state.current;
+            },
+            deps ?? [selector],
+        );
         return React.useSyncExternalStore(this.addListenerEffect, snapshot);
     }
 
@@ -176,7 +183,7 @@ export class SettingsStore<T extends Record<string, any>> implements Flux.StoreL
     }
 
     /** Registers a new settings change listener, returning a callback to remove it. */
-    addListenerEffect = (listener: Listener<T>): () => void => {
+    addListenerEffect = (listener: Listener<T>): (() => void) => {
         this.addListener(listener);
         return () => this.removeListener(listener);
     };
@@ -201,4 +208,5 @@ export class SettingsStore<T extends Record<string, any>> implements Flux.StoreL
  *
  * For details see {@link SettingsStore}.
  */
-export const createSettings = <T extends Record<string, any>>(defaults: T, onLoad?: () => void): SettingsStore<T> => new SettingsStore(defaults, onLoad);
+export const createSettings = <T extends Record<string, any>>(defaults: T, onLoad?: () => void): SettingsStore<T> =>
+    new SettingsStore(defaults, onLoad);

@@ -1,4 +1,4 @@
-import {Finder} from "../api";
+import { Finder } from "../api";
 
 export interface Margins {
     marginBottom4: string;

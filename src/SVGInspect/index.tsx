@@ -1,10 +1,15 @@
-import {createPlugin, Finder, React} from "dium";
+import { createPlugin, Finder, React } from "dium";
 
 const excludes = [".bodyWaveGradient", ".circleOverlay"];
 
-const components = Finder.all.bySource([
-    (source) => /\.(?:createElement|jsxs?)\)?\("svg",/.test(source) && !excludes.some((fragment) => source.includes(fragment))
-], {entries: true});
+const components = Finder.all.bySource(
+    [
+        (source) =>
+            /\.(?:createElement|jsxs?)\)?\("svg",/.test(source)
+            && !excludes.some((fragment) => source.includes(fragment)),
+    ],
+    { entries: true },
+);
 
 interface ErrorBoundaryProps {
     children?: React.ReactNode;
@@ -17,13 +22,13 @@ interface ErrorBoundaryState {
 class ErrorBoundary extends React.Component<ErrorBoundaryProps, ErrorBoundaryState> {
     constructor(props: ErrorBoundaryProps) {
         super(props);
-        this.state = {hasError: false};
+        this.state = { hasError: false };
     }
     render() {
         return !this.state.hasError ? this.props.children : null;
     }
     static getDerivedStateFromError() {
-        return {hasError: true};
+        return { hasError: true };
     }
 }
 
@@ -33,10 +38,10 @@ export default createPlugin({
             {components.map((SVG, i) => (
                 <div key={i}>
                     <ErrorBoundary>
-                        <SVG open/>
+                        <SVG open />
                     </ErrorBoundary>
                 </div>
             ))}
         </>
-    )
+    ),
 });

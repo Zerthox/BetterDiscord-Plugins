@@ -1,4 +1,4 @@
-import {defineConfig} from "rollup";
+import { defineConfig } from "rollup";
 import json from "@rollup/plugin-json";
 import scss from "rollup-plugin-scss";
 import typescript from "@rollup/plugin-typescript";
@@ -10,30 +10,30 @@ export default defineConfig({
         exports: "default",
         generatedCode: {
             constBindings: true,
-            objectShorthand: true
+            objectShorthand: true,
         },
-        freeze: false
+        freeze: false,
     },
     plugins: [
         json({
             namedExports: true,
-            preferConst: true
+            preferConst: true,
         }),
         scss({
-            output: false
+            output: false,
         }),
         typescript(),
         cleanup({
             comments: [/[@#]__PURE__/],
             maxEmptyLines: 0,
             extensions: ["js", "ts", "tsx"],
-            sourcemap: false
-        })
+            sourcemap: false,
+        }),
     ],
     treeshake: {
         preset: "smallest",
         annotations: true,
         moduleSideEffects: false,
-        propertyReadSideEffects: false
-    }
+        propertyReadSideEffects: false,
+    },
 });

@@ -1,8 +1,8 @@
-import {Finder} from "../api";
+import { Finder } from "../api";
 
 export const enum TextInputSizes {
     DEFAULT = "default",
-    MINI = "mini"
+    MINI = "mini",
 }
 
 export interface TextInputProps extends Omit<React.InputHTMLAttributes<HTMLInputElement>, "size" | "onChange"> {
@@ -30,8 +30,12 @@ export interface TextInputProps extends Omit<React.InputHTMLAttributes<HTMLInput
     onChange?: (value: string, name: string) => void;
 }
 
-export const TextInput: React.ComponentClass<TextInputProps, any> = /* @__PURE__ */ Finder.bySource(["placeholder", "maxLength", "clearable"], {entries: true});
+export const TextInput: React.ComponentClass<TextInputProps, any> = /* @__PURE__ */ Finder.bySource(
+    ["placeholder", "maxLength", "clearable"],
+    { entries: true },
+);
 
 export const ImageInput: React.ComponentClass<any> = /* @__PURE__ */ Finder.find(
-    (target) => typeof target.defaultProps?.multiple === "boolean" && typeof target.defaultProps?.maxFileSizeBytes === "number"
+    (target) =>
+        typeof target.defaultProps?.multiple === "boolean" && typeof target.defaultProps?.maxFileSizeBytes === "number",
 );

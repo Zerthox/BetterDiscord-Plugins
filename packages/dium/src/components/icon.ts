@@ -1,4 +1,4 @@
-import {Finder} from "../api";
+import { Finder } from "../api";
 
 export interface IconArrowProps extends Record<string, any> {
     width?: number;
@@ -8,4 +8,6 @@ export interface IconArrowProps extends Record<string, any> {
 }
 
 // chevron small down icon
-export const IconArrow: React.FunctionComponent<IconArrowProps> = /* @__PURE__ */ Finder.bySource(["d:\"M5.3 9."], {entries: true});
+export const IconArrow: React.FunctionComponent<IconArrowProps> = /* @__PURE__ */ Finder.bySource(['d:"M5.3 9.'], {
+    entries: true,
+});

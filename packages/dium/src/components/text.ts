@@ -1,4 +1,4 @@
-import {Finder} from "../api";
+import { Finder } from "../api";
 
 export interface TextProps {
     variant?: TextVariants;
@@ -14,7 +14,7 @@ export interface TextProps {
 }
 
 type TextVariants =
-    "code"
+    | "code"
     | "display-lg"
     | "display-md"
     | "display-sm"
@@ -70,4 +70,7 @@ type TextVariants =
     | "text-xxs/normal"
     | "text-xxs/semibold";
 
-export const Text: React.FunctionComponent<TextProps> = /* @__PURE__ */ Finder.bySource(["lineClamp:", "variant:", "tabularNumbers:"], {entries: true});
+export const Text: React.FunctionComponent<TextProps> = /* @__PURE__ */ Finder.bySource(
+    ["lineClamp:", "variant:", "tabularNumbers:"],
+    { entries: true },
+);

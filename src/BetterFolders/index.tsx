@@ -1,10 +1,10 @@
-import {createPlugin, Logger, Filters, Finder, Patcher, Utils, React, Fiber} from "dium";
-import {ClientActions, ExpandedGuildFolderStore} from "@dium/modules";
-import {FormSwitch} from "@dium/components";
-import {Settings} from "./settings";
-import {ConnectedBetterFolderIcon} from "./icon";
-import {folderModalPatch, FolderSettingsModal} from "./modal";
-import {css} from "./styles.module.scss";
+import { createPlugin, Logger, Filters, Finder, Patcher, Utils, React, Fiber } from "dium";
+import { ClientActions, ExpandedGuildFolderStore } from "@dium/modules";
+import { FormSwitch } from "@dium/components";
+import { Settings } from "./settings";
+import { ConnectedBetterFolderIcon } from "./icon";
+import { folderModalPatch, FolderSettingsModal } from "./modal";
+import { css } from "./styles.module.scss";
 
 const guildStyles = Finder.byKeys(["guilds", "base"]);
 
@@ -25,31 +25,42 @@ export default createPlugin({
 
         // patch folder icon wrapper
         // icon is in same module, not exported
-        const FolderIconWrapper = Finder.findWithKey<React.FunctionComponent<any>>(Filters.bySource("folderIconWrapper"));
-        Patcher.after(...FolderIconWrapper, ({args: [props], result}) => {
-            const icon = Utils.queryTree(result, (node) => node?.props?.folderNode) as React.ReactElement<any, React.FunctionComponent<any>>;
-            if (!icon) {
-                return Logger.error("Unable to find FolderIcon component");
-            }
+        const FolderIconWrapper = Finder.findWithKey<React.FunctionComponent<any>>(
+            Filters.bySource("folderIconWrapper"),
+        );
+        Patcher.after(
+            ...FolderIconWrapper,
+            ({ args: [props], result }) => {
+                const icon = Utils.queryTree(result, (node) => node?.props?.folderNode) as React.ReactElement<
+                    any,
+                    React.FunctionComponent<any>
+                >;
+                if (!icon) {
+                    return Logger.error("Unable to find FolderIcon component");
+                }
 
-            // save icon component
-            if (!FolderIcon) {
-                Logger.log("Found FolderIcon component");
-                FolderIcon = icon.type;
-            }
+                // save icon component
+                if (!FolderIcon) {
+                    Logger.log("Found FolderIcon component");
+                    FolderIcon = icon.type;
+                }
 
-            // replace icon with own component
-            const replace = <ConnectedBetterFolderIcon
-                folderId={props.folderNode.id}
-                childProps={icon.props}
-                FolderIcon={FolderIcon}
-            />;
-            Utils.replaceElement(icon, replace);
-        }, {name: "FolderIconWrapper"});
+                // replace icon with own component
+                const replace = (
+                    <ConnectedBetterFolderIcon
+                        folderId={props.folderNode.id}
+                        childProps={icon.props}
+                        FolderIcon={FolderIcon}
+                    />
+                );
+                Utils.replaceElement(icon, replace);
+            },
+            { name: "FolderIconWrapper" },
+        );
         triggerRerender(guildsOwner);
 
         // patch folder expand
-        Patcher.after(ClientActions, "toggleGuildFolderExpand", ({original, args: [folderId]}) => {
+        Patcher.after(ClientActions, "toggleGuildFolderExpand", ({ original, args: [folderId] }) => {
             if (Settings.current.closeOnOpen) {
                 for (const id of ExpandedGuildFolderStore.getExpandedFolders()) {
                     if (id !== folderId) {
@@ -60,16 +71,15 @@ export default createPlugin({
         });
 
         // patch folder settings render
-        Finder.waitFor(Filters.bySource(".folderName", ".onClose"), {entries: true}).then((FolderSettingsModal: FolderSettingsModal) => {
-            if (FolderSettingsModal) {
-                Patcher.after(
-                    FolderSettingsModal.prototype,
-                    "render",
-                    folderModalPatch,
-                    {name: "GuildFolderSettingsModal"}
-                );
-            }
-        });
+        Finder.waitFor(Filters.bySource(".folderName", ".onClose"), { entries: true }).then(
+            (FolderSettingsModal: FolderSettingsModal) => {
+                if (FolderSettingsModal) {
+                    Patcher.after(FolderSettingsModal.prototype, "render", folderModalPatch, {
+                        name: "GuildFolderSettingsModal",
+                    });
+                }
+            },
+        );
     },
     stop() {
         triggerRerender(getGuildsOwner());
@@ -77,7 +87,7 @@ export default createPlugin({
     styles: css,
     Settings,
     SettingsPanel: () => {
-        const [{closeOnOpen}, setSettings] = Settings.useState();
+        const [{ closeOnOpen }, setSettings] = Settings.useState();
 
         return (
             <FormSwitch
@@ -91,9 +101,11 @@ export default createPlugin({
                             ClientActions.toggleGuildFolderExpand(id);
                         }
                     }
-                    setSettings({closeOnOpen: checked});
+                    setSettings({ closeOnOpen: checked });
                 }}
-            >Close on open</FormSwitch>
+            >
+                Close on open
+            </FormSwitch>
         );
-    }
+    },
 });

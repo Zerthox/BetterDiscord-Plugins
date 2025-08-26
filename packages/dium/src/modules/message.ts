@@ -1,6 +1,6 @@
-import {Finder} from "../api";
-import type {Untyped, Snowflake, User, ActionModule} from ".";
-import type {Store} from "./flux";
+import { Finder } from "../api";
+import type { Untyped, Snowflake, User, ActionModule } from ".";
+import type { Store } from "./flux";
 
 export const enum MessageTypes {
     Default = 0,
@@ -26,13 +26,13 @@ export const enum MessageTypes {
     ChatInputCommand = 20,
     ThreadStarterMessage = 21,
     GuildInviteReminder = 22,
-    ContextMenuCommand = 23
+    ContextMenuCommand = 23,
 }
 
 export const enum MessageStates {
     Sending = "SENDING",
     SendFailed = "SEND_FAILED",
-    Sent = "SENT"
+    Sent = "SENT",
 }
 
 export const enum MessageFlags {
@@ -45,7 +45,7 @@ export const enum MessageFlags {
     HasThread = 32,
     Ephemeral = 64,
     Loading = 128,
-    FailedToMentionSomeRolesInThread = 256
+    FailedToMentionSomeRolesInThread = 256,
 }
 
 /** A message. */
@@ -119,7 +119,7 @@ export const enum EmbedTypes {
     TWEET = "tweet",
     APPLICATION_NEWS = "application_news",
     AUTO_MODERATION_MESSAGE = "auto_moderation_message",
-    AUTO_MODERATION_NOTIFICATION = "auto_moderation_notification"
+    AUTO_MODERATION_NOTIFICATION = "auto_moderation_notification",
 }
 
 export interface Embed {

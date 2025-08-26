@@ -1,7 +1,7 @@
-import {Logger, Utils, React, getMeta} from "dium";
-import {ChannelStore, UserStore, GuildMemberStore} from "@dium/modules";
-import {Text} from "@dium/components";
-import {Settings, NotificationType} from "./settings";
+import { Logger, Utils, React, getMeta } from "dium";
+import { ChannelStore, UserStore, GuildMemberStore } from "@dium/modules";
+import { Text } from "@dium/components";
+import { Settings, NotificationType } from "./settings";
 
 export const findDefaultVoice = (): SpeechSynthesisVoice => {
     const voices = speechSynthesis.getVoices();
@@ -11,9 +11,9 @@ export const findDefaultVoice = (): SpeechSynthesisVoice => {
             getMeta().name,
             <Text color="text-normal">
                 Electron does not have any Speech Synthesis Voices available on your system.
-                <br/>
+                <br />
                 The plugin will be unable to function properly.
-            </Text>
+            </Text>,
         );
         return null;
     } else {
@@ -29,13 +29,13 @@ export const findCurrentVoice = (): SpeechSynthesisVoice => {
     } else {
         Logger.warn(`Voice "${uri}" not found, reverting to default`);
         const defaultVoice = findDefaultVoice();
-        Settings.update({voice: defaultVoice.voiceURI});
+        Settings.update({ voice: defaultVoice.voiceURI });
         return defaultVoice;
     }
 };
 
 export const speak = (message: string): void => {
-    const {volume, speed} = Settings.current;
+    const { volume, speed } = Settings.current;
 
     const utterance = new SpeechSynthesisUtterance(message);
     utterance.voice = findCurrentVoice();
@@ -46,7 +46,12 @@ export const speak = (message: string): void => {
 };
 
 const processName = (name: string) => {
-    return Settings.current.filterNames ? name.split("").map((char) => /[a-zA-Z0-9]/.test(char) ? char : " ").join("") : name;
+    return Settings.current.filterNames
+        ? name
+              .split("")
+              .map((char) => (/[a-zA-Z0-9]/.test(char) ? char : " "))
+              .join("")
+        : name;
 };
 
 export const notify = (type: NotificationType, userId: string, channelId: string): void => {
@@ -62,17 +67,14 @@ export const notify = (type: NotificationType, userId: string, channelId: string
     const channel = ChannelStore.getChannel(channelId);
 
     // check for filters
-    if (
-        settings.filterBots && user?.bot
-        || settings.filterStages && channel?.isGuildStageVoice()
-    ) {
+    if ((settings.filterBots && user?.bot) || (settings.filterStages && channel?.isGuildStageVoice())) {
         return;
     }
 
     // resolve names
     const displayName = user.globalName ?? user.username;
     const nick = GuildMemberStore.getMember(channel?.getGuildId(), userId)?.nick ?? displayName;
-    const channelName = (!channel || channel.isDM() || channel.isGroupDM()) ? settings.unknownChannel : channel.name;
+    const channelName = !channel || channel.isDM() || channel.isGroupDM() ? settings.unknownChannel : channel.name;
 
     // speak message
     const message = notif.message

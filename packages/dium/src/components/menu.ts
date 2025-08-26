@@ -66,5 +66,5 @@ export const {
     Separator: MenuSeparator,
     CheckboxItem: MenuCheckboxItem,
     RadioItem: MenuRadioItem,
-    ControlItem: MenuControlItem
+    ControlItem: MenuControlItem,
 } = BdApi.ContextMenu as MenuComponents;

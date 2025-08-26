@@ -1,17 +1,17 @@
-import {Finder} from "../api";
-import type {ActionModule, Snowflake, Untyped} from ".";
-import type {Store} from "./flux";
+import { Finder } from "../api";
+import type { ActionModule, Snowflake, Untyped } from ".";
+import type { Store } from "./flux";
 
 export type MediaEngineContext = string;
 
 export const enum MediaEngineContextType {
     DEFAULT = "default",
-    STREAM = "stream"
+    STREAM = "stream",
 }
 
 export interface MediaEngineStore extends Untyped<Store> {
     getMediaEngine(): any;
-    getLocalPan(userId: Snowflake, context?: MediaEngineContext): {left: number; right: number};
+    getLocalPan(userId: Snowflake, context?: MediaEngineContext): { left: number; right: number };
     getLocalVolume(userId: Snowflake, context?: MediaEngineContext): number;
     getLoopback(): boolean;
     getNoiseCancellation(): boolean;
@@ -49,12 +49,19 @@ export interface MediaEngineDesktopSource {
 
 export interface MediaEngineActions extends ActionModule {
     enable(unmute?: any): Promise<boolean>;
-    toggleSelfMute(options?: {context?: MediaEngineContext; syncRemove?: any}): Promise<void>;
+    toggleSelfMute(options?: { context?: MediaEngineContext; syncRemove?: any }): Promise<void>;
     setTemporarySelfMute(mute: any): void;
-    toggleSelfDeaf(options?: {context?: MediaEngineContext; syncRemove?: any}): void;
+    toggleSelfDeaf(options?: { context?: MediaEngineContext; syncRemove?: any }): void;
     toggleLocalMute(userId: Snowflake, context?: MediaEngineContext): void;
     toggleLocalSoundboardMute(userId: Snowflake, context?: MediaEngineContext): void;
-    setDisableLocalVideo(userId: Snowflake, disableVideo: any, context?: MediaEngineContext, persist?: boolean, isAutomatic?: boolean, isNoop?: boolean): void;
+    setDisableLocalVideo(
+        userId: Snowflake,
+        disableVideo: any,
+        context?: MediaEngineContext,
+        persist?: boolean,
+        isAutomatic?: boolean,
+        isNoop?: boolean,
+    ): void;
     setLocalVolume(userId: Snowflake, volume: number, context?: MediaEngineContext): void;
     setLocalPan(userId: Snowflake, left: number, right: number, context?: MediaEngineContext): void;
     setMode(mode: any, options?: any, context?: MediaEngineContext): void;

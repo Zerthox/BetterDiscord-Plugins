@@ -1,6 +1,6 @@
-import {Finder} from "../api";
-import type {Snowflake, ActionModule} from ".";
-import type {Store, SnapshotStore} from "./flux";
+import { Finder } from "../api";
+import type { Snowflake, ActionModule } from ".";
+import type { Store, SnapshotStore } from "./flux";
 
 /** A Guild (server). */
 export interface Guild {
@@ -219,9 +219,10 @@ export interface DeprecatedSortedGuild {
 
 export interface ExpandedGuildFolderStore extends Store {
     getExpandedFolders(): Set<number>;
-    getState(): {expandedFolders: number[]};
+    getState(): { expandedFolders: number[] };
     isFolderExpanded(folderId: number): boolean;
     __getLocalVars(): any;
 }
 
-export const ExpandedGuildFolderStore: ExpandedGuildFolderStore = /* @__PURE__ */ Finder.byName("ExpandedGuildFolderStore");
+export const ExpandedGuildFolderStore: ExpandedGuildFolderStore =
+    /* @__PURE__ */ Finder.byName("ExpandedGuildFolderStore");

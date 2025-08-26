@@ -1,4 +1,5 @@
 # Dium
+
 A work-in-progress framework for Discord plugins.
 
 Eventually, this might be moved to its own repository.
@@ -27,12 +28,12 @@ import {
     ReactInternals,
     ReactDOM,
     ReactDOMInternals,
-    Flux
+    Flux,
 } from "dium";
-import {classNames, lodash} from "@dium/modules";
+import { classNames, lodash } from "@dium/modules";
 
 const Settings = createSettings({
-    enabled: false
+    enabled: false,
 });
 
 export default createPlugin({
@@ -54,15 +55,12 @@ export default createPlugin({
         // render settings panel
         return (
             <div className="example-container">
-                <div className="example-setting">
-                    Setting is {settings.enabled ? "enabled" : "disabled"}
+                <div className="example-setting">Setting is {settings.enabled ? "enabled" : "disabled"}</div>
+                <div className="example-clickable" onClick={() => setSettings({ enabled: !settings.enabled })}>
+                    Click to toggle
                 </div>
-                <div
-                    className="example-clickable"
-                    onClick={() => setSettings({enabled: !settings.enabled})}
-                >Click to toggle</div>
             </div>
         );
-    }
+    },
 });
 ```

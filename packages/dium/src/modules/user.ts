@@ -1,6 +1,6 @@
-import {Finder} from "../api";
-import type {Message, Snowflake} from ".";
-import type {Store} from "./flux";
+import { Finder } from "../api";
+import type { Message, Snowflake } from ".";
+import type { Store } from "./flux";
 
 /** A User. */
 export interface User {
@@ -63,25 +63,25 @@ export interface User {
 }
 
 export const enum UserFlags {
-    STAFF = 2**0,
-    PARTNER = 2**1,
-    HYPESQUAD = 2**2,
-    BUG_HUNTER_LEVEL_1 = 2**3,
-    MFA_SMS = 2**4,
-    PREMIUM_PROMO_DISMISSED = 2**5,
-    HYPESQUAD_ONLINE_HOUSE_1 = 2**6,
-    HYPESQUAD_ONLINE_HOUSE_2 = 2**7,
-    HYPESQUAD_ONLINE_HOUSE_3 = 2**8,
-    PREMIUM_EARLY_SUPPORTER = 2**9,
-    HAS_UNREAD_URGENT_MESSAGES = 2**13,
-    BUG_HUNTER_LEVEL_2 = 2**15,
-    VERIFIED_BOT = 2**16,
-    VERIFIED_DEVELOPER = 2**17,
-    CERTIFIED_MODERATOR = 2**18,
-    BOT_HTTP_INTERACTIONS = 2**19,
-    SPAMMER = 2**20,
-    DISABLE_PREMIUM = 2**21,
-    QUARANTINED = 2**44
+    STAFF = 2 ** 0,
+    PARTNER = 2 ** 1,
+    HYPESQUAD = 2 ** 2,
+    BUG_HUNTER_LEVEL_1 = 2 ** 3,
+    MFA_SMS = 2 ** 4,
+    PREMIUM_PROMO_DISMISSED = 2 ** 5,
+    HYPESQUAD_ONLINE_HOUSE_1 = 2 ** 6,
+    HYPESQUAD_ONLINE_HOUSE_2 = 2 ** 7,
+    HYPESQUAD_ONLINE_HOUSE_3 = 2 ** 8,
+    PREMIUM_EARLY_SUPPORTER = 2 ** 9,
+    HAS_UNREAD_URGENT_MESSAGES = 2 ** 13,
+    BUG_HUNTER_LEVEL_2 = 2 ** 15,
+    VERIFIED_BOT = 2 ** 16,
+    VERIFIED_DEVELOPER = 2 ** 17,
+    CERTIFIED_MODERATOR = 2 ** 18,
+    BOT_HTTP_INTERACTIONS = 2 ** 19,
+    SPAMMER = 2 ** 20,
+    DISABLE_PREMIUM = 2 ** 21,
+    QUARANTINED = 2 ** 44,
 }
 
 export interface UserStore extends Store {
@@ -103,12 +103,12 @@ export const enum StatusTypes {
     OFFLINE = "offline",
     ONLINE = "online",
     STREAMING = "streaming",
-    UNKNOWN = "unknown"
+    UNKNOWN = "unknown",
 }
 
 export interface PresenceStoreState {
     statuses: Record<Snowflake, StatusTypes>;
-    clientStatuses: Record<Snowflake, {desktop?: StatusTypes; mobile?: StatusTypes}>;
+    clientStatuses: Record<Snowflake, { desktop?: StatusTypes; mobile?: StatusTypes }>;
     activities: Record<Snowflake, any[]>;
     activityMetadata: Record<any, any>;
 
@@ -140,7 +140,7 @@ export const enum RelationshipTypes {
     PENDING_INCOMING = 3,
     PENDING_OUTGOING = 4,
     IMPLICIT = 5,
-    SUGGESTION = 6
+    SUGGESTION = 6,
 }
 
 export interface RelationshipStore extends Store {

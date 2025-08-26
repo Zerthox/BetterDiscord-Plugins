@@ -1,11 +1,11 @@
-import {Finder, Filters, Flux, Logger} from "dium";
-import {Snowflake, Dispatcher, MediaEngineContext, AudioConvert} from "@dium/modules";
-import {Settings, updateVolumeOverride as updateVolumeOverride, tryResetVolumeOverride} from "./settings";
+import { Finder, Filters, Flux, Logger } from "dium";
+import { Snowflake, Dispatcher, MediaEngineContext, AudioConvert } from "@dium/modules";
+import { Settings, updateVolumeOverride as updateVolumeOverride, tryResetVolumeOverride } from "./settings";
 
 const enum ActionType {
     POST_CONNECTION_OPEN = "POST_CONNECTION_OPEN",
     AUDIO_SET_LOCAL_VOLUME = "AUDIO_SET_LOCAL_VOLUME",
-    USER_SETTINGS_PROTO_UPDATE = "USER_SETTINGS_PROTO_UPDATE"
+    USER_SETTINGS_PROTO_UPDATE = "USER_SETTINGS_PROTO_UPDATE",
 }
 
 const MAX_VOLUME_PERC = 200;
@@ -20,7 +20,7 @@ export const dispatchVolumeOverrides = (): void => {
                 type: ActionType.AUDIO_SET_LOCAL_VOLUME,
                 userId,
                 context,
-                volume
+                volume,
             });
         }
     }
@@ -72,13 +72,15 @@ interface AudioSettingsManager {
 let originalHandler = null;
 
 const wrappedSettingsManagerHandler: Flux.ActionHandler<SetVolumeAction> = (action) => {
-    const {userId, volume, context} = action;
+    const { userId, volume, context } = action;
     const isOverCap = volume > MAX_VOLUME_AMP;
     if (isOverCap) {
         const isNew = updateVolumeOverride(userId, volume, context);
         if (isNew) {
-            Logger.log(`New volume override ${AudioConvert.amplitudeToPerceptual(volume)} for user ${userId} context ${context}`);
-            originalHandler({...action, volume: MAX_VOLUME_AMP});
+            Logger.log(
+                `New volume override ${AudioConvert.amplitudeToPerceptual(volume)} for user ${userId} context ${context}`,
+            );
+            originalHandler({ ...action, volume: MAX_VOLUME_AMP });
         }
     } else {
         const wasRemoved = tryResetVolumeOverride(userId, context);
@@ -89,7 +91,11 @@ const wrappedSettingsManagerHandler: Flux.ActionHandler<SetVolumeAction> = (acti
     }
 };
 
-const trySwapHandler = <A extends Flux.Action>(action: Flux.Action["type"], prev: Flux.ActionHandler<A>, next: Flux.ActionHandler<A>): boolean => {
+const trySwapHandler = <A extends Flux.Action>(
+    action: Flux.Action["type"],
+    prev: Flux.ActionHandler<A>,
+    next: Flux.ActionHandler<A>,
+): boolean => {
     const isPresent = Dispatcher._subscriptions[action].has(prev);
     if (isPresent) {
         Dispatcher.unsubscribe(action, prev);

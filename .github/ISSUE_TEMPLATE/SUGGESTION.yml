@@ -1,14 +1,14 @@
 name: Suggestion
 description: Suggest a new feature or idea
 body:
-  - type: input
-    attributes:
-      label: Plugin
-      placeholder: BetterFolders, BetterVolume etc.
-    validations:
-      required: true
-  - type: textarea
-    attributes:
-      label: Description
-    validations:
-      required: true
+    - type: input
+      attributes:
+          label: Plugin
+          placeholder: BetterFolders, BetterVolume etc.
+      validations:
+          required: true
+    - type: textarea
+      attributes:
+          label: Description
+      validations:
+          required: true

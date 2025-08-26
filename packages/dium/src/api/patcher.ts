@@ -1,5 +1,5 @@
 import * as Logger from "./logger";
-import {getMeta} from "../meta";
+import { getMeta } from "../meta";
 
 /** Patcher options. */
 export interface Options {
@@ -19,9 +19,8 @@ type Args<T> = T extends (...args: any) => any ? Parameters<T> : IArguments;
 
 type Return<T> = T extends (...args: any) => any ? ReturnType<T> : any;
 
-type This<T, P> = ThisParameterType<T> extends unknown ? (
-    P extends React.Component<any, any> ? P : any
-) : ThisParameterType<T>;
+type This<T, P> =
+    ThisParameterType<T> extends unknown ? (P extends React.Component<any, any> ? P : any) : ThisParameterType<T>;
 
 export interface PatchData<Original, Parent = any> {
     cancel: Cancel;
@@ -39,7 +38,7 @@ const patch = <Module, Key extends keyof Module>(
     object: Module,
     method: Key,
     callback: (cancel: Cancel, original: Module[Key], ...args: any) => any,
-    options: Options
+    options: Options,
 ) => {
     const original = object?.[method];
     if (!(original instanceof Function)) {
@@ -50,11 +49,13 @@ const patch = <Module, Key extends keyof Module>(
         getMeta().name,
         object,
         method,
-        options.once ? (...args: any) => {
-            const result = callback(cancel, original, ...args);
-            cancel();
-            return result;
-        } : (...args: any) => callback(cancel, original, ...args)
+        options.once
+            ? (...args: any) => {
+                  const result = callback(cancel, original, ...args);
+                  cancel();
+                  return result;
+              }
+            : (...args: any) => callback(cancel, original, ...args),
     );
 
     if (!options.silent) {
@@ -69,14 +70,15 @@ export const instead = <Module, Key extends keyof Module>(
     object: Module,
     method: Key,
     callback: (data: PatchData<Module[Key], Module>) => unknown,
-    options: Options = {}
-): Cancel => patch(
-    "instead",
-    object,
-    method,
-    (cancel, original, context, args) => callback({cancel, original, context, args}),
-    options
-);
+    options: Options = {},
+): Cancel =>
+    patch(
+        "instead",
+        object,
+        method,
+        (cancel, original, context, args) => callback({ cancel, original, context, args }),
+        options,
+    );
 
 /**
  * Patches the method, executing a callback **before** the original.
@@ -87,14 +89,15 @@ export const before = <Module, Key extends keyof Module>(
     object: Module,
     method: Key,
     callback: (data: PatchData<Module[Key], Module>) => unknown,
-    options: Options = {}
-): Cancel => patch(
-    "before",
-    object,
-    method,
-    (cancel, original, context, args) => callback({cancel, original, context, args}),
-    options
-);
+    options: Options = {},
+): Cancel =>
+    patch(
+        "before",
+        object,
+        method,
+        (cancel, original, context, args) => callback({ cancel, original, context, args }),
+        options,
+    );
 
 /**
  * Patches the method, executing a callback **after** the original.
@@ -107,14 +110,15 @@ export const after = <Module, Key extends keyof Module>(
     object: Module,
     method: Key,
     callback: (data: PatchDataWithResult<Module[Key], Module>) => unknown,
-    options: Options = {}
-): Cancel => patch(
-    "after",
-    object,
-    method,
-    (cancel, original, context, args, result) => callback({cancel, original, context, args, result}),
-    options
-);
+    options: Options = {},
+): Cancel =>
+    patch(
+        "after",
+        object,
+        method,
+        (cancel, original, context, args, result) => callback({ cancel, original, context, args, result }),
+        options,
+    );
 
 /** Storage for context menu patches. */
 let menuPatches: Cancel[] = [];
@@ -123,13 +127,18 @@ let menuPatches: Cancel[] = [];
 export const contextMenu = (
     navId: string,
     callback: (result: React.JSX.Element) => React.JSX.Element | void,
-    options: Options = {}
+    options: Options = {},
 ): Cancel => {
-    const cancel = BdApi.ContextMenu.patch(navId, options.once ? (tree) => {
-        const result = callback(tree);
-        cancel();
-        return result;
-    } : callback);
+    const cancel = BdApi.ContextMenu.patch(
+        navId,
+        options.once
+            ? (tree) => {
+                  const result = callback(tree);
+                  cancel();
+                  return result;
+              }
+            : callback,
+    );
     menuPatches.push(cancel);
 
     if (!options.silent) {

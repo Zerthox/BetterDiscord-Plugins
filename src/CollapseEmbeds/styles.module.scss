@@ -41,12 +41,13 @@
 }
 .icon {
     margin: -2px;
-    transition: transform .2s ease-out;
+    transition: transform 0.2s ease-out;
     &.open {
         transform: rotate(180deg);
     }
 }
 
-.attachment, .mediaItemSingle {
+.attachment,
+.mediaItemSingle {
     /* unused */
 }

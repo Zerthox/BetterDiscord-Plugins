@@ -1,7 +1,7 @@
-import {describe, it} from "mocha";
-import {strict as assert} from "assert";
+import { describe, it } from "mocha";
+import { strict as assert } from "assert";
 
-import {mappedProxy} from "../../src/utils";
+import { mappedProxy } from "../../src/utils";
 
 describe("Utilities", () => {
     describe("mappedProxy", () => {
@@ -10,12 +10,12 @@ describe("Utilities", () => {
             get b() {
                 return [1, 2, 3];
             },
-            c: (arg: any) => console.log(arg)
+            c: (arg: any) => console.log(arg),
         };
         const mapping = {
             name: "a",
             data: "b",
-            log: "c"
+            log: "c",
         } as const;
 
         it("maps read", () => {
@@ -38,17 +38,17 @@ describe("Utilities", () => {
         });
 
         it("maps write", () => {
-            const cloned = {...original};
+            const cloned = { ...original };
             const mapped = mappedProxy(cloned, mapping);
 
-            assert.doesNotThrow(() => mapped.name = "bar");
+            assert.doesNotThrow(() => (mapped.name = "bar"));
             assert.equal(mapped.name, "bar");
             assert.equal(mapped.a, "bar");
             assert.equal(cloned.a, "bar");
         });
 
         it("maps delete", () => {
-            const cloned = {...original};
+            const cloned = { ...original };
             const mapped = mappedProxy(cloned, mapping);
             delete mapped.log;
 
@@ -61,17 +61,29 @@ describe("Utilities", () => {
         it("maps descriptor get", () => {
             const mapped = mappedProxy(original, mapping);
 
-            assert.deepEqual(Object.getOwnPropertyDescriptor(mapped, "name"), Object.getOwnPropertyDescriptor(original, "a"));
-            assert.deepEqual(Object.getOwnPropertyDescriptor(mapped, "a"), Object.getOwnPropertyDescriptor(original, "a"));
-            assert.deepEqual(Object.getOwnPropertyDescriptor(mapped, "data"), Object.getOwnPropertyDescriptor(original, "b"));
-            assert.deepEqual(Object.getOwnPropertyDescriptor(mapped, "log"), Object.getOwnPropertyDescriptor(original, "c"));
+            assert.deepEqual(
+                Object.getOwnPropertyDescriptor(mapped, "name"),
+                Object.getOwnPropertyDescriptor(original, "a"),
+            );
+            assert.deepEqual(
+                Object.getOwnPropertyDescriptor(mapped, "a"),
+                Object.getOwnPropertyDescriptor(original, "a"),
+            );
+            assert.deepEqual(
+                Object.getOwnPropertyDescriptor(mapped, "data"),
+                Object.getOwnPropertyDescriptor(original, "b"),
+            );
+            assert.deepEqual(
+                Object.getOwnPropertyDescriptor(mapped, "log"),
+                Object.getOwnPropertyDescriptor(original, "c"),
+            );
         });
 
         it("maps descriptor set", () => {
-            const cloned = {...original};
+            const cloned = { ...original };
             const mapped = mappedProxy(cloned, mapping);
             Object.defineProperty(mapped, "data", {
-                get: () => []
+                get: () => [],
             });
 
             assert.deepEqual(mapped.data, []);

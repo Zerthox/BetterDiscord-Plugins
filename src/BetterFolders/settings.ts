@@ -1,4 +1,4 @@
-import {createSettings} from "dium";
+import { createSettings } from "dium";
 
 export interface FolderData {
     icon: string;
@@ -7,5 +7,5 @@ export interface FolderData {
 
 export const Settings = createSettings({
     closeOnOpen: false,
-    folders: {} as Record<number, FolderData>
+    folders: {} as Record<number, FolderData>,
 });

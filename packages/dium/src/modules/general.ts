@@ -1,4 +1,4 @@
-import {Finder} from "../api";
+import { Finder } from "../api";
 
 /** A timestamped ID stored as a string. */
 export type Snowflake = string;

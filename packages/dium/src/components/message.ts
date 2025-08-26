@@ -1,5 +1,5 @@
-import {Finder} from "../api";
-import {Attachment, Channel, Message} from "../modules";
+import { Finder } from "../api";
+import { Attachment, Channel, Message } from "../modules";
 
 export interface MessageFooterProps {
     channel: Channel;
@@ -34,7 +34,9 @@ export interface MessageFooter extends React.ComponentClass<MessageFooterProps, 
     };
 }
 
-export const MessageFooter: MessageFooter = /* @__PURE__ */ Finder.byProtos(["renderRemoveAttachmentConfirmModal"], {entries: true});
+export const MessageFooter: MessageFooter = /* @__PURE__ */ Finder.byProtos(["renderRemoveAttachmentConfirmModal"], {
+    entries: true,
+});
 
 export interface MediaItemProps extends Record<string, any> {
     mediaLayoutType: string;
@@ -72,4 +74,7 @@ export interface MediaItemProps extends Record<string, any> {
     gifFavoriteButton(): any;
 }
 
-export const MediaItem: React.FunctionComponent<MediaItemProps> = /* @__PURE__ */ Finder.bySource(["getObscureReason", "isSingleMosaicItem"]);
+export const MediaItem: React.FunctionComponent<MediaItemProps> = /* @__PURE__ */ Finder.bySource([
+    "getObscureReason",
+    "isSingleMosaicItem",
+]);

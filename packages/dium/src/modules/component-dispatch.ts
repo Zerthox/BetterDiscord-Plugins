@@ -1,4 +1,4 @@
-import {Filters, Finder} from "../api";
+import { Filters, Finder } from "../api";
 
 export interface ComponentDispatch {
     emitter: NodeJS.EventEmitter;
@@ -21,7 +21,7 @@ export interface ComponentDispatch {
 }
 
 export interface ComponentDispatcher {
-    new(): ComponentDispatch;
+    new (): ComponentDispatch;
 }
 
 interface ComponentDispatchModule {
@@ -29,7 +29,7 @@ interface ComponentDispatchModule {
     ComponentDispatcher: ComponentDispatcher;
 }
 
-export const {ComponentDispatch, ComponentDispatcher}: ComponentDispatchModule = /* @__PURE__ */ Finder.demangle({
+export const { ComponentDispatch, ComponentDispatcher }: ComponentDispatchModule = /* @__PURE__ */ Finder.demangle({
     ComponentDispatch: Filters.byKeys("dispatchToLastSubscribed"),
-    ComponentDispatcher: Filters.byProtos("dispatchToLastSubscribed")
+    ComponentDispatcher: Filters.byProtos("dispatchToLastSubscribed"),
 });

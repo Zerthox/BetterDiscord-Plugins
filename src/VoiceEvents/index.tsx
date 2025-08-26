@@ -1,4 +1,4 @@
-import {createPlugin, Logger, Patcher, Utils, React} from "dium";
+import { createPlugin, Logger, Patcher, Utils, React } from "dium";
 import {
     Dispatcher,
     SelectedChannelStore,
@@ -6,12 +6,12 @@ import {
     VoiceState,
     VoiceStateStore,
     MediaEngineStore,
-    Snowflake
+    Snowflake,
 } from "@dium/modules";
-import {MenuItem} from "@dium/components";
-import {Settings} from "./settings";
-import {SettingsPanel} from "./settings-panel";
-import {findDefaultVoice, notify} from "./voice";
+import { MenuItem } from "@dium/components";
+import { Settings } from "./settings";
+import { SettingsPanel } from "./settings-panel";
+import { findDefaultVoice, notify } from "./voice";
 
 const selfMuteHandler = () => {
     const userId = UserStore.getCurrentUser().id;
@@ -32,11 +32,11 @@ interface VoiceStateUpdatesAction {
 
 let prevStates: Record<Snowflake, VoiceState> = {};
 const saveStates = () => {
-    prevStates = {...VoiceStateStore.getVoiceStatesForChannel(SelectedChannelStore.getVoiceChannelId())};
+    prevStates = { ...VoiceStateStore.getVoiceStatesForChannel(SelectedChannelStore.getVoiceChannelId()) };
 };
 
 const voiceStateHandler = (action: VoiceStateUpdatesAction) => {
-    for (const {userId, channelId} of action.voiceStates) {
+    for (const { userId, channelId } of action.voiceStates) {
         try {
             const prev = prevStates[userId];
 
@@ -86,7 +86,7 @@ export default createPlugin({
         const voice = findDefaultVoice()?.voiceURI;
         Settings.defaults.voice = voice;
         if (!Settings.current.voice) {
-            Settings.update({voice});
+            Settings.update({ voice });
         }
 
         // save initial voice states
@@ -104,16 +104,21 @@ export default createPlugin({
 
         // patch channel context menu
         Patcher.contextMenu("channel-context", (result) => {
-            const [parent, index] = Utils.queryTreeForParent(result, (child) => child?.props?.id === "hide-voice-names");
+            const [parent, index] = Utils.queryTreeForParent(
+                result,
+                (child) => child?.props?.id === "hide-voice-names",
+            );
             if (parent) {
-                parent.props.children.splice(index + 1, 0, (
+                parent.props.children.splice(
+                    index + 1,
+                    0,
                     <MenuItem
                         isFocused={false}
                         id="voiceevents-clear"
                         label="Clear VoiceEvents queue"
                         action={() => speechSynthesis.cancel()}
-                    />
-                ));
+                    />,
+                );
             }
         });
     },
@@ -131,5 +136,5 @@ export default createPlugin({
         Logger.log("Unsubscribed from self deaf actions");
     },
     Settings,
-    SettingsPanel
+    SettingsPanel,
 });

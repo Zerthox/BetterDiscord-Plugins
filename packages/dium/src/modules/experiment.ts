@@ -1,6 +1,6 @@
-import {Finder} from "../api";
-import type {Snowflake} from ".";
-import type {Store} from "./flux";
+import { Finder } from "../api";
+import type { Snowflake } from ".";
+import type { Store } from "./flux";
 
 export interface Experiment<Config = Record<string, any>> {
     definition: {
@@ -36,12 +36,12 @@ export interface UserExperimentDescriptor {
 export const enum ExperimentType {
     GUILD = "guild",
     NONE_LEGACY = "none",
-    USER = "user"
+    USER = "user",
 }
 
 export const enum ExperimentExposureType {
     AUTO = "auto",
-    MANUAL = "manual"
+    MANUAL = "manual",
 }
 
 export const enum ExperimentTreatment {
@@ -71,7 +71,7 @@ export const enum ExperimentTreatment {
     TREATMENT_22 = 22,
     TREATMENT_23 = 23,
     TREATMENT_24 = 24,
-    TREATMENT_25 = 25
+    TREATMENT_25 = 25,
 }
 
 export type GuildExperimentDescriptor = Record<string, any>;
