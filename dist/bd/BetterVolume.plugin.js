@@ -1,6 +1,6 @@
 /**
  * @name BetterVolume
- * @version 3.1.1
+ * @version 3.2.0
  * @author Zerthox
  * @authorLink https://github.com/Zerthox
  * @description Set user volume values manually instead of using a slider. Allows setting volumes higher than 200%.
@@ -15,7 +15,7 @@ shell.Popup(
     "Do NOT run scripts from the internet with the Windows Script Host!\nMove this file to your BetterDiscord plugins folder.",
     0,
     pluginName + ": Warning!",
-    0x1030
+    0x1030,
 );
 var fso = new ActiveXObject("Scripting.FileSystemObject");
 var pluginsPath = shell.expandEnvironmentStrings("%appdata%\\BetterDiscord\\plugins");
@@ -24,25 +24,20 @@ if (!fso.FolderExists(pluginsPath)) {
         "Unable to find BetterDiscord on your computer.\nOpen the download page of BetterDiscord?",
         0,
         pluginName + ": BetterDiscord not found",
-        0x34
+        0x34,
     );
     if (popup === 6) {
-        shell.Exec("explorer \"https://betterdiscord.app\"");
+        shell.Exec('explorer "https://betterdiscord.app"');
     }
 } else if (WScript.ScriptFullName === pluginsPath + "\\" + WScript.ScriptName) {
     shell.Popup(
-        "This plugin is already in the correct folder.\nNavigate to the \"Plugins\" settings tab in Discord and enable it there.",
+        'This plugin is already in the correct folder.\nNavigate to the "Plugins" settings tab in Discord and enable it there.',
         0,
         pluginName,
-        0x40
+        0x40,
     );
 } else {
-    var popup = shell.Popup(
-        "Open the BetterDiscord plugins folder?",
-        0,
-        pluginName,
-        0x34
-    );
+    var popup = shell.Popup("Open the BetterDiscord plugins folder?", 0, pluginName, 0x34);
     if (popup === 6) {
         shell.Exec("explorer " + pluginsPath);
     }
@@ -75,9 +70,6 @@ const byName$1 = (name) => {
 const byKeys$1 = (...keys) => {
     return (target) => target instanceof Object && keys.every((key) => key in target);
 };
-const byProtos = (...protos) => {
-    return (target) => target instanceof Object && target.prototype instanceof Object && protos.every((proto) => proto in target.prototype);
-};
 const bySource = (...fragments) => {
     return (target) => {
         while (target instanceof Object && "$$typeof" in target) {
@@ -86,7 +78,9 @@ const bySource = (...fragments) => {
         if (target instanceof Function) {
             const source = target.toString();
             const renderSource = target.prototype?.render?.toString();
-            return fragments.every((fragment) => typeof fragment === "string" ? (source.includes(fragment) || renderSource?.includes(fragment)) : (fragment(source) || renderSource && fragment(renderSource)));
+            return fragments.every((fragment) => typeof fragment === "string"
+                ? source.includes(fragment) || renderSource?.includes(fragment)
+                : fragment(source) || (renderSource && fragment(renderSource)));
         }
         else {
             return false;
@@ -122,34 +116,39 @@ const mappedProxy = (target, mapping) => {
         defineProperty(target, prop, attributes) {
             Object.defineProperty(target, map.get(prop) ?? prop, attributes);
             return true;
-        }
+        },
     });
 };
 
 const find = (filter, { resolve = true, entries = false } = {}) => BdApi.Webpack.getModule(filter, {
     defaultExport: resolve,
-    searchExports: entries
+    searchExports: entries,
 });
 const byName = (name, options) => find(byName$1(name), options);
 const byKeys = (keys, options) => find(byKeys$1(...keys), options);
-const resolveKey = (target, filter) => [target, Object.entries(target ?? {}).find(([, value]) => filter(value))?.[0]];
+const resolveKey = (target, filter) => [
+    target,
+    Object.entries(target ?? {}).find(([, value]) => filter(value))?.[0],
+];
 const demangle = (mapping, required, proxy = false) => {
     const req = required ?? Object.keys(mapping);
-    const found = find((target) => (checkObjectValues(target)
-        && req.every((req) => Object.values(target).some((value) => mapping[req](value)))));
-    return proxy ? mappedProxy(found, Object.fromEntries(Object.entries(mapping).map(([key, filter]) => [
-        key,
-        Object.entries(found ?? {}).find(([, value]) => filter(value))?.[0]
-    ]))) : Object.fromEntries(Object.entries(mapping).map(([key, filter]) => [
-        key,
-        Object.values(found ?? {}).find((value) => filter(value))
-    ]));
+    const found = find((target) => checkObjectValues(target)
+        && req.every((req) => Object.values(target).some((value) => mapping[req](value))));
+    return proxy
+        ? mappedProxy(found, Object.fromEntries(Object.entries(mapping).map(([key, filter]) => [
+            key,
+            Object.entries(found ?? {}).find(([, value]) => filter(value))?.[0],
+        ])))
+        : Object.fromEntries(Object.entries(mapping).map(([key, filter]) => [
+            key,
+            Object.values(found ?? {}).find((value) => filter(value)),
+        ]));
 };
 let controller = new AbortController();
 const waitFor = (filter, { resolve = true, entries = false } = {}) => BdApi.Webpack.waitForModule(filter, {
     signal: controller.signal,
     defaultExport: resolve,
-    searchExports: entries
+    searchExports: entries,
 });
 const abort = () => {
     controller.abort();
@@ -166,11 +165,13 @@ const patch = (type, object, method, callback, options) => {
     if (!(original instanceof Function)) {
         throw TypeError(`patch target ${original} is not a function`);
     }
-    const cancel = BdApi.Patcher[type](getMeta().name, object, method, options.once ? (...args) => {
-        const result = callback(cancel, original, ...args);
-        cancel();
-        return result;
-    } : (...args) => callback(cancel, original, ...args));
+    const cancel = BdApi.Patcher[type](getMeta().name, object, method, options.once
+        ? (...args) => {
+            const result = callback(cancel, original, ...args);
+            cancel();
+            return result;
+        }
+        : (...args) => callback(cancel, original, ...args));
     if (!options.silent) {
         log(`Patched ${options.name ?? String(method)}`);
     }
@@ -196,15 +197,7 @@ const inject = (styles) => {
 };
 const clear = () => BdApi.DOM.removeStyle(getMeta().name);
 
-const Dispatcher$1 = /* @__PURE__ */ byKeys(["dispatch", "subscribe"]);
-
-const { default: Legacy, Dispatcher, Store, BatchedStoreListener, useStateFromStores } = /* @__PURE__ */ demangle({
-    default: byKeys$1("Store", "connectStores"),
-    Dispatcher: byProtos("dispatch"),
-    Store: byProtos("emitChange"),
-    BatchedStoreListener: byProtos("attach", "detach"),
-    useStateFromStores: bySource("useStateFromStores")
-}, ["Store", "Dispatcher", "useStateFromStores"]);
+const Dispatcher = /* @__PURE__ */ byKeys(["dispatch", "subscribe"]);
 
 const MediaEngineStore = /* @__PURE__ */ byName("MediaEngineStore");
 const MediaEngineActions = /* @__PURE__ */ byKeys(["setLocalVolume"]);
@@ -214,27 +207,26 @@ const classNames = /* @__PURE__ */ find((exports) => exports instanceof Object &
 
 const AudioConvert = /* @__PURE__ */ demangle({
     amplitudeToPerceptual: bySource("Math.log10"),
-    perceptualToAmplitude: bySource("Math.pow(10")
+    perceptualToAmplitude: bySource("Math.pow(10"),
 });
 
 const Button = /* @__PURE__ */ byKeys(["Colors", "Link"], { entries: true });
 
 const Flex = /* @__PURE__ */ byKeys(["Child", "Justify", "Align"], { entries: true });
 
-const { FormSection, FormItem, FormTitle, FormText,
-FormDivider, FormSwitch, FormNotice } = /* @__PURE__ */ demangle({
+const { FormSection, FormDivider} = /* @__PURE__ */ demangle({
     FormSection: bySource("titleClassName:", ".sectionTitle"),
     FormItem: bySource("titleClassName:", "required:"),
     FormTitle: bySource("faded:", "required:"),
     FormText: (target) => target.Types?.INPUT_PLACEHOLDER,
     FormDivider: bySource(".divider", "style:"),
     FormSwitch: bySource("tooltipNote:"),
-    FormNotice: bySource("imageData:", ".formNotice")
+    FormNotice: bySource("imageData:", ".formNotice"),
 }, ["FormSection", "FormItem", "FormDivider"]);
 
 const margins = /* @__PURE__ */ byKeys(["marginBottom40", "marginTop4"]);
 
-const { Menu, Group: MenuGroup, Item: MenuItem, Separator: MenuSeparator, CheckboxItem: MenuCheckboxItem, RadioItem: MenuRadioItem, ControlItem: MenuControlItem } = BdApi.ContextMenu;
+const { Item: MenuItem} = BdApi.ContextMenu;
 
 const SettingsContainer = ({ name, children, onReset }) => (React.createElement(FormSection, null,
     children,
@@ -242,15 +234,21 @@ const SettingsContainer = ({ name, children, onReset }) => (React.createElement(
         React.createElement(FormDivider, { className: classNames(margins.marginTop20, margins.marginBottom20) }),
         React.createElement(Flex, { justify: Flex.Justify.END },
             React.createElement(Button, { size: Button.Sizes.SMALL, onClick: () => confirm(name, "Reset all settings?", {
-                    onConfirm: () => onReset()
+                    onConfirm: () => onReset(),
                 }) }, "Reset")))) : null));
 
 class SettingsStore {
     constructor(defaults, onLoad) {
         this.listeners = new Set();
+        this.getCurrent = () => this.current;
         this.update = (settings) => {
-            Object.assign(this.current, typeof settings === "function" ? settings(this.current) : settings);
+            const update = typeof settings === "function" ? settings(this.current) : settings;
+            this.current = { ...this.current, ...update };
             this._dispatch(true);
+        };
+        this.addListenerEffect = (listener) => {
+            this.addListener(listener);
+            return () => this.removeListener(listener);
         };
         this.addReactChangeListener = this.addListener;
         this.removeReactChangeListener = this.removeListener;
@@ -275,35 +273,36 @@ class SettingsStore {
         this._dispatch(true);
     }
     delete(...keys) {
+        this.current = { ...this.current };
         for (const key of keys) {
             delete this.current[key];
         }
         this._dispatch(true);
     }
     useCurrent() {
-        return useStateFromStores([this], () => this.current, undefined, () => false);
+        return React.useSyncExternalStore(this.addListenerEffect, this.getCurrent);
     }
-    useSelector(selector, deps, compare) {
-        return useStateFromStores([this], () => selector(this.current), deps, compare);
+    useSelector(selector, deps = null, compare = Object.is) {
+        const state = React.useRef(null);
+        const snapshot = React.useCallback(() => {
+            const next = selector(this.current);
+            if (!compare(state.current, next)) {
+                state.current = next;
+            }
+            return state.current;
+        }, deps ?? [selector]);
+        return React.useSyncExternalStore(this.addListenerEffect, snapshot);
     }
     useState() {
-        return useStateFromStores([this], () => [
-            this.current,
-            this.update
-        ]);
+        const current = this.useCurrent();
+        return [current, this.update];
     }
     useStateWithDefaults() {
-        return useStateFromStores([this], () => [
-            this.current,
-            this.defaults,
-            this.update
-        ]);
+        const current = this.useCurrent();
+        return [current, this.defaults, this.update];
     }
     useListener(listener, deps) {
-        React.useEffect(() => {
-            this.addListener(listener);
-            return () => this.removeListener(listener);
-        }, deps ?? [listener]);
+        React.useEffect(() => this.addListenerEffect(listener), deps ?? [listener]);
     }
     addListener(listener) {
         this.listeners.add(listener);
@@ -320,7 +319,7 @@ const createSettings = (defaults, onLoad) => new SettingsStore(defaults, onLoad)
 
 const createPlugin = (plugin) => (meta) => {
     setMeta(meta);
-    const { start, stop, styles, Settings, SettingsPanel } = (plugin instanceof Function ? plugin(meta) : plugin);
+    const { start, stop, styles, Settings, SettingsPanel } = plugin instanceof Function ? plugin(meta) : plugin;
     Settings?.load();
     return {
         start() {
@@ -335,14 +334,16 @@ const createPlugin = (plugin) => (meta) => {
             stop?.();
             log("Disabled");
         },
-        getSettingsPanel: SettingsPanel ? () => (React.createElement(SettingsContainer, { name: meta.name, onReset: Settings ? () => Settings.reset() : null },
-            React.createElement(SettingsPanel, null))) : null
+        getSettingsPanel: SettingsPanel
+            ? () => (React.createElement(SettingsContainer, { name: meta.name, onReset: Settings ? () => Settings.reset() : null },
+                React.createElement(SettingsPanel, null)))
+            : null,
     };
 };
 
 const Settings = createSettings({
     volumeOverrides: {},
-    disableExperiment: null
+    disableExperiment: null,
 });
 const hasOverride = (userId, context) => context in (Settings.current.volumeOverrides[userId] ?? {});
 const updateVolumeOverride = (userId, volume, context) => {
@@ -367,7 +368,7 @@ const tryResetVolumeOverride = (userId, context) => {
     return false;
 };
 
-const css = ".container-BetterVolume {\n  margin: 0 8px;\n  padding: 3px 6px;\n  background: var(--background-primary);\n  border-radius: 3px;\n  display: flex;\n}\n\n.input-BetterVolume {\n  margin-right: 2px;\n  flex-grow: 1;\n  background: transparent;\n  border: none;\n  color: var(--interactive-normal);\n  font-weight: 500;\n}\n.input-BetterVolume:hover::-webkit-inner-spin-button {\n  appearance: auto;\n}";
+const css = ".container-BetterVolume {\n  margin: 0 8px;\n  padding: 3px 6px;\n  display: flex;\n  background: var(--input-background);\n  border: 1px solid var(--input-border-default);\n  border-radius: 3px;\n}\n\n.input-BetterVolume {\n  margin-right: 2px;\n  flex-grow: 1;\n  background: transparent;\n  border: none;\n}\n.input-BetterVolume::-webkit-inner-spin-button {\n  appearance: none;\n}\n.input-BetterVolume:hover::-webkit-inner-spin-button {\n  appearance: auto;\n}\n\n.input-BetterVolume,\n.unit-BetterVolume {\n  color: var(--input-foreground-default);\n  font-family: var(--font-primary);\n  font-weight: 500;\n}";
 const styles = {
     container: "container-BetterVolume",
     input: "input-BetterVolume",
@@ -400,11 +401,12 @@ const dispatchVolumeOverrides = () => {
     log("Dispatching volume overrides");
     for (const [userId, contexts] of Object.entries(Settings.current.volumeOverrides)) {
         for (const [context, volume] of Object.entries(contexts)) {
-            Dispatcher$1.dispatch({
+            Dispatcher.dispatch({
                 type: "AUDIO_SET_LOCAL_VOLUME" ,
                 userId,
                 context,
-                volume
+                volume,
+                isOverride: true,
             });
         }
     }
@@ -418,6 +420,9 @@ const handleAudioSettingsManager = (AudioSettingsManager) => {
     const swapped = trySwapHandler("AUDIO_SET_LOCAL_VOLUME" , originalHandler, wrappedSettingsManagerHandler);
     if (swapped) {
         log(`Replaced AudioSettingsManager ${"AUDIO_SET_LOCAL_VOLUME" } handler`);
+        dispatchVolumeOverrides();
+        Dispatcher.subscribe("USER_SETTINGS_PROTO_UPDATE" , dispatchVolumeOverrides);
+        log(`Subscribed to ${"USER_SETTINGS_PROTO_UPDATE" } events`);
     }
     else {
         warn(`AudioSettingsManager ${"AUDIO_SET_LOCAL_VOLUME" } handler not present`);
@@ -425,7 +430,6 @@ const handleAudioSettingsManager = (AudioSettingsManager) => {
 };
 const postConnectionOpenHandler = (_action) => {
     log(`Received ${"POST_CONNECTION_OPEN" }`);
-    dispatchVolumeOverrides();
     const AudioSettingsManager = findAudioSettingsManager();
     if (AudioSettingsManager) {
         handleAudioSettingsManager(AudioSettingsManager);
@@ -436,9 +440,8 @@ const postConnectionOpenHandler = (_action) => {
 };
 let originalHandler = null;
 const wrappedSettingsManagerHandler = (action) => {
-    const { userId, volume, context } = action;
-    const isOverCap = volume > MAX_VOLUME_AMP;
-    if (isOverCap) {
+    const { userId, volume, context, isOverride } = action;
+    if (isOverride) {
         const isNew = updateVolumeOverride(userId, volume, context);
         if (isNew) {
             log(`New volume override ${AudioConvert.amplitudeToPerceptual(volume)} for user ${userId} context ${context}`);
@@ -454,21 +457,18 @@ const wrappedSettingsManagerHandler = (action) => {
     }
 };
 const trySwapHandler = (action, prev, next) => {
-    const isPresent = Dispatcher$1._subscriptions[action].has(prev);
+    const isPresent = Dispatcher._subscriptions[action].has(prev);
     if (isPresent) {
-        Dispatcher$1.unsubscribe(action, prev);
-        Dispatcher$1.subscribe(action, next);
+        Dispatcher.unsubscribe(action, prev);
+        Dispatcher.subscribe(action, next);
     }
     return isPresent;
 };
 const handleVolumeSync = () => {
-    Dispatcher$1.subscribe("POST_CONNECTION_OPEN" , postConnectionOpenHandler);
+    Dispatcher.subscribe("POST_CONNECTION_OPEN" , postConnectionOpenHandler);
     log(`Subscribed to ${"POST_CONNECTION_OPEN" } events`);
-    Dispatcher$1.subscribe("USER_SETTINGS_PROTO_UPDATE" , dispatchVolumeOverrides);
-    log(`Subscribed to ${"USER_SETTINGS_PROTO_UPDATE" } events`);
     const AudioSettingsManager = findAudioSettingsManager();
     if (AudioSettingsManager) {
-        dispatchVolumeOverrides();
         handleAudioSettingsManager(AudioSettingsManager);
     }
     else {
@@ -476,9 +476,9 @@ const handleVolumeSync = () => {
     }
 };
 const resetVolumeSync = () => {
-    Dispatcher$1.unsubscribe("POST_CONNECTION_OPEN" , postConnectionOpenHandler);
+    Dispatcher.unsubscribe("POST_CONNECTION_OPEN" , postConnectionOpenHandler);
     log(`Unsubscribed from ${"POST_CONNECTION_OPEN" } events`);
-    Dispatcher$1.unsubscribe("USER_SETTINGS_PROTO_UPDATE" , dispatchVolumeOverrides);
+    Dispatcher.unsubscribe("USER_SETTINGS_PROTO_UPDATE" , dispatchVolumeOverrides);
     log(`Unsubscribed from ${"USER_SETTINGS_PROTO_UPDATE" } events`);
     const swapped = trySwapHandler("AUDIO_SET_LOCAL_VOLUME" , wrappedSettingsManagerHandler, originalHandler);
     if (swapped) {
@@ -506,7 +506,7 @@ const index = createPlugin({
         resetVolumeSync();
     },
     styles: css,
-    Settings
+    Settings,
 });
 
 module.exports = index;

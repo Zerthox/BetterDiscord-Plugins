@@ -2,7 +2,7 @@
 
 Adds new functionality to server folders. Custom Folder Icons. Close other folders on open.
 
-## [BetterVolume](https://betterdiscord.app/plugin/BetterVolume) <sub><sup>`v3.1.1` _(Updated: 31/01/2025)_</sup></sub>
+## [BetterVolume](https://betterdiscord.app/plugin/BetterVolume) <sub><sup>`v3.2.0` _(Updated: 29/08/2025)_</sup></sub>
 
 Set user volume values manually instead of using a slider. Allows setting volumes higher than 200%.
 
