@@ -1,22 +1,26 @@
 .container {
     margin: 0 8px;
     padding: 3px 6px;
-    background: var(--background-primary);
-    border-radius: 3px;
     display: flex;
+    background: var(--input-background);
+    border: 1px solid var(--input-border-default);
+    border-radius: 3px;
 }
 .input {
     margin-right: 2px;
     flex-grow: 1;
     background: transparent;
     border: none;
-    color: var(--interactive-normal);
-    font-weight: 500;
+    &::-webkit-inner-spin-button {
+        appearance: none;
+    }
     &:hover::-webkit-inner-spin-button {
         appearance: auto;
     }
 }
-
+.input,
 .unit {
-    /* unused */
+    color: var(--input-foreground-default);
+    font-family: var(--font-primary);
+    font-weight: 500;
 }
