@@ -21,6 +21,7 @@ export const dispatchVolumeOverrides = (): void => {
                 userId,
                 context,
                 volume,
+                isOverride: true,
             });
         }
     }
@@ -31,6 +32,7 @@ interface SetVolumeAction extends Flux.Action {
     userId: Snowflake;
     volume: number;
     context: MediaEngineContext;
+    isOverride?: boolean;
 }
 
 const findAudioSettingsManager = (): AudioSettingsManager => {
@@ -43,6 +45,11 @@ const handleAudioSettingsManager = (AudioSettingsManager: AudioSettingsManager):
     const swapped = trySwapHandler(ActionType.AUDIO_SET_LOCAL_VOLUME, originalHandler, wrappedSettingsManagerHandler);
     if (swapped) {
         Logger.log(`Replaced AudioSettingsManager ${ActionType.AUDIO_SET_LOCAL_VOLUME} handler`);
+
+        dispatchVolumeOverrides();
+
+        Dispatcher.subscribe(ActionType.USER_SETTINGS_PROTO_UPDATE, dispatchVolumeOverrides);
+        Logger.log(`Subscribed to ${ActionType.USER_SETTINGS_PROTO_UPDATE} events`);
     } else {
         Logger.warn(`AudioSettingsManager ${ActionType.AUDIO_SET_LOCAL_VOLUME} handler not present`);
     }
@@ -50,8 +57,6 @@ const handleAudioSettingsManager = (AudioSettingsManager: AudioSettingsManager):
 
 const postConnectionOpenHandler = (_action: Flux.Action): void => {
     Logger.log(`Received ${ActionType.POST_CONNECTION_OPEN}`);
-
-    dispatchVolumeOverrides();
 
     const AudioSettingsManager = findAudioSettingsManager();
     if (AudioSettingsManager) {
@@ -72,9 +77,8 @@ interface AudioSettingsManager {
 let originalHandler = null;
 
 const wrappedSettingsManagerHandler: Flux.ActionHandler<SetVolumeAction> = (action) => {
-    const { userId, volume, context } = action;
-    const isOverCap = volume > MAX_VOLUME_AMP;
-    if (isOverCap) {
+    const { userId, volume, context, isOverride } = action;
+    if (isOverride) {
         const isNew = updateVolumeOverride(userId, volume, context);
         if (isNew) {
             Logger.log(
@@ -108,12 +112,8 @@ export const handleVolumeSync = (): void => {
     Dispatcher.subscribe(ActionType.POST_CONNECTION_OPEN, postConnectionOpenHandler);
     Logger.log(`Subscribed to ${ActionType.POST_CONNECTION_OPEN} events`);
 
-    Dispatcher.subscribe(ActionType.USER_SETTINGS_PROTO_UPDATE, dispatchVolumeOverrides);
-    Logger.log(`Subscribed to ${ActionType.USER_SETTINGS_PROTO_UPDATE} events`);
-
     const AudioSettingsManager = findAudioSettingsManager();
     if (AudioSettingsManager) {
-        dispatchVolumeOverrides();
         handleAudioSettingsManager(AudioSettingsManager);
     } else {
         Logger.log(`AudioSettingsManager not found, waiting for ${ActionType.POST_CONNECTION_OPEN}`);
