@@ -21,7 +21,6 @@ export const dispatchVolumeOverrides = (): void => {
                 userId,
                 context,
                 volume,
-                isOverride: true,
             });
         }
     }
@@ -32,7 +31,6 @@ interface SetVolumeAction extends Flux.Action {
     userId: Snowflake;
     volume: number;
     context: MediaEngineContext;
-    isOverride?: boolean;
 }
 
 const findAudioSettingsManager = (): AudioSettingsManager => {
@@ -77,7 +75,8 @@ interface AudioSettingsManager {
 let originalHandler = null;
 
 const wrappedSettingsManagerHandler: Flux.ActionHandler<SetVolumeAction> = (action) => {
-    const { userId, volume, context, isOverride } = action;
+    const { userId, volume, context } = action;
+    const isOverride = volume > MAX_VOLUME_AMP;
     if (isOverride) {
         const isNew = updateVolumeOverride(userId, volume, context);
         if (isNew) {

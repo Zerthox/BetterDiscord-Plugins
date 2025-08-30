@@ -1,6 +1,6 @@
 /**
  * @name BetterVolume
- * @version 3.2.0
+ * @version 3.2.1
  * @author Zerthox
  * @authorLink https://github.com/Zerthox
  * @description Set user volume values manually instead of using a slider. Allows setting volumes higher than 200%.
@@ -406,7 +406,6 @@ const dispatchVolumeOverrides = () => {
                 userId,
                 context,
                 volume,
-                isOverride: true,
             });
         }
     }
@@ -440,7 +439,8 @@ const postConnectionOpenHandler = (_action) => {
 };
 let originalHandler = null;
 const wrappedSettingsManagerHandler = (action) => {
-    const { userId, volume, context, isOverride } = action;
+    const { userId, volume, context } = action;
+    const isOverride = volume > MAX_VOLUME_AMP;
     if (isOverride) {
         const isNew = updateVolumeOverride(userId, volume, context);
         if (isNew) {
