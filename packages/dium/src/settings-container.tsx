@@ -19,7 +19,7 @@ export const SettingsContainer = ({ name, children, onReset }: SettingsContainer
                         size={Button.Sizes.SMALL}
                         onClick={() =>
                             confirm(name, "Reset all settings?", {
-                                onConfirm: () => onReset(),
+                                onConfirm: onReset,
                             })
                         }
                     >
