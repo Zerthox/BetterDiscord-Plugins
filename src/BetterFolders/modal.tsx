@@ -1,6 +1,6 @@
 import { React, Logger, PatchDataWithResult, Utils } from "dium";
 import { SortedGuildStore, GuildsTreeFolder } from "@dium/modules";
-import { RadioGroup, FormItem } from "@dium/components";
+import { RadioGroup, FormItem, TextInput } from "@dium/components";
 import { BetterFolderUploader } from "./uploader";
 import { Settings } from "./settings";
 
@@ -39,10 +39,9 @@ export const folderModalPatch = ({
     const { folderId } = context.props;
     const { state } = context;
 
-    // find form
-    const form = Utils.queryTree(result, (node) => node?.type === "form");
-    if (!form) {
-        Logger.warn("Unable to find form");
+    const [parent] = Utils.queryTreeForParent(result, (node) => node?.type === TextInput);
+    if (!parent) {
+        Logger.warn("Unable to find text input parent");
         return;
     }
 
@@ -56,11 +55,10 @@ export const folderModalPatch = ({
         });
     }
 
-    // render icon select
-    const { children } = form.props;
-    const { className } = children[0].props;
+    // inject our elements
+    const { children } = parent.props;
     children.push(
-        <FormItem title="Icon" className={className}>
+        <FormItem title="Icon">
             <RadioGroup
                 value={state.iconType}
                 options={[
@@ -73,10 +71,9 @@ export const folderModalPatch = ({
     );
 
     if (state.iconType === IconType.Custom) {
-        // render custom icon options
         const tree = SortedGuildStore.getGuildsTree();
         children.push(
-            <FormItem title="Custom Icon" className={className}>
+            <FormItem title="Custom Icon">
                 <BetterFolderUploader
                     icon={state.icon}
                     always={state.always}

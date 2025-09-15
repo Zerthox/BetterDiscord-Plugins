@@ -1,6 +1,6 @@
 /**
  * @name BetterFolders
- * @version 3.6.2
+ * @version 3.7.0
  * @author Zerthox
  * @authorLink https://github.com/Zerthox
  * @description Adds new functionality to server folders. Custom Folder Icons. Close other folders on open.
@@ -15,7 +15,7 @@ shell.Popup(
     "Do NOT run scripts from the internet with the Windows Script Host!\nMove this file to your BetterDiscord plugins folder.",
     0,
     pluginName + ": Warning!",
-    0x1030
+    0x1030,
 );
 var fso = new ActiveXObject("Scripting.FileSystemObject");
 var pluginsPath = shell.expandEnvironmentStrings("%appdata%\\BetterDiscord\\plugins");
@@ -24,25 +24,20 @@ if (!fso.FolderExists(pluginsPath)) {
         "Unable to find BetterDiscord on your computer.\nOpen the download page of BetterDiscord?",
         0,
         pluginName + ": BetterDiscord not found",
-        0x34
+        0x34,
     );
     if (popup === 6) {
-        shell.Exec("explorer \"https://betterdiscord.app\"");
+        shell.Exec('explorer "https://betterdiscord.app"');
     }
 } else if (WScript.ScriptFullName === pluginsPath + "\\" + WScript.ScriptName) {
     shell.Popup(
-        "This plugin is already in the correct folder.\nNavigate to the \"Plugins\" settings tab in Discord and enable it there.",
+        'This plugin is already in the correct folder.\nNavigate to the "Plugins" settings tab in Discord and enable it there.',
         0,
         pluginName,
-        0x40
+        0x40,
     );
 } else {
-    var popup = shell.Popup(
-        "Open the BetterDiscord plugins folder?",
-        0,
-        pluginName,
-        0x34
-    );
+    var popup = shell.Popup("Open the BetterDiscord plugins folder?", 0, pluginName, 0x34);
     if (popup === 6) {
         shell.Exec("explorer " + pluginsPath);
     }
@@ -86,9 +81,6 @@ const byName$1 = (name) => {
 const byKeys$1 = (...keys) => {
     return (target) => target instanceof Object && keys.every((key) => key in target);
 };
-const byProtos = (...protos) => {
-    return (target) => target instanceof Object && target.prototype instanceof Object && protos.every((proto) => proto in target.prototype);
-};
 const bySource$1 = (...fragments) => {
     return (target) => {
         while (target instanceof Object && "$$typeof" in target) {
@@ -97,7 +89,9 @@ const bySource$1 = (...fragments) => {
         if (target instanceof Function) {
             const source = target.toString();
             const renderSource = target.prototype?.render?.toString();
-            return fragments.every((fragment) => typeof fragment === "string" ? (source.includes(fragment) || renderSource?.includes(fragment)) : (fragment(source) || renderSource && fragment(renderSource)));
+            return fragments.every((fragment) => typeof fragment === "string"
+                ? source.includes(fragment) || renderSource?.includes(fragment)
+                : fragment(source) || (renderSource && fragment(renderSource)));
         }
         else {
             return false;
@@ -133,36 +127,41 @@ const mappedProxy = (target, mapping) => {
         defineProperty(target, prop, attributes) {
             Object.defineProperty(target, map.get(prop) ?? prop, attributes);
             return true;
-        }
+        },
     });
 };
 
 const find = (filter, { resolve = true, entries = false } = {}) => BdApi.Webpack.getModule(filter, {
     defaultExport: resolve,
-    searchExports: entries
+    searchExports: entries,
 });
 const byName = (name, options) => find(byName$1(name), options);
 const byKeys = (keys, options) => find(byKeys$1(...keys), options);
 const bySource = (contents, options) => find(bySource$1(...contents), options);
-const resolveKey = (target, filter) => [target, Object.entries(target ?? {}).find(([, value]) => filter(value))?.[0]];
+const resolveKey = (target, filter) => [
+    target,
+    Object.entries(target ?? {}).find(([, value]) => filter(value))?.[0],
+];
 const findWithKey = (filter) => resolveKey(find(byEntry(filter)), filter);
 const demangle = (mapping, required, proxy = false) => {
-    const req = required ?? Object.keys(mapping);
-    const found = find((target) => (checkObjectValues(target)
-        && req.every((req) => Object.values(target).some((value) => mapping[req](value)))));
-    return proxy ? mappedProxy(found, Object.fromEntries(Object.entries(mapping).map(([key, filter]) => [
-        key,
-        Object.entries(found ?? {}).find(([, value]) => filter(value))?.[0]
-    ]))) : Object.fromEntries(Object.entries(mapping).map(([key, filter]) => [
-        key,
-        Object.values(found ?? {}).find((value) => filter(value))
-    ]));
+    const req = Object.keys(mapping);
+    const found = find((target) => checkObjectValues(target)
+        && req.every((req) => Object.values(target).some((value) => mapping[req](value))));
+    return proxy
+        ? mappedProxy(found, Object.fromEntries(Object.entries(mapping).map(([key, filter]) => [
+            key,
+            Object.entries(found ?? {}).find(([, value]) => filter(value))?.[0],
+        ])))
+        : Object.fromEntries(Object.entries(mapping).map(([key, filter]) => [
+            key,
+            Object.values(found ?? {}).find((value) => filter(value)),
+        ]));
 };
 let controller = new AbortController();
 const waitFor = (filter, { resolve = true, entries = false } = {}) => BdApi.Webpack.waitForModule(filter, {
     signal: controller.signal,
     defaultExport: resolve,
-    searchExports: entries
+    searchExports: entries,
 });
 const abort = () => {
     controller.abort();
@@ -180,11 +179,13 @@ const patch = (type, object, method, callback, options) => {
     if (!(original instanceof Function)) {
         throw TypeError(`patch target ${original} is not a function`);
     }
-    const cancel = BdApi.Patcher[type](getMeta().name, object, method, options.once ? (...args) => {
-        const result = callback(cancel, original, ...args);
-        cancel();
-        return result;
-    } : (...args) => callback(cancel, original, ...args));
+    const cancel = BdApi.Patcher[type](getMeta().name, object, method, options.once
+        ? (...args) => {
+            const result = callback(cancel, original, ...args);
+            cancel();
+            return result;
+        }
+        : (...args) => callback(cancel, original, ...args));
     if (!options.silent) {
         log(`Patched ${options.name ?? String(method)}`);
     }
@@ -213,16 +214,9 @@ const clear = () => BdApi.DOM.removeStyle(getMeta().name);
 
 const ClientActions = /* @__PURE__ */ byKeys(["toggleGuildFolderExpand"]);
 
-const { useStateFromStores } = /* @__PURE__ */ demangle({
-    default: byKeys$1("Store", "connectStores"),
-    Dispatcher: byProtos("dispatch"),
-    Store: byProtos("emitChange"),
-    BatchedStoreListener: byProtos("attach", "detach"),
-    useStateFromStores: bySource$1("useStateFromStores")
-}, ["Store", "Dispatcher", "useStateFromStores"]);
-
 const SortedGuildStore = /* @__PURE__ */ byName("SortedGuildStore");
-const ExpandedGuildFolderStore = /* @__PURE__ */ byName("ExpandedGuildFolderStore");
+const ExpandedGuildFolderStore =
+/* @__PURE__ */ byName("ExpandedGuildFolderStore");
 
 const { React } = BdApi;
 const classNames = /* @__PURE__ */ find((exports) => exports instanceof Object && exports.default === exports && Object.keys(exports).length === 1);
@@ -231,21 +225,28 @@ const Button = /* @__PURE__ */ byKeys(["Colors", "Link"], { entries: true });
 
 const Flex = /* @__PURE__ */ byKeys(["Child", "Justify", "Align"], { entries: true });
 
-const { FormSection, FormItem, FormText,
-FormDivider, FormSwitch} = /* @__PURE__ */ demangle({
-    FormSection: bySource$1("titleClassName:", ".sectionTitle"),
-    FormItem: bySource$1("titleClassName:", "required:"),
-    FormTitle: bySource$1("faded:", "required:"),
-    FormText: (target) => target.Types?.INPUT_PLACEHOLDER,
-    FormDivider: bySource$1(".divider", "style:"),
-    FormSwitch: bySource$1("tooltipNote:"),
-    FormNotice: bySource$1("imageData:", ".formNotice")
-}, ["FormSection", "FormItem", "FormDivider"]);
+const FormItem = /* @__PURE__ */ bySource(["titleClassName:", "required:"], { entries: true });
+const FormSwitch = /* @__PURE__ */ bySource(["tooltipNote:"], {
+    entries: true,
+});
+const FormDivider = /* @__PURE__ */ bySource([".divider", (source) => /{className:.,style:.}=/.test(source)], {
+    entries: true,
+});
+const FormSection = /* @__PURE__ */ bySource(["titleClassName:", ".sectionTitle"], {
+    entries: true,
+});
+const FormText = /* @__PURE__ */ bySource(["type:", "style:", "disabled:", "DEFAULT"], {
+    entries: true,
+});
 
 const margins = /* @__PURE__ */ byKeys(["marginBottom40", "marginTop4"]);
 
-const RadioGroup = /* @__PURE__ */ bySource(["radioPosition:", "radioItemClassName:", "options:"], { entries: true });
+const { RadioGroup} = /* @__PURE__ */ demangle({
+    RadioGroup: bySource$1((source) => /{label:.,description:.}=/.test(source)),
+    getRadioAttributes: bySource$1(`role:"radio"`),
+});
 
+const TextInput = /* @__PURE__ */ bySource(["placeholder", "maxLength", "clearable"], { entries: true });
 const ImageInput = /* @__PURE__ */ find((target) => typeof target.defaultProps?.multiple === "boolean" && typeof target.defaultProps?.maxFileSizeBytes === "number");
 
 const replaceElement = (target, replace) => {
@@ -268,6 +269,20 @@ const queryTree = (node, predicate) => {
         }
     }
     return null;
+};
+const queryTreeForParent = (tree, predicate) => {
+    let childIndex = -1;
+    const parent = queryTree(tree, (node) => {
+        const children = node?.props?.children;
+        if (children instanceof Array) {
+            const index = children.findIndex(predicate);
+            if (index > -1) {
+                childIndex = index;
+                return true;
+            }
+        }
+    });
+    return [parent, childIndex];
 };
 const getFiber = (node) => {
     const key = Object.keys(node).find((key) => key.startsWith("__reactFiber"));
@@ -324,15 +339,21 @@ const SettingsContainer = ({ name, children, onReset }) => (React.createElement(
         React.createElement(FormDivider, { className: classNames(margins.marginTop20, margins.marginBottom20) }),
         React.createElement(Flex, { justify: Flex.Justify.END },
             React.createElement(Button, { size: Button.Sizes.SMALL, onClick: () => confirm(name, "Reset all settings?", {
-                    onConfirm: () => onReset()
+                    onConfirm: onReset,
                 }) }, "Reset")))) : null));
 
 class SettingsStore {
     constructor(defaults, onLoad) {
         this.listeners = new Set();
+        this.getCurrent = () => this.current;
         this.update = (settings) => {
-            Object.assign(this.current, typeof settings === "function" ? settings(this.current) : settings);
+            const update = typeof settings === "function" ? settings(this.current) : settings;
+            this.current = { ...this.current, ...update };
             this._dispatch(true);
+        };
+        this.addListenerEffect = (listener) => {
+            this.addListener(listener);
+            return () => this.removeListener(listener);
         };
         this.addReactChangeListener = this.addListener;
         this.removeReactChangeListener = this.removeListener;
@@ -357,35 +378,36 @@ class SettingsStore {
         this._dispatch(true);
     }
     delete(...keys) {
+        this.current = { ...this.current };
         for (const key of keys) {
             delete this.current[key];
         }
         this._dispatch(true);
     }
     useCurrent() {
-        return useStateFromStores([this], () => this.current, undefined, () => false);
+        return React.useSyncExternalStore(this.addListenerEffect, this.getCurrent);
     }
-    useSelector(selector, deps, compare) {
-        return useStateFromStores([this], () => selector(this.current), deps, compare);
+    useSelector(selector, deps = null, compare = Object.is) {
+        const state = React.useRef(null);
+        const snapshot = React.useCallback(() => {
+            const next = selector(this.current);
+            if (!compare(state.current, next)) {
+                state.current = next;
+            }
+            return state.current;
+        }, deps ?? [selector]);
+        return React.useSyncExternalStore(this.addListenerEffect, snapshot);
     }
     useState() {
-        return useStateFromStores([this], () => [
-            this.current,
-            this.update
-        ]);
+        const current = this.useCurrent();
+        return [current, this.update];
     }
     useStateWithDefaults() {
-        return useStateFromStores([this], () => [
-            this.current,
-            this.defaults,
-            this.update
-        ]);
+        const current = this.useCurrent();
+        return [current, this.defaults, this.update];
     }
     useListener(listener, deps) {
-        React.useEffect(() => {
-            this.addListener(listener);
-            return () => this.removeListener(listener);
-        }, deps ?? [listener]);
+        React.useEffect(() => this.addListenerEffect(listener), deps ?? [listener]);
     }
     addListener(listener) {
         this.listeners.add(listener);
@@ -402,7 +424,7 @@ const createSettings = (defaults, onLoad) => new SettingsStore(defaults, onLoad)
 
 const createPlugin = (plugin) => (meta) => {
     setMeta(meta);
-    const { start, stop, styles, Settings, SettingsPanel } = (plugin instanceof Function ? plugin(meta) : plugin);
+    const { start, stop, styles, Settings, SettingsPanel } = plugin instanceof Function ? plugin(meta) : plugin;
     Settings?.load();
     return {
         start() {
@@ -417,14 +439,16 @@ const createPlugin = (plugin) => (meta) => {
             stop?.();
             log("Disabled");
         },
-        getSettingsPanel: SettingsPanel ? () => (React.createElement(SettingsContainer, { name: meta.name, onReset: Settings ? () => Settings.reset() : null },
-            React.createElement(SettingsPanel, null))) : null
+        getSettingsPanel: SettingsPanel
+            ? () => (React.createElement(SettingsContainer, { name: meta.name, onReset: Settings ? () => Settings.reset() : null },
+                React.createElement(SettingsPanel, null)))
+            : null,
     };
 };
 
 const Settings = createSettings({
     closeOnOpen: false,
-    folders: {}
+    folders: {},
 });
 
 const css = ".customIcon-BetterFolders {\n  box-sizing: border-box;\n  border-radius: var(--radius-lg);\n  width: var(--guildbar-folder-size);\n  height: var(--guildbar-folder-size);\n  padding: var(--custom-folder-preview-padding);\n  background-size: contain;\n  background-position: center;\n  background-repeat: no-repeat;\n}";
@@ -477,12 +501,12 @@ const BetterFolderUploader = ({ icon, always, onChange }) => (React.createElemen
         renderIcon({ icon})),
     React.createElement(FormSwitch, { hideBorder: true, className: margins.marginTop8, value: always, onChange: (checked) => onChange({ icon, always: checked }) }, "Always display icon")));
 
-const folderModalPatch = ({ context, result }) => {
+const folderModalPatch = ({ context, result, }) => {
     const { folderId } = context.props;
     const { state } = context;
-    const form = queryTree(result, (node) => node?.type === "form");
-    if (!form) {
-        warn("Unable to find form");
+    const [parent] = queryTreeForParent(result, (node) => node?.type === TextInput);
+    if (!parent) {
+        warn("Unable to find text input parent");
         return;
     }
     if (!state.iconType) {
@@ -490,19 +514,18 @@ const folderModalPatch = ({ context, result }) => {
         Object.assign(state, {
             iconType: icon ? "custom"  : "default" ,
             icon,
-            always
+            always,
         });
     }
-    const { children } = form.props;
-    const { className } = children[0].props;
-    children.push(React.createElement(FormItem, { title: "Icon", className: className },
+    const { children } = parent.props;
+    children.push(React.createElement(FormItem, { title: "Icon" },
         React.createElement(RadioGroup, { value: state.iconType, options: [
                 { value: "default" , name: "Default Icon" },
-                { value: "custom" , name: "Custom Icon" }
+                { value: "custom" , name: "Custom Icon" },
             ], onChange: ({ value }) => context.setState({ iconType: value }) })));
     if (state.iconType === "custom" ) {
         const tree = SortedGuildStore.getGuildsTree();
-        children.push(React.createElement(FormItem, { title: "Custom Icon", className: className },
+        children.push(React.createElement(FormItem, { title: "Custom Icon" },
             React.createElement(BetterFolderUploader, { icon: state.icon, always: state.always, folderNode: tree.nodes[folderId], onChange: ({ icon, always }) => context.setState({ icon, always }) })));
     }
     const button = queryTree(result, (node) => node?.props?.type === "submit");
@@ -545,7 +568,7 @@ const index = createPlugin({
                 log("Found FolderIcon component");
                 FolderIcon = icon.type;
             }
-            const replace = React.createElement(ConnectedBetterFolderIcon, { folderId: props.folderNode.id, childProps: icon.props, FolderIcon: FolderIcon });
+            const replace = (React.createElement(ConnectedBetterFolderIcon, { folderId: props.folderNode.id, childProps: icon.props, FolderIcon: FolderIcon }));
             replaceElement(icon, replace);
         }, { name: "FolderIconWrapper" });
         triggerRerender(guildsOwner);
@@ -560,7 +583,9 @@ const index = createPlugin({
         });
         waitFor(bySource$1(".folderName", ".onClose"), { entries: true }).then((FolderSettingsModal) => {
             if (FolderSettingsModal) {
-                after(FolderSettingsModal.prototype, "render", folderModalPatch, { name: "GuildFolderSettingsModal" });
+                after(FolderSettingsModal.prototype, "render", folderModalPatch, {
+                    name: "GuildFolderSettingsModal",
+                });
             }
         });
     },
@@ -579,7 +604,7 @@ const index = createPlugin({
                 }
                 setSettings({ closeOnOpen: checked });
             } }, "Close on open"));
-    }
+    },
 });
 
 module.exports = index;
