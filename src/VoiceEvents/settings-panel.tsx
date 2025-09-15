@@ -8,7 +8,6 @@ import {
     TextInput,
     Slider,
     FormSection,
-    FormTitle,
     FormItem,
     FormText,
     FormSwitch,
@@ -51,8 +50,7 @@ export const SettingsPanel = (): React.JSX.Element => {
 
     return (
         <>
-            <FormItem className={margins.marginBottom20}>
-                <FormTitle>TTS Voice</FormTitle>
+            <FormItem className={margins.marginBottom20} title="TTS Voice">
                 <SingleSelect
                     value={voice}
                     options={speechSynthesis.getVoices().map(({ name, lang, voiceURI }) => ({
@@ -65,8 +63,7 @@ export const SettingsPanel = (): React.JSX.Element => {
                     renderOptionValue={([{ label, lang }]) => <VoiceLabel name={label} lang={lang} />}
                 />
             </FormItem>
-            <FormItem className={margins.marginBottom20}>
-                <FormTitle>TTS Volume</FormTitle>
+            <FormItem className={margins.marginBottom20} title="TTS Volume">
                 <Slider
                     initialValue={volume}
                     maxValue={100}
@@ -74,8 +71,7 @@ export const SettingsPanel = (): React.JSX.Element => {
                     asValueChanges={(value: number) => setSettings({ volume: value })}
                 />
             </FormItem>
-            <FormItem className={margins.marginBottom20}>
-                <FormTitle>TTS Speed</FormTitle>
+            <FormItem className={margins.marginBottom20} title="TTS Speed">
                 <Slider
                     initialValue={speed}
                     maxValue={10}
@@ -114,8 +110,7 @@ export const SettingsPanel = (): React.JSX.Element => {
                     Enable Stage Filter
                 </FormSwitch>
             </FormItem>
-            <FormSection>
-                <FormTitle tag="h3">Notifications</FormTitle>
+            <FormSection title="Notifications">
                 <FormText type="description" className={margins.marginBottom20}>
                     <Text tag="span" variant="code">
                         $user
@@ -135,8 +130,7 @@ export const SettingsPanel = (): React.JSX.Element => {
                     with the respective Voice Channel name.
                 </FormText>
                 {Object.entries(titles).map(([key, title]) => (
-                    <FormItem key={key} className={margins.marginBottom20}>
-                        <FormTitle>{title}</FormTitle>
+                    <FormItem key={key} className={margins.marginBottom20} title={title}>
                         <Flex align={Flex.Align.CENTER}>
                             <Flex.Child grow={1}>
                                 <div>
@@ -184,8 +178,7 @@ export const SettingsPanel = (): React.JSX.Element => {
                         </Flex>
                     </FormItem>
                 ))}
-                <FormItem key="unknownChannel" className={margins.marginBottom20}>
-                    <FormTitle>Unknown Channel Name</FormTitle>
+                <FormItem key="unknownChannel" className={margins.marginBottom20} title="Unknown Channel Name">
                     <Flex align={Flex.Align.CENTER}>
                         <Flex.Child grow={1}>
                             <div>

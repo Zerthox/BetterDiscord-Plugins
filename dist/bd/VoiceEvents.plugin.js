@@ -1,6 +1,6 @@
 /**
  * @name VoiceEvents
- * @version 2.7.0
+ * @version 2.8.0
  * @author Zerthox
  * @authorLink https://github.com/Zerthox
  * @description Adds TTS Event Notifications to your selected Voice Channel. TeamSpeak feeling.
@@ -15,7 +15,7 @@ shell.Popup(
     "Do NOT run scripts from the internet with the Windows Script Host!\nMove this file to your BetterDiscord plugins folder.",
     0,
     pluginName + ": Warning!",
-    0x1030
+    0x1030,
 );
 var fso = new ActiveXObject("Scripting.FileSystemObject");
 var pluginsPath = shell.expandEnvironmentStrings("%appdata%\\BetterDiscord\\plugins");
@@ -24,25 +24,20 @@ if (!fso.FolderExists(pluginsPath)) {
         "Unable to find BetterDiscord on your computer.\nOpen the download page of BetterDiscord?",
         0,
         pluginName + ": BetterDiscord not found",
-        0x34
+        0x34,
     );
     if (popup === 6) {
-        shell.Exec("explorer \"https://betterdiscord.app\"");
+        shell.Exec('explorer "https://betterdiscord.app"');
     }
 } else if (WScript.ScriptFullName === pluginsPath + "\\" + WScript.ScriptName) {
     shell.Popup(
-        "This plugin is already in the correct folder.\nNavigate to the \"Plugins\" settings tab in Discord and enable it there.",
+        'This plugin is already in the correct folder.\nNavigate to the "Plugins" settings tab in Discord and enable it there.',
         0,
         pluginName,
-        0x40
+        0x40,
     );
 } else {
-    var popup = shell.Popup(
-        "Open the BetterDiscord plugins folder?",
-        0,
-        pluginName,
-        0x34
-    );
+    var popup = shell.Popup("Open the BetterDiscord plugins folder?", 0, pluginName, 0x34);
     if (popup === 6) {
         shell.Exec("explorer " + pluginsPath);
     }
@@ -83,7 +78,9 @@ const bySource$1 = (...fragments) => {
         if (target instanceof Function) {
             const source = target.toString();
             const renderSource = target.prototype?.render?.toString();
-            return fragments.every((fragment) => typeof fragment === "string" ? (source.includes(fragment) || renderSource?.includes(fragment)) : (fragment(source) || renderSource && fragment(renderSource)));
+            return fragments.every((fragment) => typeof fragment === "string"
+                ? source.includes(fragment) || renderSource?.includes(fragment)
+                : fragment(source) || (renderSource && fragment(renderSource)));
         }
         else {
             return false;
@@ -120,28 +117,30 @@ const mappedProxy = (target, mapping) => {
         defineProperty(target, prop, attributes) {
             Object.defineProperty(target, map.get(prop) ?? prop, attributes);
             return true;
-        }
+        },
     });
 };
 
 const find = (filter, { resolve = true, entries = false } = {}) => BdApi.Webpack.getModule(filter, {
     defaultExport: resolve,
-    searchExports: entries
+    searchExports: entries,
 });
 const byName = (name, options) => find(byName$1(name), options);
 const byKeys = (keys, options) => find(byKeys$1(...keys), options);
 const bySource = (contents, options) => find(bySource$1(...contents), options);
 const demangle = (mapping, required, proxy = false) => {
     const req = required ?? Object.keys(mapping);
-    const found = find((target) => (checkObjectValues(target)
-        && req.every((req) => Object.values(target).some((value) => mapping[req](value)))));
-    return proxy ? mappedProxy(found, Object.fromEntries(Object.entries(mapping).map(([key, filter]) => [
-        key,
-        Object.entries(found ?? {}).find(([, value]) => filter(value))?.[0]
-    ]))) : Object.fromEntries(Object.entries(mapping).map(([key, filter]) => [
-        key,
-        Object.values(found ?? {}).find((value) => filter(value))
-    ]));
+    const found = find((target) => checkObjectValues(target)
+        && req.every((req) => Object.values(target).some((value) => mapping[req](value))));
+    return proxy
+        ? mappedProxy(found, Object.fromEntries(Object.entries(mapping).map(([key, filter]) => [
+            key,
+            Object.entries(found ?? {}).find(([, value]) => filter(value))?.[0],
+        ])))
+        : Object.fromEntries(Object.entries(mapping).map(([key, filter]) => [
+            key,
+            Object.values(found ?? {}).find((value) => filter(value)),
+        ]));
 };
 let controller = new AbortController();
 const abort = () => {
@@ -157,11 +156,13 @@ const error = (...data) => print(console.error, ...data);
 
 let menuPatches = [];
 const contextMenu = (navId, callback, options = {}) => {
-    const cancel = BdApi.ContextMenu.patch(navId, options.once ? (tree) => {
-        const result = callback(tree);
-        cancel();
-        return result;
-    } : callback);
+    const cancel = BdApi.ContextMenu.patch(navId, options.once
+        ? (tree) => {
+            const result = callback(tree);
+            cancel();
+            return result;
+        }
+        : callback);
     menuPatches.push(cancel);
     if (!options.silent) {
         log(`Patched ${options.name ?? `"${navId}"`} context menu`);
@@ -205,16 +206,19 @@ const Button = /* @__PURE__ */ byKeys(["Colors", "Link"], { entries: true });
 
 const Flex = /* @__PURE__ */ byKeys(["Child", "Justify", "Align"], { entries: true });
 
-const { FormSection, FormItem, FormTitle, FormText,
-FormDivider, FormSwitch} = /* @__PURE__ */ demangle({
-    FormSection: bySource$1("titleClassName:", ".sectionTitle"),
-    FormItem: bySource$1("titleClassName:", "required:"),
-    FormTitle: bySource$1("faded:", "required:"),
-    FormText: (target) => target.Types?.INPUT_PLACEHOLDER,
-    FormDivider: bySource$1(".divider", "style:"),
-    FormSwitch: bySource$1("tooltipNote:"),
-    FormNotice: bySource$1("imageData:", ".formNotice")
-}, ["FormSection", "FormItem", "FormDivider"]);
+const FormItem = /* @__PURE__ */ bySource(["titleClassName:", "required:"], { entries: true });
+const FormSwitch = /* @__PURE__ */ bySource(["tooltipNote:"], {
+    entries: true,
+});
+const FormDivider = /* @__PURE__ */ bySource([".divider", (source) => /{className:.,style:.}=/.test(source)], {
+    entries: true,
+});
+const FormSection = /* @__PURE__ */ bySource(["titleClassName:", ".sectionTitle"], {
+    entries: true,
+});
+const FormText = /* @__PURE__ */ bySource(["type:", "style:", "disabled:", "DEFAULT"], {
+    entries: true,
+});
 
 const margins = /* @__PURE__ */ byKeys(["marginBottom40", "marginTop4"]);
 
@@ -222,10 +226,12 @@ const { Item: MenuItem} = BdApi.ContextMenu;
 
 const { SingleSelect } =  demangle({
     Select: bySource$1("renderOptionLabel:", "renderOptionValue:", "popoutWidth:"),
-    SingleSelect: bySource$1((source) => /{value:[a-zA-Z_$],onChange:[a-zA-Z_$]}/.test(source))
+    SingleSelect: bySource$1((source) => /{value:[a-zA-Z_$],onChange:[a-zA-Z_$]}/.test(source)),
 }, ["Select"]);
 
-const Slider = /* @__PURE__ */ bySource(["markerPositions:", "asValueChanges:"], { entries: true });
+const Slider = /* @__PURE__ */ bySource(["markerPositions:", "asValueChanges:"], {
+    entries: true,
+});
 
 const Switch = /* @__PURE__ */ bySource(["checked:", "reducedMotion:"], { entries: true });
 
@@ -270,7 +276,7 @@ const SettingsContainer = ({ name, children, onReset }) => (React.createElement(
         React.createElement(FormDivider, { className: classNames(margins.marginTop20, margins.marginBottom20) }),
         React.createElement(Flex, { justify: Flex.Justify.END },
             React.createElement(Button, { size: Button.Sizes.SMALL, onClick: () => confirm(name, "Reset all settings?", {
-                    onConfirm: () => onReset()
+                    onConfirm: onReset,
                 }) }, "Reset")))) : null));
 
 class SettingsStore {
@@ -355,7 +361,7 @@ const createSettings = (defaults, onLoad) => new SettingsStore(defaults, onLoad)
 
 const createPlugin = (plugin) => (meta) => {
     setMeta(meta);
-    const { start, stop, styles, Settings, SettingsPanel } = (plugin instanceof Function ? plugin(meta) : plugin);
+    const { start, stop, styles, Settings, SettingsPanel } = plugin instanceof Function ? plugin(meta) : plugin;
     Settings?.load();
     return {
         start() {
@@ -370,8 +376,10 @@ const createPlugin = (plugin) => (meta) => {
             stop?.();
             log("Disabled");
         },
-        getSettingsPanel: SettingsPanel ? () => (React.createElement(SettingsContainer, { name: meta.name, onReset: Settings ? () => Settings.reset() : null },
-            React.createElement(SettingsPanel, null))) : null
+        getSettingsPanel: SettingsPanel
+            ? () => (React.createElement(SettingsContainer, { name: meta.name, onReset: Settings ? () => Settings.reset() : null },
+                React.createElement(SettingsPanel, null)))
+            : null,
     };
 };
 
@@ -385,42 +393,42 @@ const Settings = createSettings({
     notifs: {
         mute: {
             enabled: true,
-            message: "Muted"
+            message: "Muted",
         },
         unmute: {
             enabled: true,
-            message: "Unmuted"
+            message: "Unmuted",
         },
         deafen: {
             enabled: true,
-            message: "Deafened"
+            message: "Deafened",
         },
         undeafen: {
             enabled: true,
-            message: "Undeafened"
+            message: "Undeafened",
         },
         join: {
             enabled: true,
-            message: "$user joined $channel"
+            message: "$user joined $channel",
         },
         leave: {
             enabled: true,
-            message: "$user left $channel"
+            message: "$user left $channel",
         },
         joinSelf: {
             enabled: true,
-            message: "You joined $channel"
+            message: "You joined $channel",
         },
         moveSelf: {
             enabled: true,
-            message: "You were moved to $channel"
+            message: "You were moved to $channel",
         },
         leaveSelf: {
             enabled: true,
-            message: "You left $channel"
-        }
+            message: "You left $channel",
+        },
     },
-    unknownChannel: "The call"
+    unknownChannel: "The call",
 });
 
 const findDefaultVoice = () => {
@@ -459,7 +467,12 @@ const speak = (message) => {
     speechSynthesis.speak(utterance);
 };
 const processName = (name) => {
-    return Settings.current.filterNames ? name.split("").map((char) => /[a-zA-Z0-9]/.test(char) ? char : " ").join("") : name;
+    return Settings.current.filterNames
+        ? name
+            .split("")
+            .map((char) => (/[a-zA-Z0-9]/.test(char) ? char : " "))
+            .join("")
+        : name;
 };
 const notify = (type, userId, channelId) => {
     const settings = Settings.current;
@@ -469,13 +482,12 @@ const notify = (type, userId, channelId) => {
     }
     const user = UserStore.getUser(userId);
     const channel = ChannelStore.getChannel(channelId);
-    if (settings.filterBots && user?.bot
-        || settings.filterStages && channel?.isGuildStageVoice()) {
+    if ((settings.filterBots && user?.bot) || (settings.filterStages && channel?.isGuildStageVoice())) {
         return;
     }
     const displayName = user.globalName ?? user.username;
     const nick = GuildMemberStore.getMember(channel?.getGuildId(), userId)?.nick ?? displayName;
-    const channelName = (!channel || channel.isDM() || channel.isGroupDM()) ? settings.unknownChannel : channel.name;
+    const channelName = !channel || channel.isDM() || channel.isGroupDM() ? settings.unknownChannel : channel.name;
     const message = notif.message
         .replaceAll("$username", processName(user.username))
         .replaceAll("$displayname", processName(user.username))
@@ -493,7 +505,7 @@ const titles = {
     leave: "Leave (Other Users)",
     joinSelf: "Join (Self)",
     moveSelf: "Move (Self)",
-    leaveSelf: "Leave (Self)"
+    leaveSelf: "Leave (Self)",
 };
 const VoiceLabel = ({ name, lang }) => (React.createElement(Flex, { direction: Flex.Direction.HORIZONTAL, align: Flex.Align.CENTER },
     React.createElement(Text, { variant: "text-md/normal" }, name),
@@ -501,18 +513,15 @@ const VoiceLabel = ({ name, lang }) => (React.createElement(Flex, { direction: F
 const SettingsPanel = () => {
     const [{ voice, volume, speed, filterNames, filterBots, filterStages, ...settings }, defaults, setSettings] = Settings.useStateWithDefaults();
     return (React.createElement(React.Fragment, null,
-        React.createElement(FormItem, { className: margins.marginBottom20 },
-            React.createElement(FormTitle, null, "TTS Voice"),
+        React.createElement(FormItem, { className: margins.marginBottom20, title: "TTS Voice" },
             React.createElement(SingleSelect, { value: voice, options: speechSynthesis.getVoices().map(({ name, lang, voiceURI }) => ({
                     value: voiceURI,
                     label: name,
-                    lang
+                    lang,
                 })), onChange: (value) => setSettings({ voice: value }), renderOptionLabel: ({ label, lang }) => React.createElement(VoiceLabel, { name: label, lang: lang }), renderOptionValue: ([{ label, lang }]) => React.createElement(VoiceLabel, { name: label, lang: lang }) })),
-        React.createElement(FormItem, { className: margins.marginBottom20 },
-            React.createElement(FormTitle, null, "TTS Volume"),
+        React.createElement(FormItem, { className: margins.marginBottom20, title: "TTS Volume" },
             React.createElement(Slider, { initialValue: volume, maxValue: 100, minValue: 0, asValueChanges: (value) => setSettings({ volume: value }) })),
-        React.createElement(FormItem, { className: margins.marginBottom20 },
-            React.createElement(FormTitle, null, "TTS Speed"),
+        React.createElement(FormItem, { className: margins.marginBottom20, title: "TTS Speed" },
             React.createElement(Slider, { initialValue: speed, maxValue: 10, minValue: 0.1, asValueChanges: (value) => setSettings({ speed: value }), onValueRender: (value) => `${value.toFixed(2)}x`, markers: [0.1, 1, 2, 5, 10], onMarkerRender: (value) => `${value.toFixed(2)}x` })),
         React.createElement(FormDivider, { className: classNames(margins.marginTop20, margins.marginBottom20) }),
         React.createElement(FormItem, null,
@@ -521,19 +530,24 @@ const SettingsPanel = () => {
             React.createElement(FormSwitch, { value: filterBots, onChange: (checked) => setSettings({ filterBots: checked }), note: "Disable notifications for bot users in voice." }, "Enable Bot Filter")),
         React.createElement(FormItem, null,
             React.createElement(FormSwitch, { value: filterStages, onChange: (checked) => setSettings({ filterStages: checked }), note: "Disable notifications for stage voice channels." }, "Enable Stage Filter")),
-        React.createElement(FormSection, null,
-            React.createElement(FormTitle, { tag: "h3" }, "Notifications"),
+        React.createElement(FormSection, { title: "Notifications" },
             React.createElement(FormText, { type: "description", className: margins.marginBottom20 },
                 React.createElement(Text, { tag: "span", variant: "code" }, "$user"),
-                " will get replaced with the respective User Nickname, ",
+                " ",
+                "will get replaced with the respective User Nickname,",
+                " ",
                 React.createElement(Text, { tag: "span", variant: "code" }, "$displayname"),
-                " with the global User Display Name, ",
+                " ",
+                "with the global User Display Name,",
+                " ",
                 React.createElement(Text, { tag: "span", variant: "code" }, "$username"),
-                " with the User Account name and ",
+                " ",
+                "with the User Account name and",
+                " ",
                 React.createElement(Text, { tag: "span", variant: "code" }, "$channel"),
-                " with the respective Voice Channel name."),
-            Object.entries(titles).map(([key, title]) => (React.createElement(FormItem, { key: key, className: margins.marginBottom20 },
-                React.createElement(FormTitle, null, title),
+                " ",
+                "with the respective Voice Channel name."),
+            Object.entries(titles).map(([key, title]) => (React.createElement(FormItem, { key: key, className: margins.marginBottom20, title: title },
                 React.createElement(Flex, { align: Flex.Align.CENTER },
                     React.createElement(Flex.Child, { grow: 1 },
                         React.createElement("div", null,
@@ -552,10 +566,11 @@ const SettingsPanel = () => {
                     React.createElement(Flex.Child, { grow: 0 },
                         React.createElement("div", null,
                             React.createElement(Button, { size: Button.Sizes.SMALL, onClick: () => speak(settings.notifs[key].message
-                                    .split("$user").join("user")
-                                    .split("$channel").join("channel")) }, "Test"))))))),
-            React.createElement(FormItem, { key: "unknownChannel", className: margins.marginBottom20 },
-                React.createElement(FormTitle, null, "Unknown Channel Name"),
+                                    .split("$user")
+                                    .join("user")
+                                    .split("$channel")
+                                    .join("channel")) }, "Test"))))))),
+            React.createElement(FormItem, { key: "unknownChannel", className: margins.marginBottom20, title: "Unknown Channel Name" },
                 React.createElement(Flex, { align: Flex.Align.CENTER },
                     React.createElement(Flex.Child, { grow: 1 },
                         React.createElement("div", null,
@@ -634,7 +649,7 @@ const index = createPlugin({
         contextMenu("channel-context", (result) => {
             const [parent, index] = queryTreeForParent(result, (child) => child?.props?.id === "hide-voice-names");
             if (parent) {
-                parent.props.children.splice(index + 1, 0, (React.createElement(MenuItem, { isFocused: false, id: "voiceevents-clear", label: "Clear VoiceEvents queue", action: () => speechSynthesis.cancel() })));
+                parent.props.children.splice(index + 1, 0, React.createElement(MenuItem, { isFocused: false, id: "voiceevents-clear", label: "Clear VoiceEvents queue", action: () => speechSynthesis.cancel() }));
             }
         });
     },
@@ -648,7 +663,7 @@ const index = createPlugin({
         log("Unsubscribed from self deaf actions");
     },
     Settings,
-    SettingsPanel
+    SettingsPanel,
 });
 
 module.exports = index;
