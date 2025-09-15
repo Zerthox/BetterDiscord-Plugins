@@ -1,6 +1,6 @@
 /**
  * @name CollapseEmbeds
- * @version 2.1.0
+ * @version 2.1.1
  * @author Zerthox
  * @authorLink https://github.com/Zerthox
  * @description Adds a button to collapse embeds & attachments.
@@ -15,7 +15,7 @@ shell.Popup(
     "Do NOT run scripts from the internet with the Windows Script Host!\nMove this file to your BetterDiscord plugins folder.",
     0,
     pluginName + ": Warning!",
-    0x1030
+    0x1030,
 );
 var fso = new ActiveXObject("Scripting.FileSystemObject");
 var pluginsPath = shell.expandEnvironmentStrings("%appdata%\\BetterDiscord\\plugins");
@@ -24,25 +24,20 @@ if (!fso.FolderExists(pluginsPath)) {
         "Unable to find BetterDiscord on your computer.\nOpen the download page of BetterDiscord?",
         0,
         pluginName + ": BetterDiscord not found",
-        0x34
+        0x34,
     );
     if (popup === 6) {
-        shell.Exec("explorer \"https://betterdiscord.app\"");
+        shell.Exec('explorer "https://betterdiscord.app"');
     }
 } else if (WScript.ScriptFullName === pluginsPath + "\\" + WScript.ScriptName) {
     shell.Popup(
-        "This plugin is already in the correct folder.\nNavigate to the \"Plugins\" settings tab in Discord and enable it there.",
+        'This plugin is already in the correct folder.\nNavigate to the "Plugins" settings tab in Discord and enable it there.',
         0,
         pluginName,
-        0x40
+        0x40,
     );
 } else {
-    var popup = shell.Popup(
-        "Open the BetterDiscord plugins folder?",
-        0,
-        pluginName,
-        0x34
-    );
+    var popup = shell.Popup("Open the BetterDiscord plugins folder?", 0, pluginName, 0x34);
     if (popup === 6) {
         shell.Exec("explorer " + pluginsPath);
     }
@@ -73,7 +68,9 @@ const byKeys$1 = (...keys) => {
     return (target) => target instanceof Object && keys.every((key) => key in target);
 };
 const byProtos$1 = (...protos) => {
-    return (target) => target instanceof Object && target.prototype instanceof Object && protos.every((proto) => proto in target.prototype);
+    return (target) => target instanceof Object
+        && target.prototype instanceof Object
+        && protos.every((proto) => proto in target.prototype);
 };
 const bySource$1 = (...fragments) => {
     return (target) => {
@@ -83,7 +80,9 @@ const bySource$1 = (...fragments) => {
         if (target instanceof Function) {
             const source = target.toString();
             const renderSource = target.prototype?.render?.toString();
-            return fragments.every((fragment) => typeof fragment === "string" ? (source.includes(fragment) || renderSource?.includes(fragment)) : (fragment(source) || renderSource && fragment(renderSource)));
+            return fragments.every((fragment) => typeof fragment === "string"
+                ? source.includes(fragment) || renderSource?.includes(fragment)
+                : fragment(source) || (renderSource && fragment(renderSource)));
         }
         else {
             return false;
@@ -119,28 +118,30 @@ const mappedProxy = (target, mapping) => {
         defineProperty(target, prop, attributes) {
             Object.defineProperty(target, map.get(prop) ?? prop, attributes);
             return true;
-        }
+        },
     });
 };
 
 const find = (filter, { resolve = true, entries = false } = {}) => BdApi.Webpack.getModule(filter, {
     defaultExport: resolve,
-    searchExports: entries
+    searchExports: entries,
 });
 const byKeys = (keys, options) => find(byKeys$1(...keys), options);
 const byProtos = (protos, options) => find(byProtos$1(...protos), options);
 const bySource = (contents, options) => find(bySource$1(...contents), options);
 const demangle = (mapping, required, proxy = false) => {
-    const req = required ?? Object.keys(mapping);
-    const found = find((target) => (checkObjectValues(target)
-        && req.every((req) => Object.values(target).some((value) => mapping[req](value)))));
-    return proxy ? mappedProxy(found, Object.fromEntries(Object.entries(mapping).map(([key, filter]) => [
-        key,
-        Object.entries(found ?? {}).find(([, value]) => filter(value))?.[0]
-    ]))) : Object.fromEntries(Object.entries(mapping).map(([key, filter]) => [
-        key,
-        Object.values(found ?? {}).find((value) => filter(value))
-    ]));
+    const req = Object.keys(mapping);
+    const found = find((target) => checkObjectValues(target)
+        && req.every((req) => Object.values(target).some((value) => mapping[req](value))));
+    return proxy
+        ? mappedProxy(found, Object.fromEntries(Object.entries(mapping).map(([key, filter]) => [
+            key,
+            Object.entries(found ?? {}).find(([, value]) => filter(value))?.[0],
+        ])))
+        : Object.fromEntries(Object.entries(mapping).map(([key, filter]) => [
+            key,
+            Object.values(found ?? {}).find((value) => filter(value)),
+        ]));
 };
 let controller = new AbortController();
 const abort = () => {
@@ -157,11 +158,13 @@ const patch = (type, object, method, callback, options) => {
     if (!(original instanceof Function)) {
         throw TypeError(`patch target ${original} is not a function`);
     }
-    const cancel = BdApi.Patcher[type](getMeta().name, object, method, options.once ? (...args) => {
-        const result = callback(cancel, original, ...args);
-        cancel();
-        return result;
-    } : (...args) => callback(cancel, original, ...args));
+    const cancel = BdApi.Patcher[type](getMeta().name, object, method, options.once
+        ? (...args) => {
+            const result = callback(cancel, original, ...args);
+            cancel();
+            return result;
+        }
+        : (...args) => callback(cancel, original, ...args));
     if (!options.silent) {
         log(`Patched ${options.name ?? String(method)}`);
     }
@@ -198,22 +201,29 @@ const Embed = /* @__PURE__ */ byProtos(["renderSuppressButton"], { entries: true
 
 const Flex = /* @__PURE__ */ byKeys(["Child", "Justify", "Align"], { entries: true });
 
-const { FormSection, FormItem, FormText,
-FormDivider, FormSwitch} = /* @__PURE__ */ demangle({
-    FormSection: bySource$1("titleClassName:", ".sectionTitle"),
-    FormItem: bySource$1("titleClassName:", "required:"),
-    FormTitle: bySource$1("faded:", "required:"),
-    FormText: (target) => target.Types?.INPUT_PLACEHOLDER,
-    FormDivider: bySource$1(".divider", "style:"),
-    FormSwitch: bySource$1("tooltipNote:"),
-    FormNotice: bySource$1("imageData:", ".formNotice")
-}, ["FormSection", "FormItem", "FormDivider"]);
+const FormItem = /* @__PURE__ */ bySource(["titleClassName:", "required:"], { entries: true });
+const FormSwitch = /* @__PURE__ */ bySource(["tooltipNote:"], {
+    entries: true,
+});
+const FormDivider = /* @__PURE__ */ bySource([".divider", (source) => /{className:.,style:.}=/.test(source)], {
+    entries: true,
+});
+const FormSection = /* @__PURE__ */ bySource(["titleClassName:", ".sectionTitle"], {
+    entries: true,
+});
+const FormText = /* @__PURE__ */ bySource(["type:", "style:", "disabled:", "DEFAULT"], {
+    entries: true,
+});
 
-const IconArrow = /* @__PURE__ */ bySource(["d:\"M5.3 9."], { entries: true });
+const IconArrow = /* @__PURE__ */ bySource(['d:"M5.3 9.'], {
+    entries: true,
+});
 
 const margins = /* @__PURE__ */ byKeys(["marginBottom40", "marginTop4"]);
 
-const MessageFooter = /* @__PURE__ */ byProtos(["renderRemoveAttachmentConfirmModal"], { entries: true });
+const MessageFooter = /* @__PURE__ */ byProtos(["renderRemoveAttachmentConfirmModal"], {
+    entries: true,
+});
 
 const TextInput = /* @__PURE__ */ bySource(["placeholder", "maxLength", "clearable"], { entries: true });
 
@@ -226,7 +236,7 @@ const FCHook = ({ children: { type, props }, callback }) => {
 const hookFunctionComponent = (target, callback) => {
     const props = {
         children: { ...target },
-        callback
+        callback,
     };
     target.props = props;
     target.type = FCHook;
@@ -256,7 +266,7 @@ const SettingsContainer = ({ name, children, onReset }) => (React.createElement(
         React.createElement(FormDivider, { className: classNames(margins.marginTop20, margins.marginBottom20) }),
         React.createElement(Flex, { justify: Flex.Justify.END },
             React.createElement(Button, { size: Button.Sizes.SMALL, onClick: () => confirm(name, "Reset all settings?", {
-                    onConfirm: () => onReset()
+                    onConfirm: onReset,
                 }) }, "Reset")))) : null));
 
 class SettingsStore {
@@ -341,7 +351,7 @@ const createSettings = (defaults, onLoad) => new SettingsStore(defaults, onLoad)
 
 const createPlugin = (plugin) => (meta) => {
     setMeta(meta);
-    const { start, stop, styles, Settings, SettingsPanel } = (plugin instanceof Function ? plugin(meta) : plugin);
+    const { start, stop, styles, Settings, SettingsPanel } = plugin instanceof Function ? plugin(meta) : plugin;
     Settings?.load();
     return {
         start() {
@@ -356,8 +366,10 @@ const createPlugin = (plugin) => (meta) => {
             stop?.();
             log("Disabled");
         },
-        getSettingsPanel: SettingsPanel ? () => (React.createElement(SettingsContainer, { name: meta.name, onReset: Settings ? () => Settings.reset() : null },
-            React.createElement(SettingsPanel, null))) : null
+        getSettingsPanel: SettingsPanel
+            ? () => (React.createElement(SettingsContainer, { name: meta.name, onReset: Settings ? () => Settings.reset() : null },
+                React.createElement(SettingsPanel, null)))
+            : null,
     };
 };
 
@@ -366,7 +378,7 @@ const Settings = createSettings({
     hideByDefault: false,
     saveStates: true,
     saveDuration: 30 * DAYS_TO_MILLIS,
-    collapsedStates: {}
+    collapsedStates: {},
 });
 function getCollapsedState(id) {
     const { hideByDefault, saveStates, collapsedStates } = Settings.current;
@@ -382,7 +394,7 @@ function updateCollapsedState(id, shown) {
     if (saveStates && id) {
         collapsedStates[id] = {
             shown,
-            lastSeen: Date.now()
+            lastSeen: Date.now(),
         };
         Settings.update({ collapsedStates });
     }
@@ -406,7 +418,7 @@ function SettingsPanel() {
     const [{ hideByDefault, saveStates, saveDuration }, setSettings] = Settings.useState();
     const [{ text, valid }, setDurationState] = React.useState({
         text: (saveDuration / DAYS_TO_MILLIS).toString(),
-        valid: true
+        valid: true,
     });
     return (React.createElement(React.Fragment, null,
         React.createElement(FormSwitch, { note: "Collapse all embeds & attachments initially.", hideBorder: true, value: hideByDefault, onChange: (checked) => setSettings({ hideByDefault: checked }) }, "Collapse by default"),
@@ -447,20 +459,25 @@ const Hider = ({ placeholders, type, children, id }) => {
         updateCollapsedState(id, !shown);
     }, [id, shown]);
     return (React.createElement(Flex, { align: Flex.Align.CENTER, className: classNames(styles.container, styles[type], shown ? styles.expanded : styles.collapsed) },
-        shown ? children : placeholders.filter(Boolean).map((placeholder, i) => (React.createElement(Text, { key: i, variant: "text-xs/normal", className: styles.placeholder }, placeholder))),
+        shown
+            ? children
+            : placeholders.filter(Boolean).map((placeholder, i) => (React.createElement(Text, { key: i, variant: "text-xs/normal", className: styles.placeholder }, placeholder))),
         React.createElement(Clickable, { className: styles.hideButton, onClick: toggleShown },
             React.createElement(IconArrow, { color: "currentColor", className: classNames(styles.icon, shown ? styles.open : null) }))));
 };
 
 const MediaModule = demangle({
-    MediaItem: bySource$1("getObscureReason", "isSingleMosaicItem")
+    MediaItem: bySource$1("getObscureReason", "isSingleMosaicItem"),
 }, null, true);
 const index = createPlugin({
     start() {
         cleanupOldEntries();
         after(Embed.prototype, "render", ({ result, context }) => {
             const { embed } = context.props;
-            const placeholder = embed.provider?.name ?? embed.author?.name ?? embed.rawTitle ?? (embed.url ? new URL(embed.url).hostname : "Embed");
+            const placeholder = embed.provider?.name
+                ?? embed.author?.name
+                ?? embed.rawTitle
+                ?? (embed.url ? new URL(embed.url).hostname : "Embed");
             return (React.createElement(Hider, { type: "embed" , placeholders: [placeholder], id: embed.url }, result));
         }, { name: "Embed render" });
         after(MediaModule, "MediaItem", ({ args: [props], result }) => {
@@ -483,7 +500,7 @@ const index = createPlugin({
     },
     styles: css,
     Settings,
-    SettingsPanel
+    SettingsPanel,
 });
 
 module.exports = index;
