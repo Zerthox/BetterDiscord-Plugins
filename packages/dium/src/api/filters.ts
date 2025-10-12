@@ -92,3 +92,6 @@ export const bySource = (...fragments: TypeOrPredicate<string>[]): Filter => {
         }
     };
 };
+
+/** Creates a filter searching by story title. */
+export const byStoryTitle = (title: string): Filter => join(byKeys("stories"), (target) => target.title === title);

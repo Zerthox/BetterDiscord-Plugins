@@ -85,27 +85,27 @@ export const SettingsPanel = (): React.JSX.Element => {
             <FormDivider className={classNames(margins.marginTop20, margins.marginBottom20)} />
             <FormItem>
                 <FormSwitch
-                    value={filterNames}
+                    checked={filterNames}
                     onChange={(checked) => setSettings({ filterNames: checked })}
-                    note="Limit user & channel names to alphanumeric characters."
+                    description="Limit user & channel names to alphanumeric characters."
                 >
                     Enable Name Filter
                 </FormSwitch>
             </FormItem>
             <FormItem>
                 <FormSwitch
-                    value={filterBots}
+                    checked={filterBots}
                     onChange={(checked) => setSettings({ filterBots: checked })}
-                    note="Disable notifications for bot users in voice."
+                    description="Disable notifications for bot users in voice."
                 >
                     Enable Bot Filter
                 </FormSwitch>
             </FormItem>
             <FormItem>
                 <FormSwitch
-                    value={filterStages}
+                    checked={filterStages}
                     onChange={(checked) => setSettings({ filterStages: checked })}
-                    note="Disable notifications for stage voice channels."
+                    description="Disable notifications for stage voice channels."
                 >
                     Enable Stage Filter
                 </FormSwitch>

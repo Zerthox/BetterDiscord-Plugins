@@ -1,5 +1,8 @@
 import { HTMLAttributes } from "react";
 import { Filters, Finder } from "../api";
+import { Stories } from "./story";
+
+export const RadioStories: Stories = /* @__PURE__ */ Finder.byStoryTitle("RadioGroup");
 
 export interface RadioGroupOption<T> {
     name: React.ReactNode;
@@ -43,6 +46,6 @@ interface RadioModule {
 }
 
 export const { RadioGroup, getRadioAttributes }: RadioModule = /* @__PURE__ */ Finder.demangle({
-    RadioGroup: Filters.bySource((source) => /{label:.,description:.}=/.test(source)),
+    RadioGroup: Filters.bySource((source) => /{label:.,description:.,required:./.test(source)),
     getRadioAttributes: Filters.bySource(`role:"radio"`),
 });

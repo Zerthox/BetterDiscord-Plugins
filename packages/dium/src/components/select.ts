@@ -1,4 +1,7 @@
 import { Finder, Filters } from "../api";
+import { Stories } from "./story";
+
+export const SelectStories: Stories = /* @__PURE__ */ Finder.byStoryTitle("Select");
 
 export interface SelectOption<T> {
     label: React.ReactNode;
@@ -43,10 +46,7 @@ interface SelectComponents {
     SingleSelect: <T, O extends SelectOption<T>>(props: SingleSelectProps<T, O>) => React.JSX.Element;
 }
 
-export const { Select, SingleSelect }: SelectComponents = /* @__PURE */ Finder.demangle(
-    {
-        Select: Filters.bySource("renderOptionLabel:", "renderOptionValue:", "popoutWidth:"),
-        SingleSelect: Filters.bySource((source) => /{value:[a-zA-Z_$],onChange:[a-zA-Z_$]}/.test(source)),
-    },
-    ["Select"],
-);
+export const { Select, SingleSelect }: SelectComponents = /* @__PURE */ Finder.demangle({
+    Select: Filters.bySource('"Select"'),
+    SingleSelect: Filters.bySource('"SingleSelect"'),
+});

@@ -22,9 +22,8 @@ export const BetterFolderUploader = ({ icon, always, onChange }: BetterFolderUpl
             {renderIcon({ icon, always: true })}
         </Flex>
         <FormSwitch
-            hideBorder
             className={margins.marginTop8}
-            value={always}
+            checked={always}
             onChange={(checked) => onChange({ icon, always: checked })}
         >
             Always display icon

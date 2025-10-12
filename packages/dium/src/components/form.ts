@@ -1,6 +1,7 @@
 import { Finder } from "../api";
+import { Stories } from "./story";
 
-// see form component stories
+export const FormStories: Stories = /* @__PURE__ */ Finder.byStoryTitle("Form Components");
 
 export const enum FormNoticeTypes {
     BRAND = "cardBrand",
@@ -59,50 +60,45 @@ export type FormItem = React.FunctionComponent<FormItemProps>;
 
 export const FormItem: FormItem = /* @__PURE__ */ Finder.bySource(["titleClassName:", "required:"], { entries: true });
 
-export interface FormTitleProps {
-    tag?: string;
-    children?: React.ReactNode;
-    className?: string;
-    disabled?: boolean;
-    required?: boolean;
-    error?: any;
-    errorId?: any;
-    errorMessage?: any;
-}
-
-export type FormTitle = React.FunctionComponent<FormTitleProps>;
-
-export const FormTitle: FormTitle = /* @__PURE__ */ Finder.bySource(["legend", "required:"], { entries: true });
-
 export interface FormSwitchProps {
-    value?: boolean;
+    checked?: boolean;
+    required?: boolean;
     disabled?: boolean;
-    disabledText?: any;
-    hideBorder?: boolean;
-    note?: any;
-    tooltipNote?: any;
     onChange?: (checked: boolean) => void;
+    role?: any;
+    layout?: any;
+    badge?: any;
+    label?: string;
+    hideLabel?: boolean;
+    icon?: any;
+    id?: any;
+    errorMessage?: string;
+    helperText?: string;
+    successMessage?: string;
+    description?: string;
+    trailingContent?: any;
+    children?: React.ReactNode;
     className?: string;
     style?: React.CSSProperties;
-    helpdeskArticleId?: any;
-    children?: React.ReactNode;
+    focusProps?: any;
+    innerRef?: any;
 }
 
 export type FormSwitch = React.FunctionComponent<FormSwitchProps>;
 
-export const FormSwitch: FormSwitch = /* @__PURE__ */ Finder.bySource(["tooltipNote:"], {
+export const FormSwitch: FormSwitch = /* @__PURE__ */ Finder.bySource(["onChange:", "innerRef:", '"checkbox"'], {
     entries: true,
 });
 
 export interface FormDividerProps {
-    style?: any;
     className?: string;
+    gap?: string | number;
 }
 
 export type FormDivider = React.FunctionComponent<FormDividerProps>;
 
 export const FormDivider: FormDivider = /* @__PURE__ */ Finder.bySource(
-    [".divider", (source) => /{className:.,style:.}=/.test(source)],
+    [".divider", (source) => /{className:.,gap:.}=/.test(source)],
     {
         entries: true,
     },
@@ -111,7 +107,6 @@ export const FormDivider: FormDivider = /* @__PURE__ */ Finder.bySource(
 export interface FormSectionProps {
     children?: React.ReactNode;
     className?: string;
-    titleClassName?: string;
     title?: React.ReactNode;
     disabled?: boolean;
     htmlFor?: any;
@@ -120,9 +115,12 @@ export interface FormSectionProps {
 
 export type FormSection = React.FunctionComponent<FormSectionProps>;
 
-export const FormSection: FormSection = /* @__PURE__ */ Finder.bySource(["titleClassName:", ".sectionTitle"], {
-    entries: true,
-});
+export const FormSection: FormSection = /* @__PURE__ */ Finder.bySource(
+    ["children:", "title:", "description:", ".categoryDivider"],
+    {
+        entries: true,
+    },
+);
 
 export interface FormTextProps {
     type?: string;

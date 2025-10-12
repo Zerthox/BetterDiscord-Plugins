@@ -91,9 +91,8 @@ export default createPlugin({
 
         return (
             <FormSwitch
-                note="Close other folders when opening a new folder"
-                hideBorder
-                value={closeOnOpen}
+                description="Close other folders when opening a new folder"
+                checked={closeOnOpen}
                 onChange={(checked) => {
                     if (checked) {
                         // close all folders except one

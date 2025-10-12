@@ -13,17 +13,15 @@ export function SettingsPanel(): React.JSX.Element {
     return (
         <>
             <FormSwitch
-                note="Collapse all embeds &amp; attachments initially."
-                hideBorder
-                value={hideByDefault}
+                description="Collapse all embeds &amp; attachments initially."
+                checked={hideByDefault}
                 onChange={(checked) => setSettings({ hideByDefault: checked })}
             >
                 Collapse by default
             </FormSwitch>
             <FormSwitch
-                note="Persist individual embed & attachment states between restarts."
-                hideBorder
-                value={saveStates}
+                description="Persist individual embed & attachment states between restarts."
+                checked={saveStates}
                 onChange={(checked) => setSettings({ saveStates: checked })}
             >
                 Save collapsed states

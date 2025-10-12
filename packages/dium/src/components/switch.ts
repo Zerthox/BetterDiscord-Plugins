@@ -1,4 +1,7 @@
 import { Finder } from "../api";
+import { Stories } from "./story";
+
+export const SwitchStories: Stories = /* @__PURE__ */ Finder.byStoryTitle("Switch");
 
 export interface SwitchProps {
     id?: any;
