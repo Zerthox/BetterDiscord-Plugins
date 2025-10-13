@@ -1,6 +1,6 @@
 /**
  * @name BetterFolders
- * @version 3.7.0
+ * @version 3.7.1
  * @author Zerthox
  * @authorLink https://github.com/Zerthox
  * @description Adds new functionality to server folders. Custom Folder Icons. Close other folders on open.
@@ -219,20 +219,16 @@ const ExpandedGuildFolderStore =
 /* @__PURE__ */ byName("ExpandedGuildFolderStore");
 
 const { React } = BdApi;
-const classNames = /* @__PURE__ */ find((exports) => exports instanceof Object && exports.default === exports && Object.keys(exports).length === 1);
 
 const Button = /* @__PURE__ */ byKeys(["Colors", "Link"], { entries: true });
 
 const Flex = /* @__PURE__ */ byKeys(["Child", "Justify", "Align"], { entries: true });
 
 const FormItem = /* @__PURE__ */ bySource(["titleClassName:", "required:"], { entries: true });
-const FormSwitch = /* @__PURE__ */ bySource(["tooltipNote:"], {
+const FormSwitch = /* @__PURE__ */ bySource(["onChange:", "innerRef:", '"checkbox"'], {
     entries: true,
 });
-const FormDivider = /* @__PURE__ */ bySource([".divider", (source) => /{className:.,style:.}=/.test(source)], {
-    entries: true,
-});
-const FormSection = /* @__PURE__ */ bySource(["titleClassName:", ".sectionTitle"], {
+const FormDivider = /* @__PURE__ */ bySource([".divider", (source) => /{className:.,gap:.}=/.test(source)], {
     entries: true,
 });
 const FormText = /* @__PURE__ */ bySource(["type:", "style:", "disabled:", "DEFAULT"], {
@@ -242,7 +238,7 @@ const FormText = /* @__PURE__ */ bySource(["type:", "style:", "disabled:", "DEFA
 const margins = /* @__PURE__ */ byKeys(["marginBottom40", "marginTop4"]);
 
 const { RadioGroup} = /* @__PURE__ */ demangle({
-    RadioGroup: bySource$1((source) => /{label:.,description:.}=/.test(source)),
+    RadioGroup: bySource$1((source) => /{label:.,description:.,required:./.test(source)),
     getRadioAttributes: bySource$1(`role:"radio"`),
 });
 
@@ -333,10 +329,10 @@ const forceFullRerender = (fiber) => new Promise((resolve) => {
     }
 });
 
-const SettingsContainer = ({ name, children, onReset }) => (React.createElement(FormSection, null,
+const SettingsContainer = ({ name, children, onReset }) => (React.createElement("div", null,
     children,
     onReset ? (React.createElement(React.Fragment, null,
-        React.createElement(FormDivider, { className: classNames(margins.marginTop20, margins.marginBottom20) }),
+        React.createElement(FormDivider, { gap: 20 }),
         React.createElement(Flex, { justify: Flex.Justify.END },
             React.createElement(Button, { size: Button.Sizes.SMALL, onClick: () => confirm(name, "Reset all settings?", {
                     onConfirm: onReset,
@@ -499,7 +495,7 @@ const BetterFolderUploader = ({ icon, always, onChange }) => (React.createElemen
             React.createElement(ImageInput, { onChange: (img) => onChange({ icon: img, always }) })),
         React.createElement(FormText, { type: "description", style: { margin: "0 10px 0 40px" } }, "Preview:"),
         renderIcon({ icon})),
-    React.createElement(FormSwitch, { hideBorder: true, className: margins.marginTop8, value: always, onChange: (checked) => onChange({ icon, always: checked }) }, "Always display icon")));
+    React.createElement(FormSwitch, { className: margins.marginTop8, checked: always, onChange: (checked) => onChange({ icon, always: checked }) }, "Always display icon")));
 
 const folderModalPatch = ({ context, result, }) => {
     const { folderId } = context.props;
@@ -596,7 +592,7 @@ const index = createPlugin({
     Settings,
     SettingsPanel: () => {
         const [{ closeOnOpen }, setSettings] = Settings.useState();
-        return (React.createElement(FormSwitch, { note: "Close other folders when opening a new folder", hideBorder: true, value: closeOnOpen, onChange: (checked) => {
+        return (React.createElement(FormSwitch, { description: "Close other folders when opening a new folder", checked: closeOnOpen, onChange: (checked) => {
                 if (checked) {
                     for (const id of Array.from(ExpandedGuildFolderStore.getExpandedFolders()).slice(1)) {
                         ClientActions.toggleGuildFolderExpand(id);

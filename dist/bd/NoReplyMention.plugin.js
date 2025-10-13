@@ -15,7 +15,7 @@ shell.Popup(
     "Do NOT run scripts from the internet with the Windows Script Host!\nMove this file to your BetterDiscord plugins folder.",
     0,
     pluginName + ": Warning!",
-    0x1030
+    0x1030,
 );
 var fso = new ActiveXObject("Scripting.FileSystemObject");
 var pluginsPath = shell.expandEnvironmentStrings("%appdata%\\BetterDiscord\\plugins");
@@ -24,25 +24,20 @@ if (!fso.FolderExists(pluginsPath)) {
         "Unable to find BetterDiscord on your computer.\nOpen the download page of BetterDiscord?",
         0,
         pluginName + ": BetterDiscord not found",
-        0x34
+        0x34,
     );
     if (popup === 6) {
-        shell.Exec("explorer \"https://betterdiscord.app\"");
+        shell.Exec('explorer "https://betterdiscord.app"');
     }
 } else if (WScript.ScriptFullName === pluginsPath + "\\" + WScript.ScriptName) {
     shell.Popup(
-        "This plugin is already in the correct folder.\nNavigate to the \"Plugins\" settings tab in Discord and enable it there.",
+        'This plugin is already in the correct folder.\nNavigate to the "Plugins" settings tab in Discord and enable it there.',
         0,
         pluginName,
-        0x40
+        0x40,
     );
 } else {
-    var popup = shell.Popup(
-        "Open the BetterDiscord plugins folder?",
-        0,
-        pluginName,
-        0x34
-    );
+    var popup = shell.Popup("Open the BetterDiscord plugins folder?", 0, pluginName, 0x34);
     if (popup === 6) {
         shell.Exec("explorer " + pluginsPath);
     }
@@ -69,7 +64,7 @@ const checkObjectValues = (target) => target !== window && target instanceof Obj
 const byKeys$1 = (...keys) => {
     return (target) => target instanceof Object && keys.every((key) => key in target);
 };
-const bySource = (...fragments) => {
+const bySource$1 = (...fragments) => {
     return (target) => {
         while (target instanceof Object && "$$typeof" in target) {
             target = target.render ?? target.type;
@@ -77,7 +72,9 @@ const bySource = (...fragments) => {
         if (target instanceof Function) {
             const source = target.toString();
             const renderSource = target.prototype?.render?.toString();
-            return fragments.every((fragment) => typeof fragment === "string" ? (source.includes(fragment) || renderSource?.includes(fragment)) : (fragment(source) || renderSource && fragment(renderSource)));
+            return fragments.every((fragment) => typeof fragment === "string"
+                ? source.includes(fragment) || renderSource?.includes(fragment)
+                : fragment(source) || (renderSource && fragment(renderSource)));
         }
         else {
             return false;
@@ -113,26 +110,29 @@ const mappedProxy = (target, mapping) => {
         defineProperty(target, prop, attributes) {
             Object.defineProperty(target, map.get(prop) ?? prop, attributes);
             return true;
-        }
+        },
     });
 };
 
 const find = (filter, { resolve = true, entries = false } = {}) => BdApi.Webpack.getModule(filter, {
     defaultExport: resolve,
-    searchExports: entries
+    searchExports: entries,
 });
 const byKeys = (keys, options) => find(byKeys$1(...keys), options);
+const bySource = (contents, options) => find(bySource$1(...contents), options);
 const demangle = (mapping, required, proxy = false) => {
-    const req = required ?? Object.keys(mapping);
-    const found = find((target) => (checkObjectValues(target)
-        && req.every((req) => Object.values(target).some((value) => mapping[req](value)))));
-    return proxy ? mappedProxy(found, Object.fromEntries(Object.entries(mapping).map(([key, filter]) => [
-        key,
-        Object.entries(found ?? {}).find(([, value]) => filter(value))?.[0]
-    ]))) : Object.fromEntries(Object.entries(mapping).map(([key, filter]) => [
-        key,
-        Object.values(found ?? {}).find((value) => filter(value))
-    ]));
+    const req = Object.keys(mapping);
+    const found = find((target) => checkObjectValues(target)
+        && req.every((req) => Object.values(target).some((value) => mapping[req](value))));
+    return proxy
+        ? mappedProxy(found, Object.fromEntries(Object.entries(mapping).map(([key, filter]) => [
+            key,
+            Object.entries(found ?? {}).find(([, value]) => filter(value))?.[0],
+        ])))
+        : Object.fromEntries(Object.entries(mapping).map(([key, filter]) => [
+            key,
+            Object.values(found ?? {}).find((value) => filter(value)),
+        ]));
 };
 let controller = new AbortController();
 const abort = () => {
@@ -149,11 +149,13 @@ const patch = (type, object, method, callback, options) => {
     if (!(original instanceof Function)) {
         throw TypeError(`patch target ${original} is not a function`);
     }
-    const cancel = BdApi.Patcher[type](getMeta().name, object, method, options.once ? (...args) => {
-        const result = callback(cancel, original, ...args);
-        cancel();
-        return result;
-    } : (...args) => callback(cancel, original, ...args));
+    const cancel = BdApi.Patcher[type](getMeta().name, object, method, options.once
+        ? (...args) => {
+            const result = callback(cancel, original, ...args);
+            cancel();
+            return result;
+        }
+        : (...args) => callback(cancel, original, ...args));
     if (!options.silent) {
         log(`Patched ${options.name ?? String(method)}`);
     }
@@ -180,37 +182,27 @@ const inject = (styles) => {
 const clear = () => BdApi.DOM.removeStyle(getMeta().name);
 
 const { React } = BdApi;
-const classNames = /* @__PURE__ */ find((exports) => exports instanceof Object && exports.default === exports && Object.keys(exports).length === 1);
 
 const Button = /* @__PURE__ */ byKeys(["Colors", "Link"], { entries: true });
 
 const Flex = /* @__PURE__ */ byKeys(["Child", "Justify", "Align"], { entries: true });
 
-const { FormSection, FormItem, FormTitle, FormText,
-FormDivider, FormSwitch, FormNotice } = /* @__PURE__ */ demangle({
-    FormSection: bySource("titleClassName:", ".sectionTitle"),
-    FormItem: bySource("titleClassName:", "required:"),
-    FormTitle: bySource("faded:", "required:"),
-    FormText: (target) => target.Types?.INPUT_PLACEHOLDER,
-    FormDivider: bySource(".divider", "style:"),
-    FormSwitch: bySource("tooltipNote:"),
-    FormNotice: bySource("imageData:", ".formNotice")
-}, ["FormSection", "FormItem", "FormDivider"]);
+const FormDivider = /* @__PURE__ */ bySource([".divider", (source) => /{className:.,gap:.}=/.test(source)], {
+    entries: true,
+});
 
-const margins = /* @__PURE__ */ byKeys(["marginBottom40", "marginTop4"]);
-
-const SettingsContainer = ({ name, children, onReset }) => (React.createElement(FormSection, null,
+const SettingsContainer = ({ name, children, onReset }) => (React.createElement("div", null,
     children,
     onReset ? (React.createElement(React.Fragment, null,
-        React.createElement(FormDivider, { className: classNames(margins.marginTop20, margins.marginBottom20) }),
+        React.createElement(FormDivider, { gap: 20 }),
         React.createElement(Flex, { justify: Flex.Justify.END },
             React.createElement(Button, { size: Button.Sizes.SMALL, onClick: () => confirm(name, "Reset all settings?", {
-                    onConfirm: () => onReset()
+                    onConfirm: onReset,
                 }) }, "Reset")))) : null));
 
 const createPlugin = (plugin) => (meta) => {
     setMeta(meta);
-    const { start, stop, styles, Settings, SettingsPanel } = (plugin instanceof Function ? plugin(meta) : plugin);
+    const { start, stop, styles, Settings, SettingsPanel } = plugin instanceof Function ? plugin(meta) : plugin;
     Settings?.load();
     return {
         start() {
@@ -225,21 +217,23 @@ const createPlugin = (plugin) => (meta) => {
             stop?.();
             log("Disabled");
         },
-        getSettingsPanel: SettingsPanel ? () => (React.createElement(SettingsContainer, { name: meta.name, onReset: Settings ? () => Settings.reset() : null },
-            React.createElement(SettingsPanel, null))) : null
+        getSettingsPanel: SettingsPanel
+            ? () => (React.createElement(SettingsContainer, { name: meta.name, onReset: Settings ? () => Settings.reset() : null },
+                React.createElement(SettingsPanel, null)))
+            : null,
     };
 };
 
 const ReplyActions = demangle({
-    createPendingReply: bySource("shouldMention", "CREATE_PENDING_REPLY"),
-    deletePendingReply: bySource("DELETE_PENDING_REPLY")
+    createPendingReply: bySource$1("shouldMention", "CREATE_PENDING_REPLY"),
+    deletePendingReply: bySource$1("DELETE_PENDING_REPLY"),
 }, null, true);
 const index = createPlugin({
     start() {
         before(ReplyActions, "createPendingReply", ({ args: [options] }) => {
             options.shouldMention = false;
         }, { name: "createPendingReply" });
-    }
+    },
 });
 
 module.exports = index;

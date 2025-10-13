@@ -1,6 +1,6 @@
 /**
  * @name BetterVolume
- * @version 3.2.1
+ * @version 3.2.2
  * @author Zerthox
  * @authorLink https://github.com/Zerthox
  * @description Set user volume values manually instead of using a slider. Allows setting volumes higher than 200%.
@@ -70,7 +70,7 @@ const byName$1 = (name) => {
 const byKeys$1 = (...keys) => {
     return (target) => target instanceof Object && keys.every((key) => key in target);
 };
-const bySource = (...fragments) => {
+const bySource$1 = (...fragments) => {
     return (target) => {
         while (target instanceof Object && "$$typeof" in target) {
             target = target.render ?? target.type;
@@ -126,12 +126,13 @@ const find = (filter, { resolve = true, entries = false } = {}) => BdApi.Webpack
 });
 const byName = (name, options) => find(byName$1(name), options);
 const byKeys = (keys, options) => find(byKeys$1(...keys), options);
+const bySource = (contents, options) => find(bySource$1(...contents), options);
 const resolveKey = (target, filter) => [
     target,
     Object.entries(target ?? {}).find(([, value]) => filter(value))?.[0],
 ];
 const demangle = (mapping, required, proxy = false) => {
-    const req = required ?? Object.keys(mapping);
+    const req = Object.keys(mapping);
     const found = find((target) => checkObjectValues(target)
         && req.every((req) => Object.values(target).some((value) => mapping[req](value))));
     return proxy
@@ -203,38 +204,29 @@ const MediaEngineStore = /* @__PURE__ */ byName("MediaEngineStore");
 const MediaEngineActions = /* @__PURE__ */ byKeys(["setLocalVolume"]);
 
 const { React } = BdApi;
-const classNames = /* @__PURE__ */ find((exports) => exports instanceof Object && exports.default === exports && Object.keys(exports).length === 1);
 
 const AudioConvert = /* @__PURE__ */ demangle({
-    amplitudeToPerceptual: bySource("Math.log10"),
-    perceptualToAmplitude: bySource("Math.pow(10"),
+    amplitudeToPerceptual: bySource$1("Math.log10"),
+    perceptualToAmplitude: bySource$1("Math.pow(10"),
 });
 
 const Button = /* @__PURE__ */ byKeys(["Colors", "Link"], { entries: true });
 
 const Flex = /* @__PURE__ */ byKeys(["Child", "Justify", "Align"], { entries: true });
 
-const { FormSection, FormDivider} = /* @__PURE__ */ demangle({
-    FormSection: bySource("titleClassName:", ".sectionTitle"),
-    FormItem: bySource("titleClassName:", "required:"),
-    FormTitle: bySource("faded:", "required:"),
-    FormText: (target) => target.Types?.INPUT_PLACEHOLDER,
-    FormDivider: bySource(".divider", "style:"),
-    FormSwitch: bySource("tooltipNote:"),
-    FormNotice: bySource("imageData:", ".formNotice"),
-}, ["FormSection", "FormItem", "FormDivider"]);
-
-const margins = /* @__PURE__ */ byKeys(["marginBottom40", "marginTop4"]);
+const FormDivider = /* @__PURE__ */ bySource([".divider", (source) => /{className:.,gap:.}=/.test(source)], {
+    entries: true,
+});
 
 const { Item: MenuItem} = BdApi.ContextMenu;
 
-const SettingsContainer = ({ name, children, onReset }) => (React.createElement(FormSection, null,
+const SettingsContainer = ({ name, children, onReset }) => (React.createElement("div", null,
     children,
     onReset ? (React.createElement(React.Fragment, null,
-        React.createElement(FormDivider, { className: classNames(margins.marginTop20, margins.marginBottom20) }),
+        React.createElement(FormDivider, { gap: 20 }),
         React.createElement(Flex, { justify: Flex.Justify.END },
             React.createElement(Button, { size: Button.Sizes.SMALL, onClick: () => confirm(name, "Reset all settings?", {
-                    onConfirm: () => onReset(),
+                    onConfirm: onReset,
                 }) }, "Reset")))) : null));
 
 class SettingsStore {
@@ -486,7 +478,7 @@ const resetVolumeSync = () => {
     }
 };
 
-const useUserVolumeItemFilter = bySource("user-volume");
+const useUserVolumeItemFilter = bySource$1("user-volume");
 const index = createPlugin({
     start() {
         handleVolumeSync();

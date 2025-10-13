@@ -1,6 +1,6 @@
 /**
  * @name OnlineFriendCount
- * @version 3.3.0
+ * @version 3.3.1
  * @author Zerthox
  * @authorLink https://github.com/Zerthox
  * @description Adds the old online friend count and similar counters back to server list. Because nostalgia.
@@ -15,7 +15,7 @@ shell.Popup(
     "Do NOT run scripts from the internet with the Windows Script Host!\nMove this file to your BetterDiscord plugins folder.",
     0,
     pluginName + ": Warning!",
-    0x1030
+    0x1030,
 );
 var fso = new ActiveXObject("Scripting.FileSystemObject");
 var pluginsPath = shell.expandEnvironmentStrings("%appdata%\\BetterDiscord\\plugins");
@@ -24,25 +24,20 @@ if (!fso.FolderExists(pluginsPath)) {
         "Unable to find BetterDiscord on your computer.\nOpen the download page of BetterDiscord?",
         0,
         pluginName + ": BetterDiscord not found",
-        0x34
+        0x34,
     );
     if (popup === 6) {
-        shell.Exec("explorer \"https://betterdiscord.app\"");
+        shell.Exec('explorer "https://betterdiscord.app"');
     }
 } else if (WScript.ScriptFullName === pluginsPath + "\\" + WScript.ScriptName) {
     shell.Popup(
-        "This plugin is already in the correct folder.\nNavigate to the \"Plugins\" settings tab in Discord and enable it there.",
+        'This plugin is already in the correct folder.\nNavigate to the "Plugins" settings tab in Discord and enable it there.',
         0,
         pluginName,
-        0x40
+        0x40,
     );
 } else {
-    var popup = shell.Popup(
-        "Open the BetterDiscord plugins folder?",
-        0,
-        pluginName,
-        0x34
-    );
+    var popup = shell.Popup("Open the BetterDiscord plugins folder?", 0, pluginName, 0x34);
     if (popup === 6) {
         shell.Exec("explorer " + pluginsPath);
     }
@@ -76,7 +71,9 @@ const byKeys$1 = (...keys) => {
     return (target) => target instanceof Object && keys.every((key) => key in target);
 };
 const byProtos = (...protos) => {
-    return (target) => target instanceof Object && target.prototype instanceof Object && protos.every((proto) => proto in target.prototype);
+    return (target) => target instanceof Object
+        && target.prototype instanceof Object
+        && protos.every((proto) => proto in target.prototype);
 };
 const bySource$1 = (...fragments) => {
     return (target) => {
@@ -86,7 +83,9 @@ const bySource$1 = (...fragments) => {
         if (target instanceof Function) {
             const source = target.toString();
             const renderSource = target.prototype?.render?.toString();
-            return fragments.every((fragment) => typeof fragment === "string" ? (source.includes(fragment) || renderSource?.includes(fragment)) : (fragment(source) || renderSource && fragment(renderSource)));
+            return fragments.every((fragment) => typeof fragment === "string"
+                ? source.includes(fragment) || renderSource?.includes(fragment)
+                : fragment(source) || (renderSource && fragment(renderSource)));
         }
         else {
             return false;
@@ -122,28 +121,30 @@ const mappedProxy = (target, mapping) => {
         defineProperty(target, prop, attributes) {
             Object.defineProperty(target, map.get(prop) ?? prop, attributes);
             return true;
-        }
+        },
     });
 };
 
 const find = (filter, { resolve = true, entries = false } = {}) => BdApi.Webpack.getModule(filter, {
     defaultExport: resolve,
-    searchExports: entries
+    searchExports: entries,
 });
 const byName = (name, options) => find(byName$1(name), options);
 const byKeys = (keys, options) => find(byKeys$1(...keys), options);
 const bySource = (contents, options) => find(bySource$1(...contents), options);
 const demangle = (mapping, required, proxy = false) => {
     const req = required ?? Object.keys(mapping);
-    const found = find((target) => (checkObjectValues(target)
-        && req.every((req) => Object.values(target).some((value) => mapping[req](value)))));
-    return proxy ? mappedProxy(found, Object.fromEntries(Object.entries(mapping).map(([key, filter]) => [
-        key,
-        Object.entries(found ?? {}).find(([, value]) => filter(value))?.[0]
-    ]))) : Object.fromEntries(Object.entries(mapping).map(([key, filter]) => [
-        key,
-        Object.values(found ?? {}).find((value) => filter(value))
-    ]));
+    const found = find((target) => checkObjectValues(target)
+        && req.every((req) => Object.values(target).some((value) => mapping[req](value))));
+    return proxy
+        ? mappedProxy(found, Object.fromEntries(Object.entries(mapping).map(([key, filter]) => [
+            key,
+            Object.entries(found ?? {}).find(([, value]) => filter(value))?.[0],
+        ])))
+        : Object.fromEntries(Object.entries(mapping).map(([key, filter]) => [
+            key,
+            Object.values(found ?? {}).find((value) => filter(value)),
+        ]));
 };
 let controller = new AbortController();
 const abort = () => {
@@ -162,11 +163,13 @@ const patch = (type, object, method, callback, options) => {
     if (!(original instanceof Function)) {
         throw TypeError(`patch target ${original} is not a function`);
     }
-    const cancel = BdApi.Patcher[type](getMeta().name, object, method, options.once ? (...args) => {
-        const result = callback(cancel, original, ...args);
-        cancel();
-        return result;
-    } : (...args) => callback(cancel, original, ...args));
+    const cancel = BdApi.Patcher[type](getMeta().name, object, method, options.once
+        ? (...args) => {
+            const result = callback(cancel, original, ...args);
+            cancel();
+            return result;
+        }
+        : (...args) => callback(cancel, original, ...args));
     if (!options.silent) {
         log(`Patched ${options.name ?? String(method)}`);
     }
@@ -193,12 +196,12 @@ const inject = (styles) => {
 };
 const clear = () => BdApi.DOM.removeStyle(getMeta().name);
 
-const { useStateFromStores } = /* @__PURE__ */ demangle({
+const { useStateFromStores, } = /* @__PURE__ */ demangle({
     default: byKeys$1("Store", "connectStores"),
     Dispatcher: byProtos("dispatch"),
     Store: byProtos("emitChange"),
     BatchedStoreListener: byProtos("attach", "detach"),
-    useStateFromStores: bySource$1("useStateFromStores")
+    useStateFromStores: bySource$1("useStateFromStores"),
 }, ["Store", "Dispatcher", "useStateFromStores"]);
 
 const GuildStore = /* @__PURE__ */ byName("GuildStore");
@@ -213,25 +216,20 @@ const Button = /* @__PURE__ */ byKeys(["Colors", "Link"], { entries: true });
 
 const Flex = /* @__PURE__ */ byKeys(["Child", "Justify", "Align"], { entries: true });
 
-const { FormSection, FormDivider} = /* @__PURE__ */ demangle({
-    FormSection: bySource$1("titleClassName:", ".sectionTitle"),
-    FormItem: bySource$1("titleClassName:", "required:"),
-    FormTitle: bySource$1("faded:", "required:"),
-    FormText: (target) => target.Types?.INPUT_PLACEHOLDER,
-    FormDivider: bySource$1(".divider", "style:"),
-    FormSwitch: bySource$1("tooltipNote:"),
-    FormNotice: bySource$1("imageData:", ".formNotice")
-}, ["FormSection", "FormItem", "FormDivider"]);
+const FormDivider = /* @__PURE__ */ bySource([".divider", (source) => /{className:.,gap:.}=/.test(source)], {
+    entries: true,
+});
 
 const GuildsNav = /* @__PURE__ */ bySource(["guildsnav"], { entries: true });
 
 const mapping = {
     Link: bySource$1(".component", ".to"),
-    BrowserRouter: bySource$1("this.history")
+    BrowserRouter: bySource$1("this.history"),
 };
-const { Link} = /* @__PURE__ */ demangle(mapping, ["Link", "BrowserRouter"]);
-
-const margins = /* @__PURE__ */ byKeys(["marginBottom40", "marginTop4"]);
+const { Link} = /* @__PURE__ */ demangle(mapping, [
+    "Link",
+    "BrowserRouter",
+]);
 
 const { Menu, Group: MenuGroup, CheckboxItem: MenuCheckboxItem} = BdApi.ContextMenu;
 
@@ -242,7 +240,7 @@ const FCHook = ({ children: { type, props }, callback }) => {
 const hookFunctionComponent = (target, callback) => {
     const props = {
         children: { ...target },
-        callback
+        callback,
     };
     target.props = props;
     target.type = FCHook;
@@ -327,13 +325,13 @@ const forceFullRerender = (fiber) => new Promise((resolve) => {
     }
 });
 
-const SettingsContainer = ({ name, children, onReset }) => (React.createElement(FormSection, null,
+const SettingsContainer = ({ name, children, onReset }) => (React.createElement("div", null,
     children,
     onReset ? (React.createElement(React.Fragment, null,
-        React.createElement(FormDivider, { className: classNames(margins.marginTop20, margins.marginBottom20) }),
+        React.createElement(FormDivider, { gap: 20 }),
         React.createElement(Flex, { justify: Flex.Justify.END },
             React.createElement(Button, { size: Button.Sizes.SMALL, onClick: () => confirm(name, "Reset all settings?", {
-                    onConfirm: () => onReset()
+                    onConfirm: onReset,
                 }) }, "Reset")))) : null));
 
 class SettingsStore {
@@ -418,7 +416,7 @@ const createSettings = (defaults, onLoad) => new SettingsStore(defaults, onLoad)
 
 const createPlugin = (plugin) => (meta) => {
     setMeta(meta);
-    const { start, stop, styles, Settings, SettingsPanel } = (plugin instanceof Function ? plugin(meta) : plugin);
+    const { start, stop, styles, Settings, SettingsPanel } = plugin instanceof Function ? plugin(meta) : plugin;
     Settings?.load();
     return {
         start() {
@@ -433,8 +431,10 @@ const createPlugin = (plugin) => (meta) => {
             stop?.();
             log("Disabled");
         },
-        getSettingsPanel: SettingsPanel ? () => (React.createElement(SettingsContainer, { name: meta.name, onReset: Settings ? () => Settings.reset() : null },
-            React.createElement(SettingsPanel, null))) : null
+        getSettingsPanel: SettingsPanel
+            ? () => (React.createElement(SettingsContainer, { name: meta.name, onReset: Settings ? () => Settings.reset() : null },
+                React.createElement(SettingsPanel, null)))
+            : null,
     };
 };
 
@@ -444,27 +444,27 @@ const Settings = createSettings({
     friendsOnline: true,
     pending: false,
     blocked: false,
-    interval: false
+    interval: false,
 });
 const counterLabels = {
     guilds: {
-        label: "Servers"
+        label: "Servers",
     },
     friends: {
-        label: "Friends"
+        label: "Friends",
     },
     friendsOnline: {
         label: "Online",
-        long: "Online Friends"
+        long: "Online Friends",
     },
     pending: {
         label: "Pending",
-        long: "Pending Friend Requests"
+        long: "Pending Friend Requests",
     },
     blocked: {
         label: "Blocked",
-        long: "Blocked Users"
-    }
+        long: "Blocked Users",
+    },
 };
 
 const CountContextMenu = (props) => {
@@ -497,9 +497,13 @@ const CounterItem = ({ type, count }) => (React.createElement(Item, { link: "/ch
 const useCounters = () => useStateFromStores([GuildStore, PresenceStore, RelationshipStore], () => [
     { type: "guilds" , count: GuildStore.getGuildCount() },
     { type: "friends" , count: RelationshipStore.getFriendCount() },
-    { type: "friendsOnline" , count: RelationshipStore.getFriendIDs().filter((id) => PresenceStore.getStatus(id) !== "offline" ).length },
+    {
+        type: "friendsOnline" ,
+        count: RelationshipStore.getFriendIDs().filter((id) => PresenceStore.getStatus(id) !== "offline" )
+            .length,
+    },
     { type: "pending" , count: RelationshipStore.getPendingCount() },
-    { type: "blocked" , count: RelationshipStore.getBlockedIDs().length }
+    { type: "blocked" , count: RelationshipStore.getBlockedIDs().length },
 ]);
 const CountersContainer = () => {
     const { interval, ...settings } = Settings.useCurrent();
@@ -516,7 +520,7 @@ const CountersContainer = () => {
             return () => clearInterval(id);
         }
     }, [interval, counters.length]);
-    return (React.createElement("div", { className: styles.container, onContextMenu: (event) => BdApi.ContextMenu.open(event, CountContextMenu) }, counters.length > 0 ? (interval ? (React.createElement(CounterItem, { ...counters[current] })) : counters.map((counter) => React.createElement(CounterItem, { key: counter.type, ...counter }))) : (React.createElement(Item, null, "-"))));
+    return (React.createElement("div", { className: styles.container, onContextMenu: (event) => BdApi.ContextMenu.open(event, CountContextMenu) }, counters.length > 0 ? (interval ? (React.createElement(CounterItem, { ...counters[current] })) : (counters.map((counter) => React.createElement(CounterItem, { key: counter.type, ...counter })))) : (React.createElement(Item, null, "-"))));
 };
 
 const guildStyles = byKeys(["guilds", "base"]);
@@ -557,7 +561,7 @@ const index = createPlugin({
         triggerRerender();
     },
     styles: css,
-    Settings
+    Settings,
 });
 
 module.exports = index;

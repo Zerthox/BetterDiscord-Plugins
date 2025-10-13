@@ -1,6 +1,6 @@
 /**
  * @name CollapseEmbeds
- * @version 2.1.1
+ * @version 2.1.2
  * @author Zerthox
  * @authorLink https://github.com/Zerthox
  * @description Adds a button to collapse embeds & attachments.
@@ -202,13 +202,10 @@ const Embed = /* @__PURE__ */ byProtos(["renderSuppressButton"], { entries: true
 const Flex = /* @__PURE__ */ byKeys(["Child", "Justify", "Align"], { entries: true });
 
 const FormItem = /* @__PURE__ */ bySource(["titleClassName:", "required:"], { entries: true });
-const FormSwitch = /* @__PURE__ */ bySource(["tooltipNote:"], {
+const FormSwitch = /* @__PURE__ */ bySource(["onChange:", "innerRef:", '"checkbox"'], {
     entries: true,
 });
-const FormDivider = /* @__PURE__ */ bySource([".divider", (source) => /{className:.,style:.}=/.test(source)], {
-    entries: true,
-});
-const FormSection = /* @__PURE__ */ bySource(["titleClassName:", ".sectionTitle"], {
+const FormDivider = /* @__PURE__ */ bySource([".divider", (source) => /{className:.,gap:.}=/.test(source)], {
     entries: true,
 });
 const FormText = /* @__PURE__ */ bySource(["type:", "style:", "disabled:", "DEFAULT"], {
@@ -218,8 +215,6 @@ const FormText = /* @__PURE__ */ bySource(["type:", "style:", "disabled:", "DEFA
 const IconArrow = /* @__PURE__ */ bySource(['d:"M5.3 9.'], {
     entries: true,
 });
-
-const margins = /* @__PURE__ */ byKeys(["marginBottom40", "marginTop4"]);
 
 const MessageFooter = /* @__PURE__ */ byProtos(["renderRemoveAttachmentConfirmModal"], {
     entries: true,
@@ -260,10 +255,10 @@ const queryTreeAll = (node, predicate) => {
     return result;
 };
 
-const SettingsContainer = ({ name, children, onReset }) => (React.createElement(FormSection, null,
+const SettingsContainer = ({ name, children, onReset }) => (React.createElement("div", null,
     children,
     onReset ? (React.createElement(React.Fragment, null,
-        React.createElement(FormDivider, { className: classNames(margins.marginTop20, margins.marginBottom20) }),
+        React.createElement(FormDivider, { gap: 20 }),
         React.createElement(Flex, { justify: Flex.Justify.END },
             React.createElement(Button, { size: Button.Sizes.SMALL, onClick: () => confirm(name, "Reset all settings?", {
                     onConfirm: onReset,
@@ -421,8 +416,8 @@ function SettingsPanel() {
         valid: true,
     });
     return (React.createElement(React.Fragment, null,
-        React.createElement(FormSwitch, { note: "Collapse all embeds & attachments initially.", hideBorder: true, value: hideByDefault, onChange: (checked) => setSettings({ hideByDefault: checked }) }, "Collapse by default"),
-        React.createElement(FormSwitch, { note: "Persist individual embed & attachment states between restarts.", hideBorder: true, value: saveStates, onChange: (checked) => setSettings({ saveStates: checked }) }, "Save collapsed states"),
+        React.createElement(FormSwitch, { description: "Collapse all embeds & attachments initially.", checked: hideByDefault, onChange: (checked) => setSettings({ hideByDefault: checked }) }, "Collapse by default"),
+        React.createElement(FormSwitch, { description: "Persist individual embed & attachment states between restarts.", checked: saveStates, onChange: (checked) => setSettings({ saveStates: checked }) }, "Save collapsed states"),
         React.createElement(FormItem, { title: "Save duration in days", disabled: !saveStates, error: !valid ? "Duration must be a positive number of days" : null },
             React.createElement(TextInput, { type: "number", min: 0, disabled: !saveStates, value: text, onChange: (text) => {
                     const duration = Number.parseFloat(text) * DAYS_TO_MILLIS;

@@ -1,6 +1,6 @@
 /**
  * @name VoiceEvents
- * @version 2.8.0
+ * @version 2.8.1
  * @author Zerthox
  * @authorLink https://github.com/Zerthox
  * @description Adds TTS Event Notifications to your selected Voice Channel. TeamSpeak feeling.
@@ -129,7 +129,7 @@ const byName = (name, options) => find(byName$1(name), options);
 const byKeys = (keys, options) => find(byKeys$1(...keys), options);
 const bySource = (contents, options) => find(bySource$1(...contents), options);
 const demangle = (mapping, required, proxy = false) => {
-    const req = required ?? Object.keys(mapping);
+    const req = Object.keys(mapping);
     const found = find((target) => checkObjectValues(target)
         && req.every((req) => Object.values(target).some((value) => mapping[req](value))));
     return proxy
@@ -207,13 +207,13 @@ const Button = /* @__PURE__ */ byKeys(["Colors", "Link"], { entries: true });
 const Flex = /* @__PURE__ */ byKeys(["Child", "Justify", "Align"], { entries: true });
 
 const FormItem = /* @__PURE__ */ bySource(["titleClassName:", "required:"], { entries: true });
-const FormSwitch = /* @__PURE__ */ bySource(["tooltipNote:"], {
+const FormSwitch = /* @__PURE__ */ bySource(["onChange:", "innerRef:", '"checkbox"'], {
     entries: true,
 });
-const FormDivider = /* @__PURE__ */ bySource([".divider", (source) => /{className:.,style:.}=/.test(source)], {
+const FormDivider = /* @__PURE__ */ bySource([".divider", (source) => /{className:.,gap:.}=/.test(source)], {
     entries: true,
 });
-const FormSection = /* @__PURE__ */ bySource(["titleClassName:", ".sectionTitle"], {
+const FormSection = /* @__PURE__ */ bySource(["children:", "title:", "description:", ".categoryDivider"], {
     entries: true,
 });
 const FormText = /* @__PURE__ */ bySource(["type:", "style:", "disabled:", "DEFAULT"], {
@@ -225,9 +225,9 @@ const margins = /* @__PURE__ */ byKeys(["marginBottom40", "marginTop4"]);
 const { Item: MenuItem} = BdApi.ContextMenu;
 
 const { SingleSelect } =  demangle({
-    Select: bySource$1("renderOptionLabel:", "renderOptionValue:", "popoutWidth:"),
-    SingleSelect: bySource$1((source) => /{value:[a-zA-Z_$],onChange:[a-zA-Z_$]}/.test(source)),
-}, ["Select"]);
+    Select: bySource$1('"Select"'),
+    SingleSelect: bySource$1('"SingleSelect"'),
+});
 
 const Slider = /* @__PURE__ */ bySource(["markerPositions:", "asValueChanges:"], {
     entries: true,
@@ -270,10 +270,10 @@ const queryTreeForParent = (tree, predicate) => {
     return [parent, childIndex];
 };
 
-const SettingsContainer = ({ name, children, onReset }) => (React.createElement(FormSection, null,
+const SettingsContainer = ({ name, children, onReset }) => (React.createElement("div", null,
     children,
     onReset ? (React.createElement(React.Fragment, null,
-        React.createElement(FormDivider, { className: classNames(margins.marginTop20, margins.marginBottom20) }),
+        React.createElement(FormDivider, { gap: 20 }),
         React.createElement(Flex, { justify: Flex.Justify.END },
             React.createElement(Button, { size: Button.Sizes.SMALL, onClick: () => confirm(name, "Reset all settings?", {
                     onConfirm: onReset,
@@ -525,11 +525,11 @@ const SettingsPanel = () => {
             React.createElement(Slider, { initialValue: speed, maxValue: 10, minValue: 0.1, asValueChanges: (value) => setSettings({ speed: value }), onValueRender: (value) => `${value.toFixed(2)}x`, markers: [0.1, 1, 2, 5, 10], onMarkerRender: (value) => `${value.toFixed(2)}x` })),
         React.createElement(FormDivider, { className: classNames(margins.marginTop20, margins.marginBottom20) }),
         React.createElement(FormItem, null,
-            React.createElement(FormSwitch, { value: filterNames, onChange: (checked) => setSettings({ filterNames: checked }), note: "Limit user & channel names to alphanumeric characters." }, "Enable Name Filter")),
+            React.createElement(FormSwitch, { checked: filterNames, onChange: (checked) => setSettings({ filterNames: checked }), description: "Limit user & channel names to alphanumeric characters." }, "Enable Name Filter")),
         React.createElement(FormItem, null,
-            React.createElement(FormSwitch, { value: filterBots, onChange: (checked) => setSettings({ filterBots: checked }), note: "Disable notifications for bot users in voice." }, "Enable Bot Filter")),
+            React.createElement(FormSwitch, { checked: filterBots, onChange: (checked) => setSettings({ filterBots: checked }), description: "Disable notifications for bot users in voice." }, "Enable Bot Filter")),
         React.createElement(FormItem, null,
-            React.createElement(FormSwitch, { value: filterStages, onChange: (checked) => setSettings({ filterStages: checked }), note: "Disable notifications for stage voice channels." }, "Enable Stage Filter")),
+            React.createElement(FormSwitch, { checked: filterStages, onChange: (checked) => setSettings({ filterStages: checked }), description: "Disable notifications for stage voice channels." }, "Enable Stage Filter")),
         React.createElement(FormSection, { title: "Notifications" },
             React.createElement(FormText, { type: "description", className: margins.marginBottom20 },
                 React.createElement(Text, { tag: "span", variant: "code" }, "$user"),
