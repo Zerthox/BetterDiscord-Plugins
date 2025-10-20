@@ -1,15 +1,33 @@
 import { Finder, Logger, React, Utils } from "dium";
-import { Settings, FolderData } from "./settings";
+import { Settings, FolderData, FolderIndicatorPosition } from "./settings";
 import styles from "./styles.module.scss";
 
 const folderStyles = Finder.byKeys(["folderIcon", "folderIconWrapper", "folderPreviewWrapper"]);
 
-export const renderIcon = (data: FolderData): React.JSX.Element => (
-    <div
-        className={`${styles.customIcon}${data?.showFolderIndicator ? ` ${styles.showFolderIndicator}` : ""}`}
-        style={{ backgroundImage: data?.icon ? `url(${data.icon})` : null }}
-    />
-);
+export const renderIcon = (data: FolderData): React.JSX.Element => {
+    let positionClass = styles.topLeft;
+
+    // for some reason, ts thinks the case branches are unreachable
+    // noinspection JSUnreachableSwitchBranches
+    switch (Settings.current.folderIndicatorPosition) {
+        case FolderIndicatorPosition.TopRight:
+            positionClass = styles.topRight;
+            break;
+        case FolderIndicatorPosition.BottomLeft:
+            positionClass = styles.bottomLeft;
+            break;
+        case FolderIndicatorPosition.BottomRight:
+            positionClass = styles.bottomRight;
+            break;
+    }
+
+    return (
+        <div
+            className={`${styles.customIcon}${data?.showFolderIndicator && data?.always ? ` ${styles.showFolderIndicator}` : ""} ${positionClass}`}
+            style={{ backgroundImage: data?.icon ? `url(${data.icon})` : null }}
+        />
+    );
+};
 
 export interface BetterFolderIconProps {
     data?: FolderData;
