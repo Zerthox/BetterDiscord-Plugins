@@ -1,7 +1,7 @@
 import { createPlugin, Logger, Filters, Finder, Patcher, Utils, React, Fiber } from "dium";
 import { ClientActions, ExpandedGuildFolderStore } from "@dium/modules";
-import { FormSwitch } from "@dium/components";
-import { Settings } from "./settings";
+import { Flex, FormItem, FormSwitch, margins, SingleSelect, Text } from "@dium/components";
+import { FolderIndicatorPosition, Settings } from "./settings";
 import { ConnectedBetterFolderIcon } from "./icon";
 import { folderModalPatch, FolderSettingsModal } from "./modal";
 import { css } from "./styles.module.scss";
@@ -17,6 +17,16 @@ const triggerRerender = async (guildsFiber: Fiber) => {
         Logger.warn("Unable to rerender guilds");
     }
 };
+
+interface PositionLabelProps {
+    name: string;
+}
+
+const PositionLabel = ({ name }: PositionLabelProps): React.JSX.Element => (
+    <Flex direction={Flex.Direction.HORIZONTAL} align={Flex.Align.CENTER}>
+        <Text variant="text-md/normal">{name}</Text>
+    </Flex>
+);
 
 export default createPlugin({
     start() {
@@ -87,24 +97,52 @@ export default createPlugin({
     styles: css,
     Settings,
     SettingsPanel: () => {
-        const [{ closeOnOpen }, setSettings] = Settings.useState();
+        const [{ closeOnOpen, folderIndicatorPosition }, setSettings] = Settings.useState();
 
         return (
-            <FormSwitch
-                description="Close other folders when opening a new folder"
-                checked={closeOnOpen}
-                onChange={(checked) => {
-                    if (checked) {
-                        // close all folders except one
-                        for (const id of Array.from(ExpandedGuildFolderStore.getExpandedFolders()).slice(1)) {
-                            ClientActions.toggleGuildFolderExpand(id);
+            <>
+                <FormSwitch
+                    description="Close other folders when opening a new folder"
+                    checked={closeOnOpen}
+                    onChange={(checked) => {
+                        if (checked) {
+                            // close all folders except one
+                            for (const id of Array.from(ExpandedGuildFolderStore.getExpandedFolders()).slice(1)) {
+                                ClientActions.toggleGuildFolderExpand(id);
+                            }
                         }
-                    }
-                    setSettings({ closeOnOpen: checked });
-                }}
-            >
-                Close on open
-            </FormSwitch>
+                        setSettings({ closeOnOpen: checked });
+                    }}
+                >
+                    Close on open
+                </FormSwitch>
+                <FormItem className={margins.marginBottom20} title="Folder Indicator Position">
+                    <SingleSelect
+                        value={folderIndicatorPosition}
+                        options={[
+                            {
+                                value: FolderIndicatorPosition.TopLeft,
+                                label: "Default (Top Left)",
+                            },
+                            {
+                                value: FolderIndicatorPosition.TopRight,
+                                label: "Top Right",
+                            },
+                            {
+                                value: FolderIndicatorPosition.BottomLeft,
+                                label: "Bottom Left",
+                            },
+                            {
+                                value: FolderIndicatorPosition.BottomRight,
+                                label: "Bottom Right",
+                            },
+                        ]}
+                        onChange={(value) => setSettings({ folderIndicatorPosition: value })}
+                        renderOptionLabel={({ label }) => <PositionLabel name={label} />}
+                        renderOptionValue={([{ label }]) => <PositionLabel name={label} />}
+                    />
+                </FormItem>
+            </>
         );
     },
 });

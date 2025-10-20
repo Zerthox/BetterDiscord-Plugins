@@ -8,3 +8,28 @@
     background-position: center;
     background-repeat: no-repeat;
 }
+
+.customIcon.showFolderIndicator::before {
+    content: "📂";
+    position: relative;
+}
+
+.customIcon.showFolderIndicator.top-left::before {
+    top: 0;
+    left: 50%;
+}
+
+.customIcon.showFolderIndicator.top-right::before {
+    top: 0;
+    left: 50%;
+}
+
+.customIcon.showFolderIndicator.bottom-left::before {
+    top: 50%;
+    left: 0;
+}
+
+.customIcon.showFolderIndicator.bottom-right::before {
+    top: 50%;
+    left: 50%;
+}
