@@ -8,3 +8,7 @@
     background-position: center;
     background-repeat: no-repeat;
 }
+
+.customIcon.showFolderIndicator::before {
+    content: "📂";
+}

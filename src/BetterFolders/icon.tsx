@@ -5,7 +5,10 @@ import styles from "./styles.module.scss";
 const folderStyles = Finder.byKeys(["folderIcon", "folderIconWrapper", "folderPreviewWrapper"]);
 
 export const renderIcon = (data: FolderData): React.JSX.Element => (
-    <div className={styles.customIcon} style={{ backgroundImage: data?.icon ? `url(${data.icon})` : null }} />
+    <div
+        className={`${styles.customIcon}${data?.showFolderIndicator ? ` ${styles.showFolderIndicator}` : ""}`}
+        style={{ backgroundImage: data?.icon ? `url(${data.icon})` : null }}
+    />
 );
 
 export interface BetterFolderIconProps {
@@ -52,7 +55,8 @@ export interface ConnectedBetterFolderIconProps {
     FolderIcon: React.FunctionComponent<any>;
 }
 
-const compareFolderData = (a?: FolderData, b?: FolderData): boolean => a?.icon === b?.icon && a?.always === b?.always;
+const compareFolderData = (a?: FolderData, b?: FolderData): boolean =>
+    a?.icon === b?.icon && a?.always === b?.always && a?.showFolderIndicator === b?.showFolderIndicator;
 
 export const ConnectedBetterFolderIcon = ({
     folderId,

@@ -28,6 +28,7 @@ interface PatchedFolderSettingsModalState extends FolderSettingsModalState {
     iconType: IconType;
     icon?: string;
     always?: boolean;
+    showFolderIndicator?: boolean;
 }
 
 type PatchedModal = React.Component<FolderSettingsModalProps, PatchedFolderSettingsModalState>;
@@ -47,11 +48,12 @@ export const folderModalPatch = ({
 
     // add custom state
     if (!state.iconType) {
-        const { icon = null, always = false } = Settings.current.folders[folderId] ?? {};
+        const { icon = null, always = false, showFolderIndicator = false } = Settings.current.folders[folderId] ?? {};
         Object.assign(state, {
             iconType: icon ? IconType.Custom : IconType.Default,
             icon,
             always,
+            showFolderIndicator,
         });
     }
 
@@ -77,8 +79,11 @@ export const folderModalPatch = ({
                 <BetterFolderUploader
                     icon={state.icon}
                     always={state.always}
+                    showFolderIndicator={state.showFolderIndicator}
                     folderNode={tree.nodes[folderId] as GuildsTreeFolder}
-                    onChange={({ icon, always }) => context.setState({ icon, always })}
+                    onChange={({ icon, always, showFolderIndicator }) =>
+                        context.setState({ icon, always, showFolderIndicator })
+                    }
                 />
             </FormItem>,
         );
@@ -93,7 +98,11 @@ export const folderModalPatch = ({
         // update folders if necessary
         const { folders } = Settings.current;
         if (state.iconType === IconType.Custom && state.icon) {
-            folders[folderId] = { icon: state.icon, always: state.always };
+            folders[folderId] = {
+                icon: state.icon,
+                always: state.always,
+                showFolderIndicator: state.showFolderIndicator,
+            };
             Settings.update({ folders });
         } else if ((state.iconType === IconType.Default || !state.icon) && folders[folderId]) {
             delete folders[folderId];
