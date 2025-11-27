@@ -1,6 +1,6 @@
 import { createPlugin, Logger, Filters, Finder, Patcher, Utils, React, Fiber } from "dium";
 import { ClientActions, ExpandedGuildFolderStore } from "@dium/modules";
-import { Flex, FormItem, FormSwitch, margins, SingleSelect, Text } from "@dium/components";
+import { FormItem, FormSwitch, margins, SingleSelect } from "@dium/components";
 import { FolderIndicatorPosition, Settings } from "./settings";
 import { ConnectedBetterFolderIcon } from "./icon";
 import { folderModalPatch, FolderSettingsModal } from "./modal";
@@ -17,16 +17,6 @@ const triggerRerender = async (guildsFiber: Fiber) => {
         Logger.warn("Unable to rerender guilds");
     }
 };
-
-interface PositionLabelProps {
-    name: string;
-}
-
-const PositionLabel = ({ name }: PositionLabelProps): React.JSX.Element => (
-    <Flex direction={Flex.Direction.HORIZONTAL} align={Flex.Align.CENTER}>
-        <Text variant="text-md/normal">{name}</Text>
-    </Flex>
-);
 
 export default createPlugin({
     start() {
