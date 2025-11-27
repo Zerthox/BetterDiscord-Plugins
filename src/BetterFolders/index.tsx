@@ -138,8 +138,6 @@ export default createPlugin({
                             },
                         ]}
                         onChange={(value) => setSettings({ folderIndicatorPosition: value })}
-                        renderOptionLabel={({ label }) => <PositionLabel name={label} />}
-                        renderOptionValue={([{ label }]) => <PositionLabel name={label} />}
                     />
                 </FormItem>
             </>
