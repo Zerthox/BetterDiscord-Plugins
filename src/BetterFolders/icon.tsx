@@ -4,10 +4,10 @@ import styles from "./styles.module.scss";
 
 const folderStyles = Finder.byKeys(["folderIcon", "folderIconWrapper", "folderPreviewWrapper"]);
 
-export const renderIcon = (data: FolderData): React.JSX.Element => {
+export const renderIcon = (data: FolderData, position: FolderIndicatorPosition): React.JSX.Element => {
     let positionClass = styles.topLeft;
 
-    switch (Settings.current.folderIndicatorPosition) {
+    switch (position) {
         case FolderIndicatorPosition.TopRight:
             positionClass = styles.topRight;
             break;
@@ -34,10 +34,12 @@ export interface BetterFolderIconProps {
 }
 
 export const BetterFolderIcon = ({ data, childProps, FolderIcon }: BetterFolderIconProps): React.JSX.Element => {
+    const position = Settings.useSelector((current) => current.folderIndicatorPosition);
+
     if (FolderIcon) {
         const result = FolderIcon(childProps) as React.JSX.Element;
         if (data?.icon) {
-            const replace = renderIcon(data);
+            const replace = renderIcon(data, position);
             const iconWrapper = Utils.queryTree(
                 result,
                 (node) => node?.props?.className === folderStyles.folderIconWrapper,
