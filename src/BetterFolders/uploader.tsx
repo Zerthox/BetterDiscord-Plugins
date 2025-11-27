@@ -28,7 +28,10 @@ export const BetterFolderUploader = ({
             <FormText type="description" style={{ margin: "0 10px 0 40px" }}>
                 Preview:
             </FormText>
-            {renderIcon({ icon: icon, always: true, showFolderIndicator: showFolderIndicator }, Settings.current.folderIndicatorPosition)}
+            {renderIcon(
+                { icon: icon, always: true, showFolderIndicator: showFolderIndicator },
+                Settings.current.folderIndicatorPosition,
+            )}
         </Flex>
         <FormItem className={margins.marginTop20}>
             <FormSwitch
