@@ -7,8 +7,6 @@ const folderStyles = Finder.byKeys(["folderIcon", "folderIconWrapper", "folderPr
 export const renderIcon = (data: FolderData): React.JSX.Element => {
     let positionClass = styles.topLeft;
 
-    // for some reason, ts thinks the case branches are unreachable
-    // noinspection JSUnreachableSwitchBranches
     switch (Settings.current.folderIndicatorPosition) {
         case FolderIndicatorPosition.TopRight:
             positionClass = styles.topRight;
