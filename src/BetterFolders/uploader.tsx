@@ -1,7 +1,7 @@
 import { React } from "dium";
 import { GuildsTreeFolder } from "@dium/modules";
 import { Flex, Button, FormSwitch, FormText, ImageInput, margins, FormItem } from "@dium/components";
-import { FolderData } from "./settings";
+import { FolderData, Settings } from "./settings";
 import { renderIcon } from "./icon";
 
 export interface BetterFolderUploaderProps extends FolderData {
@@ -28,7 +28,7 @@ export const BetterFolderUploader = ({
             <FormText type="description" style={{ margin: "0 10px 0 40px" }}>
                 Preview:
             </FormText>
-            {renderIcon({ icon: icon, always: true, showFolderIndicator: showFolderIndicator })}
+            {renderIcon({ icon: icon, always: true, showFolderIndicator: showFolderIndicator }, Settings.current.folderIndicatorPosition)}
         </Flex>
         <FormItem className={margins.marginTop20}>
             <FormSwitch
