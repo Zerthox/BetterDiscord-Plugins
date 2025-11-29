@@ -35,8 +35,10 @@ export interface SelectProps<T, O extends SelectOption<T>> {
     "aria-labelledby"?: any;
 }
 
-export interface SingleSelectProps<T, O extends SelectOption<T>>
-    extends Omit<SelectProps<T, O>, "select" | "isSelected" | "clear"> {
+export interface SingleSelectProps<T, O extends SelectOption<T>> extends Omit<
+    SelectProps<T, O>,
+    "select" | "isSelected" | "clear"
+> {
     value: T;
     onChange?: (value: T) => void;
 }
