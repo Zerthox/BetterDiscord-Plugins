@@ -65,7 +65,19 @@ const reconciler = Reconciler({
 });
 
 export const createFiber = (element: React.ReactElement<any>): Fiber => {
-    const root = reconciler.createContainer({}, LegacyRoot, null, false, false, "", console.error, null);
+    const root = reconciler.createContainer(
+        {},
+        LegacyRoot,
+        null,
+        false,
+        false,
+        "",
+        console.error,
+        console.warn,
+        console.error,
+        () => {},
+        null,
+    );
     (reconciler as any).updateContainerSync(element, root);
     (reconciler as any).flushSyncWork();
     return root.current;

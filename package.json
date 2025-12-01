@@ -52,7 +52,7 @@
         "rollup-plugin-bd-meta": "*",
         "rollup-plugin-bd-wscript": "*",
         "rollup-plugin-cleanup": "^3.2.1",
-        "rollup-plugin-scss": "^4.0.0",
+        "rollup-plugin-sass": "^1.15.3",
         "rollup-plugin-style-modules": "*",
         "sass": "^1.43.4",
         "ts-node": "^10.4.0",

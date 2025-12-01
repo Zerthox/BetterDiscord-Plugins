@@ -1,6 +1,6 @@
 import { defineConfig } from "rollup";
 import json from "@rollup/plugin-json";
-import scss from "rollup-plugin-scss";
+import sass from "rollup-plugin-sass";
 import typescript from "@rollup/plugin-typescript";
 import cleanup from "rollup-plugin-cleanup";
 
@@ -19,8 +19,12 @@ export default defineConfig({
             namedExports: true,
             preferConst: true,
         }),
-        scss({
+        sass({
+            api: "modern",
             output: false,
+            options: {
+                style: "compressed",
+            },
         }),
         typescript(),
         cleanup({
