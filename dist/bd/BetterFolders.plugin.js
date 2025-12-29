@@ -1,6 +1,6 @@
 /**
  * @name BetterFolders
- * @version 3.7.1
+ * @version 3.7.2
  * @author Zerthox
  * @authorLink https://github.com/Zerthox
  * @description Adds new functionality to server folders. Custom Folder Icons. Close other folders on open.
@@ -339,20 +339,11 @@ const SettingsContainer = ({ name, children, onReset }) => (React.createElement(
                 }) }, "Reset")))) : null));
 
 class SettingsStore {
+    defaults;
+    current;
+    onLoad;
+    listeners = new Set();
     constructor(defaults, onLoad) {
-        this.listeners = new Set();
-        this.getCurrent = () => this.current;
-        this.update = (settings) => {
-            const update = typeof settings === "function" ? settings(this.current) : settings;
-            this.current = { ...this.current, ...update };
-            this._dispatch(true);
-        };
-        this.addListenerEffect = (listener) => {
-            this.addListener(listener);
-            return () => this.removeListener(listener);
-        };
-        this.addReactChangeListener = this.addListener;
-        this.removeReactChangeListener = this.removeListener;
         this.defaults = defaults;
         this.onLoad = onLoad;
     }
@@ -369,6 +360,12 @@ class SettingsStore {
             save("settings", this.current);
         }
     }
+    getCurrent = () => this.current;
+    update = (settings) => {
+        const update = typeof settings === "function" ? settings(this.current) : settings;
+        this.current = { ...this.current, ...update };
+        this._dispatch(true);
+    };
     reset() {
         this.current = { ...this.defaults };
         this._dispatch(true);
@@ -409,12 +406,18 @@ class SettingsStore {
         this.listeners.add(listener);
         return listener;
     }
+    addListenerEffect = (listener) => {
+        this.addListener(listener);
+        return () => this.removeListener(listener);
+    };
     removeListener(listener) {
         this.listeners.delete(listener);
     }
     removeAllListeners() {
         this.listeners.clear();
     }
+    addReactChangeListener = this.addListener;
+    removeReactChangeListener = this.removeListener;
 }
 const createSettings = (defaults, onLoad) => new SettingsStore(defaults, onLoad);
 
@@ -447,7 +450,7 @@ const Settings = createSettings({
     folders: {},
 });
 
-const css = ".customIcon-BetterFolders {\n  box-sizing: border-box;\n  border-radius: var(--radius-lg);\n  width: var(--guildbar-folder-size);\n  height: var(--guildbar-folder-size);\n  padding: var(--custom-folder-preview-padding);\n  background-size: contain;\n  background-position: center;\n  background-repeat: no-repeat;\n}";
+const css = ".customIcon-BetterFolders{box-sizing:border-box;border-radius:var(--radius-lg);width:var(--guildbar-folder-size);height:var(--guildbar-folder-size);padding:var(--custom-folder-preview-padding);background-size:contain;background-position:center;background-repeat:no-repeat}";
 const styles = {
     customIcon: "customIcon-BetterFolders"
 };
@@ -541,9 +544,22 @@ const folderModalPatch = ({ context, result, }) => {
 };
 
 const guildStyles = byKeys(["guilds", "base"]);
-const getGuildsOwner = () => findOwner(getFiber(document.getElementsByClassName(guildStyles.guilds)?.[0]));
+const getGuildsOwner = () => {
+    const node = document.getElementsByClassName(guildStyles.guilds)?.[0];
+    if (node) {
+        const owner = findOwner(getFiber(node));
+        if (!owner) {
+            warn("Unable to find guilds owner");
+        }
+        return owner;
+    }
+    else {
+        warn("Unable to find guilds node");
+    }
+    return null;
+};
 const triggerRerender = async (guildsFiber) => {
-    if (await forceFullRerender(guildsFiber)) {
+    if (guildsFiber && (await forceFullRerender(guildsFiber))) {
         log("Rerendered guilds");
     }
     else {
