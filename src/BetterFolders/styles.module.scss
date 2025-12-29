@@ -7,4 +7,31 @@
     background-size: contain;
     background-position: center;
     background-repeat: no-repeat;
+
+    &.showFolderIndicator {
+        &::before {
+            content: "📂";
+            position: relative;
+        }
+
+        &.top-left::before {
+            top: 0;
+            left: 0;
+        }
+
+        &.top-right::before {
+            top: 0;
+            left: 50%;
+        }
+
+        &.bottom-left::before {
+            top: 50%;
+            left: 0;
+        }
+
+        &.bottom-right::before {
+            top: 50%;
+            left: 50%;
+        }
+    }
 }
