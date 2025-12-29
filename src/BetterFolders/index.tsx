@@ -8,10 +8,22 @@ import { css } from "./styles.module.scss";
 
 const guildStyles = Finder.byKeys(["guilds", "base"]);
 
-const getGuildsOwner = () => Utils.findOwner(Utils.getFiber(document.getElementsByClassName(guildStyles.guilds)?.[0]));
+const getGuildsOwner = () => {
+    const node = document.getElementsByClassName(guildStyles.guilds)?.[0];
+    if (node) {
+        const owner = Utils.findOwner(Utils.getFiber(node));
+        if (!owner) {
+            Logger.warn("Unable to find guilds owner");
+        }
+        return owner;
+    } else {
+        Logger.warn("Unable to find guilds node");
+    }
+    return null;
+};
 
 const triggerRerender = async (guildsFiber: Fiber) => {
-    if (await Utils.forceFullRerender(guildsFiber)) {
+    if (guildsFiber && (await Utils.forceFullRerender(guildsFiber))) {
         Logger.log("Rerendered guilds");
     } else {
         Logger.warn("Unable to rerender guilds");
