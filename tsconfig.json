@@ -1,10 +1,10 @@
 {
     "compilerOptions": {
-        "target": "es2021",
-        "jsx": "react",
+        "target": "es2023",
         "moduleResolution": "node",
         "esModuleInterop": true,
         "resolveJsonModule": true,
+        "jsx": "react",
         "paths": {
             "@dium/*": ["./packages/dium/src/*"]
         }
