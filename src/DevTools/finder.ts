@@ -1,4 +1,4 @@
-import { Filters, Webpack, Finder } from "dium";
+import { Filters, Webpack, Finder, Logger } from "dium";
 
 // finder extensions for development
 
@@ -30,11 +30,11 @@ const getWebpackRequire = (): Webpack.Require => {
 const webpackRequire = getWebpackRequire();
 export { webpackRequire as require };
 
-const byExportsFilter = (exported: Webpack.Exports): Finder.Filter => {
+const byExportsFilter = (exported: Webpack.Exports): Finder.ModuleFilter => {
     return (target) => target === exported;
 };
 
-const byModuleSourceFilter = (contents: string[]): Finder.Filter => {
+const byModuleSourceFilter = (contents: string[]): Finder.ModuleFilter => {
     return (_, module) => {
         const source = sourceOf(module.id);
         return source && contents.every((content) => source.toString().includes(content));
@@ -44,7 +44,7 @@ const byModuleSourceFilter = (contents: string[]): Finder.Filter => {
 type Keys = boolean | string[];
 
 const applyFilter =
-    (filter: Finder.Filter, keys: Keys = ["default", "Z", "ZP"]) =>
+    (filter: Finder.ModuleFilter, keys: Keys = ["default", "Z", "ZP"]) =>
     (module: Webpack.Module) => {
         const { exports } = module;
         const check = typeof keys === "boolean" ? (keys ? Object.keys(exports ?? {}) : []) : keys;
@@ -80,7 +80,7 @@ export const idOf = (exported: Webpack.Exports): Webpack.Id =>
 export const sourceOf = (id: Webpack.Id): Webpack.ModuleFactory => webpackRequire.m[id] ?? null;
 
 /** Finds a raw module using a filter function. */
-export const find = (filter: Finder.Filter, keys?: Keys): Webpack.Module =>
+export const find = (filter: Finder.ModuleFilter, keys?: Keys): Webpack.Module =>
     modules().find(applyFilter(filter, keys)) ?? null;
 
 /** Finds a raw module using query options. */
@@ -116,7 +116,7 @@ export const byModuleSource = (contents: string[]): Webpack.Module => find(byMod
 /** Returns all module results. */
 export const all = {
     /** Finds all modules using a filter function. */
-    find: (filter: Finder.Filter, keys?: Keys): Webpack.Module[] => modules().filter(applyFilter(filter, keys)),
+    find: (filter: Finder.ModuleFilter, keys?: Keys): Webpack.Module[] => modules().filter(applyFilter(filter, keys)),
 
     /** Finds all modules using query options. */
     query: (query: Filters.Query, keys?: Keys): Webpack.Module[] => all.find(Filters.query(query), keys),
@@ -154,6 +154,8 @@ export const resolveImportIds = (module: Webpack.Module): Webpack.Id[] => {
             const requireName = match[1];
             const calls = Array.from(source.matchAll(new RegExp(`\\W${requireName}\\("?(\\d+)"?\\)`, "g")));
             return calls.map((call) => parseInt(call[1]));
+        } else {
+            Logger.error("Failed to find require in module factory");
         }
     }
     return [];

@@ -4,7 +4,9 @@ import type { Query, TypeOrPredicate } from "./filters";
 import type { Module, Exports } from "../require";
 import { Stories } from "../components/story";
 
-export type Filter = (exports: Exports, module: Module, id: string) => boolean;
+export type ModuleFilter = (exports: Exports, module?: Module, id?: string) => boolean;
+
+export type Filter = ModuleFilter | Filters.Filter;
 
 export interface FindOptions {
     /** Whether to resolve the matching export or return the whole exports object. */
@@ -70,13 +72,13 @@ export const all = {
 };
 
 /** Resolves the key corresponding to the value matching the filter function. */
-export const resolveKey = <T>(target: T, filter: Filters.Filter): [T, string] => [
+export const resolveKey = <T, K extends string = string>(target: Record<K, T>, filter: Filter): [Record<K, T>, K] => [
     target,
-    Object.entries(target ?? {}).find(([, value]) => filter(value))?.[0],
+    (target ? Object.entries(target).find(([, value]) => filter(value))?.[0] : null) as K,
 ];
 
 /** Resolves the key corresponding to the value matching the filter function. */
-export const findWithKey = <T>(filter: Filters.Filter): [Record<string, T>, string] =>
+export const findWithKey = <T, K extends string = string>(filter: Filter): [Record<K, T>, K] =>
     resolveKey(find(Filters.byEntry(filter)), filter);
 
 type Mapping = Record<string, (entry: any) => boolean>;
@@ -121,12 +123,18 @@ let controller = new AbortController();
 
 /** Waits for a lazy loaded module. */
 // TODO: waitFor with callback that is skipped when aborted?
-export const waitFor = (filter: Filter, { resolve = true, entries = false }: FindOptions = {}): Promise<any> =>
+export const waitFor = <T>(filter: Filter, { resolve = true, entries = false }: FindOptions = {}): Promise<T> =>
     BdApi.Webpack.waitForModule(filter, {
         signal: controller.signal,
         defaultExport: resolve,
         searchExports: entries,
     });
+
+/** Waits for a lazy loaded module. */
+export const waitForWithKey = async <T, K extends string = string>(filter: Filter): Promise<[Record<K, T>, K]> => {
+    const target: Record<K, T> = await waitFor(Filters.byEntry(filter));
+    return resolveKey(target, filter);
+};
 
 /** Aborts search for any lazy loaded modules. */
 export const abort = (): void => {
@@ -136,6 +144,10 @@ export const abort = (): void => {
     // new controller for future
     controller = new AbortController();
 };
+
+/** Finds a story module using class name prefixes. */
+export const byClassNames = (...classNames: string[]): Record<string, string> =>
+    find(Filters.byClassNames(...classNames), { entries: true });
 
 /** Finds a story module using its title. */
 export const byStoryTitle = (title: string): Stories => find(Filters.byStoryTitle(title), { entries: true });

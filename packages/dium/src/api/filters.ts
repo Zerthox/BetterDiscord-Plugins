@@ -93,5 +93,14 @@ export const bySource = (...fragments: TypeOrPredicate<string>[]): Filter => {
     };
 };
 
+/** Creates a filter searching by class name prefixes. */
+export const byClassNames = (...classNames: string[]): Filter => {
+    return (target) =>
+        target instanceof Object
+        && classNames.every((prefix) =>
+            Object.values(target).some((value) => typeof value === "string" && value.startsWith(prefix)),
+        );
+};
+
 /** Creates a filter searching by story title. */
 export const byStoryTitle = (title: string): Filter => join(byKeys("stories"), (target) => target.title === title);
