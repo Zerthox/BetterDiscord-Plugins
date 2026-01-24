@@ -103,6 +103,7 @@ export default createPlugin({
 
         return (
             <FormSwitch
+                label="Close on open"
                 description="Close other folders when opening a new folder"
                 checked={closeOnOpen}
                 onChange={(checked) => {
@@ -114,9 +115,7 @@ export default createPlugin({
                     }
                     setSettings({ closeOnOpen: checked });
                 }}
-            >
-                Close on open
-            </FormSwitch>
+            />
         );
     },
 });

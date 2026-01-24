@@ -11,7 +11,7 @@ export interface BetterFolderUploaderProps extends FolderData {
 
 export const BetterFolderUploader = ({ icon, always, onChange }: BetterFolderUploaderProps): React.JSX.Element => (
     <>
-        <Flex align={Flex.Align.CENTER}>
+        <Flex align={Flex.Align.CENTER} className={margins.marginBottom20}>
             <Button color={Button.Colors.WHITE} look={Button.Looks.OUTLINED}>
                 Upload Image
                 <ImageInput onChange={(img: string) => onChange({ icon: img, always })} />
@@ -22,11 +22,9 @@ export const BetterFolderUploader = ({ icon, always, onChange }: BetterFolderUpl
             {renderIcon({ icon, always: true })}
         </Flex>
         <FormSwitch
-            className={margins.marginTop8}
             checked={always}
             onChange={(checked) => onChange({ icon, always: checked })}
-        >
-            Always display icon
-        </FormSwitch>
+            label="Always display icon"
+        />
     </>
 );

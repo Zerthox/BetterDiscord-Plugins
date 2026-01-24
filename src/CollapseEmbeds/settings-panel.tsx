@@ -1,5 +1,5 @@
 import { React } from "dium";
-import { FormItem, FormSwitch, FormText, FormTextTypes, TextInput } from "@dium/components";
+import { FormItem, FormSwitch, FormText, FormTextTypes, TextInput, margins } from "@dium/components";
 import { Settings, DAYS_TO_MILLIS, cleanupOldEntries } from "./settings";
 
 export function SettingsPanel(): React.JSX.Element {
@@ -12,20 +12,22 @@ export function SettingsPanel(): React.JSX.Element {
 
     return (
         <>
-            <FormSwitch
-                description="Collapse all embeds &amp; attachments initially."
-                checked={hideByDefault}
-                onChange={(checked) => setSettings({ hideByDefault: checked })}
-            >
-                Collapse by default
-            </FormSwitch>
-            <FormSwitch
-                description="Persist individual embed & attachment states between restarts."
-                checked={saveStates}
-                onChange={(checked) => setSettings({ saveStates: checked })}
-            >
-                Save collapsed states
-            </FormSwitch>
+            <div className={margins.marginBottom20}>
+                <FormSwitch
+                    description="Collapse all embeds &amp; attachments initially."
+                    checked={hideByDefault}
+                    label="Collapse by default"
+                    onChange={(checked) => setSettings({ hideByDefault: checked })}
+                />
+            </div>
+            <div className={margins.marginBottom20}>
+                <FormSwitch
+                    description="Persist individual embed & attachment states between restarts."
+                    checked={saveStates}
+                    label="Save collapsed states"
+                    onChange={(checked) => setSettings({ saveStates: checked })}
+                />
+            </div>
             <FormItem
                 title="Save duration in days"
                 disabled={!saveStates}

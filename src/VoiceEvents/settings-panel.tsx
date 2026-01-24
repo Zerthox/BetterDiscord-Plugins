@@ -7,7 +7,6 @@ import {
     Switch,
     TextInput,
     Slider,
-    FormSection,
     FormItem,
     FormText,
     FormSwitch,
@@ -83,120 +82,116 @@ export const SettingsPanel = (): React.JSX.Element => {
                 />
             </FormItem>
             <FormDivider className={classNames(margins.marginTop20, margins.marginBottom20)} />
-            <FormItem>
+            <div className={margins.marginBottom20}>
                 <FormSwitch
                     checked={filterNames}
                     onChange={(checked) => setSettings({ filterNames: checked })}
+                    label="Enable Name Filter"
                     description="Limit user & channel names to alphanumeric characters."
-                >
-                    Enable Name Filter
-                </FormSwitch>
-            </FormItem>
-            <FormItem>
+                />
+            </div>
+            <div className={margins.marginBottom20}>
                 <FormSwitch
                     checked={filterBots}
                     onChange={(checked) => setSettings({ filterBots: checked })}
+                    label="Enable Bot Filter"
                     description="Disable notifications for bot users in voice."
-                >
-                    Enable Bot Filter
-                </FormSwitch>
-            </FormItem>
-            <FormItem>
+                />
+            </div>
+            <div className={margins.marginBottom20}>
                 <FormSwitch
                     checked={filterStages}
                     onChange={(checked) => setSettings({ filterStages: checked })}
+                    label="Enable Stage Filter"
                     description="Disable notifications for stage voice channels."
-                >
-                    Enable Stage Filter
-                </FormSwitch>
-            </FormItem>
-            <FormSection title="Notifications">
-                <FormText type="description" className={margins.marginBottom20}>
-                    <Text tag="span" variant="code">
-                        $user
-                    </Text>{" "}
-                    will get replaced with the respective User Nickname,{" "}
-                    <Text tag="span" variant="code">
-                        $displayname
-                    </Text>{" "}
-                    with the global User Display Name,{" "}
-                    <Text tag="span" variant="code">
-                        $username
-                    </Text>{" "}
-                    with the User Account name and{" "}
-                    <Text tag="span" variant="code">
-                        $channel
-                    </Text>{" "}
-                    with the respective Voice Channel name.
-                </FormText>
-                {Object.entries(titles).map(([key, title]) => (
-                    <FormItem key={key} className={margins.marginBottom20} title={title}>
-                        <Flex align={Flex.Align.CENTER}>
-                            <Flex.Child grow={1}>
-                                <div>
-                                    <TextInput
-                                        value={settings.notifs[key].message}
-                                        placeholder={defaults.notifs[key].message}
-                                        onChange={(value: string) => {
-                                            const { notifs } = settings;
-                                            notifs[key].message = value;
-                                            setSettings({ notifs });
-                                        }}
-                                    />
-                                </div>
-                            </Flex.Child>
-                            <Flex.Child grow={0}>
-                                <div>
-                                    <Switch
-                                        checked={settings.notifs[key].enabled}
-                                        onChange={(value: boolean) => {
-                                            const { notifs } = settings;
-                                            notifs[key].enabled = value;
-                                            setSettings({ notifs });
-                                        }}
-                                    />
-                                </div>
-                            </Flex.Child>
-                            <Flex.Child grow={0}>
-                                <div>
-                                    <Button
-                                        size={Button.Sizes.SMALL}
-                                        onClick={() =>
-                                            speak(
-                                                settings.notifs[key].message
-                                                    .split("$user")
-                                                    .join("user")
-                                                    .split("$channel")
-                                                    .join("channel"),
-                                            )
-                                        }
-                                    >
-                                        Test
-                                    </Button>
-                                </div>
-                            </Flex.Child>
-                        </Flex>
-                    </FormItem>
-                ))}
-                <FormItem key="unknownChannel" className={margins.marginBottom20} title="Unknown Channel Name">
+                />
+            </div>
+            <Text variant="heading-lg/medium">Notifications</Text>
+            <FormText type="description" className={margins.marginBottom20}>
+                <Text tag="span" variant="code">
+                    $user
+                </Text>{" "}
+                will get replaced with the respective User Nickname,{" "}
+                <Text tag="span" variant="code">
+                    $displayname
+                </Text>{" "}
+                with the global User Display Name,{" "}
+                <Text tag="span" variant="code">
+                    $username
+                </Text>{" "}
+                with the User Account name and{" "}
+                <Text tag="span" variant="code">
+                    $channel
+                </Text>{" "}
+                with the respective Voice Channel name.
+            </FormText>
+            {Object.entries(titles).map(([key, title]) => (
+                <FormItem key={key} className={margins.marginBottom20} title={title}>
                     <Flex align={Flex.Align.CENTER}>
                         <Flex.Child grow={1}>
                             <div>
                                 <TextInput
-                                    value={settings.unknownChannel}
-                                    placeholder={defaults.unknownChannel}
-                                    onChange={(value: string) => setSettings({ unknownChannel: value })}
+                                    value={settings.notifs[key].message}
+                                    placeholder={defaults.notifs[key].message}
+                                    onChange={(value: string) => {
+                                        const { notifs } = settings;
+                                        notifs[key].message = value;
+                                        setSettings({ notifs });
+                                    }}
                                 />
                             </div>
                         </Flex.Child>
                         <Flex.Child grow={0}>
-                            <Button size={Button.Sizes.SMALL} onClick={() => speak(settings.unknownChannel)}>
-                                Test
-                            </Button>
+                            <div>
+                                <Switch
+                                    checked={settings.notifs[key].enabled}
+                                    onChange={(value: boolean) => {
+                                        const { notifs } = settings;
+                                        notifs[key].enabled = value;
+                                        setSettings({ notifs });
+                                    }}
+                                />
+                            </div>
+                        </Flex.Child>
+                        <Flex.Child grow={0}>
+                            <div>
+                                <Button
+                                    size={Button.Sizes.SMALL}
+                                    onClick={() =>
+                                        speak(
+                                            settings.notifs[key].message
+                                                .split("$user")
+                                                .join("user")
+                                                .split("$channel")
+                                                .join("channel"),
+                                        )
+                                    }
+                                >
+                                    Test
+                                </Button>
+                            </div>
                         </Flex.Child>
                     </Flex>
                 </FormItem>
-            </FormSection>
+            ))}
+            <FormItem key="unknownChannel" className={margins.marginBottom20} title="Unknown Channel Name">
+                <Flex align={Flex.Align.CENTER}>
+                    <Flex.Child grow={1}>
+                        <div>
+                            <TextInput
+                                value={settings.unknownChannel}
+                                placeholder={defaults.unknownChannel}
+                                onChange={(value: string) => setSettings({ unknownChannel: value })}
+                            />
+                        </div>
+                    </Flex.Child>
+                    <Flex.Child grow={0}>
+                        <Button size={Button.Sizes.SMALL} onClick={() => speak(settings.unknownChannel)}>
+                            Test
+                        </Button>
+                    </Flex.Child>
+                </Flex>
+            </FormItem>
         </>
     );
 };
