@@ -1,6 +1,6 @@
 /**
  * @name BetterVolume
- * @version 3.2.2
+ * @version 3.2.3
  * @author Zerthox
  * @authorLink https://github.com/Zerthox
  * @description Set user volume values manually instead of using a slider. Allows setting volumes higher than 200%.
@@ -198,7 +198,8 @@ const inject = (styles) => {
 };
 const clear = () => BdApi.DOM.removeStyle(getMeta().name);
 
-const Dispatcher = /* @__PURE__ */ byKeys(["dispatch", "subscribe"]);
+// Updated Dispatcher lookup to include entries: true (searchExports: true)
+const Dispatcher = /* @__PURE__ */ byKeys(["dispatch", "subscribe"], { entries: true });
 
 const MediaEngineStore = /* @__PURE__ */ byName("MediaEngineStore");
 const MediaEngineActions = /* @__PURE__ */ byKeys(["setLocalVolume"]);
