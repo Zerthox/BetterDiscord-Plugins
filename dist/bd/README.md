@@ -6,7 +6,7 @@ Adds new functionality to server folders. Custom Folder Icons. Close other folde
 
 Set user volume values manually instead of using a slider. Allows setting volumes higher than 200%.
 
-## [CollapseEmbeds](https://betterdiscord.app/plugin/CollapseEmbeds) <sub><sup>`v2.1.2` _(Updated: 13/10/2025)_</sup></sub>
+## [CollapseEmbeds](https://betterdiscord.app/plugin/CollapseEmbeds) <sub><sup>`v2.1.3` _(Updated: 24/01/2026)_</sup></sub>
 
 Adds a button to collapse embeds & attachments.
 

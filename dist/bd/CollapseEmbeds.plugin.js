@@ -1,6 +1,6 @@
 /**
  * @name CollapseEmbeds
- * @version 2.1.2
+ * @version 2.1.3
  * @author Zerthox
  * @authorLink https://github.com/Zerthox
  * @description Adds a button to collapse embeds & attachments.
@@ -155,8 +155,9 @@ const log = (...data) => print(console.log, ...data);
 
 const patch = (type, object, method, callback, options) => {
     const original = object?.[method];
+    const name = options.name ?? String(method);
     if (!(original instanceof Function)) {
-        throw TypeError(`patch target ${original} is not a function`);
+        throw TypeError(`patch target ${name} is ${original} not function`);
     }
     const cancel = BdApi.Patcher[type](getMeta().name, object, method, options.once
         ? (...args) => {
@@ -166,7 +167,7 @@ const patch = (type, object, method, callback, options) => {
         }
         : (...args) => callback(cancel, original, ...args));
     if (!options.silent) {
-        log(`Patched ${options.name ?? String(method)}`);
+        log(`Patched ${name}`);
     }
     return cancel;
 };
@@ -191,7 +192,7 @@ const inject = (styles) => {
 const clear = () => BdApi.DOM.removeStyle(getMeta().name);
 
 const { React } = BdApi;
-const classNames = /* @__PURE__ */ find((exports) => exports instanceof Object && exports.default === exports && Object.keys(exports).length === 1);
+const classNames = /* @__PURE__ */ find((exports$1) => exports$1 instanceof Object && exports$1.default === exports$1 && Object.keys(exports$1).length === 1);
 
 const Button = /* @__PURE__ */ byKeys(["Colors", "Link"], { entries: true });
 
@@ -202,10 +203,10 @@ const Embed = /* @__PURE__ */ byProtos(["renderSuppressButton"], { entries: true
 const Flex = /* @__PURE__ */ byKeys(["Child", "Justify", "Align"], { entries: true });
 
 const FormItem = /* @__PURE__ */ bySource(["titleClassName:", "required:"], { entries: true });
-const FormSwitch = /* @__PURE__ */ bySource(["onChange:", "innerRef:", '"checkbox"'], {
+const FormSwitch = /* @__PURE__ */ bySource(["checked:", "innerRef:", "layout:"], {
     entries: true,
 });
-const FormDivider = /* @__PURE__ */ bySource([".divider", (source) => /{className:.,gap:.}=/.test(source)], {
+const FormDivider = /* @__PURE__ */ bySource(["marginTop:", (source) => /{className:.,gap:.}=/.test(source)], {
     entries: true,
 });
 const FormText = /* @__PURE__ */ bySource(["type:", "style:", "disabled:", "DEFAULT"], {
@@ -215,6 +216,8 @@ const FormText = /* @__PURE__ */ bySource(["type:", "style:", "disabled:", "DEFA
 const IconArrow = /* @__PURE__ */ bySource(['d:"M5.3 9.'], {
     entries: true,
 });
+
+const margins = /* @__PURE__ */ byKeys(["marginBottom40", "marginTop4"]);
 
 const MessageFooter = /* @__PURE__ */ byProtos(["renderRemoveAttachmentConfirmModal"], {
     entries: true,
@@ -265,20 +268,11 @@ const SettingsContainer = ({ name, children, onReset }) => (React.createElement(
                 }) }, "Reset")))) : null));
 
 class SettingsStore {
+    defaults;
+    current;
+    onLoad;
+    listeners = new Set();
     constructor(defaults, onLoad) {
-        this.listeners = new Set();
-        this.getCurrent = () => this.current;
-        this.update = (settings) => {
-            const update = typeof settings === "function" ? settings(this.current) : settings;
-            this.current = { ...this.current, ...update };
-            this._dispatch(true);
-        };
-        this.addListenerEffect = (listener) => {
-            this.addListener(listener);
-            return () => this.removeListener(listener);
-        };
-        this.addReactChangeListener = this.addListener;
-        this.removeReactChangeListener = this.removeListener;
         this.defaults = defaults;
         this.onLoad = onLoad;
     }
@@ -295,6 +289,12 @@ class SettingsStore {
             save("settings", this.current);
         }
     }
+    getCurrent = () => this.current;
+    update = (settings) => {
+        const update = typeof settings === "function" ? settings(this.current) : settings;
+        this.current = { ...this.current, ...update };
+        this._dispatch(true);
+    };
     reset() {
         this.current = { ...this.defaults };
         this._dispatch(true);
@@ -335,12 +335,18 @@ class SettingsStore {
         this.listeners.add(listener);
         return listener;
     }
+    addListenerEffect = (listener) => {
+        this.addListener(listener);
+        return () => this.removeListener(listener);
+    };
     removeListener(listener) {
         this.listeners.delete(listener);
     }
     removeAllListeners() {
         this.listeners.clear();
     }
+    addReactChangeListener = this.addListener;
+    removeReactChangeListener = this.removeListener;
 }
 const createSettings = (defaults, onLoad) => new SettingsStore(defaults, onLoad);
 
@@ -416,8 +422,10 @@ function SettingsPanel() {
         valid: true,
     });
     return (React.createElement(React.Fragment, null,
-        React.createElement(FormSwitch, { description: "Collapse all embeds & attachments initially.", checked: hideByDefault, onChange: (checked) => setSettings({ hideByDefault: checked }) }, "Collapse by default"),
-        React.createElement(FormSwitch, { description: "Persist individual embed & attachment states between restarts.", checked: saveStates, onChange: (checked) => setSettings({ saveStates: checked }) }, "Save collapsed states"),
+        React.createElement("div", { className: margins.marginBottom20 },
+            React.createElement(FormSwitch, { description: "Collapse all embeds & attachments initially.", checked: hideByDefault, label: "Collapse by default", onChange: (checked) => setSettings({ hideByDefault: checked }) })),
+        React.createElement("div", { className: margins.marginBottom20 },
+            React.createElement(FormSwitch, { description: "Persist individual embed & attachment states between restarts.", checked: saveStates, label: "Save collapsed states", onChange: (checked) => setSettings({ saveStates: checked }) })),
         React.createElement(FormItem, { title: "Save duration in days", disabled: !saveStates, error: !valid ? "Duration must be a positive number of days" : null },
             React.createElement(TextInput, { type: "number", min: 0, disabled: !saveStates, value: text, onChange: (text) => {
                     const duration = Number.parseFloat(text) * DAYS_TO_MILLIS;
@@ -431,7 +439,7 @@ function SettingsPanel() {
             React.createElement(FormText, { type: "description" , disabled: !saveStates }, "How long to keep embed & attachment states after not seeing them."))));
 }
 
-const css = ".container-CollapseEmbeds.embed-CollapseEmbeds {\n  justify-self: stretch;\n}\n.container-CollapseEmbeds.embed-CollapseEmbeds > article {\n  flex-grow: 1;\n  flex-shrink: 0;\n}\n.container-CollapseEmbeds.mediaItem-CollapseEmbeds.expanded-CollapseEmbeds {\n  position: relative;\n}\n.container-CollapseEmbeds.mediaItem-CollapseEmbeds.expanded-CollapseEmbeds > .hideButton-CollapseEmbeds {\n  position: absolute;\n  right: 2px;\n  bottom: 2px;\n  z-index: 1;\n}\n\n.placeholder-CollapseEmbeds + .placeholder-CollapseEmbeds {\n  margin-left: 4px;\n}\n\n.hideButton-CollapseEmbeds {\n  margin-bottom: -4px;\n  align-self: flex-end;\n  color: var(--interactive-normal);\n  cursor: pointer;\n  visibility: hidden;\n  padding: 4px;\n  margin: -4px;\n}\n.hideButton-CollapseEmbeds:hover {\n  color: var(--interactive-hover);\n}\n.expanded-CollapseEmbeds > .hideButton-CollapseEmbeds {\n  margin-bottom: -6px;\n}\n.hideButton-CollapseEmbeds:hover, :hover + .hideButton-CollapseEmbeds, .collapsed-CollapseEmbeds > .hideButton-CollapseEmbeds {\n  visibility: visible;\n}\n\n.icon-CollapseEmbeds {\n  margin: -2px;\n  transition: transform 0.2s ease-out;\n}\n.icon-CollapseEmbeds.open-CollapseEmbeds {\n  transform: rotate(180deg);\n}";
+const css = ".container-CollapseEmbeds.embed-CollapseEmbeds{justify-self:stretch}.container-CollapseEmbeds.embed-CollapseEmbeds>article{flex-grow:1;flex-shrink:0}.container-CollapseEmbeds.mediaItem-CollapseEmbeds.expanded-CollapseEmbeds{position:relative}.container-CollapseEmbeds.mediaItem-CollapseEmbeds.expanded-CollapseEmbeds>.hideButton-CollapseEmbeds{position:absolute;right:2px;bottom:2px;z-index:1}.placeholder-CollapseEmbeds+.placeholder-CollapseEmbeds{margin-left:4px}.hideButton-CollapseEmbeds{margin-bottom:-4px;align-self:flex-end;color:var(--interactive-normal);cursor:pointer;visibility:hidden;padding:4px;margin:-4px}.hideButton-CollapseEmbeds:hover{color:var(--interactive-hover)}.expanded-CollapseEmbeds>.hideButton-CollapseEmbeds{margin-bottom:-6px}.hideButton-CollapseEmbeds:hover,:hover+.hideButton-CollapseEmbeds,.collapsed-CollapseEmbeds>.hideButton-CollapseEmbeds{visibility:visible}.icon-CollapseEmbeds{margin:-2px;transition:transform .2s ease-out}.icon-CollapseEmbeds.open-CollapseEmbeds{transform:rotate(180deg)}";
 const styles = {
     container: "container-CollapseEmbeds",
     embed: "embed-CollapseEmbeds",
@@ -441,9 +449,7 @@ const styles = {
     placeholder: "placeholder-CollapseEmbeds",
     collapsed: "collapsed-CollapseEmbeds",
     icon: "icon-CollapseEmbeds",
-    open: "open-CollapseEmbeds",
-    attachment: "attachment-CollapseEmbeds",
-    mediaItemSingle: "mediaItemSingle-CollapseEmbeds"
+    open: "open-CollapseEmbeds"
 };
 
 const Hider = ({ placeholders, type, children, id }) => {
