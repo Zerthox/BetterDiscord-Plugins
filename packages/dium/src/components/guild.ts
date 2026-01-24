@@ -14,5 +14,3 @@ export const HomeButton: React.FunctionComponent<any> = /* @__PURE__ */ Finder.b
     ["unviewedTrialCount", "unviewedDiscountCount"],
     { entries: true },
 );
-
-export const GuildSeparator: React.FunctionComponent<any> = /* @__PURE__ */ Finder.bySource([".guildSeparator"]);

@@ -1,5 +1,7 @@
 import { Finder } from "../api";
 
+export const Icons: Record<string, React.Component> = /* @__PURE__ */ Finder.byKeys(["CameraIcon"]);
+
 export interface IconArrowProps extends Record<string, any> {
     width?: number;
     height?: number;

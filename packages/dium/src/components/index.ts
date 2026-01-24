@@ -1,3 +1,4 @@
+export * as BD from "./betterdiscord";
 export * from "./button";
 export * from "./clickable";
 export * from "./common";

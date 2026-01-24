@@ -1,37 +1,27 @@
-import { Finder } from "../api";
+import { Filters, Finder } from "../api";
 import { Stories } from "./story";
 
 export const FormStories: Stories = /* @__PURE__ */ Finder.byStoryTitle("Form Components");
 
-export const enum FormNoticeTypes {
-    BRAND = "cardBrand",
-    CUSTOM = "card",
-    DANGER = "cardDanger",
-    PRIMARY = "cardPrimary",
-    SUCCESS = "cardSuccess",
-    WARNING = "cardWarning",
-}
+export type FormNoticeType = "BRAND" | "CUSTOM" | "DANGER" | "PRIMARY" | "SUCCESS" | "WARNING";
 
 export interface FormNoticeProps {
     type?: string;
     body?: React.ReactNode;
     title?: React.ReactNode;
-    hasButton?: boolean;
-    imageData?: {
-        src: string;
-        height?: number;
-        width?: number;
-        position?: "left" | "right";
-    };
+    button?: any;
+    imageData?: any;
     className?: string;
     iconClassName?: string;
     style?: React.CSSProperties;
     align?: string;
 }
 
-export type FormNotice = React.FunctionComponent<FormNoticeProps>;
+export interface FormNotice extends React.FunctionComponent<FormNoticeProps> {
+    Types: Record<FormNoticeType, string>;
+}
 
-export const FormNotice: FormNotice = /* @__PURE__ */ Finder.bySource(["imageData:", ".formNotice"], { entries: true });
+export const FormNotice: FormNotice = /* @__PURE__ */ Finder.bySource(["imageData:", "button:"], { entries: true });
 
 export const enum FormTags {
     H1 = "h1",
@@ -60,33 +50,56 @@ export type FormItem = React.FunctionComponent<FormItemProps>;
 
 export const FormItem: FormItem = /* @__PURE__ */ Finder.bySource(["titleClassName:", "required:"], { entries: true });
 
-export interface FormSwitchProps {
-    checked?: boolean;
-    required?: boolean;
-    disabled?: boolean;
-    onChange?: (checked: boolean) => void;
-    role?: any;
-    layout?: any;
-    badge?: any;
-    label?: string;
-    hideLabel?: boolean;
-    icon?: any;
+export interface FormTitleProps {
+    type?: string;
+    title: string;
+    titleTrailingIcon?: any;
+    subtitle?: string;
+}
+
+export type FormTitle = React.FunctionComponent<FormTitleProps>;
+
+export const FormTitle: FormTitle = /* @__PURE__ */ Finder.bySource(["titleTrailingIcon:", "type:"], {
+    entries: true,
+});
+
+export interface FormControlProps {
     id?: any;
     errorMessage?: string;
     helperText?: string;
     successMessage?: string;
     description?: string;
-    trailingContent?: any;
+    label?: string;
+    hideLabel?: boolean;
+    required?: boolean;
+    disabled?: boolean;
     children?: React.ReactNode;
-    className?: string;
-    style?: React.CSSProperties;
-    focusProps?: any;
+    role?: string;
+    layout?: string;
+    layoutConfig?: any;
+    badge?: any;
+    icon?: any;
+    interactiveLabel?: boolean;
+    auxiliaryContentPosition?: string;
+    trailingAuxiliaryContent?: any;
+    ref?: any;
+}
+
+export interface FormSwitchProps extends Omit<
+    FormControlProps,
+    "disabled" | "layoutConfig" | "trailingAuxiliaryContent" | "children"
+> {
+    checked?: boolean;
+    required?: boolean;
+    disabled?: boolean;
+    onChange?: (checked: boolean) => void;
+    focusProp?: any;
     innerRef?: any;
 }
 
 export type FormSwitch = React.FunctionComponent<FormSwitchProps>;
 
-export const FormSwitch: FormSwitch = /* @__PURE__ */ Finder.bySource(["onChange:", "innerRef:", '"checkbox"'], {
+export const FormSwitch: FormSwitch = /* @__PURE__ */ Finder.bySource(["checked:", "innerRef:", "layout:"], {
     entries: true,
 });
 
@@ -98,7 +111,7 @@ export interface FormDividerProps {
 export type FormDivider = React.FunctionComponent<FormDividerProps>;
 
 export const FormDivider: FormDivider = /* @__PURE__ */ Finder.bySource(
-    [".divider", (source) => /{className:.,gap:.}=/.test(source)],
+    ["marginTop:", (source) => /{className:.,gap:.}=/.test(source)],
     {
         entries: true,
     },
@@ -115,12 +128,9 @@ export interface FormSectionProps {
 
 export type FormSection = React.FunctionComponent<FormSectionProps>;
 
-export const FormSection: FormSection = /* @__PURE__ */ Finder.bySource(
-    ["children:", "title:", "description:", ".categoryDivider"],
-    {
-        entries: true,
-    },
-);
+export const FormSection: FormSection = /* @__PURE__ */ Finder.bySource(["children:", "title:", "description:"], {
+    entries: true,
+});
 
 export interface FormTextProps {
     type?: string;

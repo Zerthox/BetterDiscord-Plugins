@@ -114,7 +114,7 @@ export interface ChannelStore extends Store {
 
 export const ChannelStore: ChannelStore = /* @__PURE__ */ Finder.byName("ChannelStore");
 
-export const ChannelActions: ActionModule = /* @__PURE__ */ Finder.byKeys(["selectChannel"]);
+export const ChannelActions: ActionModule = /* @__PURE__ */ Finder.byKeys(["selectChannel"], { entries: true });
 
 export interface SelectedChannelStore extends Store {
     getChannelId(e);
