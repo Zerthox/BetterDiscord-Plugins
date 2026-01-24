@@ -1,6 +1,6 @@
 /**
  * @name BetterVolume
- * @version 3.2.2
+ * @version 3.2.3
  * @author Zerthox
  * @authorLink https://github.com/Zerthox
  * @description Set user volume values manually instead of using a slider. Allows setting volumes higher than 200%.
@@ -129,7 +129,7 @@ const byKeys = (keys, options) => find(byKeys$1(...keys), options);
 const bySource = (contents, options) => find(bySource$1(...contents), options);
 const resolveKey = (target, filter) => [
     target,
-    Object.entries(target ?? {}).find(([, value]) => filter(value))?.[0],
+    (target ? Object.entries(target).find(([, value]) => filter(value))?.[0] : null),
 ];
 const demangle = (mapping, required, proxy = false) => {
     const req = Object.keys(mapping);
@@ -163,8 +163,9 @@ const warn = (...data) => print(console.warn, ...data);
 
 const patch = (type, object, method, callback, options) => {
     const original = object?.[method];
+    const name = options.name ?? String(method);
     if (!(original instanceof Function)) {
-        throw TypeError(`patch target ${original} is not a function`);
+        throw TypeError(`patch target ${name} is ${original} not function`);
     }
     const cancel = BdApi.Patcher[type](getMeta().name, object, method, options.once
         ? (...args) => {
@@ -174,7 +175,7 @@ const patch = (type, object, method, callback, options) => {
         }
         : (...args) => callback(cancel, original, ...args));
     if (!options.silent) {
-        log(`Patched ${options.name ?? String(method)}`);
+        log(`Patched ${name}`);
     }
     return cancel;
 };
@@ -198,7 +199,7 @@ const inject = (styles) => {
 };
 const clear = () => BdApi.DOM.removeStyle(getMeta().name);
 
-const Dispatcher = /* @__PURE__ */ byKeys(["dispatch", "subscribe"]);
+const Dispatcher = /* @__PURE__ */ byKeys(["dispatch", "subscribe"], { entries: true });
 
 const MediaEngineStore = /* @__PURE__ */ byName("MediaEngineStore");
 const MediaEngineActions = /* @__PURE__ */ byKeys(["setLocalVolume"]);
@@ -214,7 +215,7 @@ const Button = /* @__PURE__ */ byKeys(["Colors", "Link"], { entries: true });
 
 const Flex = /* @__PURE__ */ byKeys(["Child", "Justify", "Align"], { entries: true });
 
-const FormDivider = /* @__PURE__ */ bySource([".divider", (source) => /{className:.,gap:.}=/.test(source)], {
+const FormDivider = /* @__PURE__ */ bySource(["marginTop:", (source) => /{className:.,gap:.}=/.test(source)], {
     entries: true,
 });
 
@@ -230,20 +231,11 @@ const SettingsContainer = ({ name, children, onReset }) => (React.createElement(
                 }) }, "Reset")))) : null));
 
 class SettingsStore {
+    defaults;
+    current;
+    onLoad;
+    listeners = new Set();
     constructor(defaults, onLoad) {
-        this.listeners = new Set();
-        this.getCurrent = () => this.current;
-        this.update = (settings) => {
-            const update = typeof settings === "function" ? settings(this.current) : settings;
-            this.current = { ...this.current, ...update };
-            this._dispatch(true);
-        };
-        this.addListenerEffect = (listener) => {
-            this.addListener(listener);
-            return () => this.removeListener(listener);
-        };
-        this.addReactChangeListener = this.addListener;
-        this.removeReactChangeListener = this.removeListener;
         this.defaults = defaults;
         this.onLoad = onLoad;
     }
@@ -260,6 +252,12 @@ class SettingsStore {
             save("settings", this.current);
         }
     }
+    getCurrent = () => this.current;
+    update = (settings) => {
+        const update = typeof settings === "function" ? settings(this.current) : settings;
+        this.current = { ...this.current, ...update };
+        this._dispatch(true);
+    };
     reset() {
         this.current = { ...this.defaults };
         this._dispatch(true);
@@ -300,12 +298,18 @@ class SettingsStore {
         this.listeners.add(listener);
         return listener;
     }
+    addListenerEffect = (listener) => {
+        this.addListener(listener);
+        return () => this.removeListener(listener);
+    };
     removeListener(listener) {
         this.listeners.delete(listener);
     }
     removeAllListeners() {
         this.listeners.clear();
     }
+    addReactChangeListener = this.addListener;
+    removeReactChangeListener = this.removeListener;
 }
 const createSettings = (defaults, onLoad) => new SettingsStore(defaults, onLoad);
 
@@ -360,7 +364,7 @@ const tryResetVolumeOverride = (userId, context) => {
     return false;
 };
 
-const css = ".container-BetterVolume {\n  margin: 0 8px;\n  padding: 3px 6px;\n  display: flex;\n  background: var(--input-background);\n  border: 1px solid var(--input-border-default);\n  border-radius: 3px;\n}\n\n.input-BetterVolume {\n  margin-right: 2px;\n  flex-grow: 1;\n  background: transparent;\n  border: none;\n}\n.input-BetterVolume::-webkit-inner-spin-button {\n  appearance: none;\n}\n.input-BetterVolume:hover::-webkit-inner-spin-button {\n  appearance: auto;\n}\n\n.input-BetterVolume,\n.unit-BetterVolume {\n  color: var(--input-foreground-default);\n  font-family: var(--font-primary);\n  font-weight: 500;\n}";
+const css = ".container-BetterVolume{margin:0 8px;padding:3px 6px;display:flex;background:var(--input-background);border:1px solid var(--input-border-default);border-radius:3px}.input-BetterVolume{margin-right:2px;flex-grow:1;background:rgba(0,0,0,0);border:none}.input-BetterVolume::-webkit-inner-spin-button{appearance:none}.input-BetterVolume:hover::-webkit-inner-spin-button{appearance:auto}.input-BetterVolume,.unit-BetterVolume{color:var(--input-foreground-default);font-family:var(--font-primary);font-weight:500}";
 const styles = {
     container: "container-BetterVolume",
     input: "input-BetterVolume",
