@@ -41,8 +41,9 @@ const patch = <Module, Key extends keyof Module>(
     options: Options,
 ) => {
     const original = object?.[method];
+    const name = options.name ?? String(method);
     if (!(original instanceof Function)) {
-        throw TypeError(`patch target ${original} is not a function`);
+        throw TypeError(`patch target ${name} is ${original} not function`);
     }
 
     const cancel = BdApi.Patcher[type](
@@ -59,7 +60,7 @@ const patch = <Module, Key extends keyof Module>(
     );
 
     if (!options.silent) {
-        Logger.log(`Patched ${options.name ?? String(method)}`);
+        Logger.log(`Patched ${name}`);
     }
 
     return cancel;
