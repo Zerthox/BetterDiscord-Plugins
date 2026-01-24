@@ -1,7 +1,7 @@
 {
     "name": "VoiceEvents",
     "author": "Zerthox",
-    "version": "2.8.1",
+    "version": "2.8.2",
     "description": "Adds TTS Event Notifications to your selected Voice Channel. TeamSpeak feeling.",
     "dependencies": {
         "dium": "*"

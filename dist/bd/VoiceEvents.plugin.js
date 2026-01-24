@@ -1,6 +1,6 @@
 /**
  * @name VoiceEvents
- * @version 2.8.1
+ * @version 2.8.2
  * @author Zerthox
  * @authorLink https://github.com/Zerthox
  * @description Adds TTS Event Notifications to your selected Voice Channel. TeamSpeak feeling.
@@ -191,14 +191,14 @@ const ChannelStore = /* @__PURE__ */ byName("ChannelStore");
 const SelectedChannelStore = /* @__PURE__ */ byName("SelectedChannelStore");
 const VoiceStateStore = /* @__PURE__ */ byName("VoiceStateStore");
 
-const Dispatcher = /* @__PURE__ */ byKeys(["dispatch", "subscribe"]);
+const Dispatcher = /* @__PURE__ */ byKeys(["dispatch", "subscribe"], { entries: true });
 
 const GuildMemberStore = /* @__PURE__ */ byName("GuildMemberStore");
 
 const MediaEngineStore = /* @__PURE__ */ byName("MediaEngineStore");
 
 const { React } = BdApi;
-const classNames = /* @__PURE__ */ find((exports) => exports instanceof Object && exports.default === exports && Object.keys(exports).length === 1);
+const classNames = /* @__PURE__ */ find((exports$1) => exports$1 instanceof Object && exports$1.default === exports$1 && Object.keys(exports$1).length === 1);
 
 const UserStore = /* @__PURE__ */ byName("UserStore");
 
@@ -207,13 +207,10 @@ const Button = /* @__PURE__ */ byKeys(["Colors", "Link"], { entries: true });
 const Flex = /* @__PURE__ */ byKeys(["Child", "Justify", "Align"], { entries: true });
 
 const FormItem = /* @__PURE__ */ bySource(["titleClassName:", "required:"], { entries: true });
-const FormSwitch = /* @__PURE__ */ bySource(["onChange:", "innerRef:", '"checkbox"'], {
+const FormSwitch = /* @__PURE__ */ bySource(["checked:", "innerRef:", "layout:"], {
     entries: true,
 });
-const FormDivider = /* @__PURE__ */ bySource([".divider", (source) => /{className:.,gap:.}=/.test(source)], {
-    entries: true,
-});
-const FormSection = /* @__PURE__ */ bySource(["children:", "title:", "description:", ".categoryDivider"], {
+const FormDivider = /* @__PURE__ */ bySource(["marginTop:", (source) => /{className:.,gap:.}=/.test(source)], {
     entries: true,
 });
 const FormText = /* @__PURE__ */ bySource(["type:", "style:", "disabled:", "DEFAULT"], {
@@ -280,20 +277,11 @@ const SettingsContainer = ({ name, children, onReset }) => (React.createElement(
                 }) }, "Reset")))) : null));
 
 class SettingsStore {
+    defaults;
+    current;
+    onLoad;
+    listeners = new Set();
     constructor(defaults, onLoad) {
-        this.listeners = new Set();
-        this.getCurrent = () => this.current;
-        this.update = (settings) => {
-            const update = typeof settings === "function" ? settings(this.current) : settings;
-            this.current = { ...this.current, ...update };
-            this._dispatch(true);
-        };
-        this.addListenerEffect = (listener) => {
-            this.addListener(listener);
-            return () => this.removeListener(listener);
-        };
-        this.addReactChangeListener = this.addListener;
-        this.removeReactChangeListener = this.removeListener;
         this.defaults = defaults;
         this.onLoad = onLoad;
     }
@@ -310,6 +298,12 @@ class SettingsStore {
             save("settings", this.current);
         }
     }
+    getCurrent = () => this.current;
+    update = (settings) => {
+        const update = typeof settings === "function" ? settings(this.current) : settings;
+        this.current = { ...this.current, ...update };
+        this._dispatch(true);
+    };
     reset() {
         this.current = { ...this.defaults };
         this._dispatch(true);
@@ -350,12 +344,18 @@ class SettingsStore {
         this.listeners.add(listener);
         return listener;
     }
+    addListenerEffect = (listener) => {
+        this.addListener(listener);
+        return () => this.removeListener(listener);
+    };
     removeListener(listener) {
         this.listeners.delete(listener);
     }
     removeAllListeners() {
         this.listeners.clear();
     }
+    addReactChangeListener = this.addListener;
+    removeReactChangeListener = this.removeListener;
 }
 const createSettings = (defaults, onLoad) => new SettingsStore(defaults, onLoad);
 
@@ -524,59 +524,59 @@ const SettingsPanel = () => {
         React.createElement(FormItem, { className: margins.marginBottom20, title: "TTS Speed" },
             React.createElement(Slider, { initialValue: speed, maxValue: 10, minValue: 0.1, asValueChanges: (value) => setSettings({ speed: value }), onValueRender: (value) => `${value.toFixed(2)}x`, markers: [0.1, 1, 2, 5, 10], onMarkerRender: (value) => `${value.toFixed(2)}x` })),
         React.createElement(FormDivider, { className: classNames(margins.marginTop20, margins.marginBottom20) }),
-        React.createElement(FormItem, null,
-            React.createElement(FormSwitch, { checked: filterNames, onChange: (checked) => setSettings({ filterNames: checked }), description: "Limit user & channel names to alphanumeric characters." }, "Enable Name Filter")),
-        React.createElement(FormItem, null,
-            React.createElement(FormSwitch, { checked: filterBots, onChange: (checked) => setSettings({ filterBots: checked }), description: "Disable notifications for bot users in voice." }, "Enable Bot Filter")),
-        React.createElement(FormItem, null,
-            React.createElement(FormSwitch, { checked: filterStages, onChange: (checked) => setSettings({ filterStages: checked }), description: "Disable notifications for stage voice channels." }, "Enable Stage Filter")),
-        React.createElement(FormSection, { title: "Notifications" },
-            React.createElement(FormText, { type: "description", className: margins.marginBottom20 },
-                React.createElement(Text, { tag: "span", variant: "code" }, "$user"),
-                " ",
-                "will get replaced with the respective User Nickname,",
-                " ",
-                React.createElement(Text, { tag: "span", variant: "code" }, "$displayname"),
-                " ",
-                "with the global User Display Name,",
-                " ",
-                React.createElement(Text, { tag: "span", variant: "code" }, "$username"),
-                " ",
-                "with the User Account name and",
-                " ",
-                React.createElement(Text, { tag: "span", variant: "code" }, "$channel"),
-                " ",
-                "with the respective Voice Channel name."),
-            Object.entries(titles).map(([key, title]) => (React.createElement(FormItem, { key: key, className: margins.marginBottom20, title: title },
-                React.createElement(Flex, { align: Flex.Align.CENTER },
-                    React.createElement(Flex.Child, { grow: 1 },
-                        React.createElement("div", null,
-                            React.createElement(TextInput, { value: settings.notifs[key].message, placeholder: defaults.notifs[key].message, onChange: (value) => {
-                                    const { notifs } = settings;
-                                    notifs[key].message = value;
-                                    setSettings({ notifs });
-                                } }))),
-                    React.createElement(Flex.Child, { grow: 0 },
-                        React.createElement("div", null,
-                            React.createElement(Switch, { checked: settings.notifs[key].enabled, onChange: (value) => {
-                                    const { notifs } = settings;
-                                    notifs[key].enabled = value;
-                                    setSettings({ notifs });
-                                } }))),
-                    React.createElement(Flex.Child, { grow: 0 },
-                        React.createElement("div", null,
-                            React.createElement(Button, { size: Button.Sizes.SMALL, onClick: () => speak(settings.notifs[key].message
-                                    .split("$user")
-                                    .join("user")
-                                    .split("$channel")
-                                    .join("channel")) }, "Test"))))))),
-            React.createElement(FormItem, { key: "unknownChannel", className: margins.marginBottom20, title: "Unknown Channel Name" },
-                React.createElement(Flex, { align: Flex.Align.CENTER },
-                    React.createElement(Flex.Child, { grow: 1 },
-                        React.createElement("div", null,
-                            React.createElement(TextInput, { value: settings.unknownChannel, placeholder: defaults.unknownChannel, onChange: (value) => setSettings({ unknownChannel: value }) }))),
-                    React.createElement(Flex.Child, { grow: 0 },
-                        React.createElement(Button, { size: Button.Sizes.SMALL, onClick: () => speak(settings.unknownChannel) }, "Test")))))));
+        React.createElement("div", { className: margins.marginBottom20 },
+            React.createElement(FormSwitch, { checked: filterNames, onChange: (checked) => setSettings({ filterNames: checked }), label: "Enable Name Filter", description: "Limit user & channel names to alphanumeric characters." })),
+        React.createElement("div", { className: margins.marginBottom20 },
+            React.createElement(FormSwitch, { checked: filterBots, onChange: (checked) => setSettings({ filterBots: checked }), label: "Enable Bot Filter", description: "Disable notifications for bot users in voice." })),
+        React.createElement("div", { className: margins.marginBottom20 },
+            React.createElement(FormSwitch, { checked: filterStages, onChange: (checked) => setSettings({ filterStages: checked }), label: "Enable Stage Filter", description: "Disable notifications for stage voice channels." })),
+        React.createElement(Text, { variant: "heading-lg/medium" }, "Notifications"),
+        React.createElement(FormText, { type: "description", className: margins.marginBottom20 },
+            React.createElement(Text, { tag: "span", variant: "code" }, "$user"),
+            " ",
+            "will get replaced with the respective User Nickname,",
+            " ",
+            React.createElement(Text, { tag: "span", variant: "code" }, "$displayname"),
+            " ",
+            "with the global User Display Name,",
+            " ",
+            React.createElement(Text, { tag: "span", variant: "code" }, "$username"),
+            " ",
+            "with the User Account name and",
+            " ",
+            React.createElement(Text, { tag: "span", variant: "code" }, "$channel"),
+            " ",
+            "with the respective Voice Channel name."),
+        Object.entries(titles).map(([key, title]) => (React.createElement(FormItem, { key: key, className: margins.marginBottom20, title: title },
+            React.createElement(Flex, { align: Flex.Align.CENTER },
+                React.createElement(Flex.Child, { grow: 1 },
+                    React.createElement("div", null,
+                        React.createElement(TextInput, { value: settings.notifs[key].message, placeholder: defaults.notifs[key].message, onChange: (value) => {
+                                const { notifs } = settings;
+                                notifs[key].message = value;
+                                setSettings({ notifs });
+                            } }))),
+                React.createElement(Flex.Child, { grow: 0 },
+                    React.createElement("div", null,
+                        React.createElement(Switch, { checked: settings.notifs[key].enabled, onChange: (value) => {
+                                const { notifs } = settings;
+                                notifs[key].enabled = value;
+                                setSettings({ notifs });
+                            } }))),
+                React.createElement(Flex.Child, { grow: 0 },
+                    React.createElement("div", null,
+                        React.createElement(Button, { size: Button.Sizes.SMALL, onClick: () => speak(settings.notifs[key].message
+                                .split("$user")
+                                .join("user")
+                                .split("$channel")
+                                .join("channel")) }, "Test"))))))),
+        React.createElement(FormItem, { key: "unknownChannel", className: margins.marginBottom20, title: "Unknown Channel Name" },
+            React.createElement(Flex, { align: Flex.Align.CENTER },
+                React.createElement(Flex.Child, { grow: 1 },
+                    React.createElement("div", null,
+                        React.createElement(TextInput, { value: settings.unknownChannel, placeholder: defaults.unknownChannel, onChange: (value) => setSettings({ unknownChannel: value }) }))),
+                React.createElement(Flex.Child, { grow: 0 },
+                    React.createElement(Button, { size: Button.Sizes.SMALL, onClick: () => speak(settings.unknownChannel) }, "Test"))))));
 };
 
 const selfMuteHandler = () => {
