@@ -42,7 +42,7 @@ export const Hider = ({ placeholders, type, children, id }: HiderProps): React.J
                       </Text>
                   ))}
             <Clickable className={styles.hideButton} onClick={toggleShown}>
-                <IconArrow color="currentColor" className={classNames(styles.icon, shown ? styles.open : null)} />
+                <IconArrow className={classNames(styles.icon, shown ? styles.open : null)} />
             </Clickable>
         </Flex>
     );

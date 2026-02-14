@@ -35,6 +35,7 @@ export default createPlugin({
     start() {
         // Run cleanup on start
         cleanupOldEntries();
+
         Patcher.after(
             Embed.prototype as InstanceType<typeof Embed>,
             "render",
