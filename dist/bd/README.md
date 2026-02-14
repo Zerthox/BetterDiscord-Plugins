@@ -1,4 +1,4 @@
-## [BetterFolders](https://betterdiscord.app/plugin/BetterFolders) <sub><sup>`v3.7.2` _(Updated: 29/12/2025)_</sup></sub>
+## [BetterFolders](https://betterdiscord.app/plugin/BetterFolders) <sub><sup>`v3.8.0` _(Updated: 14/02/2026)_</sup></sub>
 
 Adds new functionality to server folders. Custom Folder Icons. Close other folders on open.
 

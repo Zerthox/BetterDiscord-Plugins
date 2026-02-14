@@ -1,6 +1,13 @@
 import { Finder, Logger, React, Utils } from "dium";
 import { Settings, FolderData } from "./settings";
 import styles from "./styles.module.scss";
+import { GuildsTreeFolder } from "@dium/modules";
+
+export interface PropsWithFolderNode extends Record<string, any> {
+    folderNode: GuildsTreeFolder;
+}
+
+export type FolderIcon = React.FunctionComponent<PropsWithFolderNode>;
 
 const folderStyles = Finder.byKeys(["folderIcon", "folderIconWrapper", "folderPreviewWrapper"]);
 
@@ -8,10 +15,13 @@ export const renderIcon = (data: FolderData): React.JSX.Element => (
     <div className={styles.customIcon} style={{ backgroundImage: data?.icon ? `url(${data.icon})` : null }} />
 );
 
-export interface BetterFolderIconProps {
-    data?: FolderData;
+export interface BaseBetterFolderIconProps {
     childProps: any;
-    FolderIcon: React.FunctionComponent<any>;
+    FolderIcon: FolderIcon;
+}
+
+export interface BetterFolderIconProps extends BaseBetterFolderIconProps {
+    data?: FolderData;
 }
 
 export const BetterFolderIcon = ({ data, childProps, FolderIcon }: BetterFolderIconProps): React.JSX.Element => {
@@ -46,10 +56,8 @@ export const BetterFolderIcon = ({ data, childProps, FolderIcon }: BetterFolderI
     }
 };
 
-export interface ConnectedBetterFolderIconProps {
+export interface ConnectedBetterFolderIconProps extends BaseBetterFolderIconProps {
     folderId: number;
-    childProps: any;
-    FolderIcon: React.FunctionComponent<any>;
 }
 
 const compareFolderData = (a?: FolderData, b?: FolderData): boolean => a?.icon === b?.icon && a?.always === b?.always;

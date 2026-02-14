@@ -1,6 +1,6 @@
 /**
  * @name BetterFolders
- * @version 3.7.2
+ * @version 3.8.0
  * @author Zerthox
  * @authorLink https://github.com/Zerthox
  * @description Adds new functionality to server folders. Custom Folder Icons. Close other folders on open.
@@ -140,7 +140,7 @@ const byKeys = (keys, options) => find(byKeys$1(...keys), options);
 const bySource = (contents, options) => find(bySource$1(...contents), options);
 const resolveKey = (target, filter) => [
     target,
-    Object.entries(target ?? {}).find(([, value]) => filter(value))?.[0],
+    (target ? Object.entries(target).find(([, value]) => filter(value))?.[0] : null),
 ];
 const findWithKey = (filter) => resolveKey(find(byEntry(filter)), filter);
 const demangle = (mapping, required, proxy = false) => {
@@ -174,33 +174,46 @@ const log = (...data) => print(console.log, ...data);
 const warn = (...data) => print(console.warn, ...data);
 const error = (...data) => print(console.error, ...data);
 
+let manualPatches = [];
+const addManual = (cancel, name) => {
+    manualPatches.push(cancel);
+};
 const patch = (type, object, method, callback, options) => {
     const original = object?.[method];
+    const name = options.name ?? String(method);
     if (!(original instanceof Function)) {
-        throw TypeError(`patch target ${original} is not a function`);
+        if (options.force && !original) {
+            warn(`Forcing patch on ${name}`);
+            object[method] = function noop() { };
+            addManual(() => {
+                object[method] = original;
+            });
+        }
+        else {
+            throw TypeError(`patch target ${name} is ${original} not function`);
+        }
     }
     const cancel = BdApi.Patcher[type](getMeta().name, object, method, options.once
-        ? (...args) => {
-            const result = callback(cancel, original, ...args);
+        ? (context, args, result) => {
+            const newResult = callback({ cancel, original, context, args, result });
             cancel();
-            return result;
+            return newResult;
         }
-        : (...args) => callback(cancel, original, ...args));
+        : (context, args, result) => callback({ cancel, original, context, args, result }));
     if (!options.silent) {
-        log(`Patched ${options.name ?? String(method)}`);
+        log(`Patched ${name}`);
     }
     return cancel;
 };
-const instead = (object, method, callback, options = {}) => patch("instead", object, method, (cancel, original, context, args) => callback({ cancel, original, context, args }), options);
-const after = (object, method, callback, options = {}) => patch("after", object, method, (cancel, original, context, args, result) => callback({ cancel, original, context, args, result }), options);
-let menuPatches = [];
+const instead = (object, method, callback, options = {}) => patch("instead", object, method, callback, options);
+const after = (object, method, callback, options = {}) => patch("after", object, method, callback, options);
 const unpatchAll = () => {
-    if (menuPatches.length + BdApi.Patcher.getPatchesByCaller(getMeta().name).length > 0) {
-        for (const cancel of menuPatches) {
+    if (manualPatches.length + BdApi.Patcher.getPatchesByCaller(getMeta().name).length > 0) {
+        BdApi.Patcher.unpatchAll(getMeta().name);
+        for (const cancel of manualPatches) {
             cancel();
         }
-        menuPatches = [];
-        BdApi.Patcher.unpatchAll(getMeta().name);
+        manualPatches = [];
         log("Unpatched all");
     }
 };
@@ -225,10 +238,10 @@ const Button = /* @__PURE__ */ byKeys(["Colors", "Link"], { entries: true });
 const Flex = /* @__PURE__ */ byKeys(["Child", "Justify", "Align"], { entries: true });
 
 const FormItem = /* @__PURE__ */ bySource(["titleClassName:", "required:"], { entries: true });
-const FormSwitch = /* @__PURE__ */ bySource(["onChange:", "innerRef:", '"checkbox"'], {
+const FormSwitch = /* @__PURE__ */ bySource(["checked:", "innerRef:", "layout:"], {
     entries: true,
 });
-const FormDivider = /* @__PURE__ */ bySource([".divider", (source) => /{className:.,gap:.}=/.test(source)], {
+const FormDivider = /* @__PURE__ */ bySource(["marginTop:", (source) => /{className:.,gap:.}=/.test(source)], {
     entries: true,
 });
 const FormText = /* @__PURE__ */ bySource(["type:", "style:", "disabled:", "DEFAULT"], {
@@ -492,29 +505,47 @@ const ConnectedBetterFolderIcon = ({ folderId, ...props }) => {
 };
 
 const BetterFolderUploader = ({ icon, always, onChange }) => (React.createElement(React.Fragment, null,
-    React.createElement(Flex, { align: Flex.Align.CENTER },
+    React.createElement(Flex, { align: Flex.Align.CENTER, className: margins.marginBottom20 },
         React.createElement(Button, { color: Button.Colors.WHITE, look: Button.Looks.OUTLINED },
             "Upload Image",
             React.createElement(ImageInput, { onChange: (img) => onChange({ icon: img, always }) })),
         React.createElement(FormText, { type: "description", style: { margin: "0 10px 0 40px" } }, "Preview:"),
         renderIcon({ icon})),
-    React.createElement(FormSwitch, { className: margins.marginTop8, checked: always, onChange: (checked) => onChange({ icon, always: checked }) }, "Always display icon")));
+    React.createElement(FormSwitch, { checked: always, onChange: (checked) => onChange({ icon, always: checked }), label: "Always display icon" })));
 
-const folderModalPatch = ({ context, result, }) => {
-    const { folderId } = context.props;
-    const { state } = context;
+const mountFolderSettingsPatch = ({ context, }) => {
+    const { props: { folderId }, state, } = context;
+    if (state.iconType) {
+        warn("FolderSettings already patched in mount");
+        return;
+    }
+    const original = context.handleSubmit;
+    context.handleSubmit = (...args) => {
+        const result = original(...args);
+        const { folders } = Settings.current;
+        if (state.iconType === "custom"  && state.icon) {
+            folders[folderId] = { icon: state.icon, always: state.always };
+            Settings.update({ folders });
+        }
+        else if ((state.iconType === "default"  || !state.icon) && folders[folderId]) {
+            delete folders[folderId];
+            Settings.update({ folders });
+        }
+        return result;
+    };
+    const { icon = null, always = false } = Settings.current.folders[folderId] ?? {};
+    context.setState({
+        iconType: icon ? "custom"  : "default" ,
+        icon,
+        always,
+    });
+};
+const renderFolderSettingsPatch = ({ context, result, }) => {
+    const { props: { folderId }, state, } = context;
     const [parent] = queryTreeForParent(result, (node) => node?.type === TextInput);
     if (!parent) {
         warn("Unable to find text input parent");
         return;
-    }
-    if (!state.iconType) {
-        const { icon = null, always = false } = Settings.current.folders[folderId] ?? {};
-        Object.assign(state, {
-            iconType: icon ? "custom"  : "default" ,
-            icon,
-            always,
-        });
     }
     const { children } = parent.props;
     children.push(React.createElement(FormItem, { title: "Icon" },
@@ -527,20 +558,6 @@ const folderModalPatch = ({ context, result, }) => {
         children.push(React.createElement(FormItem, { title: "Custom Icon" },
             React.createElement(BetterFolderUploader, { icon: state.icon, always: state.always, folderNode: tree.nodes[folderId], onChange: ({ icon, always }) => context.setState({ icon, always }) })));
     }
-    const button = queryTree(result, (node) => node?.props?.type === "submit");
-    const original = button.props.onClick;
-    button.props.onClick = (...args) => {
-        original(...args);
-        const { folders } = Settings.current;
-        if (state.iconType === "custom"  && state.icon) {
-            folders[folderId] = { icon: state.icon, always: state.always };
-            Settings.update({ folders });
-        }
-        else if ((state.iconType === "default"  || !state.icon) && folders[folderId]) {
-            delete folders[folderId];
-            Settings.update({ folders });
-        }
-    };
 };
 
 const guildStyles = byKeys(["guilds", "base"]);
@@ -570,7 +587,7 @@ const index = createPlugin({
     start() {
         let FolderIcon = null;
         const guildsOwner = getGuildsOwner();
-        const FolderIconWrapper = findWithKey(bySource$1("folderIconWrapper"));
+        const FolderIconWrapper = findWithKey(bySource$1("folderNode:", "folderGroupId:", "folderName"));
         after(...FolderIconWrapper, ({ args: [props], result }) => {
             const icon = queryTree(result, (node) => node?.props?.folderNode);
             if (!icon) {
@@ -580,8 +597,7 @@ const index = createPlugin({
                 log("Found FolderIcon component");
                 FolderIcon = icon.type;
             }
-            const replace = (React.createElement(ConnectedBetterFolderIcon, { folderId: props.folderNode.id, childProps: icon.props, FolderIcon: FolderIcon }));
-            replaceElement(icon, replace);
+            replaceElement(icon, React.createElement(ConnectedBetterFolderIcon, { folderId: props.folderNode.id, childProps: icon.props, FolderIcon: FolderIcon }));
         }, { name: "FolderIconWrapper" });
         triggerRerender(guildsOwner);
         after(ClientActions, "toggleGuildFolderExpand", ({ original, args: [folderId] }) => {
@@ -593,12 +609,14 @@ const index = createPlugin({
                 }
             }
         });
-        waitFor(bySource$1(".folderName", ".onClose"), { entries: true }).then((FolderSettingsModal) => {
-            if (FolderSettingsModal) {
-                after(FolderSettingsModal.prototype, "render", folderModalPatch, {
-                    name: "GuildFolderSettingsModal",
-                });
-            }
+        waitFor(bySource$1(".folderName", ".onClose"), { entries: true }).then((FolderSettings) => {
+            after(FolderSettings.prototype, "render", renderFolderSettingsPatch, {
+                name: "FolderSettings render",
+            });
+            after(FolderSettings.prototype, "componentDidMount", mountFolderSettingsPatch, {
+                name: "FolderSettings mount",
+                force: true,
+            });
         });
     },
     stop() {
@@ -608,14 +626,14 @@ const index = createPlugin({
     Settings,
     SettingsPanel: () => {
         const [{ closeOnOpen }, setSettings] = Settings.useState();
-        return (React.createElement(FormSwitch, { description: "Close other folders when opening a new folder", checked: closeOnOpen, onChange: (checked) => {
+        return (React.createElement(FormSwitch, { label: "Close on open", description: "Close other folders when opening a new folder", checked: closeOnOpen, onChange: (checked) => {
                 if (checked) {
                     for (const id of Array.from(ExpandedGuildFolderStore.getExpandedFolders()).slice(1)) {
                         ClientActions.toggleGuildFolderExpand(id);
                     }
                 }
                 setSettings({ closeOnOpen: checked });
-            } }, "Close on open"));
+            } }));
     },
 });
 

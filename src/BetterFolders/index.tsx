@@ -2,8 +2,8 @@ import { createPlugin, Logger, Filters, Finder, Patcher, Utils, React, Fiber } f
 import { ClientActions, ExpandedGuildFolderStore } from "@dium/modules";
 import { FormSwitch } from "@dium/components";
 import { Settings } from "./settings";
-import { ConnectedBetterFolderIcon } from "./icon";
-import { folderModalPatch, FolderSettingsModal } from "./modal";
+import { ConnectedBetterFolderIcon, FolderIcon, PropsWithFolderNode } from "./icon";
+import { FolderSettingsClass, mountFolderSettingsPatch, renderFolderSettingsPatch } from "./settings-modal";
 import { css } from "./styles.module.scss";
 
 const guildStyles = Finder.byKeys(["guilds", "base"]);
@@ -32,20 +32,20 @@ const triggerRerender = async (guildsFiber: Fiber) => {
 
 export default createPlugin({
     start() {
-        let FolderIcon = null;
+        let FolderIcon: FolderIcon = null;
         const guildsOwner = getGuildsOwner();
 
         // patch folder icon wrapper
         // icon is in same module, not exported
-        const FolderIconWrapper = Finder.findWithKey<React.FunctionComponent<any>>(
-            Filters.bySource("folderIconWrapper"),
+        const FolderIconWrapper = Finder.findWithKey<React.FunctionComponent<PropsWithFolderNode>>(
+            Filters.bySource("folderNode:", "folderGroupId:", "folderName"),
         );
         Patcher.after(
             ...FolderIconWrapper,
             ({ args: [props], result }) => {
                 const icon = Utils.queryTree(result, (node) => node?.props?.folderNode) as React.ReactElement<
-                    any,
-                    React.FunctionComponent<any>
+                    PropsWithFolderNode,
+                    FolderIcon
                 >;
                 if (!icon) {
                     return Logger.error("Unable to find FolderIcon component");
@@ -58,14 +58,14 @@ export default createPlugin({
                 }
 
                 // replace icon with own component
-                const replace = (
+                Utils.replaceElement(
+                    icon,
                     <ConnectedBetterFolderIcon
                         folderId={props.folderNode.id}
                         childProps={icon.props}
                         FolderIcon={FolderIcon}
-                    />
+                    />,
                 );
-                Utils.replaceElement(icon, replace);
             },
             { name: "FolderIconWrapper" },
         );
@@ -82,14 +82,16 @@ export default createPlugin({
             }
         });
 
-        // patch folder settings render
-        Finder.waitFor(Filters.bySource(".folderName", ".onClose"), { entries: true }).then(
-            (FolderSettingsModal: FolderSettingsModal) => {
-                if (FolderSettingsModal) {
-                    Patcher.after(FolderSettingsModal.prototype, "render", folderModalPatch, {
-                        name: "GuildFolderSettingsModal",
-                    });
-                }
+        // patch folder settings class
+        Finder.waitFor<FolderSettingsClass>(Filters.bySource(".folderName", ".onClose"), { entries: true }).then(
+            (FolderSettings) => {
+                Patcher.after(FolderSettings.prototype, "render", renderFolderSettingsPatch, {
+                    name: "FolderSettings render",
+                });
+                Patcher.after(FolderSettings.prototype, "componentDidMount", mountFolderSettingsPatch, {
+                    name: "FolderSettings mount",
+                    force: true,
+                });
             },
         );
     },
