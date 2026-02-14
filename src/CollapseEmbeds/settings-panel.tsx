@@ -1,5 +1,5 @@
 import { React } from "dium";
-import { FormItem, FormSwitch, FormText, FormTextTypes, TextInput, margins } from "@dium/components";
+import { FormItem, FormSwitch, FormText, TextInput, margins } from "@dium/components";
 import { Settings, DAYS_TO_MILLIS, cleanupOldEntries } from "./settings";
 
 export function SettingsPanel(): React.JSX.Element {
@@ -33,6 +33,9 @@ export function SettingsPanel(): React.JSX.Element {
                 disabled={!saveStates}
                 error={!valid ? "Duration must be a positive number of days" : null}
             >
+                <FormText type="description" disabled={!saveStates} className={margins.marginBottom4}>
+                    How long to keep embed & attachment states after not seeing them.
+                </FormText>
                 <TextInput
                     type="number"
                     min={0}
@@ -48,9 +51,6 @@ export function SettingsPanel(): React.JSX.Element {
                         setDurationState({ text, valid });
                     }}
                 />
-                <FormText type={FormTextTypes.DESCRIPTION} disabled={!saveStates}>
-                    How long to keep embed & attachment states after not seeing them.
-                </FormText>
             </FormItem>
         </>
     );

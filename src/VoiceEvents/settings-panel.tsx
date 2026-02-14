@@ -8,7 +8,6 @@ import {
     TextInput,
     Slider,
     FormItem,
-    FormText,
     FormSwitch,
     FormDivider,
     SingleSelect,
@@ -107,7 +106,7 @@ export const SettingsPanel = (): React.JSX.Element => {
                 />
             </div>
             <Text variant="heading-lg/medium">Notifications</Text>
-            <FormText type="description" className={margins.marginBottom20}>
+            <Text variant="text-sm/normal" className={margins.marginBottom20}>
                 <Text tag="span" variant="code">
                     $user
                 </Text>{" "}
@@ -124,7 +123,7 @@ export const SettingsPanel = (): React.JSX.Element => {
                     $channel
                 </Text>{" "}
                 with the respective Voice Channel name.
-            </FormText>
+            </Text>
             {Object.entries(titles).map(([key, title]) => (
                 <FormItem key={key} className={margins.marginBottom20} title={title}>
                     <Flex align={Flex.Align.CENTER}>

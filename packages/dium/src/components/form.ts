@@ -148,6 +148,9 @@ export const enum FormTextTypes {
 
 export type FormText = React.FunctionComponent<FormTextProps>;
 
-export const FormText: FormText = /* @__PURE__ */ Finder.bySource(["type:", "style:", "disabled:", "DEFAULT"], {
-    entries: true,
-});
+export const FormText: FormText = /* @__PURE__ */ Finder.bySource(
+    ["type:", "style:", "disabled:", "variant:", ".DEFAULT"],
+    {
+        entries: true,
+    },
+);
