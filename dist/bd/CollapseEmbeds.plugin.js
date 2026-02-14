@@ -1,6 +1,6 @@
 /**
  * @name CollapseEmbeds
- * @version 2.1.4
+ * @version 2.1.5
  * @author Zerthox
  * @authorLink https://github.com/Zerthox
  * @description Adds a button to collapse embeds & attachments.
@@ -222,7 +222,7 @@ const FormSwitch = /* @__PURE__ */ bySource(["checked:", "innerRef:", "layout:"]
 const FormDivider = /* @__PURE__ */ bySource(["marginTop:", (source) => /{className:.,gap:.}=/.test(source)], {
     entries: true,
 });
-const FormText = /* @__PURE__ */ bySource(["type:", "style:", "disabled:", "DEFAULT"], {
+const FormText = /* @__PURE__ */ bySource(["type:", "style:", "disabled:", "variant:", ".DEFAULT"], {
     entries: true,
 });
 
@@ -440,6 +440,7 @@ function SettingsPanel() {
         React.createElement("div", { className: margins.marginBottom20 },
             React.createElement(FormSwitch, { description: "Persist individual embed & attachment states between restarts.", checked: saveStates, label: "Save collapsed states", onChange: (checked) => setSettings({ saveStates: checked }) })),
         React.createElement(FormItem, { title: "Save duration in days", disabled: !saveStates, error: !valid ? "Duration must be a positive number of days" : null },
+            React.createElement(FormText, { type: "description", disabled: !saveStates, className: margins.marginBottom4 }, "How long to keep embed & attachment states after not seeing them."),
             React.createElement(TextInput, { type: "number", min: 0, disabled: !saveStates, value: text, onChange: (text) => {
                     const duration = Number.parseFloat(text) * DAYS_TO_MILLIS;
                     const valid = !Number.isNaN(duration) && duration >= 0;
@@ -448,8 +449,7 @@ function SettingsPanel() {
                         cleanupOldEntries();
                     }
                     setDurationState({ text, valid });
-                } }),
-            React.createElement(FormText, { type: "description" , disabled: !saveStates }, "How long to keep embed & attachment states after not seeing them."))));
+                } }))));
 }
 
 const css = ".container-CollapseEmbeds.embed-CollapseEmbeds{justify-self:stretch}.container-CollapseEmbeds.embed-CollapseEmbeds>article{flex-grow:1;flex-shrink:0}.container-CollapseEmbeds.mediaItem-CollapseEmbeds.expanded-CollapseEmbeds{position:relative}.container-CollapseEmbeds.mediaItem-CollapseEmbeds.expanded-CollapseEmbeds>.hideButton-CollapseEmbeds{position:absolute;right:2px;bottom:2px;z-index:1}.placeholder-CollapseEmbeds+.placeholder-CollapseEmbeds{margin-left:4px}.hideButton-CollapseEmbeds{margin-bottom:-4px;align-self:flex-end;color:var(--interactive-normal);cursor:pointer;visibility:hidden;padding:4px;margin:-4px}.hideButton-CollapseEmbeds:hover{color:var(--interactive-hover)}.expanded-CollapseEmbeds>.hideButton-CollapseEmbeds{margin-bottom:-6px}.hideButton-CollapseEmbeds:hover,:hover+.hideButton-CollapseEmbeds,.collapsed-CollapseEmbeds>.hideButton-CollapseEmbeds{visibility:visible}.icon-CollapseEmbeds{margin:-2px;transition:transform .2s ease-out}.icon-CollapseEmbeds.open-CollapseEmbeds{transform:rotate(180deg)}";

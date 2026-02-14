@@ -1,6 +1,6 @@
 /**
  * @name BetterFolders
- * @version 3.8.0
+ * @version 3.8.1
  * @author Zerthox
  * @authorLink https://github.com/Zerthox
  * @description Adds new functionality to server folders. Custom Folder Icons. Close other folders on open.
@@ -244,7 +244,7 @@ const FormSwitch = /* @__PURE__ */ bySource(["checked:", "innerRef:", "layout:"]
 const FormDivider = /* @__PURE__ */ bySource(["marginTop:", (source) => /{className:.,gap:.}=/.test(source)], {
     entries: true,
 });
-const FormText = /* @__PURE__ */ bySource(["type:", "style:", "disabled:", "DEFAULT"], {
+const FormText = /* @__PURE__ */ bySource(["type:", "style:", "disabled:", "variant:", ".DEFAULT"], {
     entries: true,
 });
 
