@@ -1,6 +1,6 @@
 /**
  * @name VoiceEvents
- * @version 2.8.2
+ * @version 2.8.3
  * @author Zerthox
  * @authorLink https://github.com/Zerthox
  * @description Adds TTS Event Notifications to your selected Voice Channel. TeamSpeak feeling.
@@ -154,7 +154,7 @@ const log = (...data) => print(console.log, ...data);
 const warn = (...data) => print(console.warn, ...data);
 const error = (...data) => print(console.error, ...data);
 
-let menuPatches = [];
+let manualPatches = [];
 const contextMenu = (navId, callback, options = {}) => {
     const cancel = BdApi.ContextMenu.patch(navId, options.once
         ? (tree) => {
@@ -163,19 +163,19 @@ const contextMenu = (navId, callback, options = {}) => {
             return result;
         }
         : callback);
-    menuPatches.push(cancel);
+    manualPatches.push(cancel);
     if (!options.silent) {
         log(`Patched ${options.name ?? `"${navId}"`} context menu`);
     }
     return cancel;
 };
 const unpatchAll = () => {
-    if (menuPatches.length + BdApi.Patcher.getPatchesByCaller(getMeta().name).length > 0) {
-        for (const cancel of menuPatches) {
+    if (manualPatches.length + BdApi.Patcher.getPatchesByCaller(getMeta().name).length > 0) {
+        BdApi.Patcher.unpatchAll(getMeta().name);
+        for (const cancel of manualPatches) {
             cancel();
         }
-        menuPatches = [];
-        BdApi.Patcher.unpatchAll(getMeta().name);
+        manualPatches = [];
         log("Unpatched all");
     }
 };
@@ -211,9 +211,6 @@ const FormSwitch = /* @__PURE__ */ bySource(["checked:", "innerRef:", "layout:"]
     entries: true,
 });
 const FormDivider = /* @__PURE__ */ bySource(["marginTop:", (source) => /{className:.,gap:.}=/.test(source)], {
-    entries: true,
-});
-const FormText = /* @__PURE__ */ bySource(["type:", "style:", "disabled:", "DEFAULT"], {
     entries: true,
 });
 
@@ -435,10 +432,10 @@ const findDefaultVoice = () => {
     const voices = speechSynthesis.getVoices();
     if (voices.length === 0) {
         error("No speech synthesis voices available");
-        alert(getMeta().name, React.createElement(Text, { color: "text-normal" },
+        alert(getMeta().name, React.createElement(Text, null,
             "Electron does not have any Speech Synthesis Voices available on your system.",
             React.createElement("br", null),
-            "The plugin will be unable to function properly."));
+            "The plugin may be unable to function properly."));
         return null;
     }
     else {
@@ -531,7 +528,7 @@ const SettingsPanel = () => {
         React.createElement("div", { className: margins.marginBottom20 },
             React.createElement(FormSwitch, { checked: filterStages, onChange: (checked) => setSettings({ filterStages: checked }), label: "Enable Stage Filter", description: "Disable notifications for stage voice channels." })),
         React.createElement(Text, { variant: "heading-lg/medium" }, "Notifications"),
-        React.createElement(FormText, { type: "description", className: margins.marginBottom20 },
+        React.createElement(Text, { variant: "text-sm/normal", className: margins.marginBottom20 },
             React.createElement(Text, { tag: "span", variant: "code" }, "$user"),
             " ",
             "will get replaced with the respective User Nickname,",
@@ -634,11 +631,13 @@ const voiceStateHandler = (action) => {
 };
 const index = createPlugin({
     start() {
-        const voice = findDefaultVoice()?.voiceURI;
-        Settings.defaults.voice = voice;
-        if (!Settings.current.voice) {
-            Settings.update({ voice });
-        }
+        setTimeout(() => {
+            const voice = findDefaultVoice()?.voiceURI;
+            Settings.defaults.voice = voice;
+            if (!Settings.current.voice) {
+                Settings.update({ voice });
+            }
+        }, 1000);
         saveStates();
         Dispatcher.subscribe("VOICE_STATE_UPDATES", voiceStateHandler);
         log("Subscribed to voice state actions");

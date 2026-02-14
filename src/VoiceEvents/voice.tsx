@@ -9,10 +9,10 @@ export const findDefaultVoice = (): SpeechSynthesisVoice => {
         Logger.error("No speech synthesis voices available");
         Utils.alert(
             getMeta().name,
-            <Text color="text-normal">
+            <Text>
                 Electron does not have any Speech Synthesis Voices available on your system.
                 <br />
-                The plugin will be unable to function properly.
+                The plugin may be unable to function properly.
             </Text>,
         );
         return null;
