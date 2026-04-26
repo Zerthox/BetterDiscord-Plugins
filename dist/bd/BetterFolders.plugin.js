@@ -142,7 +142,6 @@ const resolveKey = (target, filter) => [
     target,
     (target ? Object.entries(target).find(([, value]) => filter(value))?.[0] : null),
 ];
-const findWithKey = (filter) => resolveKey(find(byEntry(filter)), filter);
 const demangle = (mapping, required, proxy = false) => {
     const req = Object.keys(mapping);
     const found = find((target) => checkObjectValues(target)
@@ -163,6 +162,10 @@ const waitFor = (filter, { resolve = true, entries = false } = {}) => BdApi.Webp
     defaultExport: resolve,
     searchExports: entries,
 });
+const waitForWithKey = async (filter) => {
+    const target = await waitFor(byEntry(filter));
+    return resolveKey(target, filter);
+};
 const abort = () => {
     controller.abort();
     controller = new AbortController();
@@ -583,23 +586,31 @@ const triggerRerender = async (guildsFiber) => {
         warn("Unable to rerender guilds");
     }
 };
+let stopped = false;
 const index = createPlugin({
     start() {
+        stopped = false;
         let FolderIcon = null;
         const guildsOwner = getGuildsOwner();
-        const FolderIconWrapper = findWithKey(bySource$1("folderNode:", "folderGroupId:", "folderName"));
-        after(...FolderIconWrapper, ({ args: [props], result }) => {
-            const icon = queryTree(result, (node) => node?.props?.folderNode);
-            if (!icon) {
-                return error("Unable to find FolderIcon component");
+        waitForWithKey(bySource$1("folderNode:", "folderGroupId:", "folderName"))
+            .then((FolderIconWrapper) => {
+            if (stopped) {
+                return;
             }
-            if (!FolderIcon) {
-                log("Found FolderIcon component");
-                FolderIcon = icon.type;
-            }
-            replaceElement(icon, React.createElement(ConnectedBetterFolderIcon, { folderId: props.folderNode.id, childProps: icon.props, FolderIcon: FolderIcon }));
-        }, { name: "FolderIconWrapper" });
-        triggerRerender(guildsOwner);
+            after(...FolderIconWrapper, ({ args: [props], result }) => {
+                const icon = queryTree(result, (node) => node?.props?.folderNode);
+                if (!icon) {
+                    return error("Unable to find FolderIcon component");
+                }
+                if (!FolderIcon) {
+                    log("Found FolderIcon component");
+                    FolderIcon = icon.type;
+                }
+                replaceElement(icon, React.createElement(ConnectedBetterFolderIcon, { folderId: props.folderNode.id, childProps: icon.props, FolderIcon: FolderIcon }));
+            }, { name: "FolderIconWrapper" });
+            triggerRerender(guildsOwner);
+        })
+            .catch((error$1) => error("Failed to wait for FolderIconWrapper", error$1));
         after(ClientActions, "toggleGuildFolderExpand", ({ original, args: [folderId] }) => {
             if (Settings.current.closeOnOpen) {
                 for (const id of ExpandedGuildFolderStore.getExpandedFolders()) {
@@ -610,6 +621,9 @@ const index = createPlugin({
             }
         });
         waitFor(bySource$1(".folderName", ".onClose"), { entries: true }).then((FolderSettings) => {
+            if (stopped) {
+                return;
+            }
             after(FolderSettings.prototype, "render", renderFolderSettingsPatch, {
                 name: "FolderSettings render",
             });
@@ -620,6 +634,7 @@ const index = createPlugin({
         });
     },
     stop() {
+        stopped = true;
         triggerRerender(getGuildsOwner());
     },
     styles: css,

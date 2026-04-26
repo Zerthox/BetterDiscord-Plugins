@@ -30,46 +30,56 @@ const triggerRerender = async (guildsFiber: Fiber) => {
     }
 };
 
+let stopped = false;
+
 export default createPlugin({
     start() {
+        stopped = false;
         let FolderIcon: FolderIcon = null;
         const guildsOwner = getGuildsOwner();
 
         // patch folder icon wrapper
         // icon is in same module, not exported
-        const FolderIconWrapper = Finder.findWithKey<React.FunctionComponent<PropsWithFolderNode>>(
+        Finder.waitForWithKey<React.FunctionComponent<PropsWithFolderNode>>(
             Filters.bySource("folderNode:", "folderGroupId:", "folderName"),
-        );
-        Patcher.after(
-            ...FolderIconWrapper,
-            ({ args: [props], result }) => {
-                const icon = Utils.queryTree(result, (node) => node?.props?.folderNode) as React.ReactElement<
-                    PropsWithFolderNode,
-                    FolderIcon
-                >;
-                if (!icon) {
-                    return Logger.error("Unable to find FolderIcon component");
+        )
+            .then((FolderIconWrapper) => {
+                if (stopped) {
+                    return;
                 }
 
-                // save icon component
-                if (!FolderIcon) {
-                    Logger.log("Found FolderIcon component");
-                    FolderIcon = icon.type;
-                }
+                Patcher.after(
+                    ...FolderIconWrapper,
+                    ({ args: [props], result }) => {
+                        const icon = Utils.queryTree(result, (node) => node?.props?.folderNode) as React.ReactElement<
+                            PropsWithFolderNode,
+                            FolderIcon
+                        >;
+                        if (!icon) {
+                            return Logger.error("Unable to find FolderIcon component");
+                        }
 
-                // replace icon with own component
-                Utils.replaceElement(
-                    icon,
-                    <ConnectedBetterFolderIcon
-                        folderId={props.folderNode.id}
-                        childProps={icon.props}
-                        FolderIcon={FolderIcon}
-                    />,
+                        // save icon component
+                        if (!FolderIcon) {
+                            Logger.log("Found FolderIcon component");
+                            FolderIcon = icon.type;
+                        }
+
+                        // replace icon with own component
+                        Utils.replaceElement(
+                            icon,
+                            <ConnectedBetterFolderIcon
+                                folderId={props.folderNode.id}
+                                childProps={icon.props}
+                                FolderIcon={FolderIcon}
+                            />,
+                        );
+                    },
+                    { name: "FolderIconWrapper" },
                 );
-            },
-            { name: "FolderIconWrapper" },
-        );
-        triggerRerender(guildsOwner);
+                triggerRerender(guildsOwner);
+            })
+            .catch((error) => Logger.error("Failed to wait for FolderIconWrapper", error));
 
         // patch folder expand
         Patcher.after(ClientActions, "toggleGuildFolderExpand", ({ original, args: [folderId] }) => {
@@ -85,6 +95,10 @@ export default createPlugin({
         // patch folder settings class
         Finder.waitFor<FolderSettingsClass>(Filters.bySource(".folderName", ".onClose"), { entries: true }).then(
             (FolderSettings) => {
+                if (stopped) {
+                    return;
+                }
+
                 Patcher.after(FolderSettings.prototype, "render", renderFolderSettingsPatch, {
                     name: "FolderSettings render",
                 });
@@ -96,6 +110,7 @@ export default createPlugin({
         );
     },
     stop() {
+        stopped = true;
         triggerRerender(getGuildsOwner());
     },
     styles: css,
