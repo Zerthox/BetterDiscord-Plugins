@@ -591,7 +591,6 @@ const index = createPlugin({
     start() {
         stopped = false;
         let FolderIcon = null;
-        const guildsOwner = getGuildsOwner();
         waitForWithKey(bySource$1("folderNode:", "folderGroupId:", "folderName"))
             .then((FolderIconWrapper) => {
             if (stopped) {
@@ -608,9 +607,13 @@ const index = createPlugin({
                 }
                 replaceElement(icon, React.createElement(ConnectedBetterFolderIcon, { folderId: props.folderNode.id, childProps: icon.props, FolderIcon: FolderIcon }));
             }, { name: "FolderIconWrapper" });
-            triggerRerender(guildsOwner);
+            triggerRerender(getGuildsOwner());
         })
-            .catch((error$1) => error("Failed to wait for FolderIconWrapper", error$1));
+            .catch((error$1) => {
+            if (!stopped && error$1?.name !== "AbortError") {
+                error("Failed to wait for FolderIconWrapper", error$1);
+            }
+        });
         after(ClientActions, "toggleGuildFolderExpand", ({ original, args: [folderId] }) => {
             if (Settings.current.closeOnOpen) {
                 for (const id of ExpandedGuildFolderStore.getExpandedFolders()) {
@@ -631,6 +634,10 @@ const index = createPlugin({
                 name: "FolderSettings mount",
                 force: true,
             });
+        }).catch((error$1) => {
+            if (!stopped && error$1?.name !== "AbortError") {
+                error("Failed to wait for FolderSettings", error$1);
+            }
         });
     },
     stop() {

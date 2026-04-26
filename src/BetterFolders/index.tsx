@@ -36,7 +36,6 @@ export default createPlugin({
     start() {
         stopped = false;
         let FolderIcon: FolderIcon = null;
-        const guildsOwner = getGuildsOwner();
 
         // patch folder icon wrapper
         // icon is in same module, not exported
@@ -77,9 +76,13 @@ export default createPlugin({
                     },
                     { name: "FolderIconWrapper" },
                 );
-                triggerRerender(guildsOwner);
+                triggerRerender(getGuildsOwner());
             })
-            .catch((error) => Logger.error("Failed to wait for FolderIconWrapper", error));
+            .catch((error) => {
+                if (!stopped && error?.name !== "AbortError") {
+                    Logger.error("Failed to wait for FolderIconWrapper", error);
+                }
+            });
 
         // patch folder expand
         Patcher.after(ClientActions, "toggleGuildFolderExpand", ({ original, args: [folderId] }) => {
@@ -107,7 +110,11 @@ export default createPlugin({
                     force: true,
                 });
             },
-        );
+        ).catch((error) => {
+            if (!stopped && error?.name !== "AbortError") {
+                Logger.error("Failed to wait for FolderSettings", error);
+            }
+        });
     },
     stop() {
         stopped = true;
