@@ -83,8 +83,10 @@ export default createPlugin({
         });
 
         // patch folder settings class
-        Finder.waitFor<FolderSettingsClass>(Filters.bySource(".folderName", ".onClose"), { entries: true }).then(
-            (FolderSettings) => {
+        Finder.waitForChecked(
+            Filters.bySource(".folderName", ".onClose"),
+            { entries: true },
+            (FolderSettings: FolderSettingsClass) => {
                 Patcher.after(FolderSettings.prototype, "render", renderFolderSettingsPatch, {
                     name: "FolderSettings render",
                 });

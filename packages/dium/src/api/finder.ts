@@ -122,19 +122,27 @@ export const demangle = <M extends Mapping>(mapping: M, required?: (keyof M)[], 
 let controller = new AbortController();
 
 /** Waits for a lazy loaded module. */
-export const waitFor = async <T>(filter: Filter, { resolve = true, entries = false }: FindOptions = {}): Promise<T> =>
+export const waitFor = async <T>(
+    filter: Filter,
+    { resolve = true, entries = false }: FindOptions = {},
+): Promise<T | undefined> =>
     BdApi.Webpack.waitForModule(filter, {
         signal: controller.signal,
         defaultExport: resolve,
         searchExports: entries,
     });
 
-/** Waits for a lazy loaded module. */
-export const waitForWithKey = async <T, K extends string = string>(
+/** Waits for a lazy loaded module with abort checking. */
+export const waitForChecked = async <T, R>(
     filter: Filter,
-): Promise<[Record<K, T>, K] | undefined> => {
-    const target = await waitFor<Record<K, T>>(Filters.byEntry(filter));
-    return target ? resolveKey(target, filter) : undefined;
+    options: FindOptions = {},
+    callback: (result: T) => R,
+): Promise<R | undefined> => {
+    const signal = controller.signal;
+    const result = await waitFor<T>(filter, options);
+    if (!signal.aborted) {
+        return callback(result as T);
+    }
 };
 
 /** Aborts search for any lazy loaded modules. */
