@@ -48,7 +48,7 @@ export interface Plugin<T extends Record<string, any>> {
  */
 export const createPlugin =
     <T extends Record<string, any>>(plugin: Plugin<T> | ((meta: BD.Meta) => Plugin<T>)): BD.PluginCallback =>
-    (meta) => {
+    (meta: BD.Meta) => {
         // set meta
         setMeta(meta);
 
@@ -74,10 +74,10 @@ export const createPlugin =
             },
             getSettingsPanel: SettingsPanel
                 ? () => (
-                      <SettingsContainer name={meta.name} onReset={Settings ? () => Settings.reset() : null}>
+                      <SettingsContainer name={meta.name} onReset={Settings ? () => Settings.reset() : undefined}>
                           <SettingsPanel />
                       </SettingsContainer>
                   )
-                : null,
+                : undefined,
         };
     };

@@ -1,4 +1,5 @@
 import { Finder } from "../api";
+import { Exports } from "../require";
 
 export const { React } = BdApi;
 
@@ -10,11 +11,11 @@ export const ReactSpring: typeof import("@react-spring/web") = /* @__PURE__ */ F
 ]);
 
 export const classNames: typeof import("classnames") = /* @__PURE__ */ Finder.find(
-    (exports) => exports instanceof Object && exports.default === exports && Object.keys(exports).length === 1,
+    (exports: Exports) => exports instanceof Object && exports.default === exports && Object.keys(exports).length === 1,
 );
 
 export const EventEmitter: typeof import("node:events") = /* @__PURE__ */ Finder.find(
-    (exports) =>
+    (exports: Exports) =>
         exports.prototype instanceof Object
         && Object.prototype.hasOwnProperty.call(exports.prototype, "prependOnceListener"),
 );

@@ -1,6 +1,7 @@
 import { Finder, Filters, Flux, Logger } from "dium";
 import { Snowflake, Dispatcher, MediaEngineContext, AudioConvert } from "@dium/modules";
 import { Settings, updateVolumeOverride as updateVolumeOverride, tryResetVolumeOverride } from "./settings";
+import { Exports } from "@dium/require";
 
 const enum ActionType {
     POST_CONNECTION_OPEN = "POST_CONNECTION_OPEN",
@@ -35,7 +36,7 @@ interface SetVolumeAction extends Flux.Action {
 
 const findAudioSettingsManager = (): AudioSettingsManager => {
     const hasSetVolume = Filters.byKeys(ActionType.AUDIO_SET_LOCAL_VOLUME);
-    return Finder.find((exported) => exported.actions && hasSetVolume(exported.actions));
+    return Finder.find((exported: Exports) => exported.actions && hasSetVolume(exported.actions));
 };
 
 const handleAudioSettingsManager = (AudioSettingsManager: AudioSettingsManager): void => {
@@ -72,7 +73,7 @@ interface AudioSettingsManager {
     stores: Map<any, any>;
 }
 
-let originalHandler = null;
+let originalHandler: Flux.ActionHandler<SetVolumeAction>;
 
 const wrappedSettingsManagerHandler: Flux.ActionHandler<SetVolumeAction> = (action) => {
     const { userId, volume, context } = action;

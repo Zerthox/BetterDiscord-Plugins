@@ -1,5 +1,5 @@
 import React from "react";
-import Reconciler, { Fiber } from "react-reconciler";
+import Reconciler, { type Fiber } from "react-reconciler";
 import { DefaultEventPriority, LegacyRoot } from "react-reconciler/constants";
 
 (global as any).TESTING = true;

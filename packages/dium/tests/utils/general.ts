@@ -1,7 +1,7 @@
 import { describe, it } from "mocha";
 import { strict as assert } from "assert";
 
-import { mappedProxy } from "../../src/utils";
+import { mappedProxy } from "../../src/utils/general";
 
 describe("Utilities", () => {
     describe("mappedProxy", () => {
@@ -50,7 +50,7 @@ describe("Utilities", () => {
         it("maps delete", () => {
             const cloned = { ...original };
             const mapped = mappedProxy(cloned, mapping);
-            delete mapped.log;
+            delete (mapped as any).log;
 
             assert.equal(mapped.log, undefined, "value remained in mapped");
             assert(!("log" in mapped), "key remained in mapped");

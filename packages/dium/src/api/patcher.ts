@@ -40,6 +40,8 @@ interface PatchDataWithOptResult<Original, Parent = any> extends PatchData<Origi
     result?: Return<Original>;
 }
 
+type PatchCallback<Original, Parent = any> = (data: PatchDataWithOptResult<Original, Parent>) => unknown;
+
 /** Storage for manual patches. */
 let manualPatches: Cancel[] = [];
 
@@ -55,10 +57,10 @@ const patch = <Object, Key extends keyof Object>(
     type: "before" | "after" | "instead",
     object: Object,
     method: Key,
-    callback: (data: PatchDataWithOptResult<Object[Key], Object>) => unknown,
+    callback: PatchCallback<Object[Key], Object>,
     options: Options,
 ) => {
-    const original = object?.[method];
+    const original = object?.[method] as Object[Key];
     const name = options.name ?? String(method);
     if (!(original instanceof Function)) {
         if (options.force && !original) {
@@ -72,7 +74,7 @@ const patch = <Object, Key extends keyof Object>(
         }
     }
 
-    const cancel = BdApi.Patcher[type](
+    const cancel: Cancel = BdApi.Patcher[type](
         getMeta().name,
         object,
         method,
@@ -124,7 +126,7 @@ export const after = <Object, Key extends keyof Object>(
     method: Key,
     callback: (data: PatchDataWithResult<Object[Key], Object>) => unknown,
     options: Options = {},
-): Cancel => patch("after", object, method, callback, options);
+): Cancel => patch("after", object, method, callback as PatchCallback<Object[Key], Object>, options);
 
 /** Patches a context menu using its "navId". */
 export const contextMenu = (

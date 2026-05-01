@@ -3,6 +3,7 @@
     "author": "Zerthox",
     "version": "0.1.4",
     "description": "View all SVG components bundled in Discord",
+    "type": "module",
     "dependencies": {
         "dium": "*"
     }

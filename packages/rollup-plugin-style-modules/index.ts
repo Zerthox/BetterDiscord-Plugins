@@ -2,6 +2,7 @@ import postcss from "postcss";
 import postcssModules from "postcss-modules";
 import camelCase from "lodash.camelcase";
 import type { Plugin } from "rollup";
+import type { Expression } from "estree";
 
 export type PostCSSModulesOptions = Parameters<typeof postcssModules>[0];
 
@@ -40,7 +41,7 @@ export function styleModules({ modules, cleanup = true }: Options = {}): Plugin 
                 const program = this.parse(code);
                 const exported = program.body.find((node) => node.type === "ExportDefaultDeclaration")?.declaration;
 
-                let current = exported;
+                let current = exported as Expression;
                 while (current?.type === "Identifier") {
                     const name = current.name;
                     for (const other of program.body) {
@@ -48,7 +49,7 @@ export function styleModules({ modules, cleanup = true }: Options = {}): Plugin 
                             const decl = other.declarations.find(
                                 ({ id }) => id.type === "Identifier" && id.name === name,
                             );
-                            if (decl) {
+                            if (decl?.init) {
                                 current = decl.init;
                                 break;
                             }
@@ -59,18 +60,19 @@ export function styleModules({ modules, cleanup = true }: Options = {}): Plugin 
                 if (current?.type === "Literal" && typeof current.value === "string") {
                     const css = current.value;
 
-                    let mapping: Record<string, string>;
-                    const result = await postcss()
-                        .use(
-                            postcssModules({
-                                ...modules,
-                                getJSON: (_file, json) => {
-                                    mapping = json;
-                                },
-                            }),
-                        )
-                        .use(cleanup ? postcssCleanup : null)
-                        .process(css, { from: id });
+                    let mapping: Record<string, string> = {};
+                    let processor = postcss().use(
+                        postcssModules({
+                            ...modules,
+                            getJSON: (_file, json) => {
+                                mapping = json;
+                            },
+                        }),
+                    );
+                    if (cleanup) {
+                        processor = processor.use(postcssCleanup);
+                    }
+                    const result = await processor.process(css, { from: id });
 
                     const named = Object.entries(mapping)
                         .map(([key, value]) => `    ${camelCase(key)}: ${JSON.stringify(value)}`)

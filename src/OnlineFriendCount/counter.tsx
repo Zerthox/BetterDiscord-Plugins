@@ -54,16 +54,16 @@ export const CountersContainer = (): React.JSX.Element => {
     const counters = useCounters().filter(({ type }) => settings[type]);
     const [current, setCurrent] = React.useState(0);
 
-    const callback = React.useRef<() => void>(null);
+    const next = React.useRef((current + 1) % counters.length);
     React.useEffect(() => {
-        callback.current = () => setCurrent((current + 1) % counters.length);
+        next.current = (current + 1) % counters.length;
     }, [current, counters.length]);
 
     React.useEffect(() => {
         // check interval setting & at least 2 counters
         if (interval && counters.length > 1) {
             setCurrent(0);
-            const id = setInterval(() => callback.current(), 5000);
+            const id = setInterval(() => setCurrent(next.current), 5000);
             return () => clearInterval(id);
         }
     }, [interval, counters.length]);

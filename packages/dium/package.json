@@ -7,8 +7,9 @@
     "private": true,
     "scripts": {
         "check": "tsc --noemit",
-        "test": "mocha -r ts-node/register tests/**/*.{ts,tsx}"
+        "test": "mocha tests/**/*"
     },
+    "type": "module",
     "main": "./src/index",
     "repository": "https://github.com/Zerthox/BetterDiscord-Plugins",
     "bugs": "https://github.com/Zerthox/BetterDiscord-Plugins/issues",
@@ -19,7 +20,7 @@
         "@types/betterdiscord": "github:zerthox/betterdiscord-types",
         "@types/history": "^4.7.11",
         "@types/lodash": "^4.14.176",
-        "@types/node": "^22.15.16",
+        "@types/node": "^24.12.2",
         "@types/platform": "^1.3.4",
         "@types/react": "^19.0.0",
         "@types/react-dom": "^19.0.0",
@@ -39,7 +40,6 @@
         "mocha": "^11.7.0",
         "react": "^19.0.0",
         "react-reconciler": "^0.32.0",
-        "ts-node": "^10.4.0",
-        "typescript": "^5.0.4"
+        "typescript": "^6.0.3"
     }
 }

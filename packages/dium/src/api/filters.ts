@@ -11,21 +11,21 @@ export interface Query {
 }
 
 /** Joins multiple filters together. */
-export const join = <F extends (...args: any) => boolean>(...filters: F[]): F => {
-    return ((...args) => filters.every((filter) => filter(...args))) as any;
+export const join = <F extends (...args: any[]) => boolean>(...filters: F[]): F => {
+    return ((...args: any[]) => filters.every((filter) => filter(...args))) as any;
 };
 
 /** Creates a filter from query options. */
-export const query = ({ filter, name, keys, protos, source }: Query): Filter =>
-    join(
-        ...[
-            ...[filter].flat(),
-            typeof name === "string" ? byName(name) : null,
-            keys instanceof Array ? byKeys(...keys) : null,
-            protos instanceof Array ? byProtos(...protos) : null,
-            source instanceof Array ? bySource(...source) : null,
-        ].filter(Boolean),
-    );
+export const query = ({ filter, name, keys, protos, source }: Query): Filter => {
+    const filters = [
+        ...[filter].flat(),
+        typeof name === "string" ? byName(name) : null,
+        keys instanceof Array ? byKeys(...keys) : null,
+        protos instanceof Array ? byProtos(...protos) : null,
+        source instanceof Array ? bySource(...source) : null,
+    ].filter(Boolean) as Filter[];
+    return join(...filters);
+};
 
 /**
  * Determines whether values can be checked.
@@ -37,7 +37,7 @@ export const checkObjectValues = (target: unknown): boolean =>
 
 /** Creates a filter matching on values in the exported object. */
 export const byEntry = <F extends (data: any, ...args: any) => boolean>(filter: F, every = false): F => {
-    return ((target, ...args) => {
+    return ((target: any, ...args: any) => {
         if (checkObjectValues(target)) {
             const values = Object.values(target);
             return values.length > 0 && values[every ? "every" : "some"]((value) => filter(value, ...args));

@@ -3,7 +3,7 @@ import type * as BD from "betterdiscord";
 export type Meta = BD.Meta;
 
 /** Meta of this plugin. */
-let meta: Meta = null;
+let meta: Meta;
 
 /**
  * Returns the plugin meta.

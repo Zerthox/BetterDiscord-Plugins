@@ -61,9 +61,9 @@ export interface MediaItemProps extends Record<string, any> {
     imgClassName: string;
     imgContainerClassName: string;
     footer?: any;
-    onClick();
-    onPlay();
-    onRemoveItem();
+    onClick(): any;
+    onPlay(): any;
+    onRemoveItem(): any;
     renderAudioComponent(): any;
     renderGenericFileComponent(): any;
     renderImageComponent(): any;

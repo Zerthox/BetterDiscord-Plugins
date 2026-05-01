@@ -27,7 +27,7 @@ const MediaModule: MediaModule = Finder.demangle(
     {
         MediaItem: Filters.bySource("getObscureReason", "isSingleMosaicItem"),
     },
-    null,
+    undefined,
     true,
 );
 
@@ -60,7 +60,7 @@ export default createPlugin({
             "MediaItem",
             ({ args: [props], result }) => {
                 const attachment = props.item.originalItem;
-                const placeholder = attachment.filename ?? new URL(attachment.url).hostname;
+                const placeholder = attachment.filename ?? new URL(attachment.url ?? "").hostname;
                 return (
                     <Hider
                         type={props.isSingleMosaicItem ? AccessoryType.MediaItemSingle : AccessoryType.MediaItem}
@@ -81,7 +81,7 @@ export default createPlugin({
                 for (const element of Utils.queryTreeAll(result, (node) => node?.props?.attachments)) {
                     Utils.hookFunctionComponent<AttachmentsProps>(element, (result, { attachments }) => {
                         const placeholders = attachments.map(
-                            ({ attachment }) => attachment.filename ?? new URL(attachment.url).hostname,
+                            ({ attachment }) => attachment.filename ?? new URL(attachment.url ?? "").hostname,
                         );
                         const id = attachments[0]?.attachment?.url;
                         return (

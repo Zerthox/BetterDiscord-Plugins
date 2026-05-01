@@ -51,8 +51,8 @@ describe("React element tree", () => {
 
 describe("React Fiber", () => {
     const root = createFiber(elements);
-    const parent = root.child;
-    const child = parent.child.child;
+    const parent = root.child as Fiber;
+    const child = (parent.child as Fiber).child as Fiber;
 
     const deepRoot = { key: "0" } as Fiber;
     let deepChild = deepRoot;
@@ -68,7 +68,7 @@ describe("React Fiber", () => {
     const createTrackingPredicate = (): [Predicate<Fiber>, Set<number>] => {
         const calledOn = new Set<number>();
         const predicate = (node: Fiber) => {
-            calledOn.add(parseInt(node.key));
+            calledOn.add(parseInt(node.key ?? ""));
             return false;
         };
         return [predicate, calledOn];

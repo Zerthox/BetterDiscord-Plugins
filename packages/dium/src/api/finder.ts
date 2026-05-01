@@ -74,7 +74,7 @@ export const all = {
 /** Resolves the key corresponding to the value matching the filter function. */
 export const resolveKey = <T, K extends string = string>(target: Record<K, T>, filter: Filter): [Record<K, T>, K] => [
     target,
-    (target ? Object.entries(target).find(([, value]) => filter(value))?.[0] : null) as K,
+    (target ? Object.entries(target).find(([, value]) => filter(value as any))?.[0] : null) as K,
 ];
 
 /** Resolves the key corresponding to the value matching the filter function. */
@@ -96,7 +96,7 @@ export const demangle = <M extends Mapping>(mapping: M, required?: (keyof M)[], 
     const req = required ?? Object.keys(mapping);
 
     const found = find(
-        (target) =>
+        (target: any) =>
             Filters.checkObjectValues(target)
             && req.every((req) => Object.values(target).some((value) => mapping[req](value))),
     );
@@ -107,7 +107,7 @@ export const demangle = <M extends Mapping>(mapping: M, required?: (keyof M)[], 
               Object.fromEntries(
                   Object.entries(mapping).map(([key, filter]) => [
                       key,
-                      Object.entries(found ?? {}).find(([, value]) => filter(value))?.[0],
+                      Object.entries(found ?? {}).find(([, value]) => filter(value))?.[0] as any,
                   ]),
               ),
           ) as any)
@@ -122,8 +122,7 @@ export const demangle = <M extends Mapping>(mapping: M, required?: (keyof M)[], 
 let controller = new AbortController();
 
 /** Waits for a lazy loaded module. */
-// TODO: waitFor with callback that is skipped when aborted?
-export const waitFor = <T>(filter: Filter, { resolve = true, entries = false }: FindOptions = {}): Promise<T> =>
+export const waitFor = async <T>(filter: Filter, { resolve = true, entries = false }: FindOptions = {}): Promise<T> =>
     BdApi.Webpack.waitForModule(filter, {
         signal: controller.signal,
         defaultExport: resolve,
@@ -131,9 +130,11 @@ export const waitFor = <T>(filter: Filter, { resolve = true, entries = false }: 
     });
 
 /** Waits for a lazy loaded module. */
-export const waitForWithKey = async <T, K extends string = string>(filter: Filter): Promise<[Record<K, T>, K]> => {
-    const target: Record<K, T> = await waitFor(Filters.byEntry(filter));
-    return resolveKey(target, filter);
+export const waitForWithKey = async <T, K extends string = string>(
+    filter: Filter,
+): Promise<[Record<K, T>, K] | undefined> => {
+    const target = await waitFor<Record<K, T>>(Filters.byEntry(filter));
+    return target ? resolveKey(target, filter) : undefined;
 };
 
 /** Aborts search for any lazy loaded modules. */

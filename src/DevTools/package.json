@@ -3,6 +3,7 @@
     "author": "Zerthox",
     "version": "0.5.3",
     "description": "Utilities for development.",
+    "type": "module",
     "dependencies": {
         "dium": "*"
     }

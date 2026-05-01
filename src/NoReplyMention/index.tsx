@@ -5,7 +5,7 @@ const ReplyActions = Finder.demangle(
         createPendingReply: Filters.bySource("shouldMention", "CREATE_PENDING_REPLY"),
         deletePendingReply: Filters.bySource("DELETE_PENDING_REPLY"),
     },
-    null,
+    undefined,
     true,
 );
 

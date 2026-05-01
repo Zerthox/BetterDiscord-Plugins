@@ -3,6 +3,17 @@ import { React } from "../modules";
 import type { JSX, ReactElement, ReactNode } from "react";
 import type { Fiber, OwnerFiber } from "../react-internals";
 
+const EMPTY = Symbol();
+
+/** A ref with a value which is initialized once. */
+export const useOnceRef = <T>(init: () => T): React.RefObject<T> => {
+    const ref = React.useRef(EMPTY as T);
+    if (ref.current === EMPTY) {
+        ref.current = init();
+    }
+    return ref;
+};
+
 export type FCHookCallback<P> = (result: ReactNode, targetProps: P) => ReactNode | void;
 
 interface FCHookProps<P> {
@@ -101,7 +112,7 @@ export const queryTreeAll = (node: ReactTree, predicate: Predicate<JSX.Element>)
     return result;
 };
 
-export type ElementWithChildren = ReactElement<{ children?: ReactElement[] } & Record<string, any>>;
+export type ElementWithChildren = ReactElement<{ children: ReactElement[] } & Record<string, any>>;
 
 /**
  * Searches a React element tree for an element whose children are in an array and one child matches the predicate.
@@ -124,6 +135,7 @@ export const queryTreeForParent = (
                 return true;
             }
         }
+        return false;
     });
 
     return [parent, childIndex];
@@ -131,8 +143,8 @@ export const queryTreeForParent = (
 
 /** Returns the React fiber node corresponding to a DOM node. */
 export const getFiber = (node: Node): Fiber => {
-    const key = Object.keys(node).find((key) => key.startsWith("__reactFiber"));
-    return node?.[key];
+    const key = Object.keys(node).find((key) => key.startsWith("__reactFiber")) as string;
+    return (node as any)?.[key];
 };
 
 export const enum Direction {

@@ -1,5 +1,6 @@
 import { React, Flux } from "./modules";
 import * as Data from "./api/data";
+import { useOnceRef } from "./utils";
 
 export type Listener<T> = (current: T) => void;
 
@@ -30,6 +31,7 @@ export class SettingsStore<T extends Record<string, any>> implements Flux.StoreL
      */
     constructor(defaults: T, onLoad?: () => void) {
         this.defaults = defaults;
+        this.current = { ...defaults };
         this.onLoad = onLoad;
     }
 
@@ -119,10 +121,10 @@ export class SettingsStore<T extends Record<string, any>> implements Flux.StoreL
      */
     useSelector<R>(
         selector: (current: T) => R,
-        deps: React.DependencyList = null,
+        deps?: React.DependencyList,
         compare: (a: R, b: R) => boolean = Object.is,
-    ): R {
-        const state = React.useRef(null);
+    ): R | undefined {
+        const state = useOnceRef(() => selector(this.current));
         const snapshot = React.useCallback(
             () => {
                 const next = selector(this.current);
@@ -133,7 +135,7 @@ export class SettingsStore<T extends Record<string, any>> implements Flux.StoreL
             },
             deps ?? [selector],
         );
-        return React.useSyncExternalStore(this.addListenerEffect, snapshot);
+        return React.useSyncExternalStore<R>(this.addListenerEffect, snapshot);
     }
 
     /**

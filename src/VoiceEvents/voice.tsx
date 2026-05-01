@@ -3,7 +3,7 @@ import { ChannelStore, UserStore, GuildMemberStore } from "@dium/modules";
 import { Text } from "@dium/components";
 import { Settings, NotificationType } from "./settings";
 
-export const findDefaultVoice = (): SpeechSynthesisVoice => {
+export const findDefaultVoice = (): SpeechSynthesisVoice | undefined => {
     const voices = speechSynthesis.getVoices();
     if (voices.length === 0) {
         Logger.error("No speech synthesis voices available");
@@ -15,13 +15,12 @@ export const findDefaultVoice = (): SpeechSynthesisVoice => {
                 The plugin may be unable to function properly.
             </Text>,
         );
-        return null;
     } else {
         return voices.find((voice) => voice.lang === "en-US") ?? voices[0];
     }
 };
 
-export const findCurrentVoice = (): SpeechSynthesisVoice => {
+export const findCurrentVoice = (): SpeechSynthesisVoice | undefined => {
     const uri = Settings.current.voice;
     const voice = speechSynthesis.getVoices().find((voice) => voice.voiceURI === uri);
     if (voice) {
@@ -29,20 +28,23 @@ export const findCurrentVoice = (): SpeechSynthesisVoice => {
     } else {
         Logger.warn(`Voice "${uri}" not found, reverting to default`);
         const defaultVoice = findDefaultVoice();
-        Settings.update({ voice: defaultVoice.voiceURI });
+        Settings.update({ voice: defaultVoice?.voiceURI });
         return defaultVoice;
     }
 };
 
 export const speak = (message: string): void => {
-    const { volume, speed } = Settings.current;
+    const voice = findCurrentVoice();
+    if (voice) {
+        const { volume, speed } = Settings.current;
 
-    const utterance = new SpeechSynthesisUtterance(message);
-    utterance.voice = findCurrentVoice();
-    utterance.volume = volume / 100;
-    utterance.rate = speed;
+        const utterance = new SpeechSynthesisUtterance(message);
+        utterance.voice = voice;
+        utterance.volume = volume / 100;
+        utterance.rate = speed;
 
-    speechSynthesis.speak(utterance);
+        speechSynthesis.speak(utterance);
+    }
 };
 
 const processName = (name: string) => {

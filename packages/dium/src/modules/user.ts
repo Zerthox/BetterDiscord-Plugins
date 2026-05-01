@@ -87,7 +87,7 @@ export const enum UserFlags {
 export interface UserStore extends Store {
     filter(predicate: (user: User) => boolean, sorted?: boolean): User[];
     findByTag(username: string, discriminator: string): User;
-    forEach(callback: (user: User) => boolean);
+    forEach(callback: (user: User) => boolean): any;
     getCurrentUser(): User;
     getUser(id: Snowflake): User;
     getUsers(): User[];
@@ -117,18 +117,18 @@ export interface PresenceStoreState {
 }
 
 export interface PresenceStore extends Store {
-    findActivity(e, t, n);
-    getActivities(e, t);
-    getActivityMetadata(e);
-    getAllApplicationActivities(e);
-    getApplicationActivity(e, t, n);
-    getPrimaryActivity(e, t);
+    findActivity(e: any, t: any, n: any): any;
+    getActivities(e: any, t: any): any;
+    getActivityMetadata(e: any): any;
+    getAllApplicationActivities(e: any): any;
+    getApplicationActivity(e: any, t: any, n: any): any;
+    getPrimaryActivity(e: any, t: any): any;
     getState(): PresenceStoreState;
-    getStatus(user: Snowflake, t?, n?): StatusTypes;
+    getStatus(user: Snowflake, t?: any, n?: any): StatusTypes;
     getUserIds(): Snowflake[];
     isMobileOnline(user: Snowflake): boolean;
-    setCurrentUserOnConnectionOpen(e, t);
-    __getLocalVars();
+    setCurrentUserOnConnectionOpen(e: any, t: any): any;
+    __getLocalVars(): any;
 }
 
 export const PresenceStore: PresenceStore = /* @__PURE__ */ Finder.byName("PresenceStore");

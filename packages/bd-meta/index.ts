@@ -25,11 +25,10 @@ export async function resolvePkg(dir: string): Promise<string> {
             if (parent != current) {
                 current = parent;
             } else {
-                break;
+                throw new Error("package.json not found");
             }
         }
     }
-    return undefined;
 }
 
 export interface Options {
@@ -40,15 +39,15 @@ export async function readMetaFromPkg(file: string, { authorGithub = false }: Op
     const pkg = JSON.parse(await fs.readFile(file, "utf8")) as PackageWithMeta;
     return {
         name: upperFirst(camelCase(pkg.name)),
-        version: pkg.version,
-        author: typeof pkg.author === "string" ? pkg.author : pkg.author.name,
+        version: pkg.version ?? "0.1.0",
+        author: typeof pkg.author === "string" ? pkg.author : (pkg.author?.name ?? ""),
         authorLink:
             typeof pkg.author === "object"
                 ? pkg.author.url
                 : authorGithub
                   ? `https://github.com/${pkg.author}`
                   : undefined,
-        description: pkg.description,
+        description: pkg.description ?? "",
         website: pkg.homepage,
         ...pkg.meta,
     };

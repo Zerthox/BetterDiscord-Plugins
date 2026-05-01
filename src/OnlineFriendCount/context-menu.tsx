@@ -1,5 +1,5 @@
 import { React } from "dium";
-import { Settings, counterLabels } from "./settings";
+import { CounterLabel, CounterType, Settings, counterLabels } from "./settings";
 import { Menu, MenuGroup, MenuCheckboxItem } from "@dium/components";
 
 export const CountContextMenu = (props: React.ComponentProps<typeof Menu>): React.JSX.Element => {
@@ -8,7 +8,7 @@ export const CountContextMenu = (props: React.ComponentProps<typeof Menu>): Reac
     return (
         <Menu {...props}>
             <MenuGroup>
-                {Object.entries(counterLabels).map(([id, { label, long }]) => (
+                {(Object.entries(counterLabels) as [CounterType, CounterLabel][]).map(([id, { label, long }]) => (
                     <MenuCheckboxItem
                         key={id}
                         id={id}

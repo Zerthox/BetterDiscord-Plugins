@@ -3,6 +3,7 @@
     "author": "Zerthox",
     "version": "0.2.3",
     "description": "Suppresses reply mentions.",
+    "type": "module",
     "dependencies": {
         "dium": "*"
     }

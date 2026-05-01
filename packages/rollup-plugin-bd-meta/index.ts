@@ -39,7 +39,7 @@ export function bdMeta({ meta, authorGithub }: Options = {}): Plugin {
             order: "post",
             async handler(code, chunk) {
                 if (chunk.isEntry) {
-                    const pkg = pkgFiles[chunk.facadeModuleId];
+                    const pkg = pkgFiles[chunk.facadeModuleId as string];
                     const combinedMeta = {
                         ...(pkg ? await readMetaFromPkg(pkg, { authorGithub }) : {}),
                         ...meta,

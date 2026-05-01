@@ -1,7 +1,7 @@
 import { createPlugin, createSettings, Logger, Finder, Patcher, Utils, React } from "dium";
-import { Platforms } from "@dium/modules";
+import { Platforms, PlatformType } from "@dium/modules";
 
-const { PlatformTypes } = Platforms;
+const { PlatformTypes: PlatformType } = Platforms;
 const OverlayBridgeStore = Finder.byName("OverlayBridgeStore");
 
 const RadioGroup = Finder.byName("RadioGroup");
@@ -39,7 +39,7 @@ export default createPlugin({
             Patcher.instead(
                 Platforms,
                 `is${platform}`,
-                () => Settings.current.platform === PlatformTypes[platform.toUpperCase()],
+                () => Settings.current.platform === PlatformType[platform.toUpperCase() as PlatformType],
             );
         }
 
@@ -57,12 +57,12 @@ export default createPlugin({
         return (
             <RadioGroup
                 value={platform}
-                onChange={({ value }) => changePlatform(value)}
+                onChange={({ value }: { value: any }) => changePlatform(value)}
                 options={[
-                    { value: PlatformTypes.WINDOWS, name: "Windows" },
-                    { value: PlatformTypes.OSX, name: "MacOS" },
-                    { value: PlatformTypes.LINUX, name: "Linux" },
-                    { value: PlatformTypes.WEB, name: "Browser" },
+                    { value: PlatformType.WINDOWS, name: "Windows" },
+                    { value: PlatformType.OSX, name: "MacOS" },
+                    { value: PlatformType.LINUX, name: "Linux" },
+                    { value: PlatformType.WEB, name: "Browser" },
                 ]}
             />
         );

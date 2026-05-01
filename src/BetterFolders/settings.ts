@@ -1,7 +1,7 @@
 import { createSettings } from "dium";
 
 export interface FolderData {
-    icon: string;
+    icon: string | null;
     always: boolean;
 }
 

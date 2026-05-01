@@ -85,9 +85,11 @@ export default createPlugin({
         // initialize default voice after delay
         setTimeout(() => {
             const voice = findDefaultVoice()?.voiceURI;
-            Settings.defaults.voice = voice;
-            if (!Settings.current.voice) {
-                Settings.update({ voice });
+            if (voice) {
+                Settings.defaults.voice = voice;
+                if (!Settings.current.voice) {
+                    Settings.update({ voice });
+                }
             }
         }, 1000);
 

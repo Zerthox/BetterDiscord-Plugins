@@ -124,7 +124,7 @@ export const SettingsPanel = (): React.JSX.Element => {
                 </Text>{" "}
                 with the respective Voice Channel name.
             </Text>
-            {Object.entries(titles).map(([key, title]) => (
+            {(Object.entries(titles) as [NotificationType, string][]).map(([key, title]) => (
                 <FormItem key={key} className={margins.marginBottom20} title={title}>
                     <Flex align={Flex.Align.CENTER}>
                         <Flex.Child grow={1}>

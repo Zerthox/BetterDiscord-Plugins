@@ -36,6 +36,6 @@ export const TextInput: React.ComponentClass<TextInputProps, any> = /* @__PURE__
 );
 
 export const ImageInput: React.ComponentClass<any> = /* @__PURE__ */ Finder.find(
-    (target) =>
+    (target: any) =>
         typeof target.defaultProps?.multiple === "boolean" && typeof target.defaultProps?.maxFileSizeBytes === "number",
 );

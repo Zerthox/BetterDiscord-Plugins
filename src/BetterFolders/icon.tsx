@@ -11,8 +11,8 @@ export type FolderIcon = React.FunctionComponent<PropsWithFolderNode>;
 
 const folderStyles = Finder.byKeys(["folderIcon", "folderIconWrapper", "folderPreviewWrapper"]);
 
-export const renderIcon = (data: FolderData): React.JSX.Element => (
-    <div className={styles.customIcon} style={{ backgroundImage: data?.icon ? `url(${data.icon})` : null }} />
+export const renderIcon = (data: FolderData | undefined): React.JSX.Element => (
+    <div className={styles.customIcon} style={{ backgroundImage: data?.icon ? `url(${data.icon})` : undefined }} />
 );
 
 export interface BaseBetterFolderIconProps {
@@ -24,7 +24,7 @@ export interface BetterFolderIconProps extends BaseBetterFolderIconProps {
     data?: FolderData;
 }
 
-export const BetterFolderIcon = ({ data, childProps, FolderIcon }: BetterFolderIconProps): React.JSX.Element => {
+export const BetterFolderIcon = ({ data, childProps, FolderIcon }: BetterFolderIconProps): React.ReactNode => {
     if (FolderIcon) {
         const result = FolderIcon(childProps) as React.JSX.Element;
         if (data?.icon) {

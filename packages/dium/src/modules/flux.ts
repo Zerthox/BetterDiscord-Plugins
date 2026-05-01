@@ -195,7 +195,10 @@ export const {
     Store,
     BatchedStoreListener,
     useStateFromStores,
-}: Partial<Module> = /* @__PURE__ */ Finder.demangle(
+}: Pick<
+    Module,
+    "default" | "Dispatcher" | "Store" | "BatchedStoreListener" | "useStateFromStores"
+> = /* @__PURE__ */ Finder.demangle(
     {
         default: Filters.byKeys("Store", "connectStores"),
         Dispatcher: Filters.byProtos("dispatch"),

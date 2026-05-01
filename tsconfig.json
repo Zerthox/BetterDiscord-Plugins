@@ -1,9 +1,12 @@
 {
     "compilerOptions": {
+        "noEmit": true,
         "target": "es2023",
-        "moduleResolution": "node",
+        "module": "esnext",
+        "moduleResolution": "bundler",
         "esModuleInterop": true,
         "resolveJsonModule": true,
+        "skipLibCheck": true,
         "jsx": "react",
         "paths": {
             "@dium/*": ["./packages/dium/src/*"]

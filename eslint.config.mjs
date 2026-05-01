@@ -1,6 +1,3 @@
-import { dirname } from "path";
-import { fileURLToPath } from "url";
-
 import { defineConfig, globalIgnores } from "eslint/config";
 import { fixupPluginRules } from "@eslint/compat";
 import js from "@eslint/js";
@@ -13,11 +10,8 @@ import _import from "eslint-plugin-import";
 import react from "eslint-plugin-react";
 import reactHooks from "eslint-plugin-react-hooks";
 
-const __filename = fileURLToPath(import.meta.url);
-const __dirname = dirname(__filename);
-
 const compat = new FlatCompat({
-    baseDirectory: __dirname,
+    baseDirectory: import.meta.dirname,
     recommendedConfig: js.configs.recommended,
     allConfig: js.configs.all,
 });

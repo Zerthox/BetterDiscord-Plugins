@@ -15,7 +15,7 @@ const warn = (msg: string) => console.warn(chalk.yellow(`Warn: ${msg}`));
 const error = (msg: string) => console.error(chalk.red(`Error: ${msg}`));
 
 // find sources
-const sourceFolder = path.resolve(__dirname, "../src");
+const sourceFolder = path.resolve(import.meta.dirname, "../src");
 const sourceEntries = readdirSync(sourceFolder, { withFileTypes: true }).filter((entry) => entry.isDirectory());
 
 // parse args
@@ -45,14 +45,14 @@ if (inputPaths.length === 0) {
 // resolve output directory
 const outDir = args.dev
     ? path.resolve(
-          process.platform === "win32"
+          (process.platform === "win32"
               ? process.env.APPDATA
               : process.platform === "darwin"
-                ? path.resolve(process.env.HOME, "Library/Application Support")
-                : path.resolve(process.env.HOME, ".config"),
+                ? path.resolve(process.env.HOME as string, "Library/Application Support")
+                : path.resolve(process.env.HOME as string, ".config")) as string,
           "BetterDiscord/plugins",
       )
-    : path.resolve(__dirname, "../dist/bd");
+    : path.resolve(import.meta.dirname, "../dist/bd");
 
 const watchers: Record<string, rollup.RollupWatcher> = {};
 

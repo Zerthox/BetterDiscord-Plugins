@@ -2,7 +2,7 @@ import { Finder } from "../api";
 import { Embed as MessageEmbed } from "../modules/message";
 
 export interface EmbedProps {
-    embed?: MessageEmbed;
+    embed: MessageEmbed;
     className?: string;
     allowFullScreen?: boolean;
     autoPlayGif?: boolean;

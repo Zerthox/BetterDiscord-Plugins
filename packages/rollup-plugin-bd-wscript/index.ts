@@ -2,7 +2,7 @@ import path from "path";
 import { readFileSync } from "fs";
 import type { Plugin } from "rollup";
 
-const wscript = readFileSync(path.join(__dirname, "wscript.js"), "utf8")
+const wscript = readFileSync(path.join(import.meta.dirname, "wscript.js"), "utf8")
     .split("\n")
     .filter((line) => {
         const trim = line.trim();

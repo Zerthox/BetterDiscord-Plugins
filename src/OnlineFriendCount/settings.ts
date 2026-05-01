@@ -17,7 +17,12 @@ export const enum CounterType {
     Blocked = "blocked",
 }
 
-export const counterLabels: Record<CounterType, { label: string; long?: string }> = {
+export interface CounterLabel {
+    label: string;
+    long?: string;
+}
+
+export const counterLabels: Record<CounterType, CounterLabel> = {
     guilds: {
         label: "Servers",
     },

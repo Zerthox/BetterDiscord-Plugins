@@ -3,6 +3,7 @@
     "author": "Zerthox",
     "version": "3.3.1",
     "description": "Adds the old online friend count and similar counters back to server list. Because nostalgia.",
+    "type": "module",
     "dependencies": {
         "dium": "*"
     }

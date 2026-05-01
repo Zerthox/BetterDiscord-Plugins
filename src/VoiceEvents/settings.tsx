@@ -1,7 +1,7 @@
 import { createSettings, SettingsType } from "dium";
 
 export const Settings = createSettings({
-    voice: null as string, // set later
+    voice: "", // set later
     volume: 100,
     speed: 1,
     filterNames: true,

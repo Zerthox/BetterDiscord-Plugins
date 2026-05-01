@@ -2,7 +2,7 @@ import { React, Logger, Utils, PatchDataWithResult } from "dium";
 import { SortedGuildStore, GuildsTreeFolder } from "@dium/modules";
 import { RadioGroup, FormItem, TextInput } from "@dium/components";
 import { BetterFolderUploader } from "./uploader";
-import { Settings } from "./settings";
+import { FolderData, Settings } from "./settings";
 
 const enum IconType {
     Default = "default",
@@ -22,11 +22,10 @@ export interface FolderSettingsState {
     color: number;
 }
 
-interface PatchedFolderSettingsState extends FolderSettingsState {
-    iconType: IconType;
-    icon?: string;
-    always?: boolean;
-}
+type PatchedFolderSettingsState = FolderSettingsState
+    & FolderData & {
+        iconType: IconType;
+    };
 
 export interface FolderSettingsClass {
     new (props: FolderSettingsProps, context?: any): FolderSettings;
@@ -114,7 +113,7 @@ export const renderFolderSettingsPatch = ({
         children.push(
             <FormItem title="Custom Icon">
                 <BetterFolderUploader
-                    icon={state.icon}
+                    icon={state.icon ?? ""}
                     always={state.always}
                     folderNode={tree.nodes[folderId] as GuildsTreeFolder}
                     onChange={({ icon, always }) => context.setState({ icon, always })}
