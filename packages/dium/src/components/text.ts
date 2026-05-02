@@ -1,8 +1,6 @@
 import { Finder } from "../api";
 import { Stories } from "./story";
 
-export const TextStories: Stories = /* @__PURE__ */ Finder.byStoryTitle("Text");
-
 export interface TextProps {
     variant?: TextVariants;
     tag?: any;

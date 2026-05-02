@@ -101,6 +101,3 @@ export const byClassNames = (...classNames: string[]): Filter => {
             Object.values(target).some((value) => typeof value === "string" && value.startsWith(prefix)),
         );
 };
-
-/** Creates a filter searching by story title. */
-export const byStoryTitle = (title: string): Filter => join(byKeys("stories"), (target) => target.title === title);

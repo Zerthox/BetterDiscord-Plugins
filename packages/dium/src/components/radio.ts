@@ -2,8 +2,6 @@ import { HTMLAttributes } from "react";
 import { Filters, Finder } from "../api";
 import { Stories } from "./story";
 
-export const RadioStories: Stories = /* @__PURE__ */ Finder.byStoryTitle("RadioGroup");
-
 export interface RadioGroupOption<T> {
     name: React.ReactNode;
     value: T;

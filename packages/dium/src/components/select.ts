@@ -1,8 +1,6 @@
 import { Finder, Filters } from "../api";
 import { Stories } from "./story";
 
-export const SelectStories: Stories = /* @__PURE__ */ Finder.byStoryTitle("Select");
-
 export interface SelectOption<T> {
     label: React.ReactNode;
     value: T;
@@ -35,6 +33,8 @@ export interface SelectProps<T, O extends SelectOption<T>> {
     "aria-labelledby"?: any;
 }
 
+export type Select = <T, O extends SelectOption<T>>(props: SelectProps<T, O>) => React.JSX.Element;
+
 export interface SingleSelectProps<T, O extends SelectOption<T>> extends Omit<
     SelectProps<T, O>,
     "select" | "isSelected" | "clear"
@@ -43,12 +43,11 @@ export interface SingleSelectProps<T, O extends SelectOption<T>> extends Omit<
     onChange?: (value: T) => void;
 }
 
-interface SelectComponents {
-    Select: <T, O extends SelectOption<T>>(props: SelectProps<T, O>) => React.JSX.Element;
-    SingleSelect: <T, O extends SelectOption<T>>(props: SingleSelectProps<T, O>) => React.JSX.Element;
-}
+export type SingleSelect = <T, O extends SelectOption<T>>(props: SingleSelectProps<T, O>) => React.JSX.Element;
 
-export const { Select, SingleSelect }: SelectComponents = /* @__PURE */ Finder.demangle({
-    Select: Filters.bySource('"Select"'),
-    SingleSelect: Filters.bySource('"SingleSelect"'),
-});
+export const SingleSelect: SingleSelect = /* @__PURE */ Finder.bySource(
+    ['"single"', "isSelected", "maxVisibleItems", ".serialize"],
+    {
+        entries: true,
+    },
+);

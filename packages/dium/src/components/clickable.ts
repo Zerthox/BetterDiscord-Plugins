@@ -23,4 +23,6 @@ export interface Clickable extends React.ComponentClass<ClickableProps, any> {
     };
 }
 
-export const Clickable: Clickable = /* @__PURE__ */ Finder.bySource(["ignoreKeyPress:"], { entries: true });
+export const Clickable: Clickable = /* @__PURE__ */ Finder.bySource(["ignoreKeyPress:", "onKeyPress:"], {
+    entries: true,
+});

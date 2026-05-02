@@ -1,8 +1,6 @@
 import { Finder } from "../api";
 import { Stories } from "./story";
 
-export const SliderStories: Stories = /* @__PURE__ */ Finder.byStoryTitle("Slider");
-
 export interface SliderProps extends Record<string, any> {
     initialValue?: number;
     maxValue?: number;

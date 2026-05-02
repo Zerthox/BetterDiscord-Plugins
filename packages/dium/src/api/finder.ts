@@ -122,7 +122,7 @@ export const demangle = <M extends Mapping>(mapping: M, required?: (keyof M)[], 
 let controller = new AbortController();
 
 /** Waits for a lazy loaded module. */
-export const waitFor = async <T>(
+export const waitFor = <T>(
     filter: Filter,
     { resolve = true, entries = false }: FindOptions = {},
 ): Promise<T | undefined> =>
@@ -157,6 +157,3 @@ export const abort = (): void => {
 /** Finds a story module using class name prefixes. */
 export const byClassNames = (...classNames: string[]): Record<string, string> =>
     find(Filters.byClassNames(...classNames), { entries: true });
-
-/** Finds a story module using its title. */
-export const byStoryTitle = (title: string): Stories => find(Filters.byStoryTitle(title), { entries: true });
