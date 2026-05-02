@@ -1,6 +1,6 @@
 /**
  * @name NoReplyMention
- * @version 0.2.3
+ * @version 0.2.4
  * @author Zerthox
  * @authorLink https://github.com/Zerthox
  * @description Suppresses reply mentions.
@@ -47,7 +47,7 @@ WScript.Quit();
 
 'use strict';
 
-let meta = null;
+let meta;
 const getMeta = () => {
     if (meta) {
         return meta;
@@ -143,33 +143,47 @@ const abort = () => {
 const COLOR = "#3a71c1";
 const print = (output, ...data) => output(`%c[${getMeta().name}] %c${getMeta().version ? `(v${getMeta().version})` : ""}`, `color: ${COLOR}; font-weight: 700;`, "color: #666; font-size: .8em;", ...data);
 const log = (...data) => print(console.log, ...data);
+const warn = (...data) => print(console.warn, ...data);
 
+let manualPatches = [];
+const addManual = (cancel, name) => {
+    manualPatches.push(cancel);
+};
 const patch = (type, object, method, callback, options) => {
     const original = object?.[method];
+    const name = options.name ?? String(method);
     if (!(original instanceof Function)) {
-        throw TypeError(`patch target ${original} is not a function`);
+        if (options.force && !original) {
+            warn(`Forcing patch on ${name}`);
+            object[method] = function noop() { };
+            addManual(() => {
+                object[method] = original;
+            });
+        }
+        else {
+            throw TypeError(`patch target ${name} is ${original} not function`);
+        }
     }
     const cancel = BdApi.Patcher[type](getMeta().name, object, method, options.once
-        ? (...args) => {
-            const result = callback(cancel, original, ...args);
+        ? (context, args, result) => {
+            const newResult = callback({ cancel, original, context, args, result });
             cancel();
-            return result;
+            return newResult;
         }
-        : (...args) => callback(cancel, original, ...args));
+        : (context, args, result) => callback({ cancel, original, context, args, result }));
     if (!options.silent) {
-        log(`Patched ${options.name ?? String(method)}`);
+        log(`Patched ${name}`);
     }
     return cancel;
 };
-const before = (object, method, callback, options = {}) => patch("before", object, method, (cancel, original, context, args) => callback({ cancel, original, context, args }), options);
-let menuPatches = [];
+const before = (object, method, callback, options = {}) => patch("before", object, method, callback, options);
 const unpatchAll = () => {
-    if (menuPatches.length + BdApi.Patcher.getPatchesByCaller(getMeta().name).length > 0) {
-        for (const cancel of menuPatches) {
+    if (manualPatches.length + BdApi.Patcher.getPatchesByCaller(getMeta().name).length > 0) {
+        BdApi.Patcher.unpatchAll(getMeta().name);
+        for (const cancel of manualPatches) {
             cancel();
         }
-        menuPatches = [];
-        BdApi.Patcher.unpatchAll(getMeta().name);
+        manualPatches = [];
         log("Unpatched all");
     }
 };
@@ -187,7 +201,7 @@ const Button = /* @__PURE__ */ byKeys(["Colors", "Link"], { entries: true });
 
 const Flex = /* @__PURE__ */ byKeys(["Child", "Justify", "Align"], { entries: true });
 
-const FormDivider = /* @__PURE__ */ bySource([".divider", (source) => /{className:.,gap:.}=/.test(source)], {
+const FormDivider = /* @__PURE__ */ bySource(["marginTop:", (source) => /{className:.,gap:.}=/.test(source)], {
     entries: true,
 });
 
@@ -218,16 +232,16 @@ const createPlugin = (plugin) => (meta) => {
             log("Disabled");
         },
         getSettingsPanel: SettingsPanel
-            ? () => (React.createElement(SettingsContainer, { name: meta.name, onReset: Settings ? () => Settings.reset() : null },
+            ? () => (React.createElement(SettingsContainer, { name: meta.name, onReset: Settings ? () => Settings.reset() : undefined },
                 React.createElement(SettingsPanel, null)))
-            : null,
+            : undefined,
     };
 };
 
 const ReplyActions = demangle({
     createPendingReply: bySource$1("shouldMention", "CREATE_PENDING_REPLY"),
     deletePendingReply: bySource$1("DELETE_PENDING_REPLY"),
-}, null, true);
+}, undefined, true);
 const index = createPlugin({
     start() {
         before(ReplyActions, "createPendingReply", ({ args: [options] }) => {

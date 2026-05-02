@@ -1,6 +1,6 @@
 /**
  * @name CollapseEmbeds
- * @version 2.1.5
+ * @version 2.1.6
  * @author Zerthox
  * @authorLink https://github.com/Zerthox
  * @description Adds a button to collapse embeds & attachments.
@@ -47,7 +47,7 @@ WScript.Quit();
 
 'use strict';
 
-let meta = null;
+let meta;
 const getMeta = () => {
     if (meta) {
         return meta;
@@ -209,7 +209,9 @@ const classNames = /* @__PURE__ */ find((exports$1) => exports$1 instanceof Obje
 
 const Button = /* @__PURE__ */ byKeys(["Colors", "Link"], { entries: true });
 
-const Clickable = /* @__PURE__ */ bySource(["ignoreKeyPress:"], { entries: true });
+const Clickable = /* @__PURE__ */ bySource(["ignoreKeyPress:", "onKeyPress:"], {
+    entries: true,
+});
 
 const Embed = /* @__PURE__ */ byProtos(["renderSuppressButton"], { entries: true });
 
@@ -240,6 +242,14 @@ const TextInput = /* @__PURE__ */ bySource(["placeholder", "maxLength", "clearab
 
 const Text = /* @__PURE__ */ bySource(["lineClamp:", "variant:", "tabularNumbers:"], { entries: true });
 
+const EMPTY = Symbol();
+const useOnceRef = (init) => {
+    const ref = React.useRef(EMPTY);
+    if (ref.current === EMPTY) {
+        ref.current = init();
+    }
+    return ref;
+};
 const FCHook = ({ children: { type, props }, callback }) => {
     const result = type(props);
     return callback(result, props) ?? result;
@@ -287,6 +297,7 @@ class SettingsStore {
     listeners = new Set();
     constructor(defaults, onLoad) {
         this.defaults = defaults;
+        this.current = { ...defaults };
         this.onLoad = onLoad;
     }
     load() {
@@ -322,8 +333,8 @@ class SettingsStore {
     useCurrent() {
         return React.useSyncExternalStore(this.addListenerEffect, this.getCurrent);
     }
-    useSelector(selector, deps = null, compare = Object.is) {
-        const state = React.useRef(null);
+    useSelector(selector, deps, compare = Object.is) {
+        const state = useOnceRef(() => selector(this.current));
         const snapshot = React.useCallback(() => {
             const next = selector(this.current);
             if (!compare(state.current, next)) {
@@ -381,9 +392,9 @@ const createPlugin = (plugin) => (meta) => {
             log("Disabled");
         },
         getSettingsPanel: SettingsPanel
-            ? () => (React.createElement(SettingsContainer, { name: meta.name, onReset: Settings ? () => Settings.reset() : null },
+            ? () => (React.createElement(SettingsContainer, { name: meta.name, onReset: Settings ? () => Settings.reset() : undefined },
                 React.createElement(SettingsPanel, null)))
-            : null,
+            : undefined,
     };
 };
 
@@ -482,7 +493,7 @@ const Hider = ({ placeholders, type, children, id }) => {
 
 const MediaModule = demangle({
     MediaItem: bySource$1("getObscureReason", "isSingleMosaicItem"),
-}, null, true);
+}, undefined, true);
 const index = createPlugin({
     start() {
         cleanupOldEntries();
@@ -496,13 +507,13 @@ const index = createPlugin({
         }, { name: "Embed render" });
         after(MediaModule, "MediaItem", ({ args: [props], result }) => {
             const attachment = props.item.originalItem;
-            const placeholder = attachment.filename ?? new URL(attachment.url).hostname;
+            const placeholder = attachment.filename ?? new URL(attachment.url ?? "").hostname;
             return (React.createElement(Hider, { type: props.isSingleMosaicItem ? "mediaItemSingle"  : "mediaItem" , placeholders: [placeholder], id: attachment.url }, result));
         }, { name: "MediaItem render" });
         after(MessageFooter.prototype, "renderAttachments", ({ result }) => {
             for (const element of queryTreeAll(result, (node) => node?.props?.attachments)) {
                 hookFunctionComponent(element, (result, { attachments }) => {
-                    const placeholders = attachments.map(({ attachment }) => attachment.filename ?? new URL(attachment.url).hostname);
+                    const placeholders = attachments.map(({ attachment }) => attachment.filename ?? new URL(attachment.url ?? "").hostname);
                     const id = attachments[0]?.attachment?.url;
                     return (React.createElement(Hider, { type: "attachment" , placeholders: placeholders, id: id }, result));
                 });

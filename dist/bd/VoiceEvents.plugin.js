@@ -1,6 +1,6 @@
 /**
  * @name VoiceEvents
- * @version 2.8.3
+ * @version 2.8.4
  * @author Zerthox
  * @authorLink https://github.com/Zerthox
  * @description Adds TTS Event Notifications to your selected Voice Channel. TeamSpeak feeling.
@@ -47,7 +47,7 @@ WScript.Quit();
 
 'use strict';
 
-let meta = null;
+let meta;
 const getMeta = () => {
     if (meta) {
         return meta;
@@ -63,7 +63,6 @@ const setMeta = (newMeta) => {
 const load = (key) => BdApi.Data.load(getMeta().name, key);
 const save = (key, value) => BdApi.Data.save(getMeta().name, key, value);
 
-const checkObjectValues = (target) => target !== window && target instanceof Object && target.constructor?.prototype !== target;
 const byName$1 = (name) => {
     return (target) => (target?.displayName ?? target?.constructor?.displayName) === name;
 };
@@ -90,36 +89,6 @@ const bySource$1 = (...fragments) => {
 
 const alert = (title, content) => BdApi.UI.alert(title, content);
 const confirm = (title, content, options = {}) => BdApi.UI.showConfirmationModal(title, content, options);
-const mappedProxy = (target, mapping) => {
-    const map = new Map(Object.entries(mapping));
-    return new Proxy(target, {
-        get(target, prop) {
-            return target[map.get(prop) ?? prop];
-        },
-        set(target, prop, value) {
-            target[map.get(prop) ?? prop] = value;
-            return true;
-        },
-        deleteProperty(target, prop) {
-            delete target[map.get(prop) ?? prop];
-            map.delete(prop);
-            return true;
-        },
-        has(target, prop) {
-            return map.has(prop) || prop in target;
-        },
-        ownKeys() {
-            return [...map.keys(), ...Object.keys(target)];
-        },
-        getOwnPropertyDescriptor(target, prop) {
-            return Object.getOwnPropertyDescriptor(target, map.get(prop) ?? prop);
-        },
-        defineProperty(target, prop, attributes) {
-            Object.defineProperty(target, map.get(prop) ?? prop, attributes);
-            return true;
-        },
-    });
-};
 
 const find = (filter, { resolve = true, entries = false } = {}) => BdApi.Webpack.getModule(filter, {
     defaultExport: resolve,
@@ -128,20 +97,6 @@ const find = (filter, { resolve = true, entries = false } = {}) => BdApi.Webpack
 const byName = (name, options) => find(byName$1(name), options);
 const byKeys = (keys, options) => find(byKeys$1(...keys), options);
 const bySource = (contents, options) => find(bySource$1(...contents), options);
-const demangle = (mapping, required, proxy = false) => {
-    const req = Object.keys(mapping);
-    const found = find((target) => checkObjectValues(target)
-        && req.every((req) => Object.values(target).some((value) => mapping[req](value))));
-    return proxy
-        ? mappedProxy(found, Object.fromEntries(Object.entries(mapping).map(([key, filter]) => [
-            key,
-            Object.entries(found ?? {}).find(([, value]) => filter(value))?.[0],
-        ])))
-        : Object.fromEntries(Object.entries(mapping).map(([key, filter]) => [
-            key,
-            Object.values(found ?? {}).find((value) => filter(value)),
-        ]));
-};
 let controller = new AbortController();
 const abort = () => {
     controller.abort();
@@ -218,9 +173,8 @@ const margins = /* @__PURE__ */ byKeys(["marginBottom40", "marginTop4"]);
 
 const { Item: MenuItem} = BdApi.ContextMenu;
 
-const { SingleSelect } =  demangle({
-    Select: bySource$1('"Select"'),
-    SingleSelect: bySource$1('"SingleSelect"'),
+const SingleSelect =  bySource(['"single"', "isSelected", "maxVisibleItems", ".serialize"], {
+    entries: true,
 });
 
 const Slider = /* @__PURE__ */ bySource(["markerPositions:", "asValueChanges:"], {
@@ -233,6 +187,14 @@ const TextInput = /* @__PURE__ */ bySource(["placeholder", "maxLength", "clearab
 
 const Text = /* @__PURE__ */ bySource(["lineClamp:", "variant:", "tabularNumbers:"], { entries: true });
 
+const EMPTY = Symbol();
+const useOnceRef = (init) => {
+    const ref = React.useRef(EMPTY);
+    if (ref.current === EMPTY) {
+        ref.current = init();
+    }
+    return ref;
+};
 const queryTree = (node, predicate) => {
     const worklist = [node].flat();
     while (worklist.length !== 0) {
@@ -260,6 +222,7 @@ const queryTreeForParent = (tree, predicate) => {
                 return true;
             }
         }
+        return false;
     });
     return [parent, childIndex];
 };
@@ -280,6 +243,7 @@ class SettingsStore {
     listeners = new Set();
     constructor(defaults, onLoad) {
         this.defaults = defaults;
+        this.current = { ...defaults };
         this.onLoad = onLoad;
     }
     load() {
@@ -315,8 +279,8 @@ class SettingsStore {
     useCurrent() {
         return React.useSyncExternalStore(this.addListenerEffect, this.getCurrent);
     }
-    useSelector(selector, deps = null, compare = Object.is) {
-        const state = React.useRef(null);
+    useSelector(selector, deps, compare = Object.is) {
+        const state = useOnceRef(() => selector(this.current));
         const snapshot = React.useCallback(() => {
             const next = selector(this.current);
             if (!compare(state.current, next)) {
@@ -374,14 +338,14 @@ const createPlugin = (plugin) => (meta) => {
             log("Disabled");
         },
         getSettingsPanel: SettingsPanel
-            ? () => (React.createElement(SettingsContainer, { name: meta.name, onReset: Settings ? () => Settings.reset() : null },
+            ? () => (React.createElement(SettingsContainer, { name: meta.name, onReset: Settings ? () => Settings.reset() : undefined },
                 React.createElement(SettingsPanel, null)))
-            : null,
+            : undefined,
     };
 };
 
 const Settings = createSettings({
-    voice: null,
+    voice: "",
     volume: 100,
     speed: 1,
     filterNames: true,
@@ -436,7 +400,6 @@ const findDefaultVoice = () => {
             "Electron does not have any Speech Synthesis Voices available on your system.",
             React.createElement("br", null),
             "The plugin may be unable to function properly."));
-        return null;
     }
     else {
         return voices.find((voice) => voice.lang === "en-US") ?? voices[0];
@@ -451,17 +414,20 @@ const findCurrentVoice = () => {
     else {
         warn(`Voice "${uri}" not found, reverting to default`);
         const defaultVoice = findDefaultVoice();
-        Settings.update({ voice: defaultVoice.voiceURI });
+        Settings.update({ voice: defaultVoice?.voiceURI });
         return defaultVoice;
     }
 };
 const speak = (message) => {
-    const { volume, speed } = Settings.current;
-    const utterance = new SpeechSynthesisUtterance(message);
-    utterance.voice = findCurrentVoice();
-    utterance.volume = volume / 100;
-    utterance.rate = speed;
-    speechSynthesis.speak(utterance);
+    const voice = findCurrentVoice();
+    if (voice) {
+        const { volume, speed } = Settings.current;
+        const utterance = new SpeechSynthesisUtterance(message);
+        utterance.voice = voice;
+        utterance.volume = volume / 100;
+        utterance.rate = speed;
+        speechSynthesis.speak(utterance);
+    }
 };
 const processName = (name) => {
     return Settings.current.filterNames
@@ -633,9 +599,11 @@ const index = createPlugin({
     start() {
         setTimeout(() => {
             const voice = findDefaultVoice()?.voiceURI;
-            Settings.defaults.voice = voice;
-            if (!Settings.current.voice) {
-                Settings.update({ voice });
+            if (voice) {
+                Settings.defaults.voice = voice;
+                if (!Settings.current.voice) {
+                    Settings.update({ voice });
+                }
             }
         }, 1000);
         saveStates();
