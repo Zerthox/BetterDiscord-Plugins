@@ -2,7 +2,6 @@ import * as Filters from "./filters";
 import { mappedProxy } from "../utils/general";
 import type { Query, TypeOrPredicate } from "./filters";
 import type { Module, Exports } from "../require";
-import { Stories } from "../components/story";
 
 export type ModuleFilter = (exports: Exports, module?: Module, id?: string) => boolean;
 

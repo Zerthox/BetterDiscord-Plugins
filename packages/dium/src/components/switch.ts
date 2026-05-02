@@ -1,5 +1,4 @@
 import { Finder } from "../api";
-import { Stories } from "./story";
 
 export interface SwitchProps {
     id?: any;

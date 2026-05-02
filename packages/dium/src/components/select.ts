@@ -1,5 +1,4 @@
-import { Finder, Filters } from "../api";
-import { Stories } from "./story";
+import { Finder } from "../api";
 
 export interface SelectOption<T> {
     label: React.ReactNode;

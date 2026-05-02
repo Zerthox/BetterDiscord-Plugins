@@ -1,5 +1,4 @@
 import { Finder } from "../api";
-import { Stories } from "./story";
 
 export interface SliderProps extends Record<string, any> {
     initialValue?: number;

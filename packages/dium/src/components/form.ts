@@ -1,5 +1,4 @@
 import { Finder } from "../api";
-import { Stories } from "./story";
 
 export type FormNoticeType = "BRAND" | "CUSTOM" | "DANGER" | "PRIMARY" | "SUCCESS" | "WARNING";
 

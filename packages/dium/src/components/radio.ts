@@ -1,6 +1,5 @@
 import { HTMLAttributes } from "react";
 import { Filters, Finder } from "../api";
-import { Stories } from "./story";
 
 export interface RadioGroupOption<T> {
     name: React.ReactNode;
