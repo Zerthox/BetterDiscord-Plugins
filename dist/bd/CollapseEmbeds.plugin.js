@@ -1,6 +1,6 @@
 /**
  * @name CollapseEmbeds
- * @version 2.1.6
+ * @version 2.2.0
  * @author Zerthox
  * @authorLink https://github.com/Zerthox
  * @description Adds a button to collapse embeds & attachments.
@@ -64,6 +64,17 @@ const load = (key) => BdApi.Data.load(getMeta().name, key);
 const save = (key, value) => BdApi.Data.save(getMeta().name, key, value);
 
 const checkObjectValues = (target) => target !== window && target instanceof Object && target.constructor?.prototype !== target;
+const byEntry = (filter, every = false) => {
+    return ((target, ...args) => {
+        if (checkObjectValues(target)) {
+            const values = Object.values(target);
+            return values.length > 0 && values[every ? "every" : "some"]((value) => filter(value, ...args));
+        }
+        else {
+            return false;
+        }
+    });
+};
 const byKeys$1 = (...keys) => {
     return (target) => target instanceof Object && keys.every((key) => key in target);
 };
@@ -91,36 +102,6 @@ const bySource$1 = (...fragments) => {
 };
 
 const confirm = (title, content, options = {}) => BdApi.UI.showConfirmationModal(title, content, options);
-const mappedProxy = (target, mapping) => {
-    const map = new Map(Object.entries(mapping));
-    return new Proxy(target, {
-        get(target, prop) {
-            return target[map.get(prop) ?? prop];
-        },
-        set(target, prop, value) {
-            target[map.get(prop) ?? prop] = value;
-            return true;
-        },
-        deleteProperty(target, prop) {
-            delete target[map.get(prop) ?? prop];
-            map.delete(prop);
-            return true;
-        },
-        has(target, prop) {
-            return map.has(prop) || prop in target;
-        },
-        ownKeys() {
-            return [...map.keys(), ...Object.keys(target)];
-        },
-        getOwnPropertyDescriptor(target, prop) {
-            return Object.getOwnPropertyDescriptor(target, map.get(prop) ?? prop);
-        },
-        defineProperty(target, prop, attributes) {
-            Object.defineProperty(target, map.get(prop) ?? prop, attributes);
-            return true;
-        },
-    });
-};
 
 const find = (filter, { resolve = true, entries = false } = {}) => BdApi.Webpack.getModule(filter, {
     defaultExport: resolve,
@@ -129,21 +110,23 @@ const find = (filter, { resolve = true, entries = false } = {}) => BdApi.Webpack
 const byKeys = (keys, options) => find(byKeys$1(...keys), options);
 const byProtos = (protos, options) => find(byProtos$1(...protos), options);
 const bySource = (contents, options) => find(bySource$1(...contents), options);
-const demangle = (mapping, required, proxy = false) => {
-    const req = Object.keys(mapping);
-    const found = find((target) => checkObjectValues(target)
-        && req.every((req) => Object.values(target).some((value) => mapping[req](value))));
-    return proxy
-        ? mappedProxy(found, Object.fromEntries(Object.entries(mapping).map(([key, filter]) => [
-            key,
-            Object.entries(found ?? {}).find(([, value]) => filter(value))?.[0],
-        ])))
-        : Object.fromEntries(Object.entries(mapping).map(([key, filter]) => [
-            key,
-            Object.values(found ?? {}).find((value) => filter(value)),
-        ]));
-};
+const resolveKey = (target, filter) => [
+    target,
+    (target ? Object.entries(target).find(([, value]) => filter(value))?.[0] : null),
+];
 let controller = new AbortController();
+const waitFor = (filter, { resolve = true, entries = false } = {}) => BdApi.Webpack.waitForModule(filter, {
+    signal: controller.signal,
+    defaultExport: resolve,
+    searchExports: entries,
+});
+const waitForChecked = async (filter, options = {}, callback) => {
+    const signal = controller.signal;
+    const result = await waitFor(filter, options);
+    if (!signal.aborted) {
+        return callback(result);
+    }
+};
 const abort = () => {
     controller.abort();
     controller = new AbortController();
@@ -234,9 +217,8 @@ const IconArrow = /* @__PURE__ */ bySource(['d:"M5.3 9.'], {
 
 const margins = /* @__PURE__ */ byKeys(["marginBottom40", "marginTop4"]);
 
-const MessageFooter = /* @__PURE__ */ byProtos(["renderRemoveAttachmentConfirmModal"], {
-    entries: true,
-});
+const MediaItemFilter =  bySource$1("getObscureReason", "isSingleMosaicItem");
+const MessageFooterFilter =  byProtos$1("renderRemoveAttachmentConfirmModal");
 
 const TextInput = /* @__PURE__ */ bySource(["placeholder", "maxLength", "clearable"], { entries: true });
 
@@ -491,9 +473,6 @@ const Hider = ({ placeholders, type, children, id }) => {
             React.createElement(IconArrow, { className: classNames(styles.icon, shown ? styles.open : null) }))));
 };
 
-const MediaModule = demangle({
-    MediaItem: bySource$1("getObscureReason", "isSingleMosaicItem"),
-}, undefined, true);
 const index = createPlugin({
     start() {
         cleanupOldEntries();
@@ -505,20 +484,25 @@ const index = createPlugin({
                 ?? (embed.url ? new URL(embed.url).hostname : "Embed");
             return (React.createElement(Hider, { type: "embed" , placeholders: [placeholder], id: embed.url }, result));
         }, { name: "Embed render" });
-        after(MediaModule, "MediaItem", ({ args: [props], result }) => {
-            const attachment = props.item.originalItem;
-            const placeholder = attachment.filename ?? new URL(attachment.url ?? "").hostname;
-            return (React.createElement(Hider, { type: props.isSingleMosaicItem ? "mediaItemSingle"  : "mediaItem" , placeholders: [placeholder], id: attachment.url }, result));
-        }, { name: "MediaItem render" });
-        after(MessageFooter.prototype, "renderAttachments", ({ result }) => {
-            for (const element of queryTreeAll(result, (node) => node?.props?.attachments)) {
-                hookFunctionComponent(element, (result, { attachments }) => {
-                    const placeholders = attachments.map(({ attachment }) => attachment.filename ?? new URL(attachment.url ?? "").hostname);
-                    const id = attachments[0]?.attachment?.url;
-                    return (React.createElement(Hider, { type: "attachment" , placeholders: placeholders, id: id }, result));
-                });
-            }
-        }, { name: "MessageFooter renderAttachments" });
+        waitForChecked(byEntry(MediaItemFilter), {}, (mediaModule) => {
+            const MediaItem = resolveKey(mediaModule, MediaItemFilter);
+            after(...MediaItem, ({ args: [props], result }) => {
+                const attachment = props.item.originalItem;
+                const placeholder = attachment.filename ?? new URL(attachment.url ?? "").hostname;
+                return (React.createElement(Hider, { type: props.isSingleMosaicItem ? "mediaItemSingle"  : "mediaItem" , placeholders: [placeholder], id: attachment.url }, result));
+            }, { name: "MediaItem render" });
+        });
+        waitForChecked(MessageFooterFilter, { entries: true }, (MessageFooter) => {
+            after(MessageFooter.prototype, "renderAttachments", ({ result }) => {
+                for (const element of queryTreeAll(result, (node) => node?.props?.attachments)) {
+                    hookFunctionComponent(element, (result, { attachments }) => {
+                        const placeholders = attachments.map(({ attachment }) => attachment.filename ?? new URL(attachment.url ?? "").hostname);
+                        const id = attachments[0]?.attachment?.url;
+                        return (React.createElement(Hider, { type: "attachment" , placeholders: placeholders, id: id }, result));
+                    });
+                }
+            }, { name: "MessageFooter renderAttachments" });
+        });
     },
     stop() {
         cleanupOldEntries();

@@ -1,4 +1,4 @@
-import { Finder } from "../api";
+import { Filters } from "@dium/api";
 import { Attachment, Channel, Message } from "../modules";
 
 export interface MessageFooterProps {
@@ -34,9 +34,7 @@ export interface MessageFooter extends React.ComponentClass<MessageFooterProps, 
     };
 }
 
-export const MessageFooter: MessageFooter = /* @__PURE__ */ Finder.byProtos(["renderRemoveAttachmentConfirmModal"], {
-    entries: true,
-});
+export const MediaItemFilter: Filters.Filter = /* @__PURE */ Filters.bySource("getObscureReason", "isSingleMosaicItem");
 
 export interface MediaItemProps extends Record<string, any> {
     mediaLayoutType: string;
@@ -74,7 +72,4 @@ export interface MediaItemProps extends Record<string, any> {
     gifFavoriteButton(): any;
 }
 
-export const MediaItem: React.FunctionComponent<MediaItemProps> = /* @__PURE__ */ Finder.bySource([
-    "getObscureReason",
-    "isSingleMosaicItem",
-]);
+export const MessageFooterFilter: Filters.Filter = /* @__PURE */ Filters.byProtos("renderRemoveAttachmentConfirmModal");
