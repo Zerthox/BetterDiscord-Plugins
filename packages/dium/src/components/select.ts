@@ -1,4 +1,4 @@
-import { Finder } from "../api";
+import { Filters } from "../api";
 
 export interface SelectOption<T> {
     label: React.ReactNode;
@@ -44,9 +44,9 @@ export interface SingleSelectProps<T, O extends SelectOption<T>> extends Omit<
 
 export type SingleSelect = <T, O extends SelectOption<T>>(props: SingleSelectProps<T, O>) => React.JSX.Element;
 
-export const SingleSelect: SingleSelect = /* @__PURE */ Finder.bySource(
-    ['"single"', "isSelected", "maxVisibleItems", ".serialize"],
-    {
-        entries: true,
-    },
+export const SingleSelectFilter: Filters.Filter = /* @__PURE */ Filters.bySource(
+    '"single"',
+    "isSelected",
+    "maxVisibleItems",
+    ".serialize",
 );

@@ -1,6 +1,6 @@
 /**
  * @name VoiceEvents
- * @version 2.8.4
+ * @version 2.8.5
  * @author Zerthox
  * @authorLink https://github.com/Zerthox
  * @description Adds TTS Event Notifications to your selected Voice Channel. TeamSpeak feeling.
@@ -157,6 +157,8 @@ const classNames = /* @__PURE__ */ find((exports$1) => exports$1 instanceof Obje
 
 const UserStore = /* @__PURE__ */ byName("UserStore");
 
+const { DropdownInput} = BdApi.Components;
+
 const Button = /* @__PURE__ */ byKeys(["Colors", "Link"], { entries: true });
 
 const Flex = /* @__PURE__ */ byKeys(["Child", "Justify", "Align"], { entries: true });
@@ -172,10 +174,6 @@ const FormDivider = /* @__PURE__ */ bySource(["marginTop:", (source) => /{classN
 const margins = /* @__PURE__ */ byKeys(["marginBottom40", "marginTop4"]);
 
 const { Item: MenuItem} = BdApi.ContextMenu;
-
-const SingleSelect =  bySource(['"single"', "isSelected", "maxVisibleItems", ".serialize"], {
-    entries: true,
-});
 
 const Slider = /* @__PURE__ */ bySource(["markerPositions:", "asValueChanges:"], {
     entries: true,
@@ -477,11 +475,10 @@ const SettingsPanel = () => {
     const [{ voice, volume, speed, filterNames, filterBots, filterStages, ...settings }, defaults, setSettings] = Settings.useStateWithDefaults();
     return (React.createElement(React.Fragment, null,
         React.createElement(FormItem, { className: margins.marginBottom20, title: "TTS Voice" },
-            React.createElement(SingleSelect, { value: voice, options: speechSynthesis.getVoices().map(({ name, lang, voiceURI }) => ({
+            React.createElement(DropdownInput, { value: voice, options: speechSynthesis.getVoices().map(({ name, lang, voiceURI }) => ({
                     value: voiceURI,
-                    label: name,
-                    lang,
-                })), onChange: (value) => setSettings({ voice: value }), renderOptionLabel: ({ label, lang }) => React.createElement(VoiceLabel, { name: label, lang: lang }), renderOptionValue: ([{ label, lang }]) => React.createElement(VoiceLabel, { name: label, lang: lang }) })),
+                    label: React.createElement(VoiceLabel, { name: name, lang: lang }),
+                })), onChange: (value) => setSettings({ voice: value }) })),
         React.createElement(FormItem, { className: margins.marginBottom20, title: "TTS Volume" },
             React.createElement(Slider, { initialValue: volume, maxValue: 100, minValue: 0, asValueChanges: (value) => setSettings({ volume: value }) })),
         React.createElement(FormItem, { className: margins.marginBottom20, title: "TTS Speed" },

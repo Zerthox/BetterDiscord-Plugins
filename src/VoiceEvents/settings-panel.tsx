@@ -10,9 +10,9 @@ import {
     FormItem,
     FormSwitch,
     FormDivider,
-    SingleSelect,
     margins,
 } from "@dium/components";
+import { DropdownInput } from "@dium/components/betterdiscord";
 import { Settings, NotificationType } from "./settings";
 import { speak } from "./voice";
 
@@ -49,16 +49,13 @@ export const SettingsPanel = (): React.JSX.Element => {
     return (
         <>
             <FormItem className={margins.marginBottom20} title="TTS Voice">
-                <SingleSelect
+                <DropdownInput
                     value={voice}
                     options={speechSynthesis.getVoices().map(({ name, lang, voiceURI }) => ({
                         value: voiceURI,
-                        label: name,
-                        lang,
+                        label: <VoiceLabel name={name} lang={lang} />,
                     }))}
                     onChange={(value) => setSettings({ voice: value })}
-                    renderOptionLabel={({ label, lang }) => <VoiceLabel name={label} lang={lang} />}
-                    renderOptionValue={([{ label, lang }]) => <VoiceLabel name={label} lang={lang} />}
                 />
             </FormItem>
             <FormItem className={margins.marginBottom20} title="TTS Volume">
