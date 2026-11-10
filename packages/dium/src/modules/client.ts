@@ -101,14 +101,14 @@ export interface UserSettingsProtoStore extends Store {
     wasMostRecentUpdateFromServer: any;
 }
 
-export const UserSettingsProtoStore: UserSettingsProtoStore = /* @__PURE__ */ Finder.byName("UserSettingsProtoStore");
+export const UserSettingsProtoStore: UserSettingsProtoStore = /* @__PURE__ */ Finder.byStore("UserSettingsProtoStore");
 
 export interface LocaleStore extends Store {
     get locale(): any;
     __getLocalVars(): any;
 }
 
-export const LocaleStore: LocaleStore = /* @__PURE__ */ Finder.byName("LocaleStore");
+export const LocaleStore: LocaleStore = /* @__PURE__ */ Finder.byStore("LocaleStore");
 
 export interface ThemeStore extends Store {
     get theme(): any;
@@ -116,4 +116,4 @@ export interface ThemeStore extends Store {
     __getLocalVars(): any;
 }
 
-export const ThemeStore: ThemeStore = /* @__PURE__ */ Finder.byName("ThemeStore");
+export const ThemeStore: ThemeStore = /* @__PURE__ */ Finder.byStore("ThemeStore");

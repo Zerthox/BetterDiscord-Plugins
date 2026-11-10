@@ -94,7 +94,7 @@ export interface UserStore extends Store {
     __getLocalVars(): any;
 }
 
-export const UserStore: UserStore = /* @__PURE__ */ Finder.byName("UserStore");
+export const UserStore: UserStore = /* @__PURE__ */ Finder.byStore("UserStore");
 
 export const enum StatusTypes {
     DND = "dnd",
@@ -131,7 +131,7 @@ export interface PresenceStore extends Store {
     __getLocalVars(): any;
 }
 
-export const PresenceStore: PresenceStore = /* @__PURE__ */ Finder.byName("PresenceStore");
+export const PresenceStore: PresenceStore = /* @__PURE__ */ Finder.byStore("PresenceStore");
 
 export const enum RelationshipTypes {
     NONE = 0,
@@ -173,4 +173,4 @@ export interface RelationshipStore extends Store {
     isUnfilteredPendingIncoming(message: Message): boolean;
 }
 
-export const RelationshipStore: RelationshipStore = /* @__PURE__ */ Finder.byName("RelationshipStore");
+export const RelationshipStore: RelationshipStore = /* @__PURE__ */ Finder.byStore("RelationshipStore");

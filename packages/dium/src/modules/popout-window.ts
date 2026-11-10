@@ -32,4 +32,4 @@ export interface PopoutWindowStore extends Store {
     __getLocalVars(): any;
 }
 
-export const PopoutWindowStore: PopoutWindowStore = /* @__PURE__ */ Finder.byName("PopoutWindowStore");
+export const PopoutWindowStore: PopoutWindowStore = /* @__PURE__ */ Finder.byStore("PopoutWindowStore");

@@ -182,7 +182,7 @@ export interface Attachment {
     spoiler?: boolean;
 }
 
-export const MessageStore: Untyped<Store> = /* @__PURE__ */ Finder.byName("MessageStore");
+export const MessageStore: Untyped<Store> = /* @__PURE__ */ Finder.byStore("MessageStore");
 
 export interface MessageActions extends ActionModule {
     receiveMessage(e: any, t: any): any;
