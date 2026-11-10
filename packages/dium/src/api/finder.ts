@@ -32,6 +32,10 @@ export const byEntries = (...filters: Filter[]): any =>
 /** Finds a module using the name of its export.  */
 export const byName = (name: string, options?: FindOptions): any => find(Filters.byName(name), options);
 
+/** Finds a Flux store using its name. */
+export const byStore = (name: string): any =>
+    BdApi.Webpack.getStore(name) ?? find(Filters.byName(name), { entries: true });
+
 /** Finds a module using property names of its export. */
 // TODO: using spread here turns an accidentally passed string into a single character array
 export const byKeys = (keys: string[], options?: FindOptions): any => find(Filters.byKeys(...keys), options);

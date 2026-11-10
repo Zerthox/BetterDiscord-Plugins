@@ -131,8 +131,9 @@ export const SettingsPanel = (): React.JSX.Element => {
                                     placeholder={defaults.notifs[key].message}
                                     onChange={(value: string) => {
                                         const { notifs } = settings;
-                                        notifs[key].message = value;
-                                        setSettings({ notifs });
+                                        setSettings({
+                                            notifs: { ...notifs, [key]: { ...notifs[key], message: value } },
+                                        });
                                     }}
                                 />
                             </div>
@@ -143,8 +144,9 @@ export const SettingsPanel = (): React.JSX.Element => {
                                     checked={settings.notifs[key].enabled}
                                     onChange={(value: boolean) => {
                                         const { notifs } = settings;
-                                        notifs[key].enabled = value;
-                                        setSettings({ notifs });
+                                        setSettings({
+                                            notifs: { ...notifs, [key]: { ...notifs[key], enabled: value } },
+                                        });
                                     }}
                                 />
                             </div>

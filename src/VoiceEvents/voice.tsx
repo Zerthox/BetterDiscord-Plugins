@@ -81,7 +81,7 @@ export const notify = (type: NotificationType, userId: string, channelId: string
     // speak message
     const message = notif.message
         .replaceAll("$username", processName(user.username))
-        .replaceAll("$displayname", processName(user.username))
+        .replaceAll("$displayname", processName(displayName))
         .replaceAll("$user", processName(nick))
         .replaceAll("$channel", processName(channelName));
     speak(message);

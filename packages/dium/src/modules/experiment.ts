@@ -98,4 +98,4 @@ export interface ExperimentStore extends Store {
     __getLocalVars(): any;
 }
 
-export const ExperimentStore: ExperimentStore = /* @__PURE__ */ Finder.byName("ExperimentStore");
+export const ExperimentStore: ExperimentStore = /* @__PURE__ */ Finder.byStore("ExperimentStore");

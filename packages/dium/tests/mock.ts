@@ -8,6 +8,7 @@ import { DefaultEventPriority, LegacyRoot } from "react-reconciler/constants";
     React,
     Webpack: {
         getModule: () => null,
+        getStore: () => null,
     },
     Plugins: {
         get: () => ({}),

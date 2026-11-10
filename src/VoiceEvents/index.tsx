@@ -44,7 +44,7 @@ const voiceStateHandler = (action: VoiceStateUpdatesAction) => {
                 // user is self
                 if (!channelId) {
                     // no channel is leave
-                    notify("leaveSelf", userId, prev.channelId);
+                    notify("leaveSelf", userId, prev?.channelId);
                     saveStates();
                 } else if (!prev) {
                     // no previous state is join
@@ -60,7 +60,7 @@ const voiceStateHandler = (action: VoiceStateUpdatesAction) => {
                 const selectedChannelId = SelectedChannelStore.getVoiceChannelId();
                 if (!selectedChannelId) {
                     // user is not in voice
-                    return;
+                    continue;
                 }
 
                 if (!prev && channelId === selectedChannelId) {

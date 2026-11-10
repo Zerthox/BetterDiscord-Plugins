@@ -36,7 +36,7 @@ export interface MediaEngineStore extends Untyped<Store> {
     getVideoDeviceId(): string;
 }
 
-export const MediaEngineStore: MediaEngineStore = /* @__PURE__ */ Finder.byName("MediaEngineStore");
+export const MediaEngineStore: MediaEngineStore = /* @__PURE__ */ Finder.byStore("MediaEngineStore");
 
 export interface MediaEngineDesktopSource {
     sourceId?: any;

@@ -112,7 +112,7 @@ export interface ChannelStore extends Store {
     __getLocalVars(): any;
 }
 
-export const ChannelStore: ChannelStore = /* @__PURE__ */ Finder.byName("ChannelStore");
+export const ChannelStore: ChannelStore = /* @__PURE__ */ Finder.byStore("ChannelStore");
 
 export const ChannelActions: ActionModule = /* @__PURE__ */ Finder.byKeys(["selectChannel"], { entries: true });
 
@@ -127,7 +127,7 @@ export interface SelectedChannelStore extends Store {
     __getLocalVars(): any;
 }
 
-export const SelectedChannelStore: SelectedChannelStore = /* @__PURE__ */ Finder.byName("SelectedChannelStore");
+export const SelectedChannelStore: SelectedChannelStore = /* @__PURE__ */ Finder.byStore("SelectedChannelStore");
 
 export interface VoiceState {
     channelId: Snowflake;
@@ -165,4 +165,4 @@ export interface VoiceStateStore extends Store {
     __getLocalVars(): any;
 }
 
-export const VoiceStateStore: VoiceStateStore = /* @__PURE__ */ Finder.byName("VoiceStateStore");
+export const VoiceStateStore: VoiceStateStore = /* @__PURE__ */ Finder.byStore("VoiceStateStore");

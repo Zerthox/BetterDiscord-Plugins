@@ -114,7 +114,7 @@ export interface GuildStore extends Store {
     __getLocalVars(): any;
 }
 
-export const GuildStore: GuildStore = /* @__PURE__ */ Finder.byName("GuildStore");
+export const GuildStore: GuildStore = /* @__PURE__ */ Finder.byStore("GuildStore");
 
 export const GuildActions: ActionModule = /* @__PURE__ */ Finder.byKeys(["requestMembers"]);
 
@@ -133,7 +133,7 @@ export interface GuildMemberStore extends Store {
     __getLocalVars(): any;
 }
 
-export const GuildMemberStore: GuildMemberStore = /* @__PURE__ */ Finder.byName("GuildMemberStore");
+export const GuildMemberStore: GuildMemberStore = /* @__PURE__ */ Finder.byStore("GuildMemberStore");
 
 export interface GuildsTreeNodeBase {
     id: number | string;
@@ -199,7 +199,7 @@ export interface SortedGuildStore extends SnapshotStore {
     getCompatibleGuildFolders(): GuildFolder[];
 }
 
-export const SortedGuildStore: SortedGuildStore = /* @__PURE__ */ Finder.byName("SortedGuildStore");
+export const SortedGuildStore: SortedGuildStore = /* @__PURE__ */ Finder.byStore("SortedGuildStore");
 
 export interface DeprecatedGuildFolder {
     index: number;
@@ -225,4 +225,4 @@ export interface ExpandedGuildFolderStore extends Store {
 }
 
 export const ExpandedGuildFolderStore: ExpandedGuildFolderStore =
-    /* @__PURE__ */ Finder.byName("ExpandedGuildFolderStore");
+    /* @__PURE__ */ Finder.byStore("ExpandedGuildFolderStore");
