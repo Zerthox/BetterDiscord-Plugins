@@ -1,4 +1,6 @@
 import { Finder } from "../api";
+import { React } from "../modules";
+import { Switch } from "./switch";
 
 export type FormNoticeType = "BRAND" | "CUSTOM" | "DANGER" | "PRIMARY" | "SUCCESS" | "WARNING";
 
@@ -55,6 +57,13 @@ export interface FormTitleProps {
 
 export type FormTitle = React.FunctionComponent<FormTitleProps>;
 
+export interface FormControlRenderProps {
+    controlId: string;
+    labelId: string;
+    describedById: string;
+    errorMessageId: string;
+}
+
 export interface FormControlProps {
     id?: any;
     errorMessage?: string;
@@ -65,7 +74,7 @@ export interface FormControlProps {
     hideLabel?: boolean;
     required?: boolean;
     disabled?: boolean;
-    children?: React.ReactNode;
+    children?: React.ReactNode | ((props: FormControlRenderProps) => React.ReactNode);
     role?: string;
     layout?: string;
     layoutConfig?: any;
@@ -76,6 +85,13 @@ export interface FormControlProps {
     trailingAuxiliaryContent?: any;
     ref?: any;
 }
+
+export type FormControl = React.FunctionComponent<FormControlProps>;
+
+export const FormControl: FormControl = /* @__PURE__ */ Finder.bySource(
+    ["interactiveLabel:", "auxiliaryContentPosition:"],
+    { entries: true },
+);
 
 export interface FormSwitchProps extends Omit<
     FormControlProps,
@@ -90,9 +106,34 @@ export interface FormSwitchProps extends Omit<
 
 export type FormSwitch = React.FunctionComponent<FormSwitchProps>;
 
-export const FormSwitch: FormSwitch = /* @__PURE__ */ Finder.bySource(["checked:", "onChange:", "layout:"], {
-    entries: true,
-});
+/**
+ * Discord no longer ships a standalone form switch component.
+ * Compose it from the generic form control and the bare switch instead.
+ */
+export const FormSwitch: FormSwitch = ({
+    checked,
+    onChange,
+    displayOnly,
+    hasIcon,
+    focusProp,
+    layout = "horizontal",
+    ...props
+}: FormSwitchProps): React.JSX.Element => (
+    <FormControl {...props} layout={layout}>
+        {({ controlId, labelId, describedById }) => (
+            <Switch
+                id={controlId}
+                checked={checked}
+                onChange={onChange}
+                displayOnly={displayOnly}
+                hasIcon={hasIcon}
+                focusProps={focusProp}
+                labelledBy={labelId}
+                describedBy={describedById}
+            />
+        )}
+    </FormControl>
+);
 
 export interface FormDividerProps {
     className?: string;

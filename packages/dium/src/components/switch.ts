@@ -8,6 +8,10 @@ export interface SwitchProps {
     className?: string;
     focusProps?: any;
     innerRef?: any;
+    displayOnly?: boolean;
+    hasIcon?: boolean;
+    labelledBy?: string;
+    describedBy?: string;
 }
 
 export const Switch: React.FunctionComponent<SwitchProps> = /* @__PURE__ */ Finder.bySource(
